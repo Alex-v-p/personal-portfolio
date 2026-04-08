@@ -41,3 +41,8 @@ build/
 
 # Misc
 .ipynb_checkpoints/
+
+
+
+.nx/cache
+.nx/workspace-data
