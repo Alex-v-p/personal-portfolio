@@ -1,0 +1,78 @@
+services:
+  web:
+    build:
+      context: ./apps/web-service
+      dockerfile: Dockerfile
+    container_name: portfolio_web
+    ports:
+      - "${WEB_PORT:-4200}:4200"
+    volumes:
+      - ./apps/web-service:/app
+      - /app/node_modules
+    depends_on:
+      - portfolio-api
+      - assistant
+
+  portfolio-api:
+    build:
+      context: ./apps/portfolio-api-service
+      dockerfile: Dockerfile
+    container_name: portfolio_api
+    ports:
+      - "${PORTFOLIO_API_PORT:-8001}:8001"
+    env_file:
+      - .env
+    volumes:
+      - ./apps/portfolio-api-service:/app
+    depends_on:
+      - postgres
+      - redis
+
+  assistant:
+    build:
+      context: ./apps/assistant-service
+      dockerfile: Dockerfile
+    container_name: assistant_api
+    ports:
+      - "${ASSISTANT_API_PORT:-8002}:8002"
+    env_file:
+      - .env
+    volumes:
+      - ./apps/assistant-service:/app
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: portfolio_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-portfolio_platform}
+      POSTGRES_USER: ${POSTGRES_USER:-portfolio_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-portfolio_pass}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: portfolio_redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: portfolio_nginx
+    profiles: ["proxy"]
+    ports:
+      - "8080:80"
+    volumes:
+      - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - web
+      - portfolio-api
+      - assistant
+
+volumes:
+  postgres_data:
