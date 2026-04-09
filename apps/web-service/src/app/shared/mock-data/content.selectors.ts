@@ -1,5 +1,5 @@
 import { BlogPostTag } from '../models/blog-post-tag.model';
-import { BlogPost, BlogPostSection } from '../models/blog-post.model';
+import { BlogPost } from '../models/blog-post.model';
 import { ContactMethod } from '../models/contact-method.model';
 import { Experience } from '../models/experience.model';
 import { NavigationItem } from '../models/navigation-item.model';
@@ -87,8 +87,6 @@ export interface BlogPostRecord {
   seoTitle?: string;
   seoDescription?: string;
   category: string;
-  intro: string[];
-  sections: BlogPostSection[];
 }
 
 const formatDateRange = (startDate: string, endDate?: string | null, isCurrent = false): string => {
@@ -306,9 +304,7 @@ export const buildBlogPostViews = (
     status: record.status,
     contentMarkdown: record.contentMarkdown,
     seoTitle: record.seoTitle,
-    seoDescription: record.seoDescription,
-    intro: record.intro,
-    sections: record.sections
+    seoDescription: record.seoDescription
   };
 });
 
