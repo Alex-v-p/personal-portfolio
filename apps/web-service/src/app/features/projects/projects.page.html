@@ -1,0 +1,103 @@
+<div class="mx-auto max-w-5xl space-y-8">
+  <p class="text-sm text-stone-600">Home &gt; Projects</p>
+
+  <section class="rounded-[2rem] bg-stone-200/70 p-6 sm:p-8 lg:p-10">
+    <div class="space-y-8">
+      <header class="space-y-4 text-center">
+        <h1 class="text-4xl font-semibold tracking-tight text-stone-950">Featured Projects</h1>
+        <div class="mx-auto h-3 w-full max-w-xl bg-black"></div>
+        <p class="mx-auto max-w-xl text-sm leading-6 text-stone-600">
+          Insights to help you do what you do better, faster and more profitably. Sharing thoughts on development, engineering, and shipped work.
+        </p>
+      </header>
+
+      <div class="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
+        <label class="block">
+          <span class="sr-only">Search projects</span>
+          <input
+            type="text"
+            placeholder="Search"
+            class="w-full rounded-none border border-stone-300 bg-white px-4 py-3 text-sm text-stone-700 outline-none transition focus:border-stone-500"
+          />
+        </label>
+
+        <div class="flex flex-wrap gap-3 justify-self-start lg:justify-self-end">
+          <button
+            *ngFor="let filter of filters"
+            type="button"
+            class="min-w-24 border border-stone-600 bg-stone-600 px-4 py-3 text-sm font-medium text-white"
+          >
+            {{ filter }}
+          </button>
+        </div>
+      </div>
+
+      <p class="text-center text-sm text-stone-600">Showing 6 of 14 articles</p>
+
+      <div class="grid gap-5 lg:grid-cols-[1.3fr_auto] lg:items-center">
+        <app-ui-card [featured]="true" padding="lg">
+          <div class="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+            <div class="relative min-h-72 rounded-sm bg-stone-300">
+              <app-ui-chip tone="accent" class="absolute left-3 top-3">{{ featuredProject.badge }}</app-ui-chip>
+              <span class="absolute bottom-3 left-3 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-white text-xl">◔</span>
+            </div>
+
+            <div class="space-y-4">
+              <div class="flex flex-wrap items-center gap-3 text-xs text-stone-500">
+                <span>{{ featuredProject.source }}</span>
+                <span>{{ featuredProject.duration }}</span>
+                <app-ui-chip>{{ featuredProject.status }}</app-ui-chip>
+              </div>
+
+              <div class="space-y-2">
+                <h2 class="text-3xl font-semibold tracking-tight text-stone-950">{{ featuredProject.title }}</h2>
+                <p class="text-sm leading-6 text-stone-600">{{ featuredProject.excerpt }}</p>
+              </div>
+
+              <div class="flex flex-wrap gap-2">
+                <app-ui-chip *ngFor="let tag of featuredProject.tags">{{ tag }}</app-ui-chip>
+              </div>
+
+              <p class="text-sm leading-6 text-stone-600">{{ featuredProject.details }}</p>
+              <app-ui-link-button routerLink="/projects" appearance="ghost">Read More →</app-ui-link-button>
+            </div>
+          </div>
+        </app-ui-card>
+
+        <p class="text-sm text-stone-700">{{ featuredProject.linkText }}</p>
+      </div>
+
+      <section class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <app-ui-card *ngFor="let project of projects">
+          <div class="space-y-4">
+            <div class="h-40 rounded-sm bg-stone-300"></div>
+
+            <div class="flex gap-3 text-xs text-stone-500">
+              <span>{{ project.company }}</span>
+              <span>{{ project.duration }}</span>
+            </div>
+
+            <div class="space-y-2">
+              <h3 class="text-2xl font-semibold tracking-tight text-stone-950">{{ project.title }}</h3>
+              <p class="text-sm leading-6 text-stone-600">{{ project.excerpt }}</p>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+              <app-ui-chip *ngFor="let tag of project.tags">{{ tag }}</app-ui-chip>
+            </div>
+
+            <app-ui-link-button [routerLink]="project.slug" appearance="ghost">View Details →</app-ui-link-button>
+          </div>
+        </app-ui-card>
+      </section>
+
+      <div class="flex items-center justify-center gap-3 text-sm text-stone-700">
+        <span>Previous</span>
+        <div class="flex gap-2">
+          <span *ngFor="let dot of pagerDots" class="h-5 w-5 bg-stone-300"></span>
+        </div>
+        <span>Next</span>
+      </div>
+    </div>
+  </section>
+</div>

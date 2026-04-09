@@ -1,0 +1,73 @@
+<div class="min-h-screen bg-stone-100 text-stone-900">
+  <header class="sticky top-0 z-30 px-4 pt-4 sm:px-6 lg:px-8">
+    <div class="mx-auto flex w-full max-w-6xl justify-center">
+      <div class="inline-flex flex-wrap items-center justify-center gap-2 rounded-full border border-stone-300 bg-white/90 px-3 py-2 shadow-[0_16px_40px_rgba(40,31,20,0.08)] backdrop-blur">
+        <a
+          *ngFor="let item of quickLinks"
+          class="rounded-full px-5 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-200 hover:text-stone-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400"
+          [routerLink]="item.path"
+          routerLinkActive="bg-stone-200 text-stone-950"
+          [routerLinkActiveOptions]="{ exact: item.path === '/' }"
+        >
+          {{ item.label }}
+        </a>
+
+        <div class="ml-1 hidden items-center gap-3 rounded-full bg-stone-200 px-4 py-2 text-sm text-stone-700 sm:inline-flex">
+          <span class="h-5 w-5 rounded-sm bg-stone-400"></span>
+          <span>Stage 1</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="px-4 py-10 sm:px-6 md:py-12 lg:px-8 lg:py-14">
+    <div class="mx-auto w-full max-w-6xl">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+
+  <footer class="mt-16 border-t border-stone-300 bg-stone-200/70 px-4 py-10 sm:px-6 lg:px-8">
+    <div class="mx-auto grid w-full max-w-6xl gap-8 md:grid-cols-[1.35fr_0.8fr_0.8fr_1fr]">
+      <section class="space-y-3">
+        <div class="flex items-center gap-3">
+          <span class="h-10 w-10 rounded-md bg-stone-500"></span>
+          <div>
+            <p class="text-sm font-semibold text-stone-950">Your Name</p>
+            <p class="text-xs text-stone-600">Software engineer portfolio</p>
+          </div>
+        </div>
+        <p class="max-w-sm text-sm leading-6 text-stone-600">
+          Clean, modular portfolio foundation based on your wireframes, ready for richer content without changing the app shell again.
+        </p>
+        <p class="text-sm text-stone-600">Belgium</p>
+      </section>
+
+      <section class="space-y-3">
+        <p class="text-sm font-semibold text-stone-950">Quick Links</p>
+        <div class="grid gap-2 text-sm text-stone-600">
+          <a *ngFor="let item of footerLinks" [routerLink]="item.path" class="transition hover:text-stone-950">{{ item.label }}</a>
+        </div>
+      </section>
+
+      <section class="space-y-3">
+        <p class="text-sm font-semibold text-stone-950">Resources</p>
+        <div class="grid gap-2 text-sm text-stone-600">
+          <span *ngFor="let item of resources">{{ item }}</span>
+        </div>
+      </section>
+
+      <section class="space-y-3">
+        <p class="text-sm font-semibold text-stone-950">Get in touch</p>
+        <p class="text-sm text-stone-600">your.email@example.com</p>
+        <div class="flex gap-2">
+          <span
+            *ngFor="let mark of socialMarks"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-md bg-stone-500 text-xs font-semibold text-white"
+          >
+            {{ mark }}
+          </span>
+        </div>
+      </section>
+    </div>
+  </footer>
+</div>

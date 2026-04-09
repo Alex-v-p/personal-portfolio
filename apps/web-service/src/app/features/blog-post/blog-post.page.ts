@@ -1,44 +1,69 @@
 import { Component, inject } from '@angular/core';
-import { TitleCasePipe } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { NgFor } from '@angular/common';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
-import { UiCardComponent } from '../../shared/components/card/ui-card.component';
 import { UiChipComponent } from '../../shared/components/chip/ui-chip.component';
-import { UiLinkButtonComponent } from '../../shared/components/link-button/ui-link-button.component';
+
+interface BlogPostViewModel {
+  title: string;
+  date: string;
+  readTime: string;
+  tags: string[];
+  intro: string[];
+  sections: Array<{ heading: string; paragraphs: string[] }>;
+}
 
 @Component({
   selector: 'app-blog-post-page',
   standalone: true,
-  imports: [TitleCasePipe, UiCardComponent, UiChipComponent, UiLinkButtonComponent],
-  template: `
-    <div class="max-w-4xl space-y-6">
-      <app-ui-link-button routerLink="/blog" appearance="ghost">← Back to blog</app-ui-link-button>
-
-      <app-ui-card padding="lg" [featured]="true">
-        <div class="space-y-4">
-          <div class="flex flex-wrap gap-3">
-            <app-ui-chip tone="accent">Blog post route</app-ui-chip>
-            <app-ui-chip>{{ slug | titlecase }}</app-ui-chip>
-          </div>
-
-          <div>
-            <p class="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Blog detail</p>
-            <h1 class="m-0 text-4xl font-semibold tracking-tight text-stone-900 sm:text-5xl">{{ slug | titlecase }}</h1>
-          </div>
-
-          <div class="min-h-72 rounded-3xl border border-stone-200 bg-gradient-to-b from-stone-500/15 to-stone-600/30"></div>
-
-          <p class="m-0 text-base leading-8 text-stone-600">
-            This placeholder verifies that the single-post page exists and uses the same global shell as the rest of the portfolio.
-            Real article content and content-format decisions can slot in during Stage 5.
-          </p>
-        </div>
-      </app-ui-card>
-    </div>
-  `
+  imports: [NgFor, RouterLink, UiChipComponent],
+  templateUrl: './blog-post.page.html'
 })
 export class BlogPostPageComponent {
   private readonly route = inject(ActivatedRoute);
 
-  protected readonly slug = (this.route.snapshot.paramMap.get('slug') ?? 'blog-post').replace(/-/g, ' ');
+  private readonly posts: Record<string, BlogPostViewModel> = {
+    'title-of-the-blog-post': {
+      title: 'Title of blogPost',
+      date: 'July 29, 2025',
+      readTime: '5 min read',
+      tags: ['Tag', 'Tag', 'Tag'],
+      intro: [
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas ut efficitur risus. Proin malesuada urna id interdum consectetur. Integer convallis pharetra nisi, quis semper augue eleifend a.',
+        'Praesent augue eros, porttitor non ligula sed, laoreet sagittis augue. Etiam eleifend a ligula eget ornare.'
+      ],
+      sections: [
+        {
+          heading: 'Header Text',
+          paragraphs: [
+            'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas ut efficitur risus. Proin malesuada urna id interdum consectetur. Integer convallis pharetra nisi, quis semper augue eleifend a.',
+            'Duis suscipit massa at imperdiet scelerisque. Donec non convallis mauris. Aenean interdum dui quis leo dapibus dictum.'
+          ]
+        },
+        {
+          heading: 'Another Section',
+          paragraphs: [
+            'Use this layout for long-form content later. The key point for now is that the page already has all the content regions from your wireframe: metadata, tags, share actions, image, and article body.'
+          ]
+        }
+      ]
+    }
+  };
+
+  protected get slug(): string {
+    return this.route.snapshot.paramMap.get('slug') ?? 'title-of-the-blog-post';
+  }
+
+  protected get post(): BlogPostViewModel {
+    return this.posts[this.slug] ?? {
+      title: this.slug.replace(/-/g, ' ') || 'Blog Post',
+      date: 'July 29, 2025',
+      readTime: '5 min read',
+      tags: ['Tag'],
+      intro: ['This fallback article exists so any slug still renders inside the designed layout.'],
+      sections: []
+    };
+  }
+
+  protected readonly shareMarks = ['in', 'x'];
 }
