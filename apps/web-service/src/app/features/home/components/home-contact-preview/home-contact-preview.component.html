@@ -1,0 +1,25 @@
+<section class="space-y-6 pt-2">
+  <app-ui-section-title title="Let’s Connect" description="A compact preview of the contact methods that lead into the full contact page."></app-ui-section-title>
+
+  <div class="grid gap-4 md:grid-cols-2">
+    <app-ui-card *ngFor="let method of methods">
+      <div class="flex h-full items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <span class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-stone-300 text-xs font-semibold text-stone-600">
+            {{ getMethodMark(method.platform) }}
+          </span>
+
+          <div class="space-y-1">
+            <h3 class="text-lg font-semibold text-stone-950">{{ method.label }}</h3>
+            <p class="text-sm text-stone-600">{{ method.value }}</p>
+            <p class="text-xs leading-5 text-stone-500">{{ method.description }}</p>
+          </div>
+        </div>
+
+        <app-ui-link-button [href]="method.href" [openInNewTab]="!method.href.startsWith('mailto:') && !method.href.startsWith('tel:')" appearance="ghost">
+          {{ method.actionLabel }}
+        </app-ui-link-button>
+      </div>
+    </app-ui-card>
+  </div>
+</section>
