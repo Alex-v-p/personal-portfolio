@@ -3,123 +3,83 @@
 
   <section class="rounded-[2rem] bg-stone-200/70 p-6 sm:p-8 lg:p-10">
     <div class="space-y-8">
-      <header class="space-y-4 text-center">
-        <h1 class="text-4xl font-semibold tracking-tight text-stone-950">Featured Projects</h1>
+      <header class="space-y-5 text-center">
+        <app-ui-section-title
+          align="center"
+          title="Featured Projects"
+          description="Project cards built from schema-aligned mock data, with search and technology filters that can later switch to API responses without changing the page structure."
+        ></app-ui-section-title>
         <div class="mx-auto h-3 w-full max-w-xl bg-black"></div>
-        <p class="mx-auto max-w-xl text-sm leading-6 text-stone-600">
-          A project collection built from shared mock data, so search, filtering, cards, and future API integration all point at the same content model.
-        </p>
       </header>
 
-      <div class="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
+      <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         <label class="block">
           <span class="sr-only">Search projects</span>
           <input
             [(ngModel)]="searchQuery"
             type="text"
-            placeholder="Search"
-            class="w-full rounded-none border border-stone-300 bg-white px-4 py-3 text-sm text-stone-700 outline-none transition focus:border-stone-500"
+            placeholder="Search by title or description"
+            class="w-full rounded-full border border-stone-300 bg-white px-5 py-3 text-sm text-stone-700 outline-none transition focus:border-stone-500"
           />
         </label>
 
-        <div class="flex flex-wrap gap-3 justify-self-start lg:justify-self-end">
+        <div class="flex flex-wrap gap-3 lg:justify-end">
           <button
-            *ngFor="let filter of filters"
+            *ngFor="let filter of availableSkillFilters"
             type="button"
-            (click)="setFilter(filter)"
-            [class]="activeFilter === filter
-              ? 'min-w-24 border border-stone-600 bg-stone-600 px-4 py-3 text-sm font-medium text-white'
-              : 'min-w-24 border border-stone-400 bg-white px-4 py-3 text-sm font-medium text-stone-700 transition hover:border-stone-600 hover:text-stone-950'"
+            (click)="setSkillFilter(filter)"
+            [class]="activeSkillFilter === filter
+              ? 'inline-flex min-h-12 items-center justify-center rounded-full border border-stone-900 bg-stone-900 px-5 py-3 text-sm font-semibold text-white'
+              : 'inline-flex min-h-12 items-center justify-center rounded-full border border-stone-300 bg-white px-5 py-3 text-sm font-semibold text-stone-700 transition hover:border-stone-400 hover:text-stone-950'"
           >
             {{ filter }}
           </button>
         </div>
       </div>
 
-      <p class="text-center text-sm text-stone-600">Showing {{ filteredProjects.length + 1 }} of {{ totalProjectCount }} projects</p>
+      <div class="flex flex-col gap-3 text-sm text-stone-600 sm:flex-row sm:items-center sm:justify-between">
+        <p class="m-0">Showing {{ filteredProjects.length }} of {{ browsableProjects.length }} browseable projects</p>
 
-      <div class="grid gap-5 lg:grid-cols-[1.3fr_auto] lg:items-center">
-        <app-ui-card [featured]="true" padding="lg">
-          <div class="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-            <div class="relative min-h-72 rounded-sm bg-stone-300">
-              <app-ui-chip tone="accent" class="absolute left-3 top-3">Featured</app-ui-chip>
-              <span class="absolute bottom-3 left-3 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-white text-xl">◔</span>
-            </div>
-
-            <div class="space-y-4">
-              <div class="flex flex-wrap items-center gap-3 text-xs text-stone-500">
-                <span>{{ featuredProject.organization }}</span>
-                <span>{{ featuredProject.duration }}</span>
-                <app-ui-chip>{{ featuredProject.status }}</app-ui-chip>
-              </div>
-
-              <div class="space-y-2">
-                <h2 class="text-3xl font-semibold tracking-tight text-stone-950">{{ featuredProject.title }}</h2>
-                <p class="text-sm leading-6 text-stone-600">{{ featuredProject.shortDescription }}</p>
-              </div>
-
-              <div class="flex flex-wrap gap-2">
-                <app-ui-chip *ngFor="let tag of featuredProject.tags">{{ tag }}</app-ui-chip>
-              </div>
-
-              <p class="text-sm leading-6 text-stone-600">{{ featuredProject.highlight }}</p>
-              <app-ui-link-button [routerLink]="featuredProject.links[0].routerLink ?? '/projects'" appearance="ghost">Read More →</app-ui-link-button>
-            </div>
-          </div>
-        </app-ui-card>
-
-        <app-ui-link-button
-          *ngIf="featuredProject.links[1]?.href"
-          [href]="featuredProject.links[1]?.href ?? null"
-          [openInNewTab]="true"
-          appearance="ghost"
-        >
-          {{ featuredProject.links[1]?.label }}
-        </app-ui-link-button>
+        <app-ui-button *ngIf="hasActiveFilters" appearance="secondary" type="button" (click)="resetFilters()">
+          Reset filters
+        </app-ui-button>
       </div>
 
-      <section *ngIf="filteredProjects.length; else emptyResults" class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        <app-ui-card *ngFor="let project of filteredProjects">
-          <div class="space-y-4">
-            <div class="h-40 rounded-sm bg-stone-300"></div>
-
-            <div class="flex gap-3 text-xs text-stone-500">
-              <span>{{ project.organization }}</span>
-              <span>{{ project.duration }}</span>
-            </div>
-
-            <div class="space-y-2">
-              <h3 class="text-2xl font-semibold tracking-tight text-stone-950">{{ project.title }}</h3>
-              <p class="text-sm leading-6 text-stone-600">{{ project.shortDescription }}</p>
-            </div>
-
-            <div class="flex flex-wrap gap-2">
-              <app-ui-chip *ngFor="let tag of project.tags">{{ tag }}</app-ui-chip>
-            </div>
-
-            <app-ui-link-button [routerLink]="['/projects']" appearance="ghost">View Details →</app-ui-link-button>
+      <section class="space-y-4">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <p class="text-sm font-semibold text-stone-950">Featured project</p>
+            <p class="text-sm text-stone-600">A larger spotlight card that sets the visual direction for the rest of the projects page.</p>
           </div>
-        </app-ui-card>
+        </div>
+
+        <app-project-card [project]="featuredProject" [featured]="true"></app-project-card>
+      </section>
+
+      <section class="space-y-4">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <p class="text-sm font-semibold text-stone-950">Browse all projects</p>
+            <p class="text-sm text-stone-600">Filter by technology or search across the project descriptions to find specific work quickly.</p>
+          </div>
+        </div>
+
+        <div *ngIf="filteredProjects.length; else emptyResults" class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <app-project-card *ngFor="let project of filteredProjects" [project]="project"></app-project-card>
+        </div>
       </section>
 
       <ng-template #emptyResults>
         <app-ui-empty-state
-          title="No projects match your filters yet"
-          description="Try another search term or switch back to a broader category to see the rest of the mock project data."
+          title="No projects match those filters"
+          description="Try another search term or switch back to a broader technology filter to bring the rest of the portfolio projects back into view."
+          [hasActions]="true"
         >
           <div actions>
-            <app-ui-link-button appearance="secondary" routerLink="/projects">Reset from navigation</app-ui-link-button>
+            <app-ui-button appearance="secondary" type="button" (click)="resetFilters()">Clear search and filters</app-ui-button>
           </div>
         </app-ui-empty-state>
       </ng-template>
-
-      <div class="flex items-center justify-center gap-3 text-sm text-stone-700">
-        <span>Previous</span>
-        <div class="flex gap-2">
-          <span *ngFor="let dot of pagerDots" class="h-5 w-5 bg-stone-300"></span>
-        </div>
-        <span>Next</span>
-      </div>
     </div>
   </section>
 </div>
