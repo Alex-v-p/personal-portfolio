@@ -1,21 +1,20 @@
 import { Component } from '@angular/core';
-import { NgFor } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 
 import { UiButtonComponent } from '../../shared/components/button/ui-button.component';
 import { UiCardComponent } from '../../shared/components/card/ui-card.component';
+import { CONTRIBUTION_CELLS, GITHUB_SUMMARY, PORTFOLIO_STATS } from '../../shared/mock-data/stats.mock';
 
 @Component({
   selector: 'app-stats-page',
   standalone: true,
-  imports: [NgFor, UiButtonComponent, UiCardComponent],
+  imports: [NgFor, NgIf, UiButtonComponent, UiCardComponent],
   templateUrl: './stats.page.html'
 })
 export class StatsPageComponent {
-  protected readonly contributionCells = [
-    1,2,2,1,3,2,1, 2,3,2,1,1,2,3, 1,1,2,3,2,1,1, 2,2,3,1,4,2,1,
-    1,2,1,2,3,1,2, 2,4,2,1,2,3,1, 1,2,3,2,1,2,3, 2,1,2,3,2,1,2,
-    3,2,1,2,4,2,1, 1,2,3,1,2,2,3, 2,1,2,3,1,2,2, 1,2,3,2,1,2,3
-  ];
+  protected readonly contributionCells = CONTRIBUTION_CELLS;
+  protected readonly githubSummary = GITHUB_SUMMARY;
+  protected readonly portfolioStats = PORTFOLIO_STATS;
 
   protected getContributionClass(value: number): string {
     const base = 'h-4 w-4 rounded-[2px]';
