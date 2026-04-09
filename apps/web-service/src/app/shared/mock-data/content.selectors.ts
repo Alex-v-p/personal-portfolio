@@ -418,3 +418,20 @@ export const buildPortfolioStats = (
 export const buildContributionCells = (days: GithubContributionDay[], snapshotId: string): number[] => days
   .filter((day) => day.snapshotId === snapshotId)
   .map((day) => day.level);
+
+export const buildContributionWeeks = (days: GithubContributionDay[], snapshotId: string): number[][] => {
+  const cells = buildContributionCells(days, snapshotId);
+  const weeks: number[][] = [];
+
+  for (let index = 0; index < cells.length; index += 7) {
+    const week = cells.slice(index, index + 7);
+
+    while (week.length < 7) {
+      week.push(0);
+    }
+
+    weeks.push(week);
+  }
+
+  return weeks;
+};

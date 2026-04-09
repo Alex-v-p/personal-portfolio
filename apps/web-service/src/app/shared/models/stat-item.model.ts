@@ -5,4 +5,5 @@ export interface StatItem {
   description: string;
   actionLabel?: string;
   meta?: string;
+  footnote?: string;
 }
