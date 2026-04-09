@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 
+import { AssistantPageComponent } from './features/assistant/assistant.page';
 import { BlogPostPageComponent } from './features/blog-post/blog-post.page';
 import { BlogPageComponent } from './features/blog/blog.page';
 import { ContactPageComponent } from './features/contact/contact.page';
@@ -14,5 +15,6 @@ export const routes: Routes = [
   { path: 'blog/:slug', component: BlogPostPageComponent, title: 'Blog Post' },
   { path: 'contact', component: ContactPageComponent, title: 'Contact' },
   { path: 'stats', component: StatsPageComponent, title: 'Stats' },
+  { path: 'assistant', component: AssistantPageComponent, title: 'Assistant' },
   { path: '**', redirectTo: '' }
 ];

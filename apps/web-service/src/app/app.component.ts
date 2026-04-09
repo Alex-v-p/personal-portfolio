@@ -6,6 +6,6 @@ import { AppShellComponent } from './core/layout/app-shell.component';
   selector: 'app-root',
   standalone: true,
   imports: [AppShellComponent],
-  template: `<app-shell></app-shell>`
+  templateUrl: './app.component.html'
 })
 export class AppComponent {}

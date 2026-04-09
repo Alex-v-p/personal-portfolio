@@ -3,11 +3,7 @@ import { Component, Input } from '@angular/core';
 @Component({
   selector: 'app-ui-chip',
   standalone: true,
-  template: `
-    <span [class]="chipClasses">
-      <ng-content></ng-content>
-    </span>
-  `
+  templateUrl: './ui-chip.component.html'
 })
 export class UiChipComponent {
   @Input() tone: 'default' | 'accent' = 'default';

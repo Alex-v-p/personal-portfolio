@@ -1,28 +1,12 @@
-import { Component, Input } from '@angular/core';
 import { NgIf } from '@angular/common';
+import { Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-ui-link-button',
   standalone: true,
   imports: [NgIf, RouterLink],
-  template: `
-    <a
-      *ngIf="href; else internalLink"
-      [class]="linkClasses"
-      [href]="href"
-      [attr.target]="openInNewTab ? '_blank' : null"
-      [attr.rel]="openInNewTab ? 'noreferrer noopener' : null"
-    >
-      <ng-content></ng-content>
-    </a>
-
-    <ng-template #internalLink>
-      <a [class]="linkClasses" [routerLink]="routerLink">
-        <ng-content></ng-content>
-      </a>
-    </ng-template>
-  `
+  templateUrl: './ui-link-button.component.html'
 })
 export class UiLinkButtonComponent {
   @Input() routerLink: string | readonly string[] = '/';

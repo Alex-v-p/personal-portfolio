@@ -1,5 +1,5 @@
 <div class="min-h-screen bg-stone-100 text-stone-900">
-  <header class="sticky top-0 z-30 px-4 pt-4 sm:px-6 lg:px-8">
+  <header [class]="headerClasses">
     <div class="mx-auto flex w-full max-w-6xl justify-center">
       <div class="inline-flex flex-wrap items-center justify-center gap-2 rounded-full border border-stone-300 bg-white/90 px-3 py-2 shadow-[0_16px_40px_rgba(40,31,20,0.08)] backdrop-blur">
         <a
@@ -25,6 +25,17 @@
       <router-outlet></router-outlet>
     </div>
   </main>
+
+  <a
+    [class]="assistantButtonClasses"
+    routerLink="/assistant"
+    aria-label="Open portfolio assistant"
+  >
+    <span class="inline-flex items-center gap-3 rounded-full border border-stone-300 bg-white/95 px-4 py-3 shadow-[0_20px_40px_rgba(40,31,20,0.16)] backdrop-blur transition hover:-translate-y-0.5 hover:border-stone-400 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400">
+      <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-stone-900 text-sm font-semibold text-white">AI</span>
+      <span class="pr-1 text-sm font-semibold text-stone-900">Assistant</span>
+    </span>
+  </a>
 
   <footer class="mt-16 border-t border-stone-300 bg-stone-200/70 px-4 py-10 sm:px-6 lg:px-8">
     <div class="mx-auto grid w-full max-w-6xl gap-8 md:grid-cols-[1.35fr_0.8fr_0.8fr_1fr]">

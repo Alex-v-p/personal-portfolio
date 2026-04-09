@@ -3,11 +3,7 @@ import { Component, Input } from '@angular/core';
 @Component({
   selector: 'app-ui-button',
   standalone: true,
-  template: `
-    <button [attr.type]="type" [disabled]="disabled" [class]="buttonClasses">
-      <ng-content></ng-content>
-    </button>
-  `
+  templateUrl: './ui-button.component.html'
 })
 export class UiButtonComponent {
   @Input() appearance: 'primary' | 'secondary' | 'ghost' = 'primary';

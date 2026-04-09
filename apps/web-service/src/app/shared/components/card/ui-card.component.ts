@@ -3,11 +3,7 @@ import { Component, Input } from '@angular/core';
 @Component({
   selector: 'app-ui-card',
   standalone: true,
-  template: `
-    <article [class]="cardClasses">
-      <ng-content></ng-content>
-    </article>
-  `
+  templateUrl: './ui-card.component.html'
 })
 export class UiCardComponent {
   @Input() padding: 'md' | 'lg' = 'md';
