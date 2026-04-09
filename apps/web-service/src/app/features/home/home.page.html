@@ -1,0 +1,12 @@
+<div class="space-y-14 lg:space-y-16">
+  <app-home-hero-section [profile]="profile"></app-home-hero-section>
+
+  <app-home-featured-section [featuredBlogPost]="featuredBlogPost" [primaryProject]="primaryProject"></app-home-featured-section>
+
+  <section class="grid items-start gap-10 xl:grid-cols-[0.92fr_1.08fr]">
+    <app-home-expertise-section [groups]="expertiseGroups"></app-home-expertise-section>
+    <app-home-experience-section [profile]="profile" [experiences]="experiencePreview"></app-home-experience-section>
+  </section>
+
+  <app-home-contact-preview-section [methods]="contactPreviewMethods"></app-home-contact-preview-section>
+</div>

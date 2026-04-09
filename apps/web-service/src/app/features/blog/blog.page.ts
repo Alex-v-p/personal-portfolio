@@ -1,34 +1,59 @@
+import { NgFor, NgIf } from '@angular/common';
 import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+
+import { UiEmptyStateComponent } from '../../shared/components/empty-state/ui-empty-state.component';
+import { BLOG_POSTS } from '../../shared/mock-data/blog-posts.mock';
+import { BlogPost } from '../../shared/models/blog-post.model';
+import { BlogCardComponent } from './components/blog-card/blog-card.component';
 
 @Component({
   selector: 'app-blog-page',
   standalone: true,
-  template: `
-    <section class="page-card">
-      <p class="eyebrow">Blog</p>
-      <h1>Blog page</h1>
-      <p>Connect this page to blog listing and blog detail routes later.</p>
-    </section>
-  `,
-  styles: [`
-    .page-card {
-      padding: 2rem;
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 1rem;
-      background: rgba(255,255,255,0.03);
-    }
-
-    .eyebrow {
-      margin: 0 0 0.5rem;
-      color: #8ab4ff;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-size: 0.8rem;
-    }
-
-    h1 {
-      margin-top: 0;
-    }
-  `]
+  imports: [NgFor, NgIf, FormsModule, UiEmptyStateComponent, BlogCardComponent],
+  templateUrl: './blog.page.html'
 })
-export class BlogPageComponent {}
+export class BlogPageComponent {
+  protected readonly totalPostCount = BLOG_POSTS.length;
+  protected readonly pagerDots = [1, 2, 3];
+  protected readonly categories = ['All topics', ...new Set(BLOG_POSTS.map((post) => post.category))];
+
+  protected searchQuery = '';
+  protected selectedCategory = 'All topics';
+
+  protected get filteredPosts(): BlogPost[] {
+    const query = this.searchQuery.trim().toLowerCase();
+
+    return BLOG_POSTS.filter((post) => {
+      const matchesCategory = this.selectedCategory === 'All topics' || post.category === this.selectedCategory;
+      if (!matchesCategory) {
+        return false;
+      }
+
+      if (!query) {
+        return true;
+      }
+
+      const haystack = [post.title, post.excerpt, post.category, post.contentMarkdown, ...post.tags].join(' ').toLowerCase();
+      return haystack.includes(query);
+    });
+  }
+
+  protected get featuredPosts(): BlogPost[] {
+    return this.filteredPosts.filter((post) => post.isFeatured).slice(0, 1);
+  }
+
+  protected get browseablePosts(): BlogPost[] {
+    const featuredIds = new Set(this.featuredPosts.map((post) => post.id));
+    return this.filteredPosts.filter((post) => !featuredIds.has(post.id));
+  }
+
+  protected get hasActiveFilters(): boolean {
+    return !!this.searchQuery.trim() || this.selectedCategory !== 'All topics';
+  }
+
+  protected resetFilters(): void {
+    this.searchQuery = '';
+    this.selectedCategory = 'All topics';
+  }
+}

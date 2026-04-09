@@ -1,0 +1,45 @@
+<div class="mx-auto max-w-4xl space-y-6">
+  <div class="space-y-2 text-sm text-stone-600">
+    <p>Home &gt; Blog &gt; {{ post.title }}</p>
+    <a routerLink="/blog" class="inline-flex items-center gap-2 transition hover:text-stone-950">← Back to Blog</a>
+  </div>
+
+  <article class="space-y-6">
+    <header class="space-y-4">
+      <div class="flex flex-wrap items-center gap-3 text-xs text-stone-500">
+        <span>{{ post.category }}</span>
+        <span>{{ post.publishedAt }}</span>
+        <span>{{ post.readTime }}</span>
+      </div>
+
+      <div class="space-y-3">
+        <h1 class="text-4xl font-semibold tracking-tight text-stone-950 sm:text-5xl">{{ post.title }}</h1>
+        <p class="max-w-3xl text-sm leading-7 text-stone-600">{{ post.excerpt }}</p>
+      </div>
+
+      <div class="flex flex-wrap gap-2">
+        <app-ui-chip *ngFor="let tag of post.tags">{{ tag }}</app-ui-chip>
+      </div>
+
+      <div class="flex items-center gap-3 text-sm text-stone-600">
+        <span>Share:</span>
+        <span
+          *ngFor="let mark of shareMarks"
+          class="inline-flex h-8 w-8 items-center justify-center rounded-sm bg-stone-300 text-xs font-semibold uppercase text-stone-700"
+        >
+          {{ mark }}
+        </span>
+      </div>
+    </header>
+
+    <div class="overflow-hidden rounded-[1.5rem] border border-stone-300 bg-white shadow-[0_12px_30px_rgba(40,31,20,0.08)]">
+      <div class="flex min-h-[21rem] items-end bg-stone-600/90 p-6 text-xs font-semibold uppercase tracking-[0.16em] text-stone-200 sm:p-8">
+        <span class="max-w-[18ch]">{{ post.coverImageAlt }}</span>
+      </div>
+
+      <div class="px-6 py-8 sm:px-8">
+        <div class="blog-markdown" [innerHTML]="renderedContent"></div>
+      </div>
+    </div>
+  </article>
+</div>

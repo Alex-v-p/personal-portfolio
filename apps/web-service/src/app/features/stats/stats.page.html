@@ -1,0 +1,65 @@
+<div class="mx-auto max-w-5xl space-y-10">
+  <p class="text-sm text-stone-600">Home &gt; Stats</p>
+
+  <section class="space-y-6">
+    <div class="space-y-2">
+      <h1 class="text-4xl font-semibold tracking-tight text-stone-950">GitHub Stats</h1>
+      <p class="max-w-3xl text-base leading-7 text-stone-600">Insights and metrics about my GitHub portfolio.</p>
+      <p class="text-sm text-stone-500">Latest snapshot: {{ latestGithubSnapshot.snapshotDate }} · {{ latestGithubSnapshot.username }}</p>
+    </div>
+
+    <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_15rem] lg:items-stretch">
+      <app-ui-card padding="lg">
+        <div class="space-y-4">
+          <div class="grid grid-cols-[auto_minmax(0,1fr)] gap-3">
+            <div class="pt-8 text-[11px] leading-4 text-stone-400">
+              <div *ngFor="let label of weekdayLabels; trackBy: trackByIndex" class="h-[18px]">{{ label }}</div>
+            </div>
+
+            <div class="min-w-0 space-y-2 overflow-x-auto">
+              <div class="grid grid-cols-12 gap-2 text-[11px] uppercase tracking-[0.16em] text-stone-400">
+                <span *ngFor="let month of monthLabels; trackBy: trackByIndex">{{ month }}</span>
+              </div>
+
+              <div class="flex gap-1.5 pb-1">
+                <div *ngFor="let week of contributionWeeks; trackBy: trackByIndex" class="grid grid-rows-7 gap-1">
+                  <span *ngFor="let cell of week; trackBy: trackByIndex" [class]="getContributionClass(cell)"></span>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between text-[11px] text-stone-500">
+                <span>Learn how we count contributions.</span>
+                <span>Less <span class="mx-1">⟶</span> More</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </app-ui-card>
+
+      <app-stat-card [item]="githubSummary" tone="highlight" size="lg" align="center"></app-stat-card>
+    </div>
+  </section>
+
+  <section class="space-y-6">
+    <div class="space-y-2">
+      <h2 class="text-4xl font-semibold tracking-tight text-stone-950">About this portfolio</h2>
+      <p class="max-w-3xl text-base leading-7 text-stone-600">Insights and metrics about my portfolio website.</p>
+    </div>
+
+    <div class="grid gap-5 md:grid-cols-2">
+      <app-stat-card
+        *ngFor="let item of portfolioHighlights; trackBy: trackByStatId"
+        [item]="item"
+        tone="muted"
+        size="lg"
+        align="center"></app-stat-card>
+    </div>
+
+    <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+      <app-stat-card
+        *ngFor="let item of portfolioStats; trackBy: trackByStatId"
+        [item]="item"
+        size="md"></app-stat-card>
+    </div>
+  </section>
+</div>

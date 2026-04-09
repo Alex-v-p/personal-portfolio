@@ -1,0 +1,30 @@
+{
+  "name": "portfolio-api-service",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/portfolio-api-service",
+  "projectType": "application",
+  "targets": {
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/portfolio-api-service",
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/portfolio-api-service",
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m pytest"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/portfolio-api-service",
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m ruff check ."
+      }
+    }
+  },
+  "tags": ["scope:backend", "type:api"]
+}

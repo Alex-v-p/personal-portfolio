@@ -1,0 +1,46 @@
+<section class="space-y-8">
+  <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+    <app-ui-section-title
+      eyebrow="Featured"
+      title="Selected work"
+      description="A featured article and project picked from the current mock portfolio data."
+    ></app-ui-section-title>
+
+    <div class="flex flex-wrap gap-3 md:justify-end">
+      <app-ui-link-button routerLink="/blog" appearance="ghost">Blog Posts</app-ui-link-button>
+      <app-ui-link-button routerLink="/projects" appearance="ghost">Projects</app-ui-link-button>
+    </div>
+  </div>
+
+  <div class="grid items-stretch gap-6 xl:grid-cols-[0.8fr_1.2fr]">
+    <app-ui-card>
+      <div class="space-y-5">
+        <div class="flex items-center justify-between gap-3">
+          <app-ui-chip tone="accent">Featured</app-ui-chip>
+          <div class="flex flex-wrap gap-3 text-xs text-stone-500">
+            <span>{{ featuredBlogPost.publishedAt }}</span>
+            <span>{{ featuredBlogPost.readTime }}</span>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <div class="flex aspect-[16/10] items-end rounded-[1.4rem] border border-stone-300 bg-stone-300/80 p-4 text-xs font-semibold uppercase tracking-[0.16em] text-stone-600">
+            {{ featuredBlogPost.coverImageAlt }}
+          </div>
+          <div class="space-y-3">
+            <h3 class="text-2xl font-semibold tracking-tight text-stone-950">{{ featuredBlogPost.title }}</h3>
+            <p class="text-sm leading-6 text-stone-600">{{ featuredBlogPost.excerpt }}</p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <app-ui-chip *ngFor="let tag of featuredBlogPost.tags">{{ tag }}</app-ui-chip>
+        </div>
+
+        <app-ui-link-button [routerLink]="['/blog', featuredBlogPost.slug]" appearance="ghost">Read article →</app-ui-link-button>
+      </div>
+    </app-ui-card>
+
+    <app-project-card [project]="primaryProject" [featured]="true"></app-project-card>
+  </div>
+</section>

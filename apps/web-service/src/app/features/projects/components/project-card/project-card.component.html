@@ -1,0 +1,87 @@
+<app-ui-card *ngIf="featured; else defaultCard" [featured]="true" padding="lg">
+  <div class="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:gap-7">
+    <div class="relative flex min-h-80 items-end rounded-[1.5rem] border border-stone-300 bg-stone-300/80 p-5 text-xs font-semibold uppercase tracking-[0.16em] text-stone-600">
+      <app-ui-chip tone="accent" class="absolute left-4 top-4">Featured</app-ui-chip>
+      <span class="max-w-[18ch]">{{ placeholderLabel }}</span>
+    </div>
+
+    <div class="flex h-full flex-col justify-between gap-5">
+      <div class="space-y-5">
+        <div class="flex flex-wrap items-center gap-2 text-xs text-stone-500">
+          <span>{{ project.organization }}</span>
+          <span>{{ project.duration }}</span>
+          <app-ui-chip>{{ project.status }}</app-ui-chip>
+        </div>
+
+        <div class="space-y-3">
+          <h2 class="text-3xl font-semibold tracking-tight text-stone-950">{{ project.title }}</h2>
+          <p class="text-sm leading-7 text-stone-600">{{ project.shortDescription }}</p>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <app-ui-chip *ngFor="let tag of displayedTags">{{ tag }}</app-ui-chip>
+        </div>
+
+        <p class="text-sm leading-7 text-stone-600">{{ project.highlight }}</p>
+      </div>
+
+      <div class="flex flex-wrap gap-3">
+        <app-ui-link-button
+          *ngIf="primaryAction"
+          [routerLink]="primaryAction.routerLink ?? '/projects'"
+          [href]="primaryAction.href ?? null"
+          [openInNewTab]="!!primaryAction.href"
+        >
+          {{ primaryAction.label }}
+        </app-ui-link-button>
+
+        <app-ui-link-button
+          *ngFor="let action of secondaryActions"
+          [routerLink]="action.routerLink ?? '/projects'"
+          [href]="action.href ?? null"
+          [openInNewTab]="!!action.href"
+          appearance="ghost"
+        >
+          {{ action.label }}
+        </app-ui-link-button>
+      </div>
+    </div>
+  </div>
+</app-ui-card>
+
+<ng-template #defaultCard>
+  <app-ui-card>
+    <div class="flex h-full flex-col gap-4">
+      <div class="relative flex aspect-[16/11] items-end rounded-[1.35rem] border border-stone-300 bg-stone-300/80 p-4 text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-stone-600">
+        <app-ui-chip *ngIf="project.isFeatured" tone="accent" class="absolute left-3 top-3">Featured</app-ui-chip>
+        <span class="max-w-[16ch]">{{ placeholderLabel }}</span>
+      </div>
+
+      <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-stone-500">
+        <span>{{ project.organization }}</span>
+        <span>{{ project.duration }}</span>
+      </div>
+
+      <div class="space-y-2">
+        <h3 class="text-2xl font-semibold tracking-tight text-stone-950">{{ project.title }}</h3>
+        <p class="text-sm leading-6 text-stone-600">{{ project.shortDescription }}</p>
+      </div>
+
+      <div class="flex flex-wrap gap-2">
+        <app-ui-chip *ngFor="let tag of displayedTags">{{ tag }}</app-ui-chip>
+      </div>
+
+      <div class="mt-auto flex flex-wrap gap-3 pt-1">
+        <app-ui-link-button
+          *ngIf="primaryAction"
+          [routerLink]="primaryAction.routerLink ?? '/projects'"
+          [href]="primaryAction.href ?? null"
+          [openInNewTab]="!!primaryAction.href"
+          appearance="ghost"
+        >
+          {{ primaryAction.label }}
+        </app-ui-link-button>
+      </div>
+    </div>
+  </app-ui-card>
+</ng-template>

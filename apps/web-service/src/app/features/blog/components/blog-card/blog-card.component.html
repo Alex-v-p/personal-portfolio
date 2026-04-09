@@ -1,0 +1,62 @@
+<app-ui-card *ngIf="featured; else defaultCard" [featured]="true" padding="lg">
+  <div class="grid gap-6 lg:grid-cols-[0.92fr_1.08fr] lg:gap-7">
+    <div class="relative flex min-h-72 items-end rounded-[1.5rem] border border-stone-300 bg-stone-300/80 p-5 text-xs font-semibold uppercase tracking-[0.16em] text-stone-600">
+      <app-ui-chip *ngIf="post.isFeatured" tone="accent" class="absolute left-4 top-4">Featured</app-ui-chip>
+      <span class="max-w-[18ch]">{{ placeholderLabel }}</span>
+    </div>
+
+    <div class="flex h-full flex-col justify-between gap-5">
+      <div class="space-y-5">
+        <div class="flex flex-wrap items-center gap-2 text-xs text-stone-500">
+          <span>{{ post.category }}</span>
+          <span>{{ post.publishedAt }}</span>
+          <span>{{ post.readTime }}</span>
+        </div>
+
+        <div class="space-y-3">
+          <h2 class="text-3xl font-semibold tracking-tight text-stone-950">{{ post.title }}</h2>
+          <p class="text-sm leading-7 text-stone-600">{{ post.excerpt }}</p>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <app-ui-chip *ngFor="let tag of displayedTags">{{ tag }}</app-ui-chip>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-3">
+        <app-ui-link-button [routerLink]="['/blog', post.slug]">Read article</app-ui-link-button>
+        <app-ui-link-button routerLink="/blog" appearance="ghost">All posts</app-ui-link-button>
+      </div>
+    </div>
+  </div>
+</app-ui-card>
+
+<ng-template #defaultCard>
+  <app-ui-card>
+    <div class="flex h-full flex-col gap-4">
+      <div class="relative flex aspect-[16/10] items-end rounded-[1.35rem] border border-stone-300 bg-stone-300/80 p-4 text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-stone-600">
+        <app-ui-chip *ngIf="post.isFeatured" tone="accent" class="absolute left-3 top-3">Featured</app-ui-chip>
+        <span class="max-w-[16ch]">{{ placeholderLabel }}</span>
+      </div>
+
+      <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-stone-500">
+        <span>{{ post.category }}</span>
+        <span>{{ post.publishedAt }}</span>
+        <span>{{ post.readTime }}</span>
+      </div>
+
+      <div class="space-y-2">
+        <h3 class="text-2xl font-semibold tracking-tight text-stone-950">{{ post.title }}</h3>
+        <p class="text-sm leading-6 text-stone-600">{{ post.excerpt }}</p>
+      </div>
+
+      <div class="flex flex-wrap gap-2">
+        <app-ui-chip *ngFor="let tag of displayedTags">{{ tag }}</app-ui-chip>
+      </div>
+
+      <div class="mt-auto flex flex-wrap gap-3 pt-1">
+        <app-ui-link-button [routerLink]="['/blog', post.slug]" appearance="ghost">Read article</app-ui-link-button>
+      </div>
+    </div>
+  </app-ui-card>
+</ng-template>

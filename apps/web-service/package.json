@@ -3,10 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "ng serve --host 0.0.0.0 --port 4200",
+    "serve": "ng serve --host 0.0.0.0 --port 4200",
+    "start": "npm run serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "test:once": "ng test --watch=false"
   },
   "dependencies": {
     "@angular/animations": "^21.2.0",
@@ -24,6 +26,9 @@
     "@angular-devkit/build-angular": "^21.2.0",
     "@angular/cli": "^21.2.0",
     "@angular/compiler-cli": "^21.2.0",
+    "@tailwindcss/postcss": "^4.2.2",
+    "postcss": "^8.5.9",
+    "tailwindcss": "^4.2.2",
     "typescript": "~5.9.0"
   }
 }
