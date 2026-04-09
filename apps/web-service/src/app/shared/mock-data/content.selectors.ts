@@ -1,5 +1,5 @@
 import { BlogPostTag } from '../models/blog-post-tag.model';
-import { BlogPost } from '../models/blog-post.model';
+import { BlogPost, BlogPostSection } from '../models/blog-post.model';
 import { ContactMethod } from '../models/contact-method.model';
 import { Experience } from '../models/experience.model';
 import { NavigationItem } from '../models/navigation-item.model';
@@ -87,6 +87,8 @@ export interface BlogPostRecord {
   seoTitle?: string;
   seoDescription?: string;
   category: string;
+  intro: string[];
+  sections: BlogPostSection[];
 }
 
 const formatDateRange = (startDate: string, endDate?: string | null, isCurrent = false): string => {
@@ -304,7 +306,9 @@ export const buildBlogPostViews = (
     status: record.status,
     contentMarkdown: record.contentMarkdown,
     seoTitle: record.seoTitle,
-    seoDescription: record.seoDescription
+    seoDescription: record.seoDescription,
+    intro: record.intro,
+    sections: record.sections
   };
 });
 
@@ -379,7 +383,8 @@ export const buildGithubSummary = (snapshot: GithubSnapshot): StatItem => ({
   label: 'Public Repo’s',
   value: String(snapshot.publicRepoCount),
   description: 'Latest mocked snapshot based on the future github_snapshots table.',
-  meta: `${snapshot.username} · ${snapshot.snapshotDate}`
+  meta: `${snapshot.username} · ${snapshot.snapshotDate}`,
+  footnote: `${snapshot.totalCommits} contributions recorded across the latest captured profile snapshot.`
 });
 
 export const buildPortfolioStats = (
@@ -390,31 +395,46 @@ export const buildPortfolioStats = (
 ): StatItem[] => [
   {
     id: 'project-count',
-    label: 'Total Projects',
+    label: 'Project Count',
     value: String(projects.length),
-    description: 'Portfolio projects currently available in the relational mock dataset.'
+    description: 'Portfolio projects currently available in the relational mock dataset.',
+    footnote: `${projects.filter((project) => project.isFeatured).length} featured item(s) currently highlighted across the site.`
   },
   {
     id: 'blog-count',
-    label: 'Blog Posts',
+    label: 'Blog Count',
     value: String(posts.filter((post) => post.status === 'published').length),
-    description: 'Published mock articles available for the blog listing.'
+    description: 'Published mock articles available for the blog listing.',
+    footnote: `${posts.filter((post) => post.isFeatured).length} featured article(s) currently pinned into the content flow.`
   },
   {
     id: 'tech-count',
     label: 'Tech Count',
     value: String(new Set(skills.map((skill) => skill.name)).size),
     description: 'Unique skills referenced by the portfolio content and lookup tables.',
-    actionLabel: 'Love this portfolio'
+    footnote: 'Grouped from the shared skill and category lookup tables used by projects and experience.'
   },
   {
     id: 'total-stars',
     label: 'GitHub Stars',
     value: String(snapshot.totalStars),
-    description: 'Mocked aggregate stars stored in the github_snapshots table.'
+    description: 'Mocked aggregate stars stored in the github_snapshots table.',
+    footnote: `${snapshot.followerCount} follower(s) and ${snapshot.followingCount} following in the latest snapshot.`
   }
 ];
 
 export const buildContributionCells = (days: GithubContributionDay[], snapshotId: string): number[] => days
   .filter((day) => day.snapshotId === snapshotId)
   .map((day) => day.level);
+
+
+export const buildContributionWeeks = (days: GithubContributionDay[], snapshotId: string): number[][] => {
+  const levels = buildContributionCells(days, snapshotId);
+  const weeks: number[][] = [];
+
+  for (let index = 0; index < levels.length; index += 7) {
+    weeks.push(levels.slice(index, index + 7));
+  }
+
+  return weeks;
+};
