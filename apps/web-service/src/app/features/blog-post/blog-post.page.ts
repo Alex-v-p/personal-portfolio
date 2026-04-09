@@ -5,6 +5,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { UiChipComponent } from '../../shared/components/chip/ui-chip.component';
 import { BLOG_POSTS } from '../../shared/mock-data/blog-posts.mock';
 import { BlogPost } from '../../shared/models/blog-post.model';
+import { renderMarkdownToHtml } from '../../shared/utils/markdown.util';
 
 @Component({
   selector: 'app-blog-post-page',
@@ -25,7 +26,7 @@ export class BlogPostPageComponent {
     return BLOG_POSTS.find((post) => post.slug === this.slug) ?? {
       id: 'fallback-post',
       slug: this.slug,
-      title: this.slug.replace(/-/g, ' ') || 'Blog Post',
+      title: this.slug.replace(/-/g, ' ') || 'Blog post',
       excerpt: 'Fallback mock blog post content.',
       publishedAt: 'July 29, 2025',
       readTime: '5 min read',
@@ -37,8 +38,11 @@ export class BlogPostPageComponent {
       coverAlt: 'Fallback blog cover',
       coverImageAlt: 'Fallback blog cover',
       status: 'published',
-      intro: ['This fallback article exists so any mock slug still renders inside the designed layout.'],
-      sections: []
+      contentMarkdown: '# Placeholder article\n\nThis fallback article exists so any mock slug still renders inside the designed layout.'
     };
+  }
+
+  protected get renderedContent(): string {
+    return renderMarkdownToHtml(this.post.contentMarkdown);
   }
 }

@@ -11,7 +11,37 @@ export const BLOG_POST_RECORDS: BlogPostRecord[] = [
     title: 'Building a Portfolio Shell That Can Scale Later',
     excerpt:
       'A look at why locking the layout, route structure, and reusable UI early makes the later content and API stages easier to manage.',
-    contentMarkdown: '## Why stage the work\nBreaking the work into layers keeps the portfolio maintainable.',
+    contentMarkdown: `# Start with the shell
+
+When a portfolio starts to grow, the first page is almost never the hard part. The real challenge is whether the structure underneath can absorb more content **without forcing a redesign** every few weeks.
+
+## Why stage the work
+
+Breaking the project into layout, mock data, pages, API, database, and admin phases makes each decision smaller and more deliberate.
+
+- It keeps the front end moving while the backend is still undefined.
+- It makes design issues visible before real data arrives.
+- It reduces the temptation to solve everything at once.
+
+## What the shell needs to do
+
+The shell should give every page the same foundation:
+
+1. stable navigation
+2. a predictable page container
+3. consistent spacing
+4. footer and utility actions
+
+> A good shell turns future work into a content problem instead of a redesign problem.
+
+## The practical payoff
+
+Once the shell is stable, later stages become much safer. You can focus on projects, blog posts, stats, and API responses without having to rewrite the outer frame each time.
+
+### Small structure, big leverage
+
+Even simple reusable pieces such as cards, chips, buttons, and section headers create a lot of leverage. They make the portfolio feel coherent early and keep later polish cheap.
+`,
     coverImageFileId: 'file-blog-shell-cover',
     coverImageAlt: 'Portfolio shell layout illustration',
     readingTimeMinutes: 5,
@@ -20,27 +50,7 @@ export const BLOG_POST_RECORDS: BlogPostRecord[] = [
     publishedAt: 'July 29, 2025',
     seoTitle: 'Building a scalable portfolio shell',
     seoDescription: 'Why a strong shell makes later portfolio stages easier.',
-    category: 'Frontend',
-    intro: [
-      'When a portfolio starts to grow, the problem is rarely the first page. The problem is whether the structure underneath can support more content without forcing you to redesign everything again.',
-      'That is why I prefer to lock the shell, shared UI, and page regions early. It keeps later decisions about content, APIs, and admin features much more manageable.'
-    ],
-    sections: [
-      {
-        heading: 'Why stage the work',
-        paragraphs: [
-          'Breaking the project into layout, mock data, pages, API, database, and admin phases makes each decision smaller and more deliberate.',
-          'It also means you can validate the user-facing experience long before the backend is finished.'
-        ]
-      },
-      {
-        heading: 'What the shell needs to do',
-        paragraphs: [
-          'The shell needs consistent navigation, a stable page container, a footer, and a layout that future sticky and hide-on-scroll behavior can attach to later.',
-          'Once that structure is in place, the rest of the portfolio becomes a content problem instead of a redesign problem.'
-        ]
-      }
-    ]
+    category: 'Frontend'
   },
   {
     id: 'post-mock-data-first',
@@ -48,7 +58,29 @@ export const BLOG_POST_RECORDS: BlogPostRecord[] = [
     title: 'Why I Prefer Mock Data Before Real Endpoints',
     excerpt:
       'Using realistic mock objects first helps shape pages, models, and edge cases before the backend becomes a dependency.',
-    contentMarkdown: '## What good mock data gives you\nIt reveals the right fields before APIs exist.',
+    contentMarkdown: `# Model the content before the API exists
+
+Mock data turns vague placeholders into actual content shapes. It forces you to decide what a project, a blog post, or a stat card **really needs to contain**.
+
+## What good mock data gives you
+
+It helps answer questions early:
+
+- Which fields are required for the page to feel complete?
+- Which values are only display helpers?
+- Which repeated shapes deserve reusable components?
+
+## What to avoid
+
+Mock data should not stay random lorem ipsum forever. The closer it gets to your real portfolio content, the less rewrite you create for yourself later.
+
+### A useful rule
+
+Keep the mock data close to your future schema. That way the page can switch from local files to an API response with minimal changes.
+
+
+the main content can still be authored as markdown in the database and rendered cleanly on the front end.
+`,
     coverImageFileId: 'file-blog-mock-data-cover',
     coverImageAlt: 'Mock data objects represented as cards',
     readingTimeMinutes: 4,
@@ -57,26 +89,7 @@ export const BLOG_POST_RECORDS: BlogPostRecord[] = [
     publishedAt: 'August 10, 2025',
     seoTitle: 'Mock data before real endpoints',
     seoDescription: 'Why realistic mock data sharpens front-end and API work.',
-    category: 'Workflow',
-    intro: [
-      'Mock data turns vague placeholders into concrete content shapes. It forces you to decide what a project, blog post, stat, and profile section actually need to contain.',
-      'That early clarity helps avoid mismatches later, especially once APIs and a database enter the picture.'
-    ],
-    sections: [
-      {
-        heading: 'What good mock data gives you',
-        paragraphs: [
-          'It gives the front end something realistic to render, which immediately reveals missing fields, layout problems, and duplication.',
-          'It also reduces the amount of guessing between front-end and back-end work.'
-        ]
-      },
-      {
-        heading: 'What to avoid',
-        paragraphs: [
-          'Mock data should not stay as random lorem ipsum forever. The closer it is to your actual content, the less rework you create for yourself later.'
-        ]
-      }
-    ]
+    category: 'Workflow'
   },
   {
     id: 'post-student-projects-and-storytelling',
@@ -84,7 +97,33 @@ export const BLOG_POST_RECORDS: BlogPostRecord[] = [
     title: 'Turning Student Projects Into Clear Portfolio Stories',
     excerpt:
       'A practical way to present school and personal work so each project communicates context, responsibility, and outcome.',
-    contentMarkdown: '## Lead with context\nContext makes projects easier to understand.',
+    contentMarkdown: `# Lead with context
+
+A project list is not the same as a portfolio. Readers need to understand **what the project was**, **why it mattered**, and **what your role was**.
+
+## Explain the setting
+
+Start with the context:
+
+- Was it a school assignment?
+- A client exercise?
+- A personal build?
+- A team project with a defined role?
+
+## Show responsibility clearly
+
+Even a short line about what you owned makes a project much more useful to readers. It helps them understand your contribution without making them guess.
+
+## End with outcome
+
+The strongest portfolio stories usually end with one of these:
+
+1. what shipped
+2. what improved
+3. what you learned
+
+That is what turns a coursework item into a convincing portfolio piece.
+`,
     coverImageFileId: 'file-blog-storytelling-cover',
     coverImageAlt: 'Cards representing project storytelling',
     readingTimeMinutes: 6,
@@ -93,25 +132,7 @@ export const BLOG_POST_RECORDS: BlogPostRecord[] = [
     publishedAt: 'September 02, 2025',
     seoTitle: 'Student projects as portfolio stories',
     seoDescription: 'A practical way to present student work clearly.',
-    category: 'Career',
-    intro: [
-      'A project list is not the same as a portfolio. People need to understand what the project was, why it mattered, what your role was, and what decisions you made.',
-      'That is especially true for student projects, where the context often matters as much as the final output.'
-    ],
-    sections: [
-      {
-        heading: 'Lead with context',
-        paragraphs: [
-          'Explain what the project was for, who it was made for, and what constraints shaped it. That makes the rest of the details easier to understand.'
-        ]
-      },
-      {
-        heading: 'Be specific about your role',
-        paragraphs: [
-          'Even a short description of the parts you owned can make a project feel much more credible and useful to readers.'
-        ]
-      }
-    ]
+    category: 'Career'
   },
   {
     id: 'post-components-before-polish',
@@ -119,7 +140,27 @@ export const BLOG_POST_RECORDS: BlogPostRecord[] = [
     title: 'Components Before Polish',
     excerpt:
       'Reusable UI pieces are not the glamorous part of a build, but they make the later polish stage much faster and safer.',
-    contentMarkdown: '## Start with the repeated pieces\nRepeated patterns deserve components first.',
+    contentMarkdown: `# Start with the repeated pieces
+
+The temptation is always to jump straight into beautiful one-off screens. I prefer to stabilise the repeated UI first.
+
+## Components reduce friction
+
+A reusable button, chip, card, or section title does more than save time. It also keeps the design language consistent while the product is still changing.
+
+## What deserves a component first
+
+- anything that appears on multiple pages
+- anything with repeated spacing and typography
+- anything that is likely to gain variants later
+
+## Polish lands better later
+
+Once the repeated pieces are stable, polish becomes easier. You stop fighting duplicated markup and start refining the system instead.
+
+
+a small component layer is usually more valuable than an early animation pass.
+`,
     coverImageFileId: 'file-blog-components-cover',
     coverImageAlt: 'UI components arranged in a grid',
     readingTimeMinutes: 3,
@@ -128,19 +169,7 @@ export const BLOG_POST_RECORDS: BlogPostRecord[] = [
     publishedAt: 'September 21, 2025',
     seoTitle: 'Components before polish',
     seoDescription: 'Why reusable UI pieces are worth stabilising early.',
-    category: 'Frontend',
-    intro: [
-      'The temptation is always to jump straight into beautiful one-off screens. I prefer to stabilise the basic button, chip, card, and section patterns first.',
-      'Once those pieces are reliable, the rest of the UI tends to come together much faster.'
-    ],
-    sections: [
-      {
-        heading: 'Start with the repeated pieces',
-        paragraphs: [
-          'If a visual pattern appears in multiple places, it should probably exist as a reusable component before the project gets too large.'
-        ]
-      }
-    ]
+    category: 'Frontend'
   }
 ];
 

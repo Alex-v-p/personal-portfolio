@@ -1,8 +1,3 @@
-export interface BlogPostSection {
-  heading: string;
-  paragraphs: string[];
-}
-
 export type BlogPostStatus = 'draft' | 'published' | 'archived';
 
 export interface BlogPost {
@@ -22,9 +17,7 @@ export interface BlogPost {
   coverImageFileId?: string | null;
   coverImageUrl?: string;
   status: BlogPostStatus;
-  contentMarkdown?: string;
+  contentMarkdown: string;
   seoTitle?: string;
   seoDescription?: string;
-  intro: string[];
-  sections: BlogPostSection[];
 }
