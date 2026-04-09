@@ -3,26 +3,32 @@
     <div class="space-y-5">
       <span class="inline-flex rounded-full bg-stone-200 px-3 py-1 text-xs font-semibold text-stone-700">Hello</span>
       <div class="space-y-3">
-        <p class="text-sm text-stone-600">Hi, I'm Your Name</p>
+        <p class="text-sm text-stone-600">{{ profile.greeting }}</p>
         <h1 class="max-w-xl text-4xl font-semibold leading-tight tracking-tight text-stone-950 sm:text-5xl">
-          I’m a Software Engineer
+          {{ profile.heroTitle }}
         </h1>
         <p class="max-w-xl text-base leading-7 text-stone-600">
-          With a strong foundation in web development and UX design, I enjoy building user-centered experiences that are practical,
-          clear, and pleasant to use.
+          {{ profile.summary }}
         </p>
       </div>
 
       <div class="space-y-3">
         <p class="text-sm font-semibold text-stone-700">My Skills:</p>
         <div class="flex flex-wrap gap-2">
-          <app-ui-chip *ngFor="let skill of heroSkills">{{ skill }}</app-ui-chip>
+          <app-ui-chip *ngFor="let skill of profile.skills">{{ skill }}</app-ui-chip>
         </div>
       </div>
 
       <div class="flex flex-wrap gap-3">
-        <app-ui-button appearance="secondary">Download CV</app-ui-button>
-        <app-ui-link-button routerLink="/contact">Contact me</app-ui-link-button>
+        <app-ui-link-button
+          *ngFor="let action of profile.heroActions"
+          [appearance]="action.appearance"
+          [href]="action.href ?? null"
+          [routerLink]="action.routerLink ?? '/'"
+          [openInNewTab]="action.openInNewTab ?? false"
+        >
+          {{ action.label }}
+        </app-ui-link-button>
       </div>
     </div>
 
@@ -48,24 +54,24 @@
       <app-ui-card>
         <div class="space-y-4">
           <div class="flex items-center justify-between gap-3">
-            <app-ui-chip tone="accent">{{ featuredBlog.badge }}</app-ui-chip>
+            <app-ui-chip tone="accent">Featured</app-ui-chip>
             <div class="flex gap-3 text-xs text-stone-500">
-              <span>{{ featuredBlog.date }}</span>
-              <span>{{ featuredBlog.readTime }}</span>
+              <span>{{ featuredBlogPost.publishedAt }}</span>
+              <span>{{ featuredBlogPost.readTime }}</span>
             </div>
           </div>
 
           <div class="space-y-3">
             <div class="h-28 rounded-md bg-stone-300"></div>
-            <h3 class="text-2xl font-semibold tracking-tight text-stone-950">{{ featuredBlog.title }}</h3>
-            <p class="text-sm leading-6 text-stone-600">{{ featuredBlog.excerpt }}</p>
+            <h3 class="text-2xl font-semibold tracking-tight text-stone-950">{{ featuredBlogPost.title }}</h3>
+            <p class="text-sm leading-6 text-stone-600">{{ featuredBlogPost.excerpt }}</p>
           </div>
 
           <div class="flex flex-wrap gap-2">
-            <app-ui-chip *ngFor="let tag of featuredBlog.tags">{{ tag }}</app-ui-chip>
+            <app-ui-chip *ngFor="let tag of featuredBlogPost.tags">{{ tag }}</app-ui-chip>
           </div>
 
-          <app-ui-link-button routerLink="/blog/title-of-the-blog-post" appearance="ghost">View Details →</app-ui-link-button>
+          <app-ui-link-button [routerLink]="['/blog', featuredBlogPost.slug]" appearance="ghost">View Details →</app-ui-link-button>
         </div>
       </app-ui-card>
 
@@ -75,24 +81,24 @@
 
           <div class="space-y-4">
             <div class="flex flex-wrap items-center gap-2 text-xs text-stone-500">
-              <app-ui-chip tone="accent">{{ featuredProject.badge }}</app-ui-chip>
-              <span>{{ featuredProject.company }}</span>
+              <app-ui-chip tone="accent">Featured</app-ui-chip>
+              <span>{{ featuredProject.organization }}</span>
               <span>{{ featuredProject.duration }}</span>
               <app-ui-chip>{{ featuredProject.status }}</app-ui-chip>
             </div>
 
             <div class="space-y-2">
               <h3 class="text-3xl font-semibold tracking-tight text-stone-950">{{ featuredProject.title }}</h3>
-              <p class="text-sm leading-6 text-stone-600">{{ featuredProject.excerpt }}</p>
+              <p class="text-sm leading-6 text-stone-600">{{ featuredProject.shortDescription }}</p>
             </div>
 
             <div class="flex flex-wrap gap-2">
               <app-ui-chip *ngFor="let tag of featuredProject.tags">{{ tag }}</app-ui-chip>
             </div>
 
-            <p class="text-sm leading-6 text-stone-600">{{ featuredProject.details }}</p>
+            <p class="text-sm leading-6 text-stone-600">{{ featuredProject.highlight }}</p>
 
-            <app-ui-link-button routerLink="/projects" appearance="ghost">Read More →</app-ui-link-button>
+            <app-ui-link-button [routerLink]="featuredProject.links[0].routerLink ?? '/projects'" appearance="ghost">Read More →</app-ui-link-button>
           </div>
         </div>
       </app-ui-card>
@@ -109,7 +115,7 @@
       <h2 class="text-2xl font-semibold tracking-tight text-stone-950">Expertise</h2>
 
       <div class="space-y-4">
-        <app-ui-card *ngFor="let group of expertiseGroups">
+        <app-ui-card *ngFor="let group of profile.expertiseGroups">
           <div class="grid gap-4 sm:grid-cols-[auto_1fr] sm:items-center">
             <span class="h-8 w-8 rounded-sm bg-stone-400"></span>
             <div class="space-y-3">
@@ -125,12 +131,8 @@
 
     <div class="space-y-5">
       <div class="space-y-4">
-        <p class="text-sm leading-7 text-stone-600">
-          I like building systems that feel simple on the surface and are well structured underneath. That includes thoughtful UI,
-          clean component architecture, and backend work that supports growth later.
-        </p>
-        <p class="text-sm leading-7 text-stone-600">
-          These sections are intentionally present already so Stage 2 can plug mock data into shapes that already match your wireframes.
+        <p *ngFor="let paragraph of profile.introParagraphs" class="text-sm leading-7 text-stone-600">
+          {{ paragraph }}
         </p>
         <div class="flex flex-wrap gap-3">
           <app-ui-link-button routerLink="/contact">Contact Me</app-ui-link-button>
@@ -142,7 +144,7 @@
         <h2 class="text-2xl font-semibold tracking-tight text-stone-950">Experience</h2>
 
         <div class="relative space-y-4 pl-6 before:absolute before:bottom-2 before:left-[11px] before:top-2 before:w-px before:bg-stone-500/60">
-          <div *ngFor="let item of experienceItems" class="relative">
+          <div *ngFor="let item of experiences" class="relative">
             <span class="absolute -left-6 top-5 h-3 w-3 rounded-full bg-stone-500"></span>
             <app-ui-card>
               <div class="flex gap-4">
@@ -155,7 +157,7 @@
                     </div>
                     <p class="text-xs text-stone-500">{{ item.period }}</p>
                   </div>
-                  <p class="text-sm leading-6 text-stone-600">{{ item.text }}</p>
+                  <p class="text-sm leading-6 text-stone-600">{{ item.summary }}</p>
                 </div>
               </div>
             </app-ui-card>
@@ -169,16 +171,18 @@
     <h2 class="text-center text-3xl font-semibold tracking-tight text-stone-950">Let’s Connect</h2>
 
     <div class="grid gap-4 md:grid-cols-2">
-      <app-ui-card *ngFor="let card of connectCards">
+      <app-ui-card *ngFor="let method of contactPreviewMethods">
         <div class="flex items-center justify-between gap-4">
           <div class="flex items-center gap-4">
             <span class="h-12 w-12 rounded-sm bg-stone-400"></span>
             <div>
-              <h3 class="text-lg font-semibold text-stone-950">{{ card.title }}</h3>
-              <p class="text-sm text-stone-600">{{ card.value }}</p>
+              <h3 class="text-lg font-semibold text-stone-950">{{ method.label }}</h3>
+              <p class="text-sm text-stone-600">{{ method.value }}</p>
             </div>
           </div>
-          <button class="text-sm font-semibold text-stone-700 transition hover:text-stone-950">{{ card.action }}</button>
+          <app-ui-link-button [href]="method.href" [openInNewTab]="!method.href.startsWith('mailto:') && !method.href.startsWith('tel:')" appearance="ghost">
+            {{ method.actionLabel }}
+          </app-ui-link-button>
         </div>
       </app-ui-card>
     </div>

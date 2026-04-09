@@ -7,7 +7,7 @@
         <h1 class="text-4xl font-semibold tracking-tight text-stone-950">Featured Projects</h1>
         <div class="mx-auto h-3 w-full max-w-xl bg-black"></div>
         <p class="mx-auto max-w-xl text-sm leading-6 text-stone-600">
-          Insights to help you do what you do better, faster and more profitably. Sharing thoughts on development, engineering, and shipped work.
+          A project collection built from shared mock data, so search, filtering, cards, and future API integration all point at the same content model.
         </p>
       </header>
 
@@ -15,6 +15,7 @@
         <label class="block">
           <span class="sr-only">Search projects</span>
           <input
+            [(ngModel)]="searchQuery"
             type="text"
             placeholder="Search"
             class="w-full rounded-none border border-stone-300 bg-white px-4 py-3 text-sm text-stone-700 outline-none transition focus:border-stone-500"
@@ -25,71 +26,92 @@
           <button
             *ngFor="let filter of filters"
             type="button"
-            class="min-w-24 border border-stone-600 bg-stone-600 px-4 py-3 text-sm font-medium text-white"
+            (click)="setFilter(filter)"
+            [class]="activeFilter === filter
+              ? 'min-w-24 border border-stone-600 bg-stone-600 px-4 py-3 text-sm font-medium text-white'
+              : 'min-w-24 border border-stone-400 bg-white px-4 py-3 text-sm font-medium text-stone-700 transition hover:border-stone-600 hover:text-stone-950'"
           >
             {{ filter }}
           </button>
         </div>
       </div>
 
-      <p class="text-center text-sm text-stone-600">Showing 6 of 14 articles</p>
+      <p class="text-center text-sm text-stone-600">Showing {{ filteredProjects.length + 1 }} of {{ totalProjectCount }} projects</p>
 
       <div class="grid gap-5 lg:grid-cols-[1.3fr_auto] lg:items-center">
         <app-ui-card [featured]="true" padding="lg">
           <div class="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
             <div class="relative min-h-72 rounded-sm bg-stone-300">
-              <app-ui-chip tone="accent" class="absolute left-3 top-3">{{ featuredProject.badge }}</app-ui-chip>
+              <app-ui-chip tone="accent" class="absolute left-3 top-3">Featured</app-ui-chip>
               <span class="absolute bottom-3 left-3 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-white text-xl">◔</span>
             </div>
 
             <div class="space-y-4">
               <div class="flex flex-wrap items-center gap-3 text-xs text-stone-500">
-                <span>{{ featuredProject.source }}</span>
+                <span>{{ featuredProject.organization }}</span>
                 <span>{{ featuredProject.duration }}</span>
                 <app-ui-chip>{{ featuredProject.status }}</app-ui-chip>
               </div>
 
               <div class="space-y-2">
                 <h2 class="text-3xl font-semibold tracking-tight text-stone-950">{{ featuredProject.title }}</h2>
-                <p class="text-sm leading-6 text-stone-600">{{ featuredProject.excerpt }}</p>
+                <p class="text-sm leading-6 text-stone-600">{{ featuredProject.shortDescription }}</p>
               </div>
 
               <div class="flex flex-wrap gap-2">
                 <app-ui-chip *ngFor="let tag of featuredProject.tags">{{ tag }}</app-ui-chip>
               </div>
 
-              <p class="text-sm leading-6 text-stone-600">{{ featuredProject.details }}</p>
-              <app-ui-link-button routerLink="/projects" appearance="ghost">Read More →</app-ui-link-button>
+              <p class="text-sm leading-6 text-stone-600">{{ featuredProject.highlight }}</p>
+              <app-ui-link-button [routerLink]="featuredProject.links[0].routerLink ?? '/projects'" appearance="ghost">Read More →</app-ui-link-button>
             </div>
           </div>
         </app-ui-card>
 
-        <p class="text-sm text-stone-700">{{ featuredProject.linkText }}</p>
+        <app-ui-link-button
+          *ngIf="featuredProject.links[1]?.href"
+          [href]="featuredProject.links[1]?.href ?? null"
+          [openInNewTab]="true"
+          appearance="ghost"
+        >
+          {{ featuredProject.links[1]?.label }}
+        </app-ui-link-button>
       </div>
 
-      <section class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        <app-ui-card *ngFor="let project of projects">
+      <section *ngIf="filteredProjects.length; else emptyResults" class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <app-ui-card *ngFor="let project of filteredProjects">
           <div class="space-y-4">
             <div class="h-40 rounded-sm bg-stone-300"></div>
 
             <div class="flex gap-3 text-xs text-stone-500">
-              <span>{{ project.company }}</span>
+              <span>{{ project.organization }}</span>
               <span>{{ project.duration }}</span>
             </div>
 
             <div class="space-y-2">
               <h3 class="text-2xl font-semibold tracking-tight text-stone-950">{{ project.title }}</h3>
-              <p class="text-sm leading-6 text-stone-600">{{ project.excerpt }}</p>
+              <p class="text-sm leading-6 text-stone-600">{{ project.shortDescription }}</p>
             </div>
 
             <div class="flex flex-wrap gap-2">
               <app-ui-chip *ngFor="let tag of project.tags">{{ tag }}</app-ui-chip>
             </div>
 
-            <app-ui-link-button [routerLink]="project.slug" appearance="ghost">View Details →</app-ui-link-button>
+            <app-ui-link-button [routerLink]="['/projects']" appearance="ghost">View Details →</app-ui-link-button>
           </div>
         </app-ui-card>
       </section>
+
+      <ng-template #emptyResults>
+        <app-ui-empty-state
+          title="No projects match your filters yet"
+          description="Try another search term or switch back to a broader category to see the rest of the mock project data."
+        >
+          <div actions>
+            <app-ui-link-button appearance="secondary" routerLink="/projects">Reset from navigation</app-ui-link-button>
+          </div>
+        </app-ui-empty-state>
+      </ng-template>
 
       <div class="flex items-center justify-center gap-3 text-sm text-stone-700">
         <span>Previous</span>

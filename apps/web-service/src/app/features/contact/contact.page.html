@@ -3,7 +3,7 @@
     <p class="text-sm text-stone-600">Home &gt; Contact</p>
     <h1 class="text-4xl font-semibold tracking-tight text-stone-950">Let’s work together</h1>
     <p class="max-w-2xl text-base leading-7 text-stone-600">
-      This page already includes the content regions you will need later: direct contact methods, availability tags, and the contact form layout.
+      Shared contact mock data now powers this page, the home-page preview, and the footer so all the main contact surfaces stay aligned.
     </p>
   </div>
 
@@ -13,19 +13,29 @@
         <div class="space-y-3">
           <p class="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">Contact info</p>
           <h2 class="text-3xl font-semibold tracking-tight text-stone-950">Start with the channel that feels easiest</h2>
-          <p class="text-sm leading-6 text-stone-600">
-            Even before a backend is connected, the page now mirrors the type of information your wireframes expect.
-          </p>
+          <p class="text-sm leading-6 text-stone-600">{{ profile.shortBio }}</p>
         </div>
 
         <div class="flex flex-wrap gap-2">
-          <app-ui-chip *ngFor="let item of availability">{{ item }}</app-ui-chip>
+          <app-ui-chip *ngFor="let item of profile.availability">{{ item }}</app-ui-chip>
         </div>
 
         <div class="grid gap-4">
           <div *ngFor="let method of contactMethods" class="rounded-2xl border border-stone-200 bg-stone-100/80 p-4">
-            <p class="text-sm font-semibold text-stone-950">{{ method.label }}</p>
-            <p class="mt-1 text-sm text-stone-600">{{ method.value }}</p>
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p class="text-sm font-semibold text-stone-950">{{ method.label }}</p>
+                <p class="mt-1 text-sm text-stone-600">{{ method.value }}</p>
+                <p *ngIf="method.description" class="mt-2 text-xs leading-5 text-stone-500">{{ method.description }}</p>
+              </div>
+              <app-ui-link-button
+                [href]="method.href"
+                [openInNewTab]="!method.href.startsWith('mailto:') && !method.href.startsWith('tel:')"
+                appearance="ghost"
+              >
+                {{ method.actionLabel }}
+              </app-ui-link-button>
+            </div>
           </div>
         </div>
       </div>

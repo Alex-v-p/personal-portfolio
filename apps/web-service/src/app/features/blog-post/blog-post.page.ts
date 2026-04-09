@@ -3,15 +3,8 @@ import { NgFor } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { UiChipComponent } from '../../shared/components/chip/ui-chip.component';
-
-interface BlogPostViewModel {
-  title: string;
-  date: string;
-  readTime: string;
-  tags: string[];
-  intro: string[];
-  sections: Array<{ heading: string; paragraphs: string[] }>;
-}
+import { BLOG_POSTS } from '../../shared/mock-data/blog-posts.mock';
+import { BlogPost } from '../../shared/models/blog-post.model';
 
 @Component({
   selector: 'app-blog-post-page',
@@ -22,48 +15,30 @@ interface BlogPostViewModel {
 export class BlogPostPageComponent {
   private readonly route = inject(ActivatedRoute);
 
-  private readonly posts: Record<string, BlogPostViewModel> = {
-    'title-of-the-blog-post': {
-      title: 'Title of blogPost',
-      date: 'July 29, 2025',
-      readTime: '5 min read',
-      tags: ['Tag', 'Tag', 'Tag'],
-      intro: [
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas ut efficitur risus. Proin malesuada urna id interdum consectetur. Integer convallis pharetra nisi, quis semper augue eleifend a.',
-        'Praesent augue eros, porttitor non ligula sed, laoreet sagittis augue. Etiam eleifend a ligula eget ornare.'
-      ],
-      sections: [
-        {
-          heading: 'Header Text',
-          paragraphs: [
-            'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas ut efficitur risus. Proin malesuada urna id interdum consectetur. Integer convallis pharetra nisi, quis semper augue eleifend a.',
-            'Duis suscipit massa at imperdiet scelerisque. Donec non convallis mauris. Aenean interdum dui quis leo dapibus dictum.'
-          ]
-        },
-        {
-          heading: 'Another Section',
-          paragraphs: [
-            'Use this layout for long-form content later. The key point for now is that the page already has all the content regions from your wireframe: metadata, tags, share actions, image, and article body.'
-          ]
-        }
-      ]
-    }
-  };
+  protected readonly shareMarks = ['in', 'x'];
 
   protected get slug(): string {
-    return this.route.snapshot.paramMap.get('slug') ?? 'title-of-the-blog-post';
+    return this.route.snapshot.paramMap.get('slug') ?? BLOG_POSTS[0].slug;
   }
 
-  protected get post(): BlogPostViewModel {
-    return this.posts[this.slug] ?? {
+  protected get post(): BlogPost {
+    return BLOG_POSTS.find((post) => post.slug === this.slug) ?? {
+      id: 'fallback-post',
+      slug: this.slug,
       title: this.slug.replace(/-/g, ' ') || 'Blog Post',
-      date: 'July 29, 2025',
+      excerpt: 'Fallback mock blog post content.',
+      publishedAt: 'July 29, 2025',
       readTime: '5 min read',
-      tags: ['Tag'],
-      intro: ['This fallback article exists so any slug still renders inside the designed layout.'],
+      readingTimeMinutes: 5,
+      category: 'General',
+      tags: ['Fallback'],
+      featured: false,
+      isFeatured: false,
+      coverAlt: 'Fallback blog cover',
+      coverImageAlt: 'Fallback blog cover',
+      status: 'published',
+      intro: ['This fallback article exists so any mock slug still renders inside the designed layout.'],
       sections: []
     };
   }
-
-  protected readonly shareMarks = ['in', 'x'];
 }

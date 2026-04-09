@@ -7,7 +7,7 @@
         <h1 class="text-4xl font-semibold tracking-tight text-stone-950">Blog Posts</h1>
         <div class="mx-auto h-3 w-full max-w-xl bg-black"></div>
         <p class="mx-auto max-w-xl text-sm leading-6 text-stone-600">
-          Insights to help you do what you do better, faster and more profitably. Sharing thoughts on DevOps, SRE, cloud engineering, and UI work.
+          Realistic mock articles that already carry titles, dates, excerpts, tags, and long-form content so the listing and detail pages stay in sync.
         </p>
       </header>
 
@@ -15,6 +15,7 @@
         <label class="block">
           <span class="sr-only">Search blog posts</span>
           <input
+            [(ngModel)]="searchQuery"
             type="text"
             placeholder="Search"
             class="w-full rounded-none border border-stone-300 bg-white px-4 py-3 text-sm text-stone-700 outline-none transition focus:border-stone-500"
@@ -25,34 +26,47 @@
           <button
             *ngFor="let filter of filters"
             type="button"
-            class="min-w-24 border border-stone-600 bg-stone-600 px-4 py-3 text-sm font-medium text-white"
+            (click)="setFilter(filter)"
+            [class]="activeFilter === filter
+              ? 'min-w-24 border border-stone-600 bg-stone-600 px-4 py-3 text-sm font-medium text-white'
+              : 'min-w-24 border border-stone-400 bg-white px-4 py-3 text-sm font-medium text-stone-700 transition hover:border-stone-600 hover:text-stone-950'"
           >
             {{ filter }}
           </button>
         </div>
       </div>
 
-      <p class="text-center text-sm text-stone-600">Showing 6 of 14 articles</p>
+      <p class="text-center text-sm text-stone-600">Showing {{ filteredPosts.length }} of {{ totalPostCount }} articles</p>
 
-      <section class="grid gap-5 md:grid-cols-2">
-        <app-ui-card *ngFor="let post of posts">
+      <section *ngIf="filteredPosts.length; else emptyResults" class="grid gap-5 md:grid-cols-2">
+        <app-ui-card *ngFor="let post of filteredPosts">
           <div class="grid gap-4 sm:grid-cols-[0.9fr_1.1fr] sm:items-start">
             <div class="relative min-h-40 rounded-sm bg-stone-300">
-              <app-ui-chip tone="accent" class="absolute left-3 top-3">{{ post.badge }}</app-ui-chip>
+              <app-ui-chip *ngIf="post.featured" tone="accent" class="absolute left-3 top-3">Featured</app-ui-chip>
             </div>
 
             <div class="space-y-3">
               <div class="flex flex-wrap gap-3 text-xs text-stone-500">
-                <span>{{ post.date }}</span>
+                <span>{{ post.publishedAt }}</span>
                 <span>{{ post.readTime }}</span>
               </div>
               <h2 class="text-2xl font-semibold tracking-tight text-stone-950">{{ post.title }}</h2>
               <p class="text-sm leading-6 text-stone-600">{{ post.excerpt }}</p>
-              <app-ui-link-button [routerLink]="post.slug" appearance="ghost">Read More →</app-ui-link-button>
+              <div class="flex flex-wrap gap-2">
+                <app-ui-chip *ngFor="let tag of post.tags">{{ tag }}</app-ui-chip>
+              </div>
+              <app-ui-link-button [routerLink]="['/blog', post.slug]" appearance="ghost">Read More →</app-ui-link-button>
             </div>
           </div>
         </app-ui-card>
       </section>
+
+      <ng-template #emptyResults>
+        <app-ui-empty-state
+          title="No blog posts match that search"
+          description="Try another keyword or switch back to a broader category to browse the rest of the mock articles."
+        ></app-ui-empty-state>
+      </ng-template>
 
       <div class="flex items-center justify-center gap-3 text-sm text-stone-700">
         <span>Previous</span>
