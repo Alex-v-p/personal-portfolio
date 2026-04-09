@@ -1,0 +1,63 @@
+<div class="mx-auto max-w-5xl space-y-8">
+  <div class="space-y-3">
+    <p class="text-sm text-stone-600">Home &gt; Contact</p>
+    <h1 class="text-4xl font-semibold tracking-tight text-stone-950">Let’s work together</h1>
+    <p class="max-w-2xl text-base leading-7 text-stone-600">
+      This page already includes the content regions you will need later: direct contact methods, availability tags, and the contact form layout.
+    </p>
+  </div>
+
+  <div class="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
+    <app-ui-card [featured]="true" padding="lg">
+      <div class="space-y-6">
+        <div class="space-y-3">
+          <p class="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">Contact info</p>
+          <h2 class="text-3xl font-semibold tracking-tight text-stone-950">Start with the channel that feels easiest</h2>
+          <p class="text-sm leading-6 text-stone-600">
+            Even before a backend is connected, the page now mirrors the type of information your wireframes expect.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <app-ui-chip *ngFor="let item of availability">{{ item }}</app-ui-chip>
+        </div>
+
+        <div class="grid gap-4">
+          <div *ngFor="let method of contactMethods" class="rounded-2xl border border-stone-200 bg-stone-100/80 p-4">
+            <p class="text-sm font-semibold text-stone-950">{{ method.label }}</p>
+            <p class="mt-1 text-sm text-stone-600">{{ method.value }}</p>
+          </div>
+        </div>
+      </div>
+    </app-ui-card>
+
+    <app-ui-card padding="lg">
+      <form class="space-y-5">
+        <div class="space-y-3">
+          <p class="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">Send a message</p>
+          <h2 class="text-3xl font-semibold tracking-tight text-stone-950">Project inquiry form</h2>
+        </div>
+
+        <label class="grid gap-2">
+          <span class="text-sm font-medium text-stone-700">Name</span>
+          <input type="text" class="rounded-2xl border border-stone-300 bg-white px-4 py-3 outline-none transition focus:border-stone-500" placeholder="Your name" />
+        </label>
+
+        <label class="grid gap-2">
+          <span class="text-sm font-medium text-stone-700">Email</span>
+          <input type="email" class="rounded-2xl border border-stone-300 bg-white px-4 py-3 outline-none transition focus:border-stone-500" placeholder="your.email@example.com" />
+        </label>
+
+        <label class="grid gap-2">
+          <span class="text-sm font-medium text-stone-700">Message</span>
+          <textarea rows="7" class="rounded-2xl border border-stone-300 bg-white px-4 py-3 outline-none transition focus:border-stone-500" placeholder="Tell me about your project, internship, or collaboration idea."></textarea>
+        </label>
+
+        <div class="flex flex-wrap gap-3">
+          <app-ui-button type="submit">Send message</app-ui-button>
+          <app-ui-button appearance="secondary" [disabled]="true">Backend comes later</app-ui-button>
+        </div>
+      </form>
+    </app-ui-card>
+  </div>
+</div>

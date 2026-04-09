@@ -1,34 +1,56 @@
 import { Component } from '@angular/core';
+import { NgFor } from '@angular/common';
+
+import { UiCardComponent } from '../../shared/components/card/ui-card.component';
+import { UiChipComponent } from '../../shared/components/chip/ui-chip.component';
+import { UiLinkButtonComponent } from '../../shared/components/link-button/ui-link-button.component';
 
 @Component({
   selector: 'app-projects-page',
   standalone: true,
-  template: `
-    <section class="page-card">
-      <p class="eyebrow">Projects</p>
-      <h1>Projects page</h1>
-      <p>Hook this page up to the portfolio API projects endpoints when you are ready.</p>
-    </section>
-  `,
-  styles: [`
-    .page-card {
-      padding: 2rem;
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 1rem;
-      background: rgba(255,255,255,0.03);
-    }
-
-    .eyebrow {
-      margin: 0 0 0.5rem;
-      color: #8ab4ff;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-size: 0.8rem;
-    }
-
-    h1 {
-      margin-top: 0;
-    }
-  `]
+  imports: [NgFor, UiCardComponent, UiChipComponent, UiLinkButtonComponent],
+  templateUrl: './projects.page.html'
 })
-export class ProjectsPageComponent {}
+export class ProjectsPageComponent {
+  protected readonly filters = ['Frontend', 'Backend', 'AI'];
+  protected readonly pagerDots = [1, 2, 3];
+
+  protected readonly featuredProject = {
+    badge: 'Featured',
+    source: 'CEV/ux',
+    duration: '3 months',
+    status: 'Completed',
+    title: 'Title of the Project',
+    excerpt: 'A highlighted project card that already includes all the content fields from the wireframe.',
+    tags: ['Skill', 'Skill', 'Skill', 'Skill'],
+    details: 'Describe the implementation, your role, and the measurable result here. This lets you swap to mock data later without redesigning the layout.',
+    linkText: 'Goes to github read me'
+  };
+
+  protected readonly projects = [
+    {
+      company: 'Thomas More',
+      duration: '6 months',
+      title: 'Title of the Project',
+      excerpt: 'Example project summary that explains the challenge and outcome in a concise way.',
+      tags: ['Skill', 'Skill'],
+      slug: '/projects'
+    },
+    {
+      company: 'Thomas More',
+      duration: '6 months',
+      title: 'Title of the Project',
+      excerpt: 'Example project summary that explains the challenge and outcome in a concise way.',
+      tags: ['Skill', 'Skill'],
+      slug: '/projects'
+    },
+    {
+      company: 'Thomas More',
+      duration: '6 months',
+      title: 'Title of the Project',
+      excerpt: 'Example project summary that explains the challenge and outcome in a concise way.',
+      tags: ['Skill', 'Skill'],
+      slug: '/projects'
+    }
+  ];
+}

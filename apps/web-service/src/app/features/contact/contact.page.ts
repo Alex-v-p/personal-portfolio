@@ -1,34 +1,23 @@
 import { Component } from '@angular/core';
+import { NgFor } from '@angular/common';
+
+import { UiButtonComponent } from '../../shared/components/button/ui-button.component';
+import { UiCardComponent } from '../../shared/components/card/ui-card.component';
+import { UiChipComponent } from '../../shared/components/chip/ui-chip.component';
 
 @Component({
   selector: 'app-contact-page',
   standalone: true,
-  template: `
-    <section class="page-card">
-      <p class="eyebrow">Contact</p>
-      <h1>Contact page</h1>
-      <p>This page can later post contact form submissions to the portfolio API.</p>
-    </section>
-  `,
-  styles: [`
-    .page-card {
-      padding: 2rem;
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 1rem;
-      background: rgba(255,255,255,0.03);
-    }
-
-    .eyebrow {
-      margin: 0 0 0.5rem;
-      color: #8ab4ff;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-size: 0.8rem;
-    }
-
-    h1 {
-      margin-top: 0;
-    }
-  `]
+  imports: [NgFor, UiButtonComponent, UiCardComponent, UiChipComponent],
+  templateUrl: './contact.page.html'
 })
-export class ContactPageComponent {}
+export class ContactPageComponent {
+  protected readonly contactMethods = [
+    { label: 'Email', value: 'your.email@example.com' },
+    { label: 'GitHub', value: 'github.com/shuzu' },
+    { label: 'LinkedIn', value: 'linkedin.com/in/your-name' },
+    { label: 'Location', value: 'Belgium' }
+  ];
+
+  protected readonly availability = ['Open to internships', 'Open to freelance', 'Based in Belgium'];
+}
