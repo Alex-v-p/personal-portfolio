@@ -29,10 +29,14 @@ export class BlogPostPageComponent {
       excerpt: 'Fallback mock blog post content.',
       publishedAt: 'July 29, 2025',
       readTime: '5 min read',
+      readingTimeMinutes: 5,
       category: 'General',
       tags: ['Fallback'],
       featured: false,
+      isFeatured: false,
       coverAlt: 'Fallback blog cover',
+      coverImageAlt: 'Fallback blog cover',
+      status: 'published',
       intro: ['This fallback article exists so any mock slug still renders inside the designed layout.'],
       sections: []
     };

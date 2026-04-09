@@ -3,7 +3,7 @@ import { NgFor, NgIf } from '@angular/common';
 
 import { UiButtonComponent } from '../../shared/components/button/ui-button.component';
 import { UiCardComponent } from '../../shared/components/card/ui-card.component';
-import { CONTRIBUTION_CELLS, GITHUB_SUMMARY, PORTFOLIO_STATS } from '../../shared/mock-data/stats.mock';
+import { CONTRIBUTION_CELLS, GITHUB_SUMMARY, LATEST_GITHUB_SNAPSHOT, PORTFOLIO_STATS } from '../../shared/mock-data/stats.mock';
 
 @Component({
   selector: 'app-stats-page',
@@ -14,6 +14,7 @@ import { CONTRIBUTION_CELLS, GITHUB_SUMMARY, PORTFOLIO_STATS } from '../../share
 export class StatsPageComponent {
   protected readonly contributionCells = CONTRIBUTION_CELLS;
   protected readonly githubSummary = GITHUB_SUMMARY;
+  protected readonly latestGithubSnapshot = LATEST_GITHUB_SNAPSHOT;
   protected readonly portfolioStats = PORTFOLIO_STATS;
 
   protected getContributionClass(value: number): string {

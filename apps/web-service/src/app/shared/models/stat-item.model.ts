@@ -4,4 +4,5 @@ export interface StatItem {
   value: string;
   description: string;
   actionLabel?: string;
+  meta?: string;
 }

@@ -1,71 +1,79 @@
 import { Experience } from '../models/experience.model';
 import { Profile } from '../models/profile.model';
+import { MEDIA_FILES } from './media-files.mock';
+import { SKILL_CATEGORIES, SKILLS } from './skills.mock';
+import { buildExperienceViews, buildProfileView, ExperienceRecord, ProfileRecord } from './content.selectors';
 
-export const PROFILE: Profile = {
-  name: 'Alex van Poppel',
-  role: 'Software Engineer',
-  greeting: "Hi, I'm Alex",
-  location: 'Lommel, Belgium',
-  heroTitle: "I’m a Software Engineer",
-  summary:
+export const PROFILE_RECORD: ProfileRecord = {
+  id: 'profile-alex-van-poppel',
+  firstName: 'Alex',
+  lastName: 'van Poppel',
+  headline: 'Software Engineer',
+  shortIntro:
     'With a strong foundation in web development and UX design, I enjoy building user-centred experiences that are practical, clear, and pleasant to use.',
-  shortBio:
+  longBio:
     'I build portfolio sites, data-heavy student projects, and full-stack applications with a focus on maintainable architecture, thoughtful UI, and future-friendly structure.',
-  footerDescription:
-    'Applied Computer Science student focused on AI, web development, and building practical digital products that are easy to maintain.',
-  skills: ['Angular', 'Tailwind', 'TypeScript', 'Laravel', '.NET', 'Python'],
-  expertiseGroups: [
-    { title: 'Front-End', tags: ['Angular', 'Tailwind', 'TypeScript'] },
-    { title: 'Back-End', tags: ['Laravel', '.NET', 'REST APIs'] },
-    { title: 'AI', tags: ['Python', 'TensorFlow', 'Data Prep'] },
-    { title: 'Programming', tags: ['Java', 'C#', 'TypeScript'] },
-    { title: 'Languages', tags: ['Dutch', 'English', 'French'] }
-  ],
-  introParagraphs: [
-    'I like building systems that feel simple on the surface and are well-structured underneath. That includes thoughtful UI, clean component design, and backend work that supports growth later.',
-    'This mock portfolio content is intentionally realistic and reusable, so later stages can swap in API data without changing the overall page shapes.'
-  ],
-  availability: ['Open to internships', 'Open to freelance', 'Based in Belgium'],
-  heroActions: [
-    {
-      label: 'Download CV',
-      appearance: 'secondary',
-      href: '/assets/mock-resume.pdf'
-    },
-    {
-      label: 'Contact me',
-      appearance: 'primary',
-      routerLink: '/contact'
-    }
-  ]
+  location: 'Lommel, Belgium',
+  email: 'hello@shuzu.dev',
+  phone: '+32 470 31 34 39',
+  avatarFileId: 'file-avatar-alex',
+  heroImageFileId: 'file-hero-portrait',
+  resumeFileId: 'file-resume',
+  ctaPrimaryLabel: 'Download CV',
+  ctaPrimaryUrl: '/assets/mock-resume.pdf',
+  ctaSecondaryLabel: 'Contact me',
+  ctaSecondaryUrl: '/contact',
+  createdAt: '2025-09-28T10:00:00Z',
+  updatedAt: '2025-10-01T12:00:00Z'
 };
 
-export const EXPERIENCES: Experience[] = [
+export const EXPERIENCE_RECORDS: ExperienceRecord[] = [
   {
-    id: 'internship-client-work',
-    title: 'Internship',
-    organization: 'Client delivery team',
+    id: 'experience-internship-client-work',
+    organizationName: 'Client delivery team',
+    roleTitle: 'Internship',
     location: 'Geel, Belgium',
-    period: 'Feb 2025 - Jun 2025',
+    experienceType: 'internship',
+    startDate: '2025-02-01',
+    endDate: '2025-06-30',
+    isCurrent: false,
     summary:
-      'Worked on maintainable web interfaces, internal tooling, and clear communication with clients while shipping practical features in a team setting.'
+      'Worked on maintainable web interfaces, internal tooling, and clear communication with clients while shipping practical features in a team setting.',
+    descriptionMarkdown:
+      'Collaborated in a client-facing team on practical web features, internal tools, and documentation.',
+    sortOrder: 1
   },
   {
-    id: 'thomas-more',
-    title: 'Thomas More',
-    organization: 'Applied Computer Science',
+    id: 'experience-thomas-more',
+    organizationName: 'Thomas More',
+    roleTitle: 'Applied Computer Science',
     location: 'Geel, Belgium',
-    period: '2022 - present',
+    experienceType: 'education',
+    startDate: '2022-09-01',
+    endDate: null,
+    isCurrent: true,
     summary:
-      'Built projects across AI, software engineering, and web development, with a strong focus on hands-on delivery and iterative improvement.'
+      'Built projects across AI, software engineering, and web development, with a strong focus on hands-on delivery and iterative improvement.',
+    descriptionMarkdown:
+      'Worked on AI, web, and software engineering assignments with practical delivery and reflection.',
+    sortOrder: 2
   },
   {
-    id: 'personal-projects',
-    title: 'Personal Projects',
-    organization: 'Independent work',
+    id: 'experience-personal-projects',
+    organizationName: 'Independent work',
+    roleTitle: 'Personal Projects',
     location: 'Remote',
-    period: '2023 - present',
+    experienceType: 'personal',
+    startDate: '2023-01-01',
+    endDate: null,
+    isCurrent: true,
     summary:
-      'Created portfolio, API, machine learning, and full-stack projects to sharpen real-world architecture, deployment, and UI skills.'
+      'Created portfolio, API, machine learning, and full-stack projects to sharpen real-world architecture, deployment, and UI skills.',
+    descriptionMarkdown:
+      'Used personal projects to practice architecture, deployment, and maintainable front-end work.',
+    sortOrder: 3
   }
 ];
+
+export const PROFILE: Profile = buildProfileView(PROFILE_RECORD, MEDIA_FILES, SKILL_CATEGORIES, SKILLS);
+export const EXPERIENCES: Experience[] = buildExperienceViews(EXPERIENCE_RECORDS, MEDIA_FILES);
