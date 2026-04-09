@@ -3,11 +3,12 @@
     <p class="text-sm text-stone-600">Home &gt; Contact</p>
     <h1 class="text-4xl font-semibold tracking-tight text-stone-950">Let’s work together</h1>
     <p class="max-w-2xl text-base leading-7 text-stone-600">
-      Shared contact mock data now powers this page, the home-page preview, and the footer so all the main contact surfaces stay aligned.
+      Shared contact data powers this page, the footer, and the homepage preview. The form below is front-end only for now,
+      but it already behaves like a real contact flow with validation and mock success or error states.
     </p>
   </div>
 
-  <div class="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
+  <div class="grid gap-5 lg:grid-cols-[0.92fr_1.08fr] lg:items-start">
     <app-ui-card [featured]="true" padding="lg">
       <div class="space-y-6">
         <div class="space-y-3">
@@ -23,11 +24,12 @@
         <div class="grid gap-4">
           <div *ngFor="let method of contactMethods" class="rounded-2xl border border-stone-200 bg-stone-100/80 p-4">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
+              <div class="space-y-1">
                 <p class="text-sm font-semibold text-stone-950">{{ method.label }}</p>
-                <p class="mt-1 text-sm text-stone-600">{{ method.value }}</p>
-                <p *ngIf="method.description" class="mt-2 text-xs leading-5 text-stone-500">{{ method.description }}</p>
+                <p class="text-sm text-stone-600">{{ method.value }}</p>
+                <p *ngIf="method.description" class="text-xs leading-5 text-stone-500">{{ method.description }}</p>
               </div>
+
               <app-ui-link-button
                 [href]="method.href"
                 [openInNewTab]="!method.href.startsWith('mailto:') && !method.href.startsWith('tel:')"
@@ -38,36 +40,140 @@
             </div>
           </div>
         </div>
+
+        <div class="rounded-[1.5rem] border border-stone-200 bg-white/70 p-5">
+          <p class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Good starting topics</p>
+          <div class="mt-4 space-y-3">
+            <button
+              *ngFor="let topic of preferredTopics"
+              type="button"
+              (click)="useTopic(topic.label)"
+              class="w-full rounded-2xl border border-stone-200 bg-stone-50/80 px-4 py-3 text-left transition hover:border-stone-300 hover:bg-white"
+            >
+              <span class="block text-sm font-semibold text-stone-900">{{ topic.label }}</span>
+              <span class="mt-1 block text-xs leading-5 text-stone-500">{{ topic.hint }}</span>
+            </button>
+          </div>
+        </div>
       </div>
     </app-ui-card>
 
     <app-ui-card padding="lg">
-      <form class="space-y-5">
+      <div class="space-y-6">
         <div class="space-y-3">
           <p class="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">Send a message</p>
           <h2 class="text-3xl font-semibold tracking-tight text-stone-950">Project inquiry form</h2>
+          <p class="text-sm leading-6 text-stone-600">
+            Stage 6 keeps this client-side for now. Stage 8 can later swap the submit action to a real API without needing to redesign the form.
+          </p>
         </div>
 
-        <label class="grid gap-2">
-          <span class="text-sm font-medium text-stone-700">Name</span>
-          <input type="text" class="rounded-2xl border border-stone-300 bg-white px-4 py-3 outline-none transition focus:border-stone-500" placeholder="Your name" />
-        </label>
-
-        <label class="grid gap-2">
-          <span class="text-sm font-medium text-stone-700">Email</span>
-          <input type="email" class="rounded-2xl border border-stone-300 bg-white px-4 py-3 outline-none transition focus:border-stone-500" placeholder="your.email@example.com" />
-        </label>
-
-        <label class="grid gap-2">
-          <span class="text-sm font-medium text-stone-700">Message</span>
-          <textarea rows="7" class="rounded-2xl border border-stone-300 bg-white px-4 py-3 outline-none transition focus:border-stone-500" placeholder="Tell me about your project, internship, or collaboration idea."></textarea>
-        </label>
-
-        <div class="flex flex-wrap gap-3">
-          <app-ui-button type="submit">Send message</app-ui-button>
-          <app-ui-button appearance="secondary" [disabled]="true">Backend comes later</app-ui-button>
+        <div *ngIf="submissionState === 'success' && lastSubmittedMessage" class="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-5" role="status">
+          <div class="space-y-3">
+            <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">Message queued</p>
+            <h3 class="text-xl font-semibold text-emerald-950">Thanks, {{ lastSubmittedMessage.name }}.</h3>
+            <p class="text-sm leading-6 text-emerald-900/80">
+              Your mock message about <span class="font-semibold">{{ lastSubmittedMessage.subject }}</span> has been recorded locally.
+              In the real version this will post to the portfolio API and create a <code class="rounded bg-emerald-100 px-1.5 py-0.5 text-xs">contact_messages</code> entry.
+            </p>
+            <div class="flex flex-wrap gap-3">
+              <app-ui-button appearance="secondary" type="button" (click)="startAnotherMessage()">Send another message</app-ui-button>
+            </div>
+          </div>
         </div>
-      </form>
+
+        <div *ngIf="submissionState === 'error'" class="rounded-[1.5rem] border border-rose-200 bg-rose-50 p-5" role="alert">
+          <div class="space-y-3">
+            <p class="text-sm font-semibold uppercase tracking-[0.18em] text-rose-700">Submission failed</p>
+            <p class="text-sm leading-6 text-rose-900/80">{{ errorMessage }}</p>
+            <div class="flex flex-wrap gap-3">
+              <app-ui-button appearance="secondary" type="button" (click)="submit()">Retry mock submit</app-ui-button>
+              <app-ui-button appearance="ghost" type="button" (click)="submissionState = 'idle'; errorMessage = ''">Dismiss</app-ui-button>
+            </div>
+          </div>
+        </div>
+
+        <form [formGroup]="contactForm" (ngSubmit)="submit()" class="space-y-5" novalidate>
+          <div class="grid gap-5 sm:grid-cols-2">
+            <label class="grid gap-2">
+              <span class="text-sm font-medium text-stone-700">Name</span>
+              <input
+                type="text"
+                formControlName="name"
+                class="w-full rounded-2xl border bg-white px-4 py-3 outline-none transition focus:border-stone-500"
+                [class.border-rose-300]="showError('name')"
+                [class.border-stone-300]="!showError('name')"
+                placeholder="Your name"
+              />
+              <span *ngIf="showError('name')" class="text-xs text-rose-600">{{ errorText('name') }}</span>
+            </label>
+
+            <label class="grid gap-2">
+              <span class="text-sm font-medium text-stone-700">Email</span>
+              <input
+                type="email"
+                formControlName="email"
+                class="w-full rounded-2xl border bg-white px-4 py-3 outline-none transition focus:border-stone-500"
+                [class.border-rose-300]="showError('email')"
+                [class.border-stone-300]="!showError('email')"
+                placeholder="your.email@example.com"
+              />
+              <span *ngIf="showError('email')" class="text-xs text-rose-600">{{ errorText('email') }}</span>
+            </label>
+          </div>
+
+          <label class="grid gap-2">
+            <span class="text-sm font-medium text-stone-700">Subject</span>
+            <input
+              type="text"
+              formControlName="subject"
+              class="w-full rounded-2xl border bg-white px-4 py-3 outline-none transition focus:border-stone-500"
+              [class.border-rose-300]="showError('subject')"
+              [class.border-stone-300]="!showError('subject')"
+              placeholder="Internship, freelance project, collaboration idea..."
+            />
+            <span *ngIf="showError('subject')" class="text-xs text-rose-600">{{ errorText('subject') }}</span>
+          </label>
+
+          <label class="grid gap-2">
+            <div class="flex items-center justify-between gap-3">
+              <span class="text-sm font-medium text-stone-700">Message</span>
+              <span class="text-xs text-stone-500">{{ messageLength }}/1200</span>
+            </div>
+            <textarea
+              rows="8"
+              formControlName="message"
+              class="w-full rounded-2xl border bg-white px-4 py-3 outline-none transition focus:border-stone-500"
+              [class.border-rose-300]="showError('message')"
+              [class.border-stone-300]="!showError('message')"
+              placeholder="Tell me about your project, internship, or what kind of collaboration you have in mind."
+            ></textarea>
+            <span *ngIf="showError('message')" class="text-xs text-rose-600">{{ errorText('message') }}</span>
+          </label>
+
+          <div class="rounded-[1.5rem] border border-stone-200 bg-stone-100/70 p-4 text-sm text-stone-600">
+            <p class="m-0 leading-6">
+              The primary button previews a successful submission. The ghost button intentionally shows the failure state so you can review both UI paths before the API exists.
+            </p>
+          </div>
+
+          <div class="flex flex-wrap gap-3">
+            <app-ui-button type="submit" [disabled]="isSubmitDisabled">
+              <span *ngIf="submissionState !== 'submitting'; else submittingLabel">Send message</span>
+            </app-ui-button>
+
+            <ng-template #submittingLabel>Sending…</ng-template>
+
+            <app-ui-button appearance="secondary" type="button" [disabled]="isSubmitDisabled" (click)="submit(true)">
+              Preview error state
+            </app-ui-button>
+
+            <app-ui-button appearance="ghost" type="button" [disabled]="isSubmitDisabled" (click)="resetForm()">
+              Clear form
+            </app-ui-button>
+          </div>
+        </form>
+      </div>
     </app-ui-card>
   </div>
 </div>
