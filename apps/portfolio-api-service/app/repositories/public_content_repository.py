@@ -64,7 +64,7 @@ class PublicContentRepository:
 
         return ProfileOut.model_validate(
             {
-                'id': profile.id,
+                'id': str(profile.id),
                 'first_name': profile.first_name,
                 'last_name': profile.last_name,
                 'name': f'{profile.first_name} {profile.last_name}'.strip(),
@@ -80,9 +80,9 @@ class PublicContentRepository:
                 'summary': profile.short_intro,
                 'short_bio': profile.short_intro,
                 'footer_description': profile.long_bio or profile.short_intro,
-                'avatar_file_id': profile.avatar_file_id,
-                'hero_image_file_id': profile.hero_image_file_id,
-                'resume_file_id': profile.resume_file_id,
+                'avatar_file_id': str(profile.avatar_file_id) if profile.avatar_file_id else None,
+                'hero_image_file_id': str(profile.hero_image_file_id) if profile.hero_image_file_id else None,
+                'resume_file_id': str(profile.resume_file_id) if profile.resume_file_id else None,
                 'avatar_url': None,
                 'hero_image_url': None,
                 'resume_url': profile.cta_primary_url,
@@ -144,7 +144,7 @@ class PublicContentRepository:
         links.append(ProjectLinkOut(label='Read More', router_link=['/projects']))
         return ProjectOut.model_validate(
             {
-                'id': project.id,
+                'id': str(project.id),
                 'slug': project.slug,
                 'title': project.title,
                 'teaser': project.teaser,
@@ -162,7 +162,7 @@ class PublicContentRepository:
                 'is_featured': project.is_featured,
                 'image_alt': cover_image.alt_text if cover_image and cover_image.alt_text else project.title,
                 'cover_image_alt': cover_image.alt_text if cover_image and cover_image.alt_text else project.title,
-                'cover_image_file_id': project.cover_image_file_id,
+                'cover_image_file_id': str(project.cover_image_file_id) if project.cover_image_file_id else None,
                 'cover_image_url': None,
                 'highlight': project.summary or project.teaser,
                 'github_url': project.github_url,
@@ -180,7 +180,7 @@ class PublicContentRepository:
         tags = [link.tag.name for link in sorted(post.tag_links, key=lambda item: item.tag.name.lower())]
         return BlogPostOut.model_validate(
             {
-                'id': post.id,
+                'id': str(post.id),
                 'slug': post.slug,
                 'title': post.title,
                 'excerpt': post.excerpt,
@@ -193,7 +193,7 @@ class PublicContentRepository:
                 'is_featured': post.is_featured,
                 'cover_alt': post.cover_image_alt or post.title,
                 'cover_image_alt': post.cover_image_alt or post.title,
-                'cover_image_file_id': post.cover_image_file_id,
+                'cover_image_file_id': str(post.cover_image_file_id) if post.cover_image_file_id else None,
                 'cover_image_url': None,
                 'status': post.status.value,
                 'content_markdown': post.content_markdown,

@@ -36,6 +36,10 @@ class Settings(BaseSettings):
         default=True,
         validation_alias=AliasChoices('DB_STARTUP_GRACEFUL', 'PORTFOLIO_API_DB_STARTUP_GRACEFUL'),
     )
+    db_recreate_on_drift: bool = Field(
+        default=True,
+        validation_alias=AliasChoices('DB_RECREATE_ON_DRIFT', 'PORTFOLIO_API_DB_RECREATE_ON_DRIFT'),
+    )
 
     model_config = SettingsConfigDict(env_file='.env', extra='ignore')
 

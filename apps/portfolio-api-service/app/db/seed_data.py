@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from datetime import UTC, date, datetime
+from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.data.public_content import BLOG_POSTS, PROFILE, PROJECTS
+from app.data.seed_ids import seed_uuid
 from app.db.models import (
     BlogPost,
     BlogPostTag,
@@ -275,29 +277,29 @@ SKILL_CATEGORIES = [
 ]
 
 SKILLS = [
-    {'id': 'skill-angular', 'category_id': 'cat-frontend', 'name': 'Angular', 'years_of_experience': 2, 'icon_key': 'angular', 'sort_order': 1, 'is_highlighted': True},
-    {'id': 'skill-tailwind', 'category_id': 'cat-frontend', 'name': 'Tailwind CSS', 'years_of_experience': 1, 'icon_key': 'tailwind', 'sort_order': 2, 'is_highlighted': True},
-    {'id': 'skill-typescript', 'category_id': 'cat-frontend', 'name': 'TypeScript', 'years_of_experience': 2, 'icon_key': 'typescript', 'sort_order': 3, 'is_highlighted': True},
-    {'id': 'skill-react', 'category_id': 'cat-frontend', 'name': 'React', 'years_of_experience': 1, 'icon_key': 'react', 'sort_order': 4, 'is_highlighted': False},
-    {'id': 'skill-ux', 'category_id': 'cat-frontend', 'name': 'UX', 'years_of_experience': 1, 'icon_key': 'layout', 'sort_order': 5, 'is_highlighted': False},
-    {'id': 'skill-state-management', 'category_id': 'cat-frontend', 'name': 'State Management', 'years_of_experience': 1, 'icon_key': 'state', 'sort_order': 6, 'is_highlighted': False},
-    {'id': 'skill-nx', 'category_id': 'cat-frontend', 'name': 'Nx', 'years_of_experience': 1, 'icon_key': 'nx', 'sort_order': 7, 'is_highlighted': False},
-    {'id': 'skill-laravel', 'category_id': 'cat-backend', 'name': 'Laravel', 'years_of_experience': 2, 'icon_key': 'laravel', 'sort_order': 1, 'is_highlighted': True},
-    {'id': 'skill-dotnet', 'category_id': 'cat-backend', 'name': '.NET', 'years_of_experience': 1, 'icon_key': 'dotnet', 'sort_order': 2, 'is_highlighted': True},
-    {'id': 'skill-rest', 'category_id': 'cat-backend', 'name': 'REST APIs', 'years_of_experience': 2, 'icon_key': 'api', 'sort_order': 3, 'is_highlighted': False},
-    {'id': 'skill-livewire', 'category_id': 'cat-backend', 'name': 'Livewire', 'years_of_experience': 1, 'icon_key': 'livewire', 'sort_order': 4, 'is_highlighted': False},
-    {'id': 'skill-spring-boot', 'category_id': 'cat-backend', 'name': 'Spring Boot', 'years_of_experience': 1, 'icon_key': 'spring', 'sort_order': 5, 'is_highlighted': False},
-    {'id': 'skill-python', 'category_id': 'cat-ai', 'name': 'Python', 'years_of_experience': 2, 'icon_key': 'python', 'sort_order': 1, 'is_highlighted': True},
-    {'id': 'skill-tensorflow', 'category_id': 'cat-ai', 'name': 'TensorFlow', 'years_of_experience': 1, 'icon_key': 'tensorflow', 'sort_order': 2, 'is_highlighted': False},
-    {'id': 'skill-data-prep', 'category_id': 'cat-ai', 'name': 'Data Prep', 'years_of_experience': 1, 'icon_key': 'dataset', 'sort_order': 3, 'is_highlighted': False},
-    {'id': 'skill-efficientnet', 'category_id': 'cat-ai', 'name': 'EfficientNet', 'years_of_experience': 1, 'icon_key': 'model', 'sort_order': 4, 'is_highlighted': False},
-    {'id': 'skill-ml', 'category_id': 'cat-ai', 'name': 'ML', 'years_of_experience': 1, 'icon_key': 'ml', 'sort_order': 5, 'is_highlighted': False},
-    {'id': 'skill-java', 'category_id': 'cat-programming', 'name': 'Java', 'years_of_experience': 2, 'icon_key': 'java', 'sort_order': 1, 'is_highlighted': False},
-    {'id': 'skill-csharp', 'category_id': 'cat-programming', 'name': 'C#', 'years_of_experience': 1, 'icon_key': 'csharp', 'sort_order': 2, 'is_highlighted': False},
-    {'id': 'skill-design-patterns', 'category_id': 'cat-programming', 'name': 'Design Patterns', 'years_of_experience': 1, 'icon_key': 'patterns', 'sort_order': 4, 'is_highlighted': False},
-    {'id': 'skill-dutch', 'category_id': 'cat-languages', 'name': 'Dutch', 'years_of_experience': None, 'icon_key': None, 'sort_order': 1, 'is_highlighted': False},
-    {'id': 'skill-english', 'category_id': 'cat-languages', 'name': 'English', 'years_of_experience': None, 'icon_key': None, 'sort_order': 2, 'is_highlighted': False},
-    {'id': 'skill-french', 'category_id': 'cat-languages', 'name': 'French', 'years_of_experience': None, 'icon_key': None, 'sort_order': 3, 'is_highlighted': False},
+    {'id': 'skill-angular', 'category_id': 'cat-frontend', 'name': 'Angular', 'years_of_experience': 2, 'icon_key': 'angular', 'sort_order': 1, 'is_highlighted': True, 'created_at': TIMESTAMP},
+    {'id': 'skill-tailwind', 'category_id': 'cat-frontend', 'name': 'Tailwind CSS', 'years_of_experience': 1, 'icon_key': 'tailwind', 'sort_order': 2, 'is_highlighted': True, 'created_at': TIMESTAMP},
+    {'id': 'skill-typescript', 'category_id': 'cat-frontend', 'name': 'TypeScript', 'years_of_experience': 2, 'icon_key': 'typescript', 'sort_order': 3, 'is_highlighted': True, 'created_at': TIMESTAMP},
+    {'id': 'skill-react', 'category_id': 'cat-frontend', 'name': 'React', 'years_of_experience': 1, 'icon_key': 'react', 'sort_order': 4, 'is_highlighted': False, 'created_at': TIMESTAMP},
+    {'id': 'skill-ux', 'category_id': 'cat-frontend', 'name': 'UX', 'years_of_experience': 1, 'icon_key': 'layout', 'sort_order': 5, 'is_highlighted': False, 'created_at': TIMESTAMP},
+    {'id': 'skill-state-management', 'category_id': 'cat-frontend', 'name': 'State Management', 'years_of_experience': 1, 'icon_key': 'state', 'sort_order': 6, 'is_highlighted': False, 'created_at': TIMESTAMP},
+    {'id': 'skill-nx', 'category_id': 'cat-frontend', 'name': 'Nx', 'years_of_experience': 1, 'icon_key': 'nx', 'sort_order': 7, 'is_highlighted': False, 'created_at': TIMESTAMP},
+    {'id': 'skill-laravel', 'category_id': 'cat-backend', 'name': 'Laravel', 'years_of_experience': 2, 'icon_key': 'laravel', 'sort_order': 1, 'is_highlighted': True, 'created_at': TIMESTAMP},
+    {'id': 'skill-dotnet', 'category_id': 'cat-backend', 'name': '.NET', 'years_of_experience': 1, 'icon_key': 'dotnet', 'sort_order': 2, 'is_highlighted': True, 'created_at': TIMESTAMP},
+    {'id': 'skill-rest', 'category_id': 'cat-backend', 'name': 'REST APIs', 'years_of_experience': 2, 'icon_key': 'api', 'sort_order': 3, 'is_highlighted': False, 'created_at': TIMESTAMP},
+    {'id': 'skill-livewire', 'category_id': 'cat-backend', 'name': 'Livewire', 'years_of_experience': 1, 'icon_key': 'livewire', 'sort_order': 4, 'is_highlighted': False, 'created_at': TIMESTAMP},
+    {'id': 'skill-spring-boot', 'category_id': 'cat-backend', 'name': 'Spring Boot', 'years_of_experience': 1, 'icon_key': 'spring', 'sort_order': 5, 'is_highlighted': False, 'created_at': TIMESTAMP},
+    {'id': 'skill-python', 'category_id': 'cat-ai', 'name': 'Python', 'years_of_experience': 2, 'icon_key': 'python', 'sort_order': 1, 'is_highlighted': True, 'created_at': TIMESTAMP},
+    {'id': 'skill-tensorflow', 'category_id': 'cat-ai', 'name': 'TensorFlow', 'years_of_experience': 1, 'icon_key': 'tensorflow', 'sort_order': 2, 'is_highlighted': False, 'created_at': TIMESTAMP},
+    {'id': 'skill-data-prep', 'category_id': 'cat-ai', 'name': 'Data Prep', 'years_of_experience': 1, 'icon_key': 'dataset', 'sort_order': 3, 'is_highlighted': False, 'created_at': TIMESTAMP},
+    {'id': 'skill-efficientnet', 'category_id': 'cat-ai', 'name': 'EfficientNet', 'years_of_experience': 1, 'icon_key': 'model', 'sort_order': 4, 'is_highlighted': False, 'created_at': TIMESTAMP},
+    {'id': 'skill-ml', 'category_id': 'cat-ai', 'name': 'ML', 'years_of_experience': 1, 'icon_key': 'ml', 'sort_order': 5, 'is_highlighted': False, 'created_at': TIMESTAMP},
+    {'id': 'skill-java', 'category_id': 'cat-programming', 'name': 'Java', 'years_of_experience': 2, 'icon_key': 'java', 'sort_order': 1, 'is_highlighted': False, 'created_at': TIMESTAMP},
+    {'id': 'skill-csharp', 'category_id': 'cat-programming', 'name': 'C#', 'years_of_experience': 1, 'icon_key': 'csharp', 'sort_order': 2, 'is_highlighted': False, 'created_at': TIMESTAMP},
+    {'id': 'skill-design-patterns', 'category_id': 'cat-programming', 'name': 'Design Patterns', 'years_of_experience': 1, 'icon_key': 'patterns', 'sort_order': 4, 'is_highlighted': False, 'created_at': TIMESTAMP},
+    {'id': 'skill-dutch', 'category_id': 'cat-languages', 'name': 'Dutch', 'years_of_experience': None, 'icon_key': None, 'sort_order': 1, 'is_highlighted': False, 'created_at': TIMESTAMP},
+    {'id': 'skill-english', 'category_id': 'cat-languages', 'name': 'English', 'years_of_experience': None, 'icon_key': None, 'sort_order': 2, 'is_highlighted': False, 'created_at': TIMESTAMP},
+    {'id': 'skill-french', 'category_id': 'cat-languages', 'name': 'French', 'years_of_experience': None, 'icon_key': None, 'sort_order': 3, 'is_highlighted': False, 'created_at': TIMESTAMP},
 ]
 
 EXPERIENCES = [
@@ -379,6 +381,20 @@ CONTRIBUTION_LEVELS = [
 ]
 
 
+def _seed_uuid(value: str | None) -> UUID | None:
+    if value is None:
+        return None
+    return seed_uuid(value)
+
+
+def _with_uuid_fields(payload: dict, *field_names: str) -> dict:
+    data = dict(payload)
+    for field_name in field_names:
+        if field_name in data:
+            data[field_name] = _seed_uuid(data[field_name])
+    return data
+
+
 def _parse_date(value: str | None) -> date | None:
     if value is None:
         return None
@@ -402,14 +418,14 @@ def seed_database(session: Session) -> None:
         return
 
     try:
-        session.add_all([NavigationItem(**item) for item in NAVIGATION_ITEMS])
-        session.add_all([MediaFile(**item) for item in MEDIA_FILES])
-        session.add_all([SkillCategory(**item) for item in SKILL_CATEGORIES])
-        session.add_all([Skill(**item) for item in SKILLS])
-        session.add(GithubSnapshot(**GITHUB_SNAPSHOT))
+        session.add_all([NavigationItem(**_with_uuid_fields(item, 'id')) for item in NAVIGATION_ITEMS])
+        session.add_all([MediaFile(**_with_uuid_fields(item, 'id', 'uploaded_by_id')) for item in MEDIA_FILES])
+        session.add_all([SkillCategory(**_with_uuid_fields(item, 'id')) for item in SKILL_CATEGORIES])
+        session.add_all([Skill(**_with_uuid_fields(item, 'id', 'category_id')) for item in SKILLS])
+        session.add(GithubSnapshot(**_with_uuid_fields(GITHUB_SNAPSHOT, 'id')))
         session.add(
             Profile(
-                id=PROFILE['id'],
+                id=_seed_uuid(PROFILE['id']),
                 first_name=PROFILE['first_name'],
                 last_name=PROFILE['last_name'],
                 headline=PROFILE['headline'],
@@ -418,9 +434,9 @@ def seed_database(session: Session) -> None:
                 location=PROFILE['location'],
                 email=PROFILE['email'],
                 phone=PROFILE['phone'],
-                avatar_file_id=PROFILE['avatar_file_id'],
-                hero_image_file_id=PROFILE['hero_image_file_id'],
-                resume_file_id=PROFILE['resume_file_id'],
+                avatar_file_id=_seed_uuid(PROFILE['avatar_file_id']),
+                hero_image_file_id=_seed_uuid(PROFILE['hero_image_file_id']),
+                resume_file_id=_seed_uuid(PROFILE['resume_file_id']),
                 cta_primary_label='Download CV',
                 cta_primary_url=PROFILE['resume_url'],
                 cta_secondary_label='Contact me',
@@ -432,13 +448,13 @@ def seed_database(session: Session) -> None:
         )
         session.flush()
 
-        session.add_all([SocialLink(**item) for item in SOCIAL_LINKS])
-        session.add_all([Experience(**item) for item in EXPERIENCES])
+        session.add_all([SocialLink(**_with_uuid_fields(item, 'id', 'profile_id')) for item in SOCIAL_LINKS])
+        session.add_all([Experience(**_with_uuid_fields(item, 'id', 'logo_file_id')) for item in EXPERIENCES])
         session.add_all(
             [
                 GithubContributionDay(
-                    id=f'github-day-{index + 1}',
-                    snapshot_id=GITHUB_SNAPSHOT['id'],
+                    id=seed_uuid(f'github-day-{index + 1}'),
+                    snapshot_id=_seed_uuid(GITHUB_SNAPSHOT['id']),
                     contribution_date=date(2025, 1, (index % 28) + 1),
                     contribution_count=level * 3,
                     level=level,
@@ -449,27 +465,29 @@ def seed_database(session: Session) -> None:
         session.flush()
 
         session.add_all(
-            [ExperienceSkill(experience_id=experience_id, skill_id=skill_id) for experience_id, skill_id in EXPERIENCE_SKILLS]
+            [ExperienceSkill(experience_id=seed_uuid(experience_id), skill_id=seed_uuid(skill_id)) for experience_id, skill_id in EXPERIENCE_SKILLS]
         )
         session.flush()
 
-        skill_name_to_id = {skill['name']: skill['id'] for skill in SKILLS}
+        skill_name_to_id = {skill['name']: seed_uuid(skill['id']) for skill in SKILLS}
         for project in PROJECTS:
             github_owner = None
             if project.get('github_url') and 'github.com/' in project['github_url']:
                 github_owner = project['github_url'].rstrip('/').split('/')[-1]
+            github_repo_name = project.get('github_repo_name')
+
             session.add(
                 Project(
-                    id=project['id'],
+                    id=_seed_uuid(project['id']),
                     slug=project['slug'],
                     title=project['title'],
                     teaser=project['teaser'],
                     summary=project['summary'],
                     description_markdown=project['description_markdown'],
-                    cover_image_file_id=project['cover_image_file_id'],
+                    cover_image_file_id=_seed_uuid(project['cover_image_file_id']),
                     github_url=project.get('github_url'),
                     github_repo_owner=github_owner,
-                    github_repo_name=project.get('github_repo_name'),
+                    github_repo_name=github_repo_name,
                     demo_url=project.get('demo_url'),
                     company_name=project.get('organization'),
                     started_on=_parse_date(project.get('started_on')),
@@ -489,8 +507,8 @@ def seed_database(session: Session) -> None:
         for project in PROJECTS:
             session.add(
                 ProjectImage(
-                    project_id=project['id'],
-                    image_file_id=project['cover_image_file_id'],
+                    project_id=_seed_uuid(project['id']),
+                    image_file_id=_seed_uuid(project['cover_image_file_id']),
                     alt_text=project['cover_image_alt'],
                     sort_order=0,
                     is_cover=True,
@@ -499,7 +517,7 @@ def seed_database(session: Session) -> None:
             for tag in project['tags']:
                 skill_id = skill_name_to_id.get(tag)
                 if skill_id:
-                    session.add(ProjectSkill(project_id=project['id'], skill_id=skill_id))
+                    session.add(ProjectSkill(project_id=_seed_uuid(project['id']), skill_id=skill_id))
         session.flush()
 
         seen_tags: dict[str, str] = {}
@@ -507,7 +525,7 @@ def seed_database(session: Session) -> None:
             for tag_name in post['tags']:
                 tag_slug = tag_name.lower().replace(' ', '-').replace('&', 'and')
                 if tag_slug not in seen_tags:
-                    tag_id = f'tag-{tag_slug}'
+                    tag_id = seed_uuid(f'tag-{tag_slug}')
                     seen_tags[tag_slug] = tag_id
                     session.add(BlogTag(id=tag_id, name=tag_name, slug=tag_slug))
         session.flush()
@@ -515,12 +533,12 @@ def seed_database(session: Session) -> None:
         for post in BLOG_POSTS:
             session.add(
                 BlogPost(
-                    id=post['id'],
+                    id=_seed_uuid(post.get('id')),
                     slug=post['slug'],
                     title=post['title'],
                     excerpt=post['excerpt'],
                     content_markdown=post['content_markdown'],
-                    cover_image_file_id=post.get('cover_image_file_id'),
+                    cover_image_file_id=_seed_uuid(post.get('cover_image_file_id')), 
                     cover_image_alt=post.get('cover_image_alt'),
                     reading_time_minutes=post.get('reading_time_minutes'),
                     status=PublicationStatus(post['status']),
@@ -537,7 +555,7 @@ def seed_database(session: Session) -> None:
         for post in BLOG_POSTS:
             for tag_name in post['tags']:
                 tag_slug = tag_name.lower().replace(' ', '-').replace('&', 'and')
-                session.add(BlogPostTag(post_id=post['id'], tag_id=seen_tags[tag_slug]))
+                session.add(BlogPostTag(post_id=_seed_uuid(post.get('id')), tag_id=seen_tags[tag_slug]))
 
         session.commit()
     except Exception:
