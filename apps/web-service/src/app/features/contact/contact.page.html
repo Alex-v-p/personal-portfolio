@@ -3,8 +3,8 @@
     <p class="text-sm text-stone-600">Home &gt; Contact</p>
     <h1 class="text-4xl font-semibold tracking-tight text-stone-950">Let’s work together</h1>
     <p class="max-w-2xl text-base leading-7 text-stone-600">
-      Shared contact data powers this page, the footer, and the homepage preview. The form below is front-end only for now,
-      but it already behaves like a real contact flow with validation and mock success or error states.
+      Shared contact data powers this page, the footer, and the homepage preview. Stage 8 now sends the form to the portfolio API,
+      so the success and error states reflect a real backend interaction instead of a local mock submit.
     </p>
   </div>
 
@@ -64,17 +64,17 @@
           <p class="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">Send a message</p>
           <h2 class="text-3xl font-semibold tracking-tight text-stone-950">Project inquiry form</h2>
           <p class="text-sm leading-6 text-stone-600">
-            Stage 6 keeps this client-side for now. Stage 8 can later swap the submit action to a real API without needing to redesign the form.
+            The primary submit button now posts to <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs">POST /api/contact/messages</code>
+            and stores a real contact message through the portfolio API.
           </p>
         </div>
 
         <div *ngIf="submissionState === 'success' && lastSubmittedMessage" class="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-5" role="status">
           <div class="space-y-3">
-            <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">Message queued</p>
+            <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">Message sent</p>
             <h3 class="text-xl font-semibold text-emerald-950">Thanks, {{ lastSubmittedMessage.name }}.</h3>
             <p class="text-sm leading-6 text-emerald-900/80">
-              Your mock message about <span class="font-semibold">{{ lastSubmittedMessage.subject }}</span> has been recorded locally.
-              In the real version this will post to the portfolio API and create a <code class="rounded bg-emerald-100 px-1.5 py-0.5 text-xs">contact_messages</code> entry.
+              Your message about <span class="font-semibold">{{ lastSubmittedMessage.subject }}</span> was sent to the portfolio API and stored successfully.
             </p>
             <div class="flex flex-wrap gap-3">
               <app-ui-button appearance="secondary" type="button" (click)="startAnotherMessage()">Send another message</app-ui-button>
@@ -87,7 +87,7 @@
             <p class="text-sm font-semibold uppercase tracking-[0.18em] text-rose-700">Submission failed</p>
             <p class="text-sm leading-6 text-rose-900/80">{{ errorMessage }}</p>
             <div class="flex flex-wrap gap-3">
-              <app-ui-button appearance="secondary" type="button" (click)="submit()">Retry mock submit</app-ui-button>
+              <app-ui-button appearance="secondary" type="button" (click)="submit()">Retry submit</app-ui-button>
               <app-ui-button appearance="ghost" type="button" (click)="submissionState = 'idle'; errorMessage = ''">Dismiss</app-ui-button>
             </div>
           </div>
@@ -153,7 +153,7 @@
 
           <div class="rounded-[1.5rem] border border-stone-200 bg-stone-100/70 p-4 text-sm text-stone-600">
             <p class="m-0 leading-6">
-              The primary button previews a successful submission. The ghost button intentionally shows the failure state so you can review both UI paths before the API exists.
+              Messages are validated on the client first, then sent to the API. That gives you the full Stage 8 interaction without changing the form design.
             </p>
           </div>
 
@@ -163,10 +163,6 @@
             </app-ui-button>
 
             <ng-template #submittingLabel>Sending…</ng-template>
-
-            <app-ui-button appearance="secondary" type="button" [disabled]="isSubmitDisabled" (click)="submit(true)">
-              Preview error state
-            </app-ui-button>
 
             <app-ui-button appearance="ghost" type="button" [disabled]="isSubmitDisabled" (click)="resetForm()">
               Clear form

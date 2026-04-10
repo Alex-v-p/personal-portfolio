@@ -7,85 +7,101 @@
         <h1 class="text-4xl font-semibold tracking-tight text-stone-950">Blog posts</h1>
         <div class="mx-auto h-3 w-full max-w-lg rounded-full bg-stone-950"></div>
         <p class="mx-auto max-w-2xl text-sm leading-6 text-stone-600">
-          Notes on front-end structure, portfolio building, workflows, and the decisions behind the current mock platform.
-          Each article is modeled around a markdown-backed <span class="font-medium text-stone-900">content_markdown</span>
-          field so the future database shape already fits the front end.
+          Notes on front-end structure, portfolio building, workflows, and the decisions behind the current platform.
+          This page now loads from the public portfolio API instead of local mock article files.
         </p>
       </header>
 
-      <section class="grid gap-4 rounded-[1.75rem] border border-stone-200 bg-stone-50/80 p-4 md:grid-cols-[minmax(0,1fr)_16rem_auto] md:items-end md:p-5">
-        <label class="block space-y-2">
-          <span class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Search</span>
-          <input
-            [(ngModel)]="searchQuery"
-            type="text"
-            placeholder="Search titles, excerpts, tags, or markdown content"
-            class="w-full rounded-full border border-stone-300 bg-white px-4 py-3 text-sm text-stone-700 outline-none transition focus:border-stone-500"
-          />
-        </label>
-
-        <label class="block space-y-2">
-          <span class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Topic</span>
-          <select
-            [(ngModel)]="selectedCategory"
-            class="w-full rounded-full border border-stone-300 bg-white px-4 py-3 text-sm text-stone-700 outline-none transition focus:border-stone-500"
-          >
-            <option *ngFor="let category of categories" [ngValue]="category">{{ category }}</option>
-          </select>
-        </label>
-
-        <div class="flex items-center gap-3 md:justify-end">
-          <button
-            *ngIf="hasActiveFilters"
-            type="button"
-            (click)="resetFilters()"
-            class="inline-flex min-h-12 items-center justify-center rounded-full border border-transparent bg-transparent px-5 py-3 text-sm font-semibold text-stone-500 transition hover:-translate-y-0.5 hover:border-stone-300 hover:bg-white/70 hover:text-stone-900"
-          >
-            Reset
-          </button>
-        </div>
+      <section *ngIf="isLoading" class="rounded-[1.75rem] border border-stone-200 bg-stone-50/80 p-5">
+        <p class="text-sm text-stone-600">Loading blog posts from the API…</p>
       </section>
 
-      <p class="text-center text-sm text-stone-600">Showing {{ filteredPosts.length }} of {{ totalPostCount }} articles</p>
+      <app-ui-empty-state
+        *ngIf="!isLoading && errorMessage"
+        title="Could not load blog posts"
+        [description]="errorMessage"
+        [hasActions]="true"
+      >
+        <div actions>
+          <app-ui-button appearance="secondary" type="button" (click)="loadPosts()">Retry</app-ui-button>
+        </div>
+      </app-ui-empty-state>
 
-      <section *ngIf="filteredPosts.length; else emptyResults" class="space-y-8">
-        <section *ngIf="featuredPosts.length" class="space-y-3">
-          <div class="space-y-1">
-            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Featured article</p>
-            <h2 class="text-2xl font-semibold tracking-tight text-stone-950">A highlighted post from the current collection</h2>
+      <ng-container *ngIf="!isLoading && !errorMessage">
+        <section class="grid gap-4 rounded-[1.75rem] border border-stone-200 bg-stone-50/80 p-4 md:grid-cols-[minmax(0,1fr)_16rem_auto] md:items-end md:p-5">
+          <label class="block space-y-2">
+            <span class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Search</span>
+            <input
+              [(ngModel)]="searchQuery"
+              type="text"
+              placeholder="Search titles, excerpts, tags, or markdown content"
+              class="w-full rounded-full border border-stone-300 bg-white px-4 py-3 text-sm text-stone-700 outline-none transition focus:border-stone-500"
+            />
+          </label>
+
+          <label class="block space-y-2">
+            <span class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Topic</span>
+            <select
+              [(ngModel)]="selectedCategory"
+              class="w-full rounded-full border border-stone-300 bg-white px-4 py-3 text-sm text-stone-700 outline-none transition focus:border-stone-500"
+            >
+              <option *ngFor="let category of categories" [ngValue]="category">{{ category }}</option>
+            </select>
+          </label>
+
+          <div class="flex items-center gap-3 md:justify-end">
+            <button
+              *ngIf="hasActiveFilters"
+              type="button"
+              (click)="resetFilters()"
+              class="inline-flex min-h-12 items-center justify-center rounded-full border border-transparent bg-transparent px-5 py-3 text-sm font-semibold text-stone-500 transition hover:-translate-y-0.5 hover:border-stone-300 hover:bg-white/70 hover:text-stone-900"
+            >
+              Reset
+            </button>
           </div>
-
-          <app-blog-card [post]="featuredPosts[0]" [featured]="true"></app-blog-card>
         </section>
 
-        <section *ngIf="browseablePosts.length" class="space-y-3">
-          <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 class="text-2xl font-semibold tracking-tight text-stone-950">Browse all posts</h2>
-              <p class="text-sm leading-6 text-stone-600">Titles, dates, excerpts, tags, and markdown-backed article content are kept in sync.</p>
+        <p class="text-center text-sm text-stone-600">Showing {{ filteredPosts.length }} of {{ totalPostCount }} articles</p>
+
+        <section *ngIf="filteredPosts.length; else emptyResults" class="space-y-8">
+          <section *ngIf="featuredPosts.length" class="space-y-3">
+            <div class="space-y-1">
+              <p class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Featured article</p>
+              <h2 class="text-2xl font-semibold tracking-tight text-stone-950">A highlighted post from the current collection</h2>
             </div>
-          </div>
 
-          <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            <app-blog-card *ngFor="let post of browseablePosts" [post]="post"></app-blog-card>
-          </div>
+            <app-blog-card [post]="featuredPosts[0]" [featured]="true"></app-blog-card>
+          </section>
+
+          <section *ngIf="browseablePosts.length" class="space-y-3">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h2 class="text-2xl font-semibold tracking-tight text-stone-950">Browse all posts</h2>
+                <p class="text-sm leading-6 text-stone-600">Titles, dates, excerpts, tags, and markdown-backed article content are now driven by the API.</p>
+              </div>
+            </div>
+
+            <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+              <app-blog-card *ngFor="let post of browseablePosts" [post]="post"></app-blog-card>
+            </div>
+          </section>
         </section>
-      </section>
 
-      <ng-template #emptyResults>
-        <app-ui-empty-state
-          title="No blog posts match that search"
-          description="Try another keyword or switch back to a broader topic to browse the rest of the articles."
-        ></app-ui-empty-state>
-      </ng-template>
+        <ng-template #emptyResults>
+          <app-ui-empty-state
+            title="No blog posts match that search"
+            description="Try another keyword or switch back to a broader topic to browse the rest of the articles."
+          ></app-ui-empty-state>
+        </ng-template>
 
-      <div class="flex items-center justify-center gap-3 text-sm text-stone-700">
-        <span>Previous</span>
-        <div class="flex gap-2">
-          <span *ngFor="let dot of pagerDots" class="h-5 w-5 rounded-sm bg-stone-300"></span>
+        <div class="flex items-center justify-center gap-3 text-sm text-stone-700">
+          <span>Previous</span>
+          <div class="flex gap-2">
+            <span *ngFor="let dot of pagerDots" class="h-5 w-5 rounded-sm bg-stone-300"></span>
+          </div>
+          <span>Next</span>
         </div>
-        <span>Next</span>
-      </div>
+      </ng-container>
     </div>
   </section>
 </div>

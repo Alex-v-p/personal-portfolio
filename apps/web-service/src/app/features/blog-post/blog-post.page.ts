@@ -1,48 +1,81 @@
-import { Component, inject } from '@angular/core';
-import { NgFor } from '@angular/common';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { NgFor, NgIf } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { finalize, switchMap } from 'rxjs/operators';
 
+import { UiButtonComponent } from '../../shared/components/button/ui-button.component';
 import { UiChipComponent } from '../../shared/components/chip/ui-chip.component';
-import { BLOG_POSTS } from '../../shared/mock-data/blog-posts.mock';
+import { UiEmptyStateComponent } from '../../shared/components/empty-state/ui-empty-state.component';
 import { BlogPost } from '../../shared/models/blog-post.model';
+import { PublicPortfolioApiService } from '../../shared/services/public-portfolio-api.service';
 import { renderMarkdownToHtml } from '../../shared/utils/markdown.util';
 
 @Component({
   selector: 'app-blog-post-page',
   standalone: true,
-  imports: [NgFor, RouterLink, UiChipComponent],
+  imports: [NgFor, NgIf, RouterLink, UiButtonComponent, UiChipComponent, UiEmptyStateComponent],
   templateUrl: './blog-post.page.html'
 })
-export class BlogPostPageComponent {
+export class BlogPostPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly portfolioApi = inject(PublicPortfolioApiService);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   protected readonly shareMarks = ['in', 'x'];
 
-  protected get slug(): string {
-    return this.route.snapshot.paramMap.get('slug') ?? BLOG_POSTS[0].slug;
+  protected post: BlogPost | null = null;
+  protected isLoading = true;
+  protected errorMessage = '';
+  protected currentSlug = '';
+
+  ngOnInit(): void {
+    this.route.paramMap
+      .pipe(
+        switchMap((params) => {
+          this.currentSlug = params.get('slug') ?? '';
+          this.isLoading = true;
+          this.errorMessage = '';
+          this.post = null;
+          return this.portfolioApi.getBlogPostBySlug(this.currentSlug).pipe(
+            finalize(() => this.changeDetectorRef.detectChanges())
+          );
+        })
+      )
+      .subscribe({
+        next: (post) => {
+          this.post = post;
+          this.isLoading = false;
+        },
+        error: () => {
+          this.post = null;
+          this.isLoading = false;
+          this.errorMessage = 'This blog post could not be loaded from the portfolio API.';
+        }
+      });
   }
 
-  protected get post(): BlogPost {
-    return BLOG_POSTS.find((post) => post.slug === this.slug) ?? {
-      id: 'fallback-post',
-      slug: this.slug,
-      title: this.slug.replace(/-/g, ' ') || 'Blog post',
-      excerpt: 'Fallback mock blog post content.',
-      publishedAt: 'July 29, 2025',
-      readTime: '5 min read',
-      readingTimeMinutes: 5,
-      category: 'General',
-      tags: ['Fallback'],
-      featured: false,
-      isFeatured: false,
-      coverAlt: 'Fallback blog cover',
-      coverImageAlt: 'Fallback blog cover',
-      status: 'published',
-      contentMarkdown: '# Placeholder article\n\nThis fallback article exists so any mock slug still renders inside the designed layout.'
-    };
+  protected retry(): void {
+    if (!this.currentSlug) {
+      return;
+    }
+
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.portfolioApi.getBlogPostBySlug(this.currentSlug).pipe(finalize(() => this.changeDetectorRef.detectChanges())).subscribe({
+      next: (post) => {
+        this.post = post;
+        this.isLoading = false;
+      },
+      error: () => {
+        this.post = null;
+        this.isLoading = false;
+        this.errorMessage = 'This blog post could not be loaded from the portfolio API.';
+      }
+    });
   }
 
   protected get renderedContent(): string {
-    return renderMarkdownToHtml(this.post.contentMarkdown);
+    return this.post ? renderMarkdownToHtml(this.post.contentMarkdown) : '';
   }
 }
