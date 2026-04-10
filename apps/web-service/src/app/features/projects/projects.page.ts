@@ -56,7 +56,7 @@ export class ProjectsPageComponent implements OnInit {
         },
         error: () => {
           this.projects = [];
-          this.errorMessage = 'Projects could not be loaded from the portfolio API. Make sure the portfolio-api-service is running on port 8001.';
+          this.errorMessage = 'Projects could not be loaded from the portfolio API. Make sure the portfolio-api-service is running on port 8011.';
         }
       });
   }

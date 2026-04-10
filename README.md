@@ -70,8 +70,8 @@ Backend responsible for:
 
 ## Health endpoints
 
-- Portfolio API: `http://localhost:8001/api/health`
-- Assistant API: `http://localhost:8002/api/health`
+- Portfolio API: `http://localhost:8011/api/health`
+- Assistant API: `http://localhost:8012/api/health`
 
 ## Notes
 

@@ -10,5 +10,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-EXPOSE 8001
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORTFOLIO_API_PORT:-8001} --reload"]
+EXPOSE 8011
+CMD ["sh", "-c", "uvicorn app.main:app --host ${APP_HOST:-0.0.0.0} --port ${APP_PORT:-8011} --reload"]

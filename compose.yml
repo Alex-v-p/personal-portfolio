@@ -19,9 +19,19 @@ services:
       dockerfile: Dockerfile
     container_name: portfolio_api
     ports:
-      - "${PORTFOLIO_API_PORT:-8001}:8001"
+      - "${PORTFOLIO_API_PORT:-8011}:8011"
     env_file:
       - .env
+    environment:
+      APP_HOST: ${PORTFOLIO_API_HOST:-0.0.0.0}
+      APP_PORT: ${PORTFOLIO_API_PORT:-8011}
+      DATABASE_URL: ${PORTFOLIO_API_DB_URL:-postgresql+psycopg://portfolio_user:portfolio_pass@postgres:5432/portfolio_platform}
+      REDIS_URL: ${PORTFOLIO_API_REDIS_URL:-redis://redis:6379/0}
+      SECRET_KEY: ${PORTFOLIO_API_SECRET_KEY:-change-me}
+      CORS_ALLOWED_ORIGINS: ${PORTFOLIO_API_CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200}
+      DB_AUTO_CREATE: ${PORTFOLIO_API_DB_AUTO_CREATE:-true}
+      DB_AUTO_SEED: ${PORTFOLIO_API_DB_AUTO_SEED:-true}
+      DB_STARTUP_GRACEFUL: ${PORTFOLIO_API_DB_STARTUP_GRACEFUL:-true}
     volumes:
       - ./apps/portfolio-api-service:/app
     depends_on:
@@ -34,9 +44,15 @@ services:
       dockerfile: Dockerfile
     container_name: assistant_api
     ports:
-      - "${ASSISTANT_API_PORT:-8002}:8002"
+      - "${ASSISTANT_API_PORT:-8012}:8012"
     env_file:
       - .env
+    environment:
+      APP_HOST: ${ASSISTANT_API_HOST:-0.0.0.0}
+      APP_PORT: ${ASSISTANT_API_PORT:-8012}
+      DATABASE_URL: ${ASSISTANT_API_DB_URL:-postgresql+psycopg://portfolio_user:portfolio_pass@postgres:5432/portfolio_platform}
+      REDIS_URL: ${ASSISTANT_API_REDIS_URL:-redis://redis:6379/0}
+      SECRET_KEY: ${ASSISTANT_API_SECRET_KEY:-change-me-too}
     volumes:
       - ./apps/assistant-service:/app
     depends_on:
