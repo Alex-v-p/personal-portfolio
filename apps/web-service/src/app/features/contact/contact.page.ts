@@ -1,5 +1,5 @@
 import { NgFor, NgIf } from '@angular/common';
-import { ChangeDetectorRef, Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize, take } from 'rxjs/operators';
 
@@ -10,7 +10,10 @@ import { UiLinkButtonComponent } from '../../shared/components/link-button/ui-li
 import { CONTACT_METHODS } from '../../shared/mock-data/contact-links.mock';
 import { PROFILE } from '../../shared/mock-data/profile.mock';
 import { ContactMessageDraft } from '../../shared/models/contact-message.model';
+import { ContactMethod } from '../../shared/models/contact-method.model';
+import { Profile } from '../../shared/models/profile.model';
 import { PublicPortfolioApiService } from '../../shared/services/public-portfolio-api.service';
+import { buildContactMethodsFromProfile, mergeProfileWithFallback } from '../../shared/utils/profile-view.util';
 
 interface ContactTopic {
   label: string;
@@ -25,13 +28,13 @@ type SubmissionState = 'idle' | 'submitting' | 'success' | 'error';
   imports: [NgFor, NgIf, ReactiveFormsModule, UiButtonComponent, UiCardComponent, UiChipComponent, UiLinkButtonComponent],
   templateUrl: './contact.page.html'
 })
-export class ContactPageComponent {
+export class ContactPageComponent implements OnInit {
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly portfolioApi = inject(PublicPortfolioApiService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
-  protected readonly profile = PROFILE;
-  protected readonly contactMethods = CONTACT_METHODS;
+  protected profile: Profile = PROFILE;
+  protected contactMethods: ContactMethod[] = CONTACT_METHODS;
   protected readonly preferredTopics: ContactTopic[] = [
     { label: 'Internships', hint: 'Questions about availability, timing, and current study status.' },
     { label: 'Freelance work', hint: 'Small product sites, portfolio builds, or front-end feature work.' },
@@ -50,6 +53,10 @@ export class ContactPageComponent {
   protected submissionState: SubmissionState = 'idle';
   protected errorMessage = '';
   protected lastSubmittedMessage: ContactMessageDraft | null = null;
+
+  ngOnInit(): void {
+    this.loadProfile();
+  }
 
   protected submit(): void {
     this.hasAttemptedSubmit = true;
@@ -166,6 +173,18 @@ export class ContactPageComponent {
 
   protected get isSubmitDisabled(): boolean {
     return this.submissionState === 'submitting';
+  }
+
+  private loadProfile(): void {
+    this.portfolioApi.getProfile().pipe(take(1)).subscribe({
+      next: (profile) => {
+        this.profile = mergeProfileWithFallback(profile, PROFILE);
+        const methods = buildContactMethodsFromProfile(this.profile);
+        if (methods.length) {
+          this.contactMethods = methods;
+        }
+      }
+    });
   }
 
   private buildDraft(): ContactMessageDraft {

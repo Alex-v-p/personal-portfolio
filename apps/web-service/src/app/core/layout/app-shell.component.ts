@@ -1,10 +1,14 @@
 import { NgFor } from '@angular/common';
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, OnInit, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { take } from 'rxjs/operators';
 
 import { NAVIGATION_ITEMS } from '../../shared/mock-data/navigation-items.mock';
 import { PROFILE } from '../../shared/mock-data/profile.mock';
 import { SOCIAL_LINKS } from '../../shared/mock-data/social-links.mock';
+import { PublicPortfolioApiService } from '../../shared/services/public-portfolio-api.service';
+import { mergeProfileWithFallback } from '../../shared/utils/profile-view.util';
+import { Profile } from '../../shared/models/profile.model';
 
 @Component({
   selector: 'app-shell',
@@ -12,8 +16,10 @@ import { SOCIAL_LINKS } from '../../shared/mock-data/social-links.mock';
   imports: [NgFor, RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './app-shell.component.html'
 })
-export class AppShellComponent {
-  protected readonly profile = PROFILE;
+export class AppShellComponent implements OnInit {
+  private readonly portfolioApi = inject(PublicPortfolioApiService);
+
+  protected profile: Profile = PROFILE;
 
   protected readonly quickLinks = NAVIGATION_ITEMS.filter((item) => item.isVisible).map((item) => ({
     label: item.label,
@@ -21,24 +27,6 @@ export class AppShellComponent {
   }));
 
   protected readonly footerLinks = [...this.quickLinks];
-
-  protected readonly resources = [
-    { label: 'Resume', href: PROFILE.resumeUrl ?? '/assets/mock-resume.pdf' },
-    ...SOCIAL_LINKS.filter((link) => ['github', 'linkedin'].includes(link.platform)).map((link) => ({
-      label: link.label,
-      href: link.url
-    }))
-  ];
-
-  protected readonly socialLinks = SOCIAL_LINKS
-    .filter((link) => ['email', 'github', 'linkedin'].includes(link.platform))
-    .map((link) => ({
-      label: link.label,
-      href: link.url,
-      mark: link.platform === 'email' ? 'EM' : link.platform === 'github' ? 'GH' : 'LI'
-    }));
-
-  protected readonly primaryEmail = PROFILE.email;
 
   protected readonly shellChrome = {
     headerVisible: true,
@@ -49,6 +37,44 @@ export class AppShellComponent {
   };
 
   private lastScrollY = 0;
+
+  ngOnInit(): void {
+    this.portfolioApi.getProfile().pipe(take(1)).subscribe({
+      next: (profile) => {
+        this.profile = mergeProfileWithFallback(profile, PROFILE);
+      }
+    });
+  }
+
+  protected get resources(): Array<{ label: string; href: string }> {
+    const items: Array<{ label: string; href: string }> = [];
+
+    if (this.profile.resumeUrl) {
+      items.push({ label: 'Resume', href: this.profile.resumeUrl });
+    }
+
+    for (const link of (this.profile.socialLinks ?? SOCIAL_LINKS)) {
+      if (['github', 'linkedin'].includes(link.platform)) {
+        items.push({ label: link.label, href: link.url });
+      }
+    }
+
+    return items;
+  }
+
+  protected get socialLinks(): Array<{ label: string; href: string; mark: string }> {
+    return (this.profile.socialLinks ?? SOCIAL_LINKS)
+      .filter((link) => ['email', 'github', 'linkedin'].includes(link.platform))
+      .map((link) => ({
+        label: link.label,
+        href: link.platform === 'email' ? `mailto:${this.profile.email}` : link.url,
+        mark: link.platform === 'email' ? 'EM' : link.platform === 'github' ? 'GH' : 'LI'
+      }));
+  }
+
+  protected get primaryEmail(): string {
+    return this.profile.email;
+  }
 
   protected get headerClasses(): string {
     const stickyState = this.shellChrome.isStickyEnabled ? 'sticky top-0' : 'relative';
@@ -72,12 +98,8 @@ export class AppShellComponent {
     const currentScrollY = window.scrollY;
     this.shellChrome.hasScrolledPastThreshold = currentScrollY > 24;
     this.shellChrome.scrollDirection = currentScrollY > this.lastScrollY ? 'down' : 'up';
-
-    // The shell state is intentionally ready for a later sticky/hide-on-scroll pass.
-    // For now, Stage 2 keeps the chrome visible while pages move to shared data.
     this.shellChrome.headerVisible = true;
     this.shellChrome.assistantVisible = true;
-
     this.lastScrollY = Math.max(currentScrollY, 0);
   }
 }
