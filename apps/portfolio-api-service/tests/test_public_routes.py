@@ -26,6 +26,17 @@ def test_list_projects_returns_seeded_projects() -> None:
     assert 'tags' in body['items'][0]
 
 
+
+def test_list_blog_posts_returns_seeded_articles() -> None:
+    response = client.get('/api/public/blog-posts')
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body['total'] >= 4
+    slugs = {item['slug'] for item in body['items']}
+    assert 'building-a-portfolio-shell' in slugs
+    assert 'contentMarkdown' in body['items'][0]
+
 def test_get_blog_post_by_slug_returns_single_article() -> None:
     response = client.get('/api/public/blog-posts/building-a-portfolio-shell')
 

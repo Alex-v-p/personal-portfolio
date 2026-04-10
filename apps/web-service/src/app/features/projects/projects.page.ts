@@ -1,6 +1,7 @@
 import { NgFor, NgIf } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { finalize, take } from 'rxjs/operators';
 
 import { PublicPortfolioApiService } from '../../shared/services/public-portfolio-api.service';
 import { UiButtonComponent } from '../../shared/components/button/ui-button.component';
@@ -23,6 +24,7 @@ interface SkillFilterOption {
 })
 export class ProjectsPageComponent implements OnInit {
   private readonly portfolioApi = inject(PublicPortfolioApiService);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   protected projects: Project[] = [];
   protected searchQuery = '';
@@ -39,17 +41,24 @@ export class ProjectsPageComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.portfolioApi.getProjects().subscribe({
-      next: (projects) => {
-        this.projects = projects;
-        this.isLoading = false;
-      },
-      error: () => {
-        this.projects = [];
-        this.isLoading = false;
-        this.errorMessage = 'Projects could not be loaded from the portfolio API. Make sure the portfolio-api-service is running on port 8001.';
-      }
-    });
+    this.portfolioApi
+      .getProjects()
+      .pipe(
+        take(1),
+        finalize(() => {
+          this.isLoading = false;
+          this.changeDetectorRef.detectChanges();
+        })
+      )
+      .subscribe({
+        next: (projects) => {
+          this.projects = Array.isArray(projects) ? projects : [];
+        },
+        error: () => {
+          this.projects = [];
+          this.errorMessage = 'Projects could not be loaded from the portfolio API. Make sure the portfolio-api-service is running on port 8001.';
+        }
+      });
   }
 
   protected toggleSkillMenu(): void {
@@ -94,11 +103,11 @@ export class ProjectsPageComponent implements OnInit {
   }
 
   protected get availableSkillFilters(): SkillFilterOption[] {
-    return Array.from(new Set(this.browsableProjects.flatMap((project) => project.tags)))
+    return Array.from(new Set(this.browsableProjects.flatMap((project) => project.tags ?? [])))
       .sort((left, right) => left.localeCompare(right))
       .map((name) => ({
         name,
-        projectCount: this.browsableProjects.filter((project) => project.tags.includes(name)).length
+        projectCount: this.browsableProjects.filter((project) => (project.tags ?? []).includes(name)).length
       }));
   }
 
@@ -130,12 +139,9 @@ export class ProjectsPageComponent implements OnInit {
     const normalizedQuery = this.searchQuery.trim().toLowerCase();
 
     return this.browsableProjects.filter((project) => {
-      const matchesSkill =
-        this.selectedSkillFilters.length === 0 ||
-        this.selectedSkillFilters.some((filter) => project.tags.includes(filter));
-      const searchableContent = [project.title, project.shortDescription, project.summary, project.organization, ...project.tags]
-        .join(' ')
-        .toLowerCase();
+      const tags = project.tags ?? [];
+      const matchesSkill = this.selectedSkillFilters.length === 0 || this.selectedSkillFilters.some((filter) => tags.includes(filter));
+      const searchableContent = [project.title, project.shortDescription, project.summary, project.organization, ...tags].join(' ').toLowerCase();
       const matchesSearch = !normalizedQuery || searchableContent.includes(normalizedQuery);
 
       return matchesSkill && matchesSearch;

@@ -1,6 +1,7 @@
 import { NgFor, NgIf } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { finalize, take } from 'rxjs/operators';
 
 import { UiButtonComponent } from '../../shared/components/button/ui-button.component';
 import { UiCardComponent } from '../../shared/components/card/ui-card.component';
@@ -9,6 +10,7 @@ import { UiLinkButtonComponent } from '../../shared/components/link-button/ui-li
 import { CONTACT_METHODS } from '../../shared/mock-data/contact-links.mock';
 import { PROFILE } from '../../shared/mock-data/profile.mock';
 import { ContactMessageDraft } from '../../shared/models/contact-message.model';
+import { PublicPortfolioApiService } from '../../shared/services/public-portfolio-api.service';
 
 interface ContactTopic {
   label: string;
@@ -25,6 +27,8 @@ type SubmissionState = 'idle' | 'submitting' | 'success' | 'error';
 })
 export class ContactPageComponent {
   private readonly formBuilder = inject(NonNullableFormBuilder);
+  private readonly portfolioApi = inject(PublicPortfolioApiService);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   protected readonly profile = PROFILE;
   protected readonly contactMethods = CONTACT_METHODS;
@@ -47,7 +51,7 @@ export class ContactPageComponent {
   protected errorMessage = '';
   protected lastSubmittedMessage: ContactMessageDraft | null = null;
 
-  protected submit(previewError = false): void {
+  protected submit(): void {
     this.hasAttemptedSubmit = true;
     this.contactForm.markAllAsTouched();
 
@@ -60,20 +64,32 @@ export class ContactPageComponent {
 
     const payload = this.buildDraft();
 
-    window.setTimeout(() => {
-      if (previewError) {
-        this.submissionState = 'error';
-        this.errorMessage = 'The mock submission failed on purpose so the error-state UI can be reviewed before the backend exists.';
-        return;
-      }
-
-      this.submissionState = 'success';
-      this.lastSubmittedMessage = payload;
-      this.contactForm.reset();
-      this.contactForm.markAsPristine();
-      this.contactForm.markAsUntouched();
-      this.hasAttemptedSubmit = false;
-    }, 850);
+    this.portfolioApi
+      .submitContactMessage(payload)
+      .pipe(
+        take(1),
+        finalize(() => this.changeDetectorRef.detectChanges())
+      )
+      .subscribe({
+        next: (response) => {
+          this.submissionState = 'success';
+          this.lastSubmittedMessage = {
+            name: response.item.name,
+            email: response.item.email,
+            subject: response.item.subject,
+            message: response.item.message,
+            sourcePage: response.item.sourcePage
+          };
+          this.contactForm.reset();
+          this.contactForm.markAsPristine();
+          this.contactForm.markAsUntouched();
+          this.hasAttemptedSubmit = false;
+        },
+        error: () => {
+          this.submissionState = 'error';
+          this.errorMessage = 'The message could not be sent to the portfolio API. Make sure the portfolio-api-service is running on port 8001 and try again.';
+        }
+      });
   }
 
   protected resetForm(): void {
