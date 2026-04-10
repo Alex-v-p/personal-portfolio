@@ -6,7 +6,13 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.data.public_content import BLOG_POSTS, PROFILE, PROJECTS
+from app.data.seed_content import (
+    BLOG_POST_ROWS,
+    BLOG_TAG_NAMES_BY_POST_SLUG,
+    PROFILE_ROW,
+    PROJECT_ROWS,
+    PROJECT_SKILL_NAMES_BY_PROJECT_SLUG,
+)
 from app.data.seed_ids import seed_uuid
 from app.db.models import (
     BlogPost,
@@ -238,7 +244,7 @@ MEDIA_FILES = [
 SOCIAL_LINKS = [
     {
         'id': 'social-github',
-        'profile_id': PROFILE['id'],
+        'profile_id': PROFILE_ROW['id'],
         'platform': 'github',
         'label': 'GitHub',
         'url': 'https://github.com/shuzu',
@@ -248,7 +254,7 @@ SOCIAL_LINKS = [
     },
     {
         'id': 'social-linkedin',
-        'profile_id': PROFILE['id'],
+        'profile_id': PROFILE_ROW['id'],
         'platform': 'linkedin',
         'label': 'LinkedIn',
         'url': 'https://linkedin.com/in/alex-van-poppel',
@@ -258,7 +264,7 @@ SOCIAL_LINKS = [
     },
     {
         'id': 'social-email',
-        'profile_id': PROFILE['id'],
+        'profile_id': PROFILE_ROW['id'],
         'platform': 'email',
         'label': 'Email',
         'url': 'mailto:hello@shuzu.dev',
@@ -425,25 +431,25 @@ def seed_database(session: Session) -> None:
         session.add(GithubSnapshot(**_with_uuid_fields(GITHUB_SNAPSHOT, 'id')))
         session.add(
             Profile(
-                id=_seed_uuid(PROFILE['id']),
-                first_name=PROFILE['first_name'],
-                last_name=PROFILE['last_name'],
-                headline=PROFILE['headline'],
-                short_intro=PROFILE['short_intro'],
-                long_bio=PROFILE['long_bio'],
-                location=PROFILE['location'],
-                email=PROFILE['email'],
-                phone=PROFILE['phone'],
-                avatar_file_id=_seed_uuid(PROFILE['avatar_file_id']),
-                hero_image_file_id=_seed_uuid(PROFILE['hero_image_file_id']),
-                resume_file_id=_seed_uuid(PROFILE['resume_file_id']),
-                cta_primary_label='Download CV',
-                cta_primary_url=PROFILE['resume_url'],
-                cta_secondary_label='Contact me',
-                cta_secondary_url='/contact',
-                is_public=True,
-                created_at=_parse_datetime(PROFILE['created_at']) or TIMESTAMP,
-                updated_at=_parse_datetime(PROFILE['updated_at']) or TIMESTAMP,
+                id=_seed_uuid(PROFILE_ROW['id']),
+                first_name=PROFILE_ROW['first_name'],
+                last_name=PROFILE_ROW['last_name'],
+                headline=PROFILE_ROW['headline'],
+                short_intro=PROFILE_ROW['short_intro'],
+                long_bio=PROFILE_ROW['long_bio'],
+                location=PROFILE_ROW['location'],
+                email=PROFILE_ROW['email'],
+                phone=PROFILE_ROW['phone'],
+                avatar_file_id=_seed_uuid(PROFILE_ROW['avatar_file_id']),
+                hero_image_file_id=_seed_uuid(PROFILE_ROW['hero_image_file_id']),
+                resume_file_id=_seed_uuid(PROFILE_ROW['resume_file_id']),
+                cta_primary_label=PROFILE_ROW['cta_primary_label'],
+                cta_primary_url=PROFILE_ROW['cta_primary_url'],
+                cta_secondary_label=PROFILE_ROW['cta_secondary_label'],
+                cta_secondary_url=PROFILE_ROW['cta_secondary_url'],
+                is_public=PROFILE_ROW['is_public'],
+                created_at=_parse_datetime(PROFILE_ROW['created_at']) or TIMESTAMP,
+                updated_at=_parse_datetime(PROFILE_ROW['updated_at']) or TIMESTAMP,
             )
         )
         session.flush()
@@ -470,7 +476,7 @@ def seed_database(session: Session) -> None:
         session.flush()
 
         skill_name_to_id = {skill['name']: seed_uuid(skill['id']) for skill in SKILLS}
-        for project in PROJECTS:
+        for project in PROJECT_ROWS:
             github_owner = None
             if project.get('github_url') and 'github.com/' in project['github_url']:
                 github_owner = project['github_url'].rstrip('/').split('/')[-1]
@@ -489,7 +495,7 @@ def seed_database(session: Session) -> None:
                     github_repo_owner=github_owner,
                     github_repo_name=github_repo_name,
                     demo_url=project.get('demo_url'),
-                    company_name=project.get('organization'),
+                    company_name=project.get('company_name'),
                     started_on=_parse_date(project.get('started_on')),
                     ended_on=_parse_date(project.get('ended_on')),
                     duration_label=project['duration_label'],
@@ -498,31 +504,31 @@ def seed_database(session: Session) -> None:
                     is_featured=project['is_featured'],
                     sort_order=project['sort_order'],
                     published_at=_parse_datetime(project['published_at']) or TIMESTAMP,
-                    created_at=TIMESTAMP,
-                    updated_at=TIMESTAMP,
+                    created_at=_parse_datetime(project.get('created_at')) or TIMESTAMP,
+                    updated_at=_parse_datetime(project.get('updated_at')) or TIMESTAMP,
                 )
             )
         session.flush()
 
-        for project in PROJECTS:
+        for project in PROJECT_ROWS:
             session.add(
                 ProjectImage(
                     project_id=_seed_uuid(project['id']),
                     image_file_id=_seed_uuid(project['cover_image_file_id']),
-                    alt_text=project['cover_image_alt'],
+                    alt_text=project.get('cover_image_alt'),
                     sort_order=0,
                     is_cover=True,
                 )
             )
-            for tag in project['tags']:
-                skill_id = skill_name_to_id.get(tag)
+            for skill_name in PROJECT_SKILL_NAMES_BY_PROJECT_SLUG.get(project['slug'], []):
+                skill_id = skill_name_to_id.get(skill_name)
                 if skill_id:
                     session.add(ProjectSkill(project_id=_seed_uuid(project['id']), skill_id=skill_id))
         session.flush()
 
         seen_tags: dict[str, str] = {}
-        for post in BLOG_POSTS:
-            for tag_name in post['tags']:
+        for post in BLOG_POST_ROWS:
+            for tag_name in BLOG_TAG_NAMES_BY_POST_SLUG.get(post['slug'], []):
                 tag_slug = tag_name.lower().replace(' ', '-').replace('&', 'and')
                 if tag_slug not in seen_tags:
                     tag_id = seed_uuid(f'tag-{tag_slug}')
@@ -530,7 +536,7 @@ def seed_database(session: Session) -> None:
                     session.add(BlogTag(id=tag_id, name=tag_name, slug=tag_slug))
         session.flush()
 
-        for post in BLOG_POSTS:
+        for post in BLOG_POST_ROWS:
             session.add(
                 BlogPost(
                     id=_seed_uuid(post.get('id')),
@@ -546,14 +552,14 @@ def seed_database(session: Session) -> None:
                     published_at=_parse_datetime(post['published_at']) or TIMESTAMP,
                     seo_title=post.get('seo_title'),
                     seo_description=post.get('seo_description'),
-                    created_at=TIMESTAMP,
-                    updated_at=TIMESTAMP,
+                    created_at=_parse_datetime(post.get('created_at')) or TIMESTAMP,
+                    updated_at=_parse_datetime(post.get('updated_at')) or TIMESTAMP,
                 )
             )
         session.flush()
 
-        for post in BLOG_POSTS:
-            for tag_name in post['tags']:
+        for post in BLOG_POST_ROWS:
+            for tag_name in BLOG_TAG_NAMES_BY_POST_SLUG.get(post['slug'], []):
                 tag_slug = tag_name.lower().replace(' ', '-').replace('&', 'and')
                 session.add(BlogPostTag(post_id=_seed_uuid(post.get('id')), tag_id=seen_tags[tag_slug]))
 

@@ -13,7 +13,10 @@ router = APIRouter()
 @router.get('/profile', response_model=ProfileOut)
 def get_profile(session: Session = Depends(get_session)) -> ProfileOut:
     repository = PublicContentRepository(session)
-    return repository.get_profile()
+    profile = repository.get_profile()
+    if profile is None:
+        raise HTTPException(status_code=404, detail='Public profile not found.')
+    return profile
 
 
 @router.get('/projects', response_model=ProjectsListOut)

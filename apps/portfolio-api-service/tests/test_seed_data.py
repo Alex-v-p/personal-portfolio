@@ -6,27 +6,27 @@ from uuid import UUID
 
 from sqlalchemy import create_engine, func, select, text
 
-from app.data.public_content import BLOG_POSTS, PROFILE, PROJECTS
+from app.core.config import get_settings
+from app.data.seed_content import BLOG_POST_ROWS, PROFILE_ROW, PROJECT_ROWS
 from app.data.seed_ids import seed_uuid
 from app.db.init_db import initialize_database
-from app.db.models import BlogPost, MediaFile, Profile, Project
+from app.db.models import BlogPost, BlogTag, MediaFile, Profile, Project, ProjectSkill, SocialLink
 from app.db.seed_data import MEDIA_FILES
 from app.db.session import get_session_factory, reset_database_caches
-from app.core.config import get_settings
 
 
 def test_all_profile_media_references_exist() -> None:
     media_ids = {item['id'] for item in MEDIA_FILES}
 
-    assert PROFILE['avatar_file_id'] in media_ids
-    assert PROFILE['hero_image_file_id'] in media_ids
-    assert PROFILE['resume_file_id'] in media_ids
+    assert PROFILE_ROW['avatar_file_id'] in media_ids
+    assert PROFILE_ROW['hero_image_file_id'] in media_ids
+    assert PROFILE_ROW['resume_file_id'] in media_ids
 
 
 def test_all_project_cover_media_references_exist() -> None:
     media_ids = {item['id'] for item in MEDIA_FILES}
 
-    missing_ids = {project['cover_image_file_id'] for project in PROJECTS if project['cover_image_file_id'] not in media_ids}
+    missing_ids = {project['cover_image_file_id'] for project in PROJECT_ROWS if project['cover_image_file_id'] not in media_ids}
 
     assert missing_ids == set()
 
@@ -34,7 +34,7 @@ def test_all_project_cover_media_references_exist() -> None:
 def test_all_blog_cover_media_references_exist() -> None:
     media_ids = {item['id'] for item in MEDIA_FILES}
 
-    missing_ids = {post['cover_image_file_id'] for post in BLOG_POSTS if post.get('cover_image_file_id') not in media_ids}
+    missing_ids = {post['cover_image_file_id'] for post in BLOG_POST_ROWS if post.get('cover_image_file_id') not in media_ids}
 
     assert missing_ids == set()
 
@@ -53,8 +53,11 @@ def test_initialize_database_creates_and_seeds_expected_content() -> None:
     with session_factory() as session:
         assert session.scalar(select(func.count()).select_from(MediaFile)) == len(MEDIA_FILES)
         assert session.scalar(select(func.count()).select_from(Profile)) == 1
-        assert session.scalar(select(func.count()).select_from(Project)) == len(PROJECTS)
-        assert session.scalar(select(func.count()).select_from(BlogPost)) == len(BLOG_POSTS)
+        assert session.scalar(select(func.count()).select_from(Project)) == len(PROJECT_ROWS)
+        assert session.scalar(select(func.count()).select_from(BlogPost)) == len(BLOG_POST_ROWS)
+        assert session.scalar(select(func.count()).select_from(SocialLink)) >= 3
+        assert session.scalar(select(func.count()).select_from(ProjectSkill)) > 0
+        assert session.scalar(select(func.count()).select_from(BlogTag)) > 0
 
         profile = session.scalar(select(Profile))
         project = session.scalar(select(Project).limit(1))
@@ -65,7 +68,7 @@ def test_initialize_database_creates_and_seeds_expected_content() -> None:
         assert isinstance(post.id, UUID)
 
         assert initialize_database(auto_seed=True, raise_on_error=True) is True
-        assert session.scalar(select(func.count()).select_from(Project)) == len(PROJECTS)
+        assert session.scalar(select(func.count()).select_from(Project)) == len(PROJECT_ROWS)
 
 
 def test_initialize_database_recreates_legacy_schema_with_string_foreign_keys(tmp_path: Path) -> None:
@@ -94,7 +97,7 @@ def test_initialize_database_recreates_legacy_schema_with_string_foreign_keys(tm
     session_factory = get_session_factory()
     with session_factory() as session:
         assert session.scalar(select(func.count()).select_from(Profile)) == 1
-        assert session.scalar(select(func.count()).select_from(Project)) == len(PROJECTS)
+        assert session.scalar(select(func.count()).select_from(Project)) == len(PROJECT_ROWS)
 
     get_settings.cache_clear()
     reset_database_caches()
