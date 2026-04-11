@@ -28,6 +28,30 @@ class Settings(BaseSettings):
         default='http://localhost:9000',
         validation_alias=AliasChoices('MEDIA_PUBLIC_BASE_URL', 'PORTFOLIO_API_MEDIA_PUBLIC_BASE_URL'),
     )
+    media_storage_endpoint: str = Field(
+        default='http://minio:9000',
+        validation_alias=AliasChoices('MEDIA_STORAGE_ENDPOINT', 'PORTFOLIO_API_MEDIA_STORAGE_ENDPOINT'),
+    )
+    media_storage_access_key: str = Field(
+        default='minioadmin',
+        validation_alias=AliasChoices('MEDIA_STORAGE_ACCESS_KEY', 'MINIO_ROOT_USER', 'PORTFOLIO_API_MEDIA_STORAGE_ACCESS_KEY'),
+    )
+    media_storage_secret_key: str = Field(
+        default='minioadmin',
+        validation_alias=AliasChoices('MEDIA_STORAGE_SECRET_KEY', 'MINIO_ROOT_PASSWORD', 'PORTFOLIO_API_MEDIA_STORAGE_SECRET_KEY'),
+    )
+    media_public_bucket: str = Field(
+        default='portfolio',
+        validation_alias=AliasChoices('MEDIA_PUBLIC_BUCKET', 'MINIO_PUBLIC_BUCKET', 'PORTFOLIO_API_MEDIA_PUBLIC_BUCKET'),
+    )
+    media_storage_region: str = Field(
+        default='us-east-1',
+        validation_alias=AliasChoices('MEDIA_STORAGE_REGION', 'PORTFOLIO_API_MEDIA_STORAGE_REGION'),
+    )
+    media_max_upload_bytes: int = Field(
+        default=25 * 1024 * 1024,
+        validation_alias=AliasChoices('MEDIA_MAX_UPLOAD_BYTES', 'PORTFOLIO_API_MEDIA_MAX_UPLOAD_BYTES'),
+    )
     admin_access_token_expire_minutes: int = Field(
         default=480,
         validation_alias=AliasChoices('ADMIN_ACCESS_TOKEN_EXPIRE_MINUTES', 'PORTFOLIO_API_ADMIN_ACCESS_TOKEN_EXPIRE_MINUTES'),

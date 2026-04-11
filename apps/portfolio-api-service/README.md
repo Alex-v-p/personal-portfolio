@@ -46,3 +46,8 @@ The API now exposes protected Stage 10 CMS endpoints under `/api/admin`, includi
 - `/api/admin/contact-messages`
 
 Use the bearer token returned by `/api/admin/auth/login` for subsequent admin requests.
+
+
+### Admin media uploads
+
+The admin CMS can upload files through `POST /api/admin/media-files/upload` using multipart form data. The API writes the file to MinIO/S3-compatible storage, creates a `media_files` metadata record, and returns the uploaded media entry for immediate reuse in the CMS.

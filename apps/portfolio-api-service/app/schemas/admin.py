@@ -9,6 +9,7 @@ from app.schemas.public import PublicMediaAssetOut, SkillSummaryOut
 
 ProjectStateLiteral = Literal['published', 'archived', 'completed', 'paused']
 PublicationStatusLiteral = Literal['draft', 'published', 'archived']
+MediaVisibilityLiteral = Literal['public', 'private', 'signed']
 
 
 class AdminUserOut(ApiSchema):
@@ -44,6 +45,10 @@ class AdminMediaFileOut(ApiSchema):
     resolved_asset: PublicMediaAssetOut | None = None
     created_at: str
     updated_at: str
+
+
+class AdminMediaUploadOut(AdminMediaFileOut):
+    pass
 
 
 class AdminSocialLinkIn(ApiSchema):

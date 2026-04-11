@@ -14,6 +14,7 @@ from app.db.models import (
     BlogTag,
     ContactMessage,
     MediaFile,
+    MediaVisibility,
     Profile,
     Project,
     ProjectImage,
@@ -40,6 +41,7 @@ from app.schemas.admin import (
 )
 from app.schemas.public import PublicMediaAssetOut, SkillSummaryOut
 from app.services.media_resolver import PublicMediaUrlResolver
+from app.services.media_storage import StoredMediaObject
 
 _slug_cleanup_pattern = re.compile(r'[^a-z0-9]+')
 
@@ -60,6 +62,40 @@ class AdminContentRepository:
             is_active=admin_user.is_active,
             created_at=admin_user.created_at.isoformat(),
         )
+
+    def list_media_files(self) -> list[AdminMediaFileOut]:
+        media_files = self.session.scalars(select(MediaFile).order_by(MediaFile.created_at.desc())).all()
+        return [self._map_media_file(media_file) for media_file in media_files]
+
+    def create_media_file(
+        self,
+        *,
+        stored_object: StoredMediaObject,
+        uploaded_by_id: UUID | None,
+        title: str | None = None,
+        alt_text: str | None = None,
+        description: str | None = None,
+        visibility: str = 'public',
+    ) -> AdminMediaFileOut:
+        media_file = MediaFile(
+            bucket_name=stored_object.bucket_name,
+            object_key=stored_object.object_key,
+            original_filename=stored_object.original_filename,
+            stored_filename=stored_object.stored_filename,
+            mime_type=stored_object.mime_type,
+            file_size_bytes=stored_object.file_size_bytes,
+            checksum=stored_object.checksum,
+            public_url=None,
+            alt_text=self._normalize_optional_text(alt_text),
+            title=self._normalize_optional_text(title),
+            description=self._normalize_optional_text(description),
+            visibility=MediaVisibility(visibility),
+            uploaded_by_id=uploaded_by_id,
+        )
+        self.session.add(media_file)
+        self.session.commit()
+        self.session.refresh(media_file)
+        return self._map_media_file(media_file)
 
     def get_dashboard_summary(self) -> AdminDashboardSummaryOut:
         return AdminDashboardSummaryOut(
@@ -490,7 +526,7 @@ class AdminContentRepository:
             visibility=media_file.visibility.value,
             alt_text=media_file.alt_text,
             title=media_file.title,
-            public_url=media_file.public_url,
+            public_url=self.media_resolver.resolve(media_file) or media_file.public_url,
             resolved_asset=self._map_media(media_file, alt=media_file.alt_text),
             created_at=media_file.created_at.isoformat(),
             updated_at=media_file.updated_at.isoformat(),

@@ -108,10 +108,54 @@
       </article>
 
       <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] lg:col-span-2">
-        <h2 class="text-lg font-semibold text-stone-950">Available media catalog</h2>
-        <p class="mt-1 text-sm text-stone-600">Use these MinIO-backed files in profile, project, and blog editors until upload flows arrive in Stage 11.</p>
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-semibold text-stone-950">Available media catalog</h2>
+            <p class="mt-1 text-sm text-stone-600">Upload files to MinIO, then reuse them immediately in the project, blog, and profile editors.</p>
+          </div>
+          <div class="rounded-[1.5rem] border border-stone-200 bg-stone-50 px-4 py-3 text-right">
+            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Latest selection target</p>
+            <p class="mt-1 text-sm text-stone-700">Project covers, blog covers, avatars, hero images, and resume files can all use uploaded media.</p>
+          </div>
+        </div>
+
+        <div class="mt-6 grid gap-4 rounded-[1.75rem] border border-stone-200 bg-stone-50 p-5 lg:grid-cols-2">
+          <label class="space-y-2">
+            <span class="text-sm font-semibold text-stone-800">Folder / object prefix</span>
+            <input [(ngModel)]="mediaUploadForm.folder" name="mediaUploadFolder" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" placeholder="projects/covers" />
+          </label>
+          <label class="space-y-2">
+            <span class="text-sm font-semibold text-stone-800">Visibility</span>
+            <select [(ngModel)]="mediaUploadForm.visibility" name="mediaUploadVisibility" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm">
+              <option [ngValue]="'public'">public</option>
+              <option [ngValue]="'private'">private</option>
+              <option [ngValue]="'signed'">signed</option>
+            </select>
+          </label>
+          <label class="space-y-2">
+            <span class="text-sm font-semibold text-stone-800">Title</span>
+            <input [(ngModel)]="mediaUploadForm.title" name="mediaUploadTitle" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" placeholder="Project cover" />
+          </label>
+          <label class="space-y-2">
+            <span class="text-sm font-semibold text-stone-800">Alt text</span>
+            <input [(ngModel)]="mediaUploadForm.altText" name="mediaUploadAltText" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" placeholder="Describe the image for accessibility" />
+          </label>
+          <label class="space-y-2 lg:col-span-2">
+            <span class="text-sm font-semibold text-stone-800">Description</span>
+            <textarea [(ngModel)]="mediaUploadForm.description" name="mediaUploadDescription" rows="3" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" placeholder="Optional context for the media catalog"></textarea>
+          </label>
+          <label class="space-y-2 lg:col-span-2">
+            <span class="text-sm font-semibold text-stone-800">File</span>
+            <input type="file" (change)="onMediaFileSelected($event)" name="mediaUploadFile" class="block w-full rounded-2xl border border-dashed border-stone-300 bg-white px-4 py-3 text-sm file:mr-4 file:rounded-full file:border-0 file:bg-stone-900 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" />
+            <p class="text-xs text-stone-500" *ngIf="mediaUploadForm.file">Selected: {{ mediaUploadForm.file.name }}</p>
+          </label>
+          <div class="lg:col-span-2 flex justify-end">
+            <button type="button" (click)="uploadMedia()" [disabled]="isUploadingMedia" class="inline-flex min-h-11 items-center rounded-full bg-stone-900 px-5 text-sm font-semibold text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-60">{{ isUploadingMedia ? 'Uploading…' : 'Upload media' }}</button>
+          </div>
+        </div>
+
         <div class="mt-5 grid gap-3 max-h-[30rem] overflow-y-auto pr-1">
-          <article *ngFor="let media of referenceData.mediaFiles.slice(0, 12)" class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
+          <article *ngFor="let media of referenceData.mediaFiles" class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
             <div class="flex items-center gap-4">
               <img *ngIf="media.resolvedAsset?.url && media.mimeType?.startsWith('image/')" [src]="media.resolvedAsset?.url" [alt]="media.altText || media.originalFilename" class="h-14 w-14 rounded-2xl object-cover" />
               <div class="min-w-0">
@@ -153,7 +197,7 @@
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 class="text-xl font-semibold text-stone-950">{{ selectedProjectId ? 'Edit project' : 'Create project' }}</h2>
-            <p class="text-sm text-stone-600">This editor updates the public projects API. File uploads stay for Stage 11, so cover images point at existing media metadata.</p>
+            <p class="text-sm text-stone-600">This editor updates the public projects API. Uploaded media appears in the selector immediately after a successful MinIO upload.</p>
           </div>
           <button *ngIf="selectedProjectId" type="button" (click)="deleteProject()" class="inline-flex min-h-11 items-center rounded-full border border-rose-300 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50">Delete project</button>
         </div>

@@ -10,6 +10,7 @@ import {
   AdminCollectionResponse,
   AdminContactMessage,
   AdminDashboardSummary,
+  AdminMediaFile,
   AdminProfile,
   AdminProfileUpdate,
   AdminProject,
@@ -37,6 +38,10 @@ export class AdminPortfolioApiService {
 
   getReferenceData(): Observable<AdminReferenceData> {
     return this.http.get<AdminReferenceData>(`${this.apiBaseUrl}/admin/reference-data`);
+  }
+
+  uploadMedia(formData: FormData): Observable<AdminMediaFile> {
+    return this.http.post<AdminMediaFile>(`${this.apiBaseUrl}/admin/media-files/upload`, formData);
   }
 
   getProjects(): Observable<AdminCollectionResponse<AdminProject>> {

@@ -3,13 +3,16 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.db.models import AdminUser
 from app.db.session import get_session
 from app.repositories.admin_content_repository import AdminContentRepository
 from app.schemas.admin import (
+    AdminMediaFileOut,
+    AdminMediaUploadOut,
     AdminAuthTokenOut,
     AdminBlogPostOut,
     AdminBlogPostUpsertIn,
@@ -27,6 +30,7 @@ from app.schemas.admin import (
     AdminReferenceDataOut,
     AdminUserOut,
 )
+from app.services.media_storage import AdminMediaStorageService
 from app.services.security import (
     create_admin_access_token,
     get_current_admin_user,
@@ -68,6 +72,54 @@ def get_dashboard_summary(_: AdminUserDependency, session: Session = Depends(get
 def get_reference_data(_: AdminUserDependency, session: Session = Depends(get_session)) -> AdminReferenceDataOut:
     repository = AdminContentRepository(session)
     return repository.get_reference_data()
+
+
+@router.get('/media-files', response_model=list[AdminMediaFileOut])
+def list_media_files(_: AdminUserDependency, session: Session = Depends(get_session)) -> list[AdminMediaFileOut]:
+    repository = AdminContentRepository(session)
+    return repository.list_media_files()
+
+
+@router.post('/media-files/upload', response_model=AdminMediaUploadOut, status_code=status.HTTP_201_CREATED)
+async def upload_media_file(
+    current_admin: AdminUserDependency,
+    session: Session = Depends(get_session),
+    file: UploadFile = File(...),
+    folder: str | None = Form(default='uploads'),
+    title: str | None = Form(default=None),
+    alt_text: str | None = Form(default=None),
+    description: str | None = Form(default=None),
+    visibility: str = Form(default='public'),
+) -> AdminMediaUploadOut:
+    settings = get_settings()
+    if visibility not in {'public', 'private', 'signed'}:
+        raise HTTPException(status_code=400, detail='Invalid media visibility.')
+    file_bytes = await file.read()
+    if not file_bytes:
+        raise HTTPException(status_code=400, detail='Uploaded file is empty.')
+    if len(file_bytes) > settings.media_max_upload_bytes:
+        raise HTTPException(status_code=413, detail='Uploaded file exceeds the configured size limit.')
+
+    storage_service = AdminMediaStorageService()
+    repository = AdminContentRepository(session)
+    stored_object = storage_service.upload_bytes(
+        file_bytes=file_bytes,
+        original_filename=file.filename or 'upload',
+        mime_type=file.content_type,
+        folder=folder,
+    )
+    try:
+        return repository.create_media_file(
+            stored_object=stored_object,
+            uploaded_by_id=current_admin.id,
+            title=title,
+            alt_text=alt_text,
+            description=description,
+            visibility=visibility,
+        )
+    except Exception:
+        storage_service.delete_object(bucket_name=stored_object.bucket_name, object_key=stored_object.object_key)
+        raise
 
 
 @router.get('/projects', response_model=AdminProjectsListOut)

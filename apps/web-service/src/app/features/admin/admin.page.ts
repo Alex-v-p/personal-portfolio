@@ -59,6 +59,15 @@ interface AdminBlogPostForm {
   tagNames: string;
 }
 
+interface AdminMediaUploadForm {
+  folder: string;
+  title: string;
+  altText: string;
+  description: string;
+  visibility: 'public' | 'private' | 'signed';
+  file: File | null;
+}
+
 interface AdminProfileForm {
   id?: string;
   firstName: string;
@@ -122,6 +131,8 @@ export class AdminPageComponent implements OnInit {
   protected projectForm: AdminProjectForm = this.createEmptyProjectForm();
   protected blogPostForm: AdminBlogPostForm = this.createEmptyBlogPostForm();
   protected profileForm: AdminProfileForm = this.createEmptyProfileForm();
+  protected mediaUploadForm: AdminMediaUploadForm = this.createEmptyMediaUploadForm();
+  protected isUploadingMedia = false;
 
   ngOnInit(): void {
     this.loadCms();
@@ -397,6 +408,69 @@ export class AdminPageComponent implements OnInit {
 
   protected mediaPreview(mediaId: string | null | undefined): AdminMediaFile | undefined {
     return this.referenceData.mediaFiles.find((item) => item.id === mediaId);
+  }
+
+  protected onMediaFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement | null;
+    this.mediaUploadForm.file = input?.files?.[0] ?? null;
+  }
+
+  protected uploadMedia(): void {
+    if (!this.mediaUploadForm.file || this.isUploadingMedia) {
+      this.statusMessage = 'Choose a file before uploading.';
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', this.mediaUploadForm.file);
+    formData.append('folder', this.mediaUploadForm.folder || 'uploads');
+    formData.append('visibility', this.mediaUploadForm.visibility);
+    if (this.mediaUploadForm.title.trim()) {
+      formData.append('title', this.mediaUploadForm.title.trim());
+    }
+    if (this.mediaUploadForm.altText.trim()) {
+      formData.append('altText', this.mediaUploadForm.altText.trim());
+    }
+    if (this.mediaUploadForm.description.trim()) {
+      formData.append('description', this.mediaUploadForm.description.trim());
+    }
+
+    this.isUploadingMedia = true;
+    this.statusMessage = 'Uploading media…';
+    this.adminApi.uploadMedia(formData).pipe(
+      take(1),
+      finalize(() => {
+        this.isUploadingMedia = false;
+        this.changeDetectorRef.detectChanges();
+      })
+    ).subscribe({
+      next: (media) => {
+        this.referenceData = {
+          ...this.referenceData,
+          mediaFiles: [media, ...this.referenceData.mediaFiles.filter((item) => item.id !== media.id)],
+        };
+        this.dashboard = {
+          ...this.dashboard,
+          mediaFiles: this.dashboard.mediaFiles + 1,
+        };
+        this.mediaUploadForm = this.createEmptyMediaUploadForm();
+        this.statusMessage = 'Media uploaded. It is now available in the selectors below.';
+      },
+      error: (error) => {
+        this.statusMessage = error?.error?.detail || 'Uploading media failed.';
+      }
+    });
+  }
+
+  private createEmptyMediaUploadForm(): AdminMediaUploadForm {
+    return {
+      folder: 'uploads',
+      title: '',
+      altText: '',
+      description: '',
+      visibility: 'public',
+      file: null,
+    };
   }
 
   private createEmptyProjectForm(): AdminProjectForm {

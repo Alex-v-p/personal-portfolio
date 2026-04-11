@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
+from app.services.media_storage import StoredMediaObject
+
 
 ADMIN_EMAIL = 'admin@example.com'
 ADMIN_PASSWORD = 'test-admin-pass'
@@ -231,3 +233,48 @@ def test_admin_can_read_and_mark_contact_messages(client: TestClient) -> None:
     )
     assert mark_response.status_code == 200
     assert mark_response.json()['isRead'] is True
+
+
+def test_admin_can_upload_media_and_receive_catalog_entry(client: TestClient, monkeypatch) -> None:
+    token = _admin_token(client)
+    headers = {'Authorization': f'Bearer {token}'}
+
+    def fake_upload_bytes(self, *, file_bytes: bytes, original_filename: str, mime_type: str | None, folder: str | None = None):
+        assert original_filename == 'cover.png'
+        assert mime_type == 'image/png'
+        assert folder == 'projects/covers'
+        assert file_bytes == b'fake-image-bytes'
+        return StoredMediaObject(
+            bucket_name='portfolio',
+            object_key='projects/covers/uploaded-cover.png',
+            original_filename='cover.png',
+            stored_filename='uploaded-cover.png',
+            mime_type='image/png',
+            file_size_bytes=len(file_bytes),
+            checksum='abc123',
+        )
+
+    monkeypatch.setattr('app.api.routes.admin.AdminMediaStorageService.upload_bytes', fake_upload_bytes)
+    monkeypatch.setattr('app.api.routes.admin.AdminMediaStorageService.delete_object', lambda *args, **kwargs: None)
+
+    response = client.post(
+        '/api/admin/media-files/upload',
+        headers=headers,
+        files={'file': ('cover.png', b'fake-image-bytes', 'image/png')},
+        data={
+            'folder': 'projects/covers',
+            'title': 'Uploaded cover',
+            'altText': 'Uploaded cover alt',
+            'description': 'Uploaded through the CMS',
+            'visibility': 'public',
+        },
+    )
+    assert response.status_code == 201
+    body = response.json()
+    assert body['originalFilename'] == 'cover.png'
+    assert body['objectKey'] == 'projects/covers/uploaded-cover.png'
+    assert body['resolvedAsset']['url'] == 'http://media.example.test/portfolio/projects/covers/uploaded-cover.png'
+
+    list_response = client.get('/api/admin/media-files', headers=headers)
+    assert list_response.status_code == 200
+    assert any(item['objectKey'] == 'projects/covers/uploaded-cover.png' for item in list_response.json())
