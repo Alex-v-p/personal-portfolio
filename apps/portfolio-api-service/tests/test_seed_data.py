@@ -7,11 +7,11 @@ from uuid import UUID
 from sqlalchemy import create_engine, func, select, text
 
 from app.core.config import get_settings
-from app.data.seed_content import BLOG_POST_ROWS, PROFILE_ROW, PROJECT_ROWS
-from app.data.seed_ids import seed_uuid
-from app.db.init_db import initialize_database
+from infra.postgres.bootstrap.bootstrap_core import initialize_database
+from infra.postgres.bootstrap.seed_content import BLOG_POST_ROWS, PROFILE_ROW, PROJECT_ROWS
+from infra.postgres.bootstrap.seed_ids import seed_uuid
 from app.db.models import BlogPost, BlogTag, MediaFile, Profile, Project, ProjectSkill, SocialLink
-from app.db.seed_data import MEDIA_FILES
+from infra.postgres.bootstrap.seed_data import MEDIA_FILES
 from app.db.session import get_session_factory, reset_database_caches
 
 
@@ -47,7 +47,7 @@ def test_seed_uuid_helper_returns_valid_uuids() -> None:
 
 def test_initialize_database_creates_and_seeds_expected_content() -> None:
     reset_database_caches()
-    assert initialize_database(auto_seed=True, raise_on_error=True) is True
+    assert initialize_database(auto_seed=True, recreate_on_drift=True, raise_on_error=True) is True
 
     session_factory = get_session_factory()
     with session_factory() as session:
@@ -67,7 +67,7 @@ def test_initialize_database_creates_and_seeds_expected_content() -> None:
         assert isinstance(project.id, UUID)
         assert isinstance(post.id, UUID)
 
-        assert initialize_database(auto_seed=True, raise_on_error=True) is True
+        assert initialize_database(auto_seed=True, recreate_on_drift=True, raise_on_error=True) is True
         assert session.scalar(select(func.count()).select_from(Project)) == len(PROJECT_ROWS)
 
 
@@ -79,14 +79,10 @@ def test_initialize_database_recreates_legacy_schema_with_string_foreign_keys(tm
         connection.execute(text('CREATE TABLE social_links (id CHAR(32) PRIMARY KEY, profile_id VARCHAR(255) NOT NULL, platform VARCHAR(50) NOT NULL, label VARCHAR(120) NOT NULL, url VARCHAR(500) NOT NULL, icon_key VARCHAR(80), sort_order INTEGER NOT NULL, is_visible BOOLEAN NOT NULL)'))
 
     os.environ['DATABASE_URL'] = f'sqlite:///{database_path}'
-    os.environ['DB_AUTO_CREATE'] = 'true'
-    os.environ['DB_AUTO_SEED'] = 'true'
-    os.environ['DB_STARTUP_GRACEFUL'] = 'false'
-    os.environ['DB_RECREATE_ON_DRIFT'] = 'true'
     get_settings.cache_clear()
     reset_database_caches()
 
-    assert initialize_database(auto_seed=True, raise_on_error=True) is True
+    assert initialize_database(auto_seed=True, recreate_on_drift=True, raise_on_error=True) is True
 
     verify_engine = create_engine(f'sqlite:///{database_path}', future=True)
     with verify_engine.begin() as connection:

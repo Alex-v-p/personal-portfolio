@@ -6,14 +6,14 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.data.seed_content import (
+from infra.postgres.bootstrap.seed_content import (
     BLOG_POST_ROWS,
     BLOG_TAG_NAMES_BY_POST_SLUG,
     PROFILE_ROW,
     PROJECT_ROWS,
     PROJECT_SKILL_NAMES_BY_PROJECT_SLUG,
 )
-from app.data.seed_ids import seed_uuid
+from infra.postgres.bootstrap.seed_ids import seed_uuid
 from app.db.models import (
     BlogPost,
     BlogPostTag,

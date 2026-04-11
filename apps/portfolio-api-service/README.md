@@ -2,18 +2,24 @@
 
 FastAPI service for public portfolio content, admin authentication, and CRUD endpoints.
 
-## Database bootstrap
+## Runtime responsibility
 
-On startup, the service can:
-- create the PostgreSQL schema for the portfolio domain
-- enable the `vector` extension when PostgreSQL is being used
-- seed starter content for profile, projects, blog posts, skills, navigation, media, experience, and GitHub stats
+This service no longer bootstraps the database on startup. Its runtime responsibility is limited to:
+- connecting to the configured database
+- reading and writing portfolio data through the API
+- resolving public media metadata into usable public URLs
 
-Environment flags:
-- `DB_AUTO_CREATE=true` to create tables on startup
-- `DB_AUTO_SEED=true` to seed starter data when the schema is empty
-- `DB_STARTUP_GRACEFUL=true` to keep the API running even if the database is temporarily unavailable
-- `MEDIA_PUBLIC_BASE_URL=http://localhost:9000` to control the public object base used for resolved media URLs
+Schema creation and seed loading now run through the dedicated `portfolio-db-init` one-shot container in Docker Compose.
+
+## Database bootstrap job
+
+The Compose bootstrap job uses the same SQLAlchemy models but its implementation and seed definitions now live under `infra/postgres/bootstrap`, outside the API package and outside the API process.
+
+Bootstrap environment flags:
+- `DB_BOOTSTRAP_AUTO_SEED=true` to seed starter data when the schema is empty
+- `DB_BOOTSTRAP_RECREATE_ON_DRIFT=true` to recreate the schema when incompatible drift is detected
+- `DB_BOOTSTRAP_MAX_RETRIES=30` to keep retrying while PostgreSQL starts
+- `DB_BOOTSTRAP_RETRY_DELAY_SECONDS=2` to control retry spacing
 
 ## Public media resolution
 

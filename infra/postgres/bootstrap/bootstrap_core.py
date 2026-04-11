@@ -7,9 +7,8 @@ from sqlalchemy import inspect
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql.sqltypes import Uuid
 
-from app.core.config import get_settings
 from app.db import Base  # noqa: F401
-from app.db.seed_data import seed_database
+from infra.postgres.bootstrap.seed_data import seed_database
 from app.db.session import get_engine, get_session_factory
 
 logger = logging.getLogger(__name__)
@@ -61,15 +60,14 @@ def _detect_schema_drift(engine) -> list[SchemaDrift]:
     return drifts
 
 
-def initialize_database(*, auto_seed: bool = True, raise_on_error: bool = False) -> bool:
+def initialize_database(*, auto_seed: bool = True, recreate_on_drift: bool = True, raise_on_error: bool = False) -> bool:
     engine = get_engine()
-    settings = get_settings()
     try:
         if engine.dialect.name == 'postgresql':
             with engine.begin() as connection:
                 connection.exec_driver_sql('CREATE EXTENSION IF NOT EXISTS vector')
 
-        if settings.db_recreate_on_drift:
+        if recreate_on_drift:
             drifts = _detect_schema_drift(engine)
             if drifts:
                 logger.warning('Schema drift detected. Recreating database schema. Drift count: %s', len(drifts))

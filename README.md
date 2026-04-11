@@ -6,6 +6,7 @@ Monorepo base for a portfolio platform with:
 - **FastAPI** portfolio/content backend (`portfolio-api-service`)
 - **FastAPI** assistant backend (`assistant-service`)
 - **PostgreSQL** for application data
+- **One-shot database bootstrap container** for schema creation + seed loading
 - **Redis** for async/caching support
 - **MinIO** for public media/object storage
 - **Nginx** as an optional reverse proxy entrypoint
@@ -22,6 +23,7 @@ personal-portfolio/
 │  ├─ minio/
 │  ├─ nginx/
 │  ├─ postgres/
+│  │  └─ bootstrap/
 │  └─ redis/
 ├─ docs/
 ├─ compose.yml
@@ -52,6 +54,15 @@ Backend responsible for:
 - blog metadata/content
 - social/contact info
 
+### portfolio-db-init
+One-shot bootstrap job responsible for:
+- enabling required PostgreSQL extensions
+- creating the SQLAlchemy-backed schema
+- recreating the schema when configured drift repair is enabled
+- seeding starter portfolio content
+
+Its implementation lives under `infra/postgres/bootstrap` so the API package stays focused on request handling and data access.
+
 ### assistant-service
 Backend responsible for:
 - AI chat endpoints
@@ -72,7 +83,7 @@ Object storage responsible for:
    cp .env.example .env
    ```
 2. Review the values and adjust them as needed.
-3. Start infrastructure and app containers:
+3. Start infrastructure, bootstrap, and app containers:
    ```bash
    docker compose up --build
    ```
@@ -86,6 +97,7 @@ Object storage responsible for:
 
 ## Notes
 
-- Public media is now served from MinIO rather than the Angular app's `/assets` folder.
+- Public media is served from MinIO rather than the Angular app's `/assets` folder.
 - The API returns direct public media URLs so the frontend never needs MinIO credentials.
+- `portfolio-db-init` owns schema creation and seeding, so the API no longer mutates PostgreSQL on startup.
 - `minio-init` mirrors the seed media in `infra/minio/seed` into the configured public bucket on startup.

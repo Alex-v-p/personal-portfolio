@@ -24,22 +24,6 @@ class Settings(BaseSettings):
         default='http://localhost:4200,http://127.0.0.1:4200',
         validation_alias=AliasChoices('CORS_ALLOWED_ORIGINS', 'PORTFOLIO_API_CORS_ALLOWED_ORIGINS'),
     )
-    db_auto_create: bool = Field(
-        default=True,
-        validation_alias=AliasChoices('DB_AUTO_CREATE', 'PORTFOLIO_API_DB_AUTO_CREATE'),
-    )
-    db_auto_seed: bool = Field(
-        default=True,
-        validation_alias=AliasChoices('DB_AUTO_SEED', 'PORTFOLIO_API_DB_AUTO_SEED'),
-    )
-    db_startup_graceful: bool = Field(
-        default=True,
-        validation_alias=AliasChoices('DB_STARTUP_GRACEFUL', 'PORTFOLIO_API_DB_STARTUP_GRACEFUL'),
-    )
-    db_recreate_on_drift: bool = Field(
-        default=True,
-        validation_alias=AliasChoices('DB_RECREATE_ON_DRIFT', 'PORTFOLIO_API_DB_RECREATE_ON_DRIFT'),
-    )
     media_public_base_url: str = Field(
         default='http://localhost:9000',
         validation_alias=AliasChoices('MEDIA_PUBLIC_BASE_URL', 'PORTFOLIO_API_MEDIA_PUBLIC_BASE_URL'),
