@@ -8,4 +8,5 @@ passlib[bcrypt]
 python-multipart
 redis
 email-validator
-boto3
+
+minio

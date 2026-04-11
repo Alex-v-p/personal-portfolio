@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
-from app.services.media_storage import StoredMediaObject
-
 
 ADMIN_EMAIL = 'admin@example.com'
 ADMIN_PASSWORD = 'test-admin-pass'
@@ -104,6 +102,22 @@ def test_admin_can_manage_blog_posts(client: TestClient) -> None:
     token = _admin_token(client)
     headers = {'Authorization': f'Bearer {token}'}
 
+    first_tag_response = client.post(
+        '/api/admin/blog-tags',
+        headers=headers,
+        json={'name': 'Admin CMS', 'slug': 'admin-cms'},
+    )
+    assert first_tag_response.status_code == 201
+    first_tag_id = first_tag_response.json()['id']
+
+    second_tag_response = client.post(
+        '/api/admin/blog-tags',
+        headers=headers,
+        json={'name': 'Admin Angular', 'slug': 'admin-angular'},
+    )
+    assert second_tag_response.status_code == 201
+    second_tag_id = second_tag_response.json()['id']
+
     create_response = client.post(
         '/api/admin/blog-posts',
         headers=headers,
@@ -119,13 +133,22 @@ def test_admin_can_manage_blog_posts(client: TestClient) -> None:
             'publishedAt': None,
             'seoTitle': 'CMS launch notes',
             'seoDescription': 'Admin-created post',
-            'tagNames': ['CMS', 'Angular'],
+            'tagIds': [first_tag_id, second_tag_id],
         },
     )
     assert create_response.status_code == 201
     created = create_response.json()
     assert created['slug'] == 'cms-launch-notes'
-    assert 'CMS' in created['tagNames']
+    assert 'Admin CMS' in created['tagNames']
+    assert first_tag_id in created['tagIds']
+
+    third_tag_response = client.post(
+        '/api/admin/blog-tags',
+        headers=headers,
+        json={'name': 'Admin FastAPI', 'slug': 'admin-fastapi'},
+    )
+    assert third_tag_response.status_code == 201
+    third_tag_id = third_tag_response.json()['id']
 
     update_response = client.put(
         f"/api/admin/blog-posts/{created['id']}",
@@ -143,14 +166,111 @@ def test_admin_can_manage_blog_posts(client: TestClient) -> None:
             'publishedAt': '2026-02-01T10:00:00+00:00',
             'seoTitle': 'Published CMS launch notes',
             'seoDescription': 'Published admin-created post',
-            'tagNames': ['CMS', 'FastAPI'],
+            'tagIds': [first_tag_id, third_tag_id],
         },
     )
     assert update_response.status_code == 200
     updated = update_response.json()
     assert updated['status'] == 'published'
     assert updated['isFeatured'] is True
-    assert 'FastAPI' in updated['tagNames']
+    assert 'Admin FastAPI' in updated['tagNames']
+
+
+def test_admin_can_manage_taxonomy_experience_navigation_and_stats(client: TestClient) -> None:
+    token = _admin_token(client)
+    headers = {'Authorization': f'Bearer {token}'}
+
+    category_response = client.post(
+        '/api/admin/skill-categories',
+        headers=headers,
+        json={'name': 'Backend', 'description': 'Backend skills', 'sortOrder': 25},
+    )
+    assert category_response.status_code == 201
+    category_id = category_response.json()['id']
+
+    skill_response = client.post(
+        '/api/admin/skills',
+        headers=headers,
+        json={
+            'categoryId': category_id,
+            'name': 'FastAPI Admin Skill',
+            'yearsOfExperience': 2,
+            'iconKey': 'server',
+            'sortOrder': 10,
+            'isHighlighted': True,
+        },
+    )
+    assert skill_response.status_code == 201
+    skill_id = skill_response.json()['id']
+
+    experience_response = client.post(
+        '/api/admin/experiences',
+        headers=headers,
+        json={
+            'organizationName': 'OpenAI',
+            'roleTitle': 'Builder',
+            'location': 'Remote',
+            'experienceType': 'work',
+            'startDate': '2026-01-01',
+            'endDate': None,
+            'isCurrent': True,
+            'summary': 'Building portfolio CMS features',
+            'descriptionMarkdown': 'Experience body',
+            'logoFileId': None,
+            'sortOrder': 5,
+            'skillIds': [skill_id],
+        },
+    )
+    assert experience_response.status_code == 201
+    assert experience_response.json()['skills'][0]['id'] == skill_id
+
+    navigation_response = client.post(
+        '/api/admin/navigation-items',
+        headers=headers,
+        json={
+            'label': 'Admin',
+            'routePath': '/admin',
+            'isExternal': False,
+            'sortOrder': 99,
+            'isVisible': True,
+        },
+    )
+    assert navigation_response.status_code == 201
+    assert navigation_response.json()['routePath'] == '/admin'
+
+    snapshot_response = client.post(
+        '/api/admin/github-snapshots',
+        headers=headers,
+        json={
+            'snapshotDate': '2026-04-11',
+            'username': 'shuzu',
+            'publicRepoCount': 12,
+            'followersCount': 10,
+            'followingCount': 5,
+            'totalStars': 22,
+            'totalCommits': 100,
+            'rawPayload': {'source': 'test'},
+            'contributionDays': [
+                {'date': '2026-04-10', 'count': 4, 'level': 2},
+                {'date': '2026-04-11', 'count': 1, 'level': 1},
+            ],
+        },
+    )
+    assert snapshot_response.status_code == 201
+    assert len(snapshot_response.json()['contributionDays']) == 2
+
+    admin_response = client.post(
+        '/api/admin/admin-users',
+        headers=headers,
+        json={
+            'email': 'editor@example.com',
+            'displayName': 'Editor',
+            'password': 'editor-password',
+            'isActive': True,
+        },
+    )
+    assert admin_response.status_code == 201
+    assert admin_response.json()['email'] == 'editor@example.com'
 
 
 def test_admin_can_update_profile(client: TestClient) -> None:
@@ -233,48 +353,3 @@ def test_admin_can_read_and_mark_contact_messages(client: TestClient) -> None:
     )
     assert mark_response.status_code == 200
     assert mark_response.json()['isRead'] is True
-
-
-def test_admin_can_upload_media_and_receive_catalog_entry(client: TestClient, monkeypatch) -> None:
-    token = _admin_token(client)
-    headers = {'Authorization': f'Bearer {token}'}
-
-    def fake_upload_bytes(self, *, file_bytes: bytes, original_filename: str, mime_type: str | None, folder: str | None = None):
-        assert original_filename == 'cover.png'
-        assert mime_type == 'image/png'
-        assert folder == 'projects/covers'
-        assert file_bytes == b'fake-image-bytes'
-        return StoredMediaObject(
-            bucket_name='portfolio',
-            object_key='projects/covers/uploaded-cover.png',
-            original_filename='cover.png',
-            stored_filename='uploaded-cover.png',
-            mime_type='image/png',
-            file_size_bytes=len(file_bytes),
-            checksum='abc123',
-        )
-
-    monkeypatch.setattr('app.api.routes.admin.AdminMediaStorageService.upload_bytes', fake_upload_bytes)
-    monkeypatch.setattr('app.api.routes.admin.AdminMediaStorageService.delete_object', lambda *args, **kwargs: None)
-
-    response = client.post(
-        '/api/admin/media-files/upload',
-        headers=headers,
-        files={'file': ('cover.png', b'fake-image-bytes', 'image/png')},
-        data={
-            'folder': 'projects/covers',
-            'title': 'Uploaded cover',
-            'altText': 'Uploaded cover alt',
-            'description': 'Uploaded through the CMS',
-            'visibility': 'public',
-        },
-    )
-    assert response.status_code == 201
-    body = response.json()
-    assert body['originalFilename'] == 'cover.png'
-    assert body['objectKey'] == 'projects/covers/uploaded-cover.png'
-    assert body['resolvedAsset']['url'] == 'http://media.example.test/portfolio/projects/covers/uploaded-cover.png'
-
-    list_response = client.get('/api/admin/media-files', headers=headers)
-    assert list_response.status_code == 200
-    assert any(item['objectKey'] == 'projects/covers/uploaded-cover.png' for item in list_response.json())

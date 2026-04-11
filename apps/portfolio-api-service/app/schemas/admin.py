@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import EmailStr, Field
 
@@ -18,6 +18,20 @@ class AdminUserOut(ApiSchema):
     display_name: str
     is_active: bool
     created_at: str
+
+
+class AdminUserCreateIn(ApiSchema):
+    email: EmailStr
+    display_name: str = Field(min_length=1, max_length=120)
+    password: str = Field(min_length=8, max_length=255)
+    is_active: bool = True
+
+
+class AdminUserUpdateIn(ApiSchema):
+    email: EmailStr
+    display_name: str = Field(min_length=1, max_length=120)
+    password: str | None = Field(default=None, min_length=8, max_length=255)
+    is_active: bool = True
 
 
 class AdminAuthTokenOut(ApiSchema):
@@ -117,6 +131,38 @@ class AdminProfileOut(ApiSchema):
     updated_at: str
 
 
+class AdminSkillCategoryOut(ApiSchema):
+    id: str
+    name: str
+    description: str | None = None
+    sort_order: int
+
+
+class AdminSkillCategoryUpsertIn(ApiSchema):
+    name: str = Field(min_length=1, max_length=120)
+    description: str | None = None
+    sort_order: int = 0
+
+
+class AdminSkillOut(ApiSchema):
+    id: str
+    category_id: str
+    name: str
+    years_of_experience: int | None = None
+    icon_key: str | None = None
+    sort_order: int
+    is_highlighted: bool
+
+
+class AdminSkillUpsertIn(ApiSchema):
+    category_id: str
+    name: str = Field(min_length=1, max_length=120)
+    years_of_experience: int | None = Field(default=None, ge=0)
+    icon_key: str | None = Field(default=None, max_length=80)
+    sort_order: int = 0
+    is_highlighted: bool = False
+
+
 class AdminProjectUpsertIn(ApiSchema):
     slug: str | None = Field(default=None, max_length=160)
     title: str = Field(min_length=1, max_length=255)
@@ -173,6 +219,17 @@ class AdminProjectsListOut(ApiSchema):
     total: int
 
 
+class AdminBlogTagOut(ApiSchema):
+    id: str
+    name: str
+    slug: str
+
+
+class AdminBlogTagUpsertIn(ApiSchema):
+    name: str = Field(min_length=1, max_length=120)
+    slug: str | None = Field(default=None, max_length=120)
+
+
 class AdminBlogPostUpsertIn(ApiSchema):
     slug: str | None = Field(default=None, max_length=160)
     title: str = Field(min_length=1, max_length=255)
@@ -186,13 +243,7 @@ class AdminBlogPostUpsertIn(ApiSchema):
     published_at: str | None = None
     seo_title: str | None = Field(default=None, max_length=255)
     seo_description: str | None = None
-    tag_names: list[str] = Field(default_factory=list)
-
-
-class AdminBlogTagOut(ApiSchema):
-    id: str
-    name: str
-    slug: str
+    tag_ids: list[str] = Field(default_factory=list)
 
 
 class AdminBlogPostOut(ApiSchema):
@@ -212,12 +263,119 @@ class AdminBlogPostOut(ApiSchema):
     seo_description: str | None = None
     created_at: str
     updated_at: str
+    tag_ids: list[str]
     tag_names: list[str]
     tags: list[AdminBlogTagOut]
 
 
 class AdminBlogPostsListOut(ApiSchema):
     items: list[AdminBlogPostOut]
+    total: int
+
+
+class AdminExperienceUpsertIn(ApiSchema):
+    organization_name: str = Field(min_length=1, max_length=255)
+    role_title: str = Field(min_length=1, max_length=255)
+    location: str | None = Field(default=None, max_length=255)
+    experience_type: str = Field(min_length=1, max_length=80)
+    start_date: str
+    end_date: str | None = None
+    is_current: bool = False
+    summary: str = Field(min_length=1)
+    description_markdown: str | None = None
+    logo_file_id: str | None = None
+    sort_order: int = 0
+    skill_ids: list[str] = Field(default_factory=list)
+
+
+class AdminExperienceOut(ApiSchema):
+    id: str
+    organization_name: str
+    role_title: str
+    location: str | None = None
+    experience_type: str
+    start_date: str
+    end_date: str | None = None
+    is_current: bool
+    summary: str
+    description_markdown: str | None = None
+    logo_file_id: str | None = None
+    logo: PublicMediaAssetOut | None = None
+    sort_order: int
+    created_at: str
+    updated_at: str
+    skill_ids: list[str]
+    skills: list[SkillSummaryOut]
+
+
+class AdminExperiencesListOut(ApiSchema):
+    items: list[AdminExperienceOut]
+    total: int
+
+
+class AdminNavigationItemUpsertIn(ApiSchema):
+    label: str = Field(min_length=1, max_length=120)
+    route_path: str = Field(min_length=1, max_length=255)
+    is_external: bool = False
+    sort_order: int = 0
+    is_visible: bool = True
+
+
+class AdminNavigationItemOut(ApiSchema):
+    id: str
+    label: str
+    route_path: str
+    is_external: bool
+    sort_order: int
+    is_visible: bool
+
+
+class AdminNavigationItemsListOut(ApiSchema):
+    items: list[AdminNavigationItemOut]
+    total: int
+
+
+class AdminGithubContributionDayIn(ApiSchema):
+    date: str
+    count: int = Field(ge=0)
+    level: int = Field(ge=0)
+
+
+class AdminGithubContributionDayOut(ApiSchema):
+    date: str
+    count: int
+    level: int
+
+
+class AdminGithubSnapshotUpsertIn(ApiSchema):
+    snapshot_date: str
+    username: str = Field(min_length=1, max_length=120)
+    public_repo_count: int = Field(ge=0)
+    followers_count: int | None = Field(default=None, ge=0)
+    following_count: int | None = Field(default=None, ge=0)
+    total_stars: int | None = Field(default=None, ge=0)
+    total_commits: int | None = Field(default=None, ge=0)
+    raw_payload: dict[str, Any] | None = None
+    contribution_days: list[AdminGithubContributionDayIn] = Field(default_factory=list)
+
+
+class AdminGithubSnapshotOut(ApiSchema):
+    id: str
+    snapshot_date: str
+    username: str
+    public_repo_count: int
+    followers_count: int | None = None
+    following_count: int | None = None
+    total_stars: int | None = None
+    total_commits: int | None = None
+    raw_payload: dict[str, Any] | None = None
+    contribution_days: list[AdminGithubContributionDayOut]
+    created_at: str
+    updated_at: str
+
+
+class AdminGithubSnapshotsListOut(ApiSchema):
+    items: list[AdminGithubSnapshotOut]
     total: int
 
 
@@ -243,7 +401,8 @@ class AdminMessageStatusUpdateIn(ApiSchema):
 
 
 class AdminReferenceDataOut(ApiSchema):
-    skills: list[SkillSummaryOut]
+    skills: list[AdminSkillOut]
+    skill_categories: list[AdminSkillCategoryOut]
     media_files: list[AdminMediaFileOut]
     blog_tags: list[AdminBlogTagOut]
     project_states: list[ProjectStateLiteral]
@@ -255,4 +414,10 @@ class AdminDashboardSummaryOut(ApiSchema):
     blog_posts: int
     unread_messages: int
     skills: int
+    skill_categories: int
     media_files: int
+    experiences: int
+    navigation_items: int
+    blog_tags: int
+    admin_users: int
+    github_snapshots: int

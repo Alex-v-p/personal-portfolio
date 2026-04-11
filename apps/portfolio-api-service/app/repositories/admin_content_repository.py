@@ -13,8 +13,13 @@ from app.db.models import (
     BlogPostTag,
     BlogTag,
     ContactMessage,
+    Experience,
+    ExperienceSkill,
+    GithubContributionDay,
+    GithubSnapshot,
     MediaFile,
     MediaVisibility,
+    NavigationItem,
     Profile,
     Project,
     ProjectImage,
@@ -22,26 +27,42 @@ from app.db.models import (
     ProjectState,
     PublicationStatus,
     Skill,
+    SkillCategory,
     SocialLink,
 )
 from app.schemas.admin import (
     AdminBlogPostOut,
     AdminBlogPostUpsertIn,
     AdminBlogTagOut,
+    AdminBlogTagUpsertIn,
     AdminContactMessageOut,
     AdminDashboardSummaryOut,
+    AdminExperienceOut,
+    AdminExperienceUpsertIn,
+    AdminGithubContributionDayOut,
+    AdminGithubSnapshotOut,
+    AdminGithubSnapshotUpsertIn,
     AdminMediaFileOut,
+    AdminNavigationItemOut,
+    AdminNavigationItemUpsertIn,
     AdminProfileOut,
     AdminProfileUpdateIn,
     AdminProjectOut,
     AdminProjectUpsertIn,
     AdminReferenceDataOut,
+    AdminSkillCategoryOut,
+    AdminSkillCategoryUpsertIn,
+    AdminSkillOut,
+    AdminSkillUpsertIn,
     AdminSocialLinkOut,
+    AdminUserCreateIn,
     AdminUserOut,
+    AdminUserUpdateIn,
 )
 from app.schemas.public import PublicMediaAssetOut, SkillSummaryOut
 from app.services.media_resolver import PublicMediaUrlResolver
 from app.services.media_storage import StoredMediaObject
+from app.services.security import hash_password
 
 _slug_cleanup_pattern = re.compile(r'[^a-z0-9]+')
 
@@ -63,6 +84,72 @@ class AdminContentRepository:
             created_at=admin_user.created_at.isoformat(),
         )
 
+    def list_admin_users(self) -> list[AdminUserOut]:
+        users = self.session.scalars(select(AdminUser).order_by(AdminUser.created_at.desc(), AdminUser.email.asc())).all()
+        return [self.map_admin_user(user) for user in users]
+
+    def create_admin_user(self, payload: AdminUserCreateIn) -> AdminUserOut:
+        user = AdminUser(
+            email=str(payload.email).strip().lower(),
+            display_name=payload.display_name.strip(),
+            password_hash=hash_password(payload.password),
+            is_active=payload.is_active,
+        )
+        self.session.add(user)
+        self.session.commit()
+        self.session.refresh(user)
+        return self.map_admin_user(user)
+
+    def update_admin_user(self, admin_user_id: UUID, payload: AdminUserUpdateIn) -> AdminUserOut | None:
+        user = self.session.get(AdminUser, admin_user_id)
+        if user is None:
+            return None
+        user.email = str(payload.email).strip().lower()
+        user.display_name = payload.display_name.strip()
+        user.is_active = payload.is_active
+        if payload.password:
+            user.password_hash = hash_password(payload.password)
+        self.session.commit()
+        self.session.refresh(user)
+        return self.map_admin_user(user)
+
+    def delete_admin_user(self, admin_user_id: UUID) -> bool:
+        user = self.session.get(AdminUser, admin_user_id)
+        if user is None:
+            return False
+        self.session.delete(user)
+        self.session.commit()
+        return True
+
+    def get_dashboard_summary(self) -> AdminDashboardSummaryOut:
+        return AdminDashboardSummaryOut(
+            projects=self.session.scalar(select(func.count(Project.id))) or 0,
+            blog_posts=self.session.scalar(select(func.count(BlogPost.id))) or 0,
+            unread_messages=self.session.scalar(select(func.count(ContactMessage.id)).where(ContactMessage.is_read.is_(False))) or 0,
+            skills=self.session.scalar(select(func.count(Skill.id))) or 0,
+            skill_categories=self.session.scalar(select(func.count(SkillCategory.id))) or 0,
+            media_files=self.session.scalar(select(func.count(MediaFile.id))) or 0,
+            experiences=self.session.scalar(select(func.count(Experience.id))) or 0,
+            navigation_items=self.session.scalar(select(func.count(NavigationItem.id))) or 0,
+            blog_tags=self.session.scalar(select(func.count(BlogTag.id))) or 0,
+            admin_users=self.session.scalar(select(func.count(AdminUser.id))) or 0,
+            github_snapshots=self.session.scalar(select(func.count(GithubSnapshot.id))) or 0,
+        )
+
+    def get_reference_data(self) -> AdminReferenceDataOut:
+        skills = self.list_skills()
+        skill_categories = self.list_skill_categories()
+        media_files = self.list_media_files()
+        blog_tags = self.list_blog_tags()
+        return AdminReferenceDataOut(
+            skills=skills,
+            skill_categories=skill_categories,
+            media_files=media_files,
+            blog_tags=blog_tags,
+            project_states=[state.value for state in ProjectState],
+            publication_statuses=[status.value for status in PublicationStatus],
+        )
+
     def list_media_files(self) -> list[AdminMediaFileOut]:
         media_files = self.session.scalars(select(MediaFile).order_by(MediaFile.created_at.desc())).all()
         return [self._map_media_file(media_file) for media_file in media_files]
@@ -71,11 +158,11 @@ class AdminContentRepository:
         self,
         *,
         stored_object: StoredMediaObject,
-        uploaded_by_id: UUID | None,
-        title: str | None = None,
-        alt_text: str | None = None,
-        description: str | None = None,
-        visibility: str = 'public',
+        uploaded_by_id: UUID,
+        title: str | None,
+        alt_text: str | None,
+        description: str | None,
+        visibility: str,
     ) -> AdminMediaFileOut:
         media_file = MediaFile(
             bucket_name=stored_object.bucket_name,
@@ -97,35 +184,119 @@ class AdminContentRepository:
         self.session.refresh(media_file)
         return self._map_media_file(media_file)
 
-    def get_dashboard_summary(self) -> AdminDashboardSummaryOut:
-        return AdminDashboardSummaryOut(
-            projects=self.session.scalar(select(func.count(Project.id))) or 0,
-            blog_posts=self.session.scalar(select(func.count(BlogPost.id))) or 0,
-            unread_messages=self.session.scalar(select(func.count(ContactMessage.id)).where(ContactMessage.is_read.is_(False))) or 0,
-            skills=self.session.scalar(select(func.count(Skill.id))) or 0,
-            media_files=self.session.scalar(select(func.count(MediaFile.id))) or 0,
-        )
+    def list_skill_categories(self) -> list[AdminSkillCategoryOut]:
+        categories = self.session.scalars(select(SkillCategory).order_by(SkillCategory.sort_order.asc(), SkillCategory.name.asc())).all()
+        return [self._map_skill_category(category) for category in categories]
 
-    def get_reference_data(self) -> AdminReferenceDataOut:
+    def create_skill_category(self, payload: AdminSkillCategoryUpsertIn) -> AdminSkillCategoryOut:
+        category = SkillCategory(name=payload.name.strip(), description=self._normalize_optional_text(payload.description), sort_order=payload.sort_order)
+        self.session.add(category)
+        self.session.commit()
+        self.session.refresh(category)
+        return self._map_skill_category(category)
+
+    def update_skill_category(self, category_id: UUID, payload: AdminSkillCategoryUpsertIn) -> AdminSkillCategoryOut | None:
+        category = self.session.get(SkillCategory, category_id)
+        if category is None:
+            return None
+        category.name = payload.name.strip()
+        category.description = self._normalize_optional_text(payload.description)
+        category.sort_order = payload.sort_order
+        self.session.commit()
+        self.session.refresh(category)
+        return self._map_skill_category(category)
+
+    def delete_skill_category(self, category_id: UUID) -> tuple[bool, str | None]:
+        category = self.session.get(SkillCategory, category_id)
+        if category is None:
+            return False, 'not_found'
+        in_use = self.session.scalar(select(func.count(Skill.id)).where(Skill.category_id == category_id)) or 0
+        if in_use:
+            return False, 'in_use'
+        self.session.delete(category)
+        self.session.commit()
+        return True, None
+
+    def list_skills(self) -> list[AdminSkillOut]:
         skills = self.session.scalars(select(Skill).order_by(Skill.sort_order.asc(), Skill.name.asc())).all()
-        media_files = self.session.scalars(select(MediaFile).order_by(MediaFile.created_at.desc())).all()
-        blog_tags = self.session.scalars(select(BlogTag).order_by(BlogTag.name.asc())).all()
-        return AdminReferenceDataOut(
-            skills=[self._map_skill(skill) for skill in skills],
-            media_files=[self._map_media_file(media_file) for media_file in media_files],
-            blog_tags=[AdminBlogTagOut(id=str(tag.id), name=tag.name, slug=tag.slug) for tag in blog_tags],
-            project_states=['published', 'archived', 'completed', 'paused'],
-            publication_statuses=['draft', 'published', 'archived'],
+        return [self._map_admin_skill(skill) for skill in skills]
+
+    def create_skill(self, payload: AdminSkillUpsertIn) -> AdminSkillOut:
+        skill = Skill(
+            category_id=self._required_uuid(payload.category_id),
+            name=payload.name.strip(),
+            years_of_experience=payload.years_of_experience,
+            icon_key=self._normalize_optional_text(payload.icon_key),
+            sort_order=payload.sort_order,
+            is_highlighted=payload.is_highlighted,
         )
+        self.session.add(skill)
+        self.session.commit()
+        self.session.refresh(skill)
+        return self._map_admin_skill(skill)
+
+    def update_skill(self, skill_id: UUID, payload: AdminSkillUpsertIn) -> AdminSkillOut | None:
+        skill = self.session.get(Skill, skill_id)
+        if skill is None:
+            return None
+        skill.category_id = self._required_uuid(payload.category_id)
+        skill.name = payload.name.strip()
+        skill.years_of_experience = payload.years_of_experience
+        skill.icon_key = self._normalize_optional_text(payload.icon_key)
+        skill.sort_order = payload.sort_order
+        skill.is_highlighted = payload.is_highlighted
+        self.session.commit()
+        self.session.refresh(skill)
+        return self._map_admin_skill(skill)
+
+    def delete_skill(self, skill_id: UUID) -> bool:
+        skill = self.session.get(Skill, skill_id)
+        if skill is None:
+            return False
+        self.session.delete(skill)
+        self.session.commit()
+        return True
+
+    def list_blog_tags(self) -> list[AdminBlogTagOut]:
+        tags = self.session.scalars(select(BlogTag).order_by(BlogTag.name.asc())).all()
+        return [AdminBlogTagOut(id=str(tag.id), name=tag.name, slug=tag.slug) for tag in tags]
+
+    def create_blog_tag(self, payload: AdminBlogTagUpsertIn) -> AdminBlogTagOut:
+        name = payload.name.strip()
+        tag = BlogTag(name=name, slug=self._ensure_unique_slug(BlogTag, payload.slug or name))
+        self.session.add(tag)
+        self.session.commit()
+        self.session.refresh(tag)
+        return AdminBlogTagOut(id=str(tag.id), name=tag.name, slug=tag.slug)
+
+    def update_blog_tag(self, tag_id: UUID, payload: AdminBlogTagUpsertIn) -> AdminBlogTagOut | None:
+        tag = self.session.get(BlogTag, tag_id)
+        if tag is None:
+            return None
+        name = payload.name.strip()
+        tag.name = name
+        tag.slug = self._ensure_unique_slug(BlogTag, payload.slug or name, current_id=tag_id)
+        self.session.commit()
+        self.session.refresh(tag)
+        return AdminBlogTagOut(id=str(tag.id), name=tag.name, slug=tag.slug)
+
+    def delete_blog_tag(self, tag_id: UUID) -> bool:
+        tag = self.session.get(BlogTag, tag_id)
+        if tag is None:
+            return False
+        self.session.delete(tag)
+        self.session.commit()
+        return True
 
     def list_projects(self) -> list[AdminProjectOut]:
         projects = self.session.scalars(
             select(Project)
             .options(
-                selectinload(Project.skill_links).selectinload(ProjectSkill.skill),
                 selectinload(Project.cover_image_file),
+                selectinload(Project.images).selectinload(ProjectImage.image_file),
+                selectinload(Project.skill_links).selectinload(ProjectSkill.skill),
             )
-            .order_by(Project.sort_order.asc(), Project.created_at.desc())
+            .order_by(Project.sort_order.asc(), Project.published_at.desc(), Project.title.asc())
         ).all()
         return [self._map_project(project) for project in projects]
 
@@ -133,17 +304,18 @@ class AdminContentRepository:
         project = self.session.scalar(
             select(Project)
             .options(
-                selectinload(Project.skill_links).selectinload(ProjectSkill.skill),
-                selectinload(Project.images).selectinload(ProjectImage.image_file),
                 selectinload(Project.cover_image_file),
+                selectinload(Project.images).selectinload(ProjectImage.image_file),
+                selectinload(Project.skill_links).selectinload(ProjectSkill.skill),
             )
             .where(Project.id == project_id)
         )
         return self._map_project(project) if project else None
 
     def create_project(self, payload: AdminProjectUpsertIn) -> AdminProjectOut:
+        slug_source = payload.slug or payload.title
         project = Project(
-            slug=self._ensure_unique_slug(Project, payload.slug or payload.title),
+            slug=self._ensure_unique_slug(Project, slug_source),
             title=payload.title.strip(),
             teaser=payload.teaser.strip(),
             summary=self._normalize_optional_text(payload.summary),
@@ -168,16 +340,14 @@ class AdminContentRepository:
         self._replace_project_skill_links(project, payload.skill_ids)
         self._sync_cover_project_image(project)
         self.session.commit()
-        self.session.refresh(project)
         return self.get_project(project.id)  # type: ignore[return-value]
 
     def update_project(self, project_id: UUID, payload: AdminProjectUpsertIn) -> AdminProjectOut | None:
         project = self.session.get(Project, project_id)
         if project is None:
             return None
-
-        proposed_slug = payload.slug or payload.title
-        project.slug = self._ensure_unique_slug(Project, proposed_slug, current_id=project.id)
+        slug_source = payload.slug or payload.title
+        project.slug = self._ensure_unique_slug(Project, slug_source, current_id=project_id)
         project.title = payload.title.strip()
         project.teaser = payload.teaser.strip()
         project.summary = self._normalize_optional_text(payload.summary)
@@ -199,7 +369,7 @@ class AdminContentRepository:
         self._replace_project_skill_links(project, payload.skill_ids)
         self._sync_cover_project_image(project)
         self.session.commit()
-        return self.get_project(project.id)
+        return self.get_project(project_id)
 
     def delete_project(self, project_id: UUID) -> bool:
         project = self.session.get(Project, project_id)
@@ -213,10 +383,10 @@ class AdminContentRepository:
         posts = self.session.scalars(
             select(BlogPost)
             .options(
-                selectinload(BlogPost.tag_links).selectinload(BlogPostTag.tag),
                 selectinload(BlogPost.cover_image_file),
+                selectinload(BlogPost.tag_links).selectinload(BlogPostTag.tag),
             )
-            .order_by(BlogPost.created_at.desc())
+            .order_by(BlogPost.published_at.desc().nullslast(), BlogPost.created_at.desc())
         ).all()
         return [self._map_blog_post(post) for post in posts]
 
@@ -224,36 +394,32 @@ class AdminContentRepository:
         post = self.session.scalar(
             select(BlogPost)
             .options(
-                selectinload(BlogPost.tag_links).selectinload(BlogPostTag.tag),
                 selectinload(BlogPost.cover_image_file),
+                selectinload(BlogPost.tag_links).selectinload(BlogPostTag.tag),
             )
             .where(BlogPost.id == post_id)
         )
         return self._map_blog_post(post) if post else None
 
     def create_blog_post(self, payload: AdminBlogPostUpsertIn) -> AdminBlogPostOut:
-        now = datetime.now(UTC)
-        status = PublicationStatus(payload.status)
-        published_at = self._parse_datetime(payload.published_at)
-        if status == PublicationStatus.PUBLISHED and published_at is None:
-            published_at = now
+        slug_source = payload.slug or payload.title
         post = BlogPost(
-            slug=self._ensure_unique_slug(BlogPost, payload.slug or payload.title),
+            slug=self._ensure_unique_slug(BlogPost, slug_source),
             title=payload.title.strip(),
             excerpt=payload.excerpt.strip(),
-            content_markdown=payload.content_markdown.strip(),
+            content_markdown=payload.content_markdown,
             cover_image_file_id=self._optional_uuid(payload.cover_image_file_id),
             cover_image_alt=self._normalize_optional_text(payload.cover_image_alt),
             reading_time_minutes=payload.reading_time_minutes,
-            status=status,
+            status=PublicationStatus(payload.status),
             is_featured=payload.is_featured,
-            published_at=published_at,
             seo_title=self._normalize_optional_text(payload.seo_title),
             seo_description=self._normalize_optional_text(payload.seo_description),
+            published_at=self._parse_datetime(payload.published_at),
         )
         self.session.add(post)
         self.session.flush()
-        self._replace_blog_post_tags(post, payload.tag_names)
+        self._replace_blog_post_tags(post, payload.tag_ids)
         self.session.commit()
         return self.get_blog_post(post.id)  # type: ignore[return-value]
 
@@ -261,28 +427,22 @@ class AdminContentRepository:
         post = self.session.get(BlogPost, post_id)
         if post is None:
             return None
-        status = PublicationStatus(payload.status)
-        post.slug = self._ensure_unique_slug(BlogPost, payload.slug or payload.title, current_id=post.id)
+        slug_source = payload.slug or payload.title
+        post.slug = self._ensure_unique_slug(BlogPost, slug_source, current_id=post_id)
         post.title = payload.title.strip()
         post.excerpt = payload.excerpt.strip()
-        post.content_markdown = payload.content_markdown.strip()
+        post.content_markdown = payload.content_markdown
         post.cover_image_file_id = self._optional_uuid(payload.cover_image_file_id)
         post.cover_image_alt = self._normalize_optional_text(payload.cover_image_alt)
         post.reading_time_minutes = payload.reading_time_minutes
-        post.status = status
+        post.status = PublicationStatus(payload.status)
         post.is_featured = payload.is_featured
-        parsed_published_at = self._parse_datetime(payload.published_at)
-        if parsed_published_at is not None:
-            post.published_at = parsed_published_at
-        elif status == PublicationStatus.PUBLISHED and post.published_at is None:
-            post.published_at = datetime.now(UTC)
-        elif status == PublicationStatus.DRAFT:
-            post.published_at = None
         post.seo_title = self._normalize_optional_text(payload.seo_title)
         post.seo_description = self._normalize_optional_text(payload.seo_description)
-        self._replace_blog_post_tags(post, payload.tag_names)
+        post.published_at = self._parse_datetime(payload.published_at)
+        self._replace_blog_post_tags(post, payload.tag_ids)
         self.session.commit()
-        return self.get_blog_post(post.id)
+        return self.get_blog_post(post_id)
 
     def delete_blog_post(self, post_id: UUID) -> bool:
         post = self.session.get(BlogPost, post_id)
@@ -292,14 +452,178 @@ class AdminContentRepository:
         self.session.commit()
         return True
 
+    def list_experiences(self) -> list[AdminExperienceOut]:
+        experiences = self.session.scalars(
+            select(Experience)
+            .options(
+                selectinload(Experience.logo_file),
+                selectinload(Experience.skill_links).selectinload(ExperienceSkill.skill),
+            )
+            .order_by(Experience.sort_order.asc(), Experience.start_date.desc(), Experience.organization_name.asc())
+        ).all()
+        return [self._map_experience(experience) for experience in experiences]
+
+    def get_experience(self, experience_id: UUID) -> AdminExperienceOut | None:
+        experience = self.session.scalar(
+            select(Experience)
+            .options(
+                selectinload(Experience.logo_file),
+                selectinload(Experience.skill_links).selectinload(ExperienceSkill.skill),
+            )
+            .where(Experience.id == experience_id)
+        )
+        return self._map_experience(experience) if experience else None
+
+    def create_experience(self, payload: AdminExperienceUpsertIn) -> AdminExperienceOut:
+        experience = Experience(
+            organization_name=payload.organization_name.strip(),
+            role_title=payload.role_title.strip(),
+            location=self._normalize_optional_text(payload.location),
+            experience_type=payload.experience_type.strip(),
+            start_date=self._parse_date(payload.start_date) or date.today(),
+            end_date=self._parse_date(payload.end_date),
+            is_current=payload.is_current,
+            summary=payload.summary.strip(),
+            description_markdown=self._normalize_optional_text(payload.description_markdown),
+            logo_file_id=self._optional_uuid(payload.logo_file_id),
+            sort_order=payload.sort_order,
+        )
+        self.session.add(experience)
+        self.session.flush()
+        self._replace_experience_skill_links(experience, payload.skill_ids)
+        self.session.commit()
+        return self.get_experience(experience.id)  # type: ignore[return-value]
+
+    def update_experience(self, experience_id: UUID, payload: AdminExperienceUpsertIn) -> AdminExperienceOut | None:
+        experience = self.session.get(Experience, experience_id)
+        if experience is None:
+            return None
+        experience.organization_name = payload.organization_name.strip()
+        experience.role_title = payload.role_title.strip()
+        experience.location = self._normalize_optional_text(payload.location)
+        experience.experience_type = payload.experience_type.strip()
+        experience.start_date = self._parse_date(payload.start_date) or experience.start_date
+        experience.end_date = self._parse_date(payload.end_date)
+        experience.is_current = payload.is_current
+        experience.summary = payload.summary.strip()
+        experience.description_markdown = self._normalize_optional_text(payload.description_markdown)
+        experience.logo_file_id = self._optional_uuid(payload.logo_file_id)
+        experience.sort_order = payload.sort_order
+        self._replace_experience_skill_links(experience, payload.skill_ids)
+        self.session.commit()
+        return self.get_experience(experience_id)
+
+    def delete_experience(self, experience_id: UUID) -> bool:
+        experience = self.session.get(Experience, experience_id)
+        if experience is None:
+            return False
+        self.session.delete(experience)
+        self.session.commit()
+        return True
+
+    def list_navigation_items(self) -> list[AdminNavigationItemOut]:
+        items = self.session.scalars(select(NavigationItem).order_by(NavigationItem.sort_order.asc(), NavigationItem.label.asc())).all()
+        return [self._map_navigation_item(item) for item in items]
+
+    def create_navigation_item(self, payload: AdminNavigationItemUpsertIn) -> AdminNavigationItemOut:
+        item = NavigationItem(
+            label=payload.label.strip(),
+            route_path=payload.route_path.strip(),
+            is_external=payload.is_external,
+            sort_order=payload.sort_order,
+            is_visible=payload.is_visible,
+        )
+        self.session.add(item)
+        self.session.commit()
+        self.session.refresh(item)
+        return self._map_navigation_item(item)
+
+    def update_navigation_item(self, item_id: UUID, payload: AdminNavigationItemUpsertIn) -> AdminNavigationItemOut | None:
+        item = self.session.get(NavigationItem, item_id)
+        if item is None:
+            return None
+        item.label = payload.label.strip()
+        item.route_path = payload.route_path.strip()
+        item.is_external = payload.is_external
+        item.sort_order = payload.sort_order
+        item.is_visible = payload.is_visible
+        self.session.commit()
+        self.session.refresh(item)
+        return self._map_navigation_item(item)
+
+    def delete_navigation_item(self, item_id: UUID) -> bool:
+        item = self.session.get(NavigationItem, item_id)
+        if item is None:
+            return False
+        self.session.delete(item)
+        self.session.commit()
+        return True
+
+    def list_github_snapshots(self) -> list[AdminGithubSnapshotOut]:
+        snapshots = self.session.scalars(
+            select(GithubSnapshot)
+            .options(selectinload(GithubSnapshot.contribution_days))
+            .order_by(GithubSnapshot.snapshot_date.desc(), GithubSnapshot.created_at.desc())
+        ).all()
+        return [self._map_github_snapshot(snapshot) for snapshot in snapshots]
+
+    def get_github_snapshot(self, snapshot_id: UUID) -> AdminGithubSnapshotOut | None:
+        snapshot = self.session.scalar(
+            select(GithubSnapshot)
+            .options(selectinload(GithubSnapshot.contribution_days))
+            .where(GithubSnapshot.id == snapshot_id)
+        )
+        return self._map_github_snapshot(snapshot) if snapshot else None
+
+    def create_github_snapshot(self, payload: AdminGithubSnapshotUpsertIn) -> AdminGithubSnapshotOut:
+        snapshot = GithubSnapshot(
+            snapshot_date=self._parse_date(payload.snapshot_date) or date.today(),
+            username=payload.username.strip(),
+            public_repo_count=payload.public_repo_count,
+            followers_count=payload.followers_count,
+            following_count=payload.following_count,
+            total_stars=payload.total_stars,
+            total_commits=payload.total_commits,
+            raw_payload=payload.raw_payload,
+        )
+        self.session.add(snapshot)
+        self.session.flush()
+        self._replace_github_contribution_days(snapshot, payload)
+        self.session.commit()
+        return self.get_github_snapshot(snapshot.id)  # type: ignore[return-value]
+
+    def update_github_snapshot(self, snapshot_id: UUID, payload: AdminGithubSnapshotUpsertIn) -> AdminGithubSnapshotOut | None:
+        snapshot = self.session.get(GithubSnapshot, snapshot_id)
+        if snapshot is None:
+            return None
+        snapshot.snapshot_date = self._parse_date(payload.snapshot_date) or snapshot.snapshot_date
+        snapshot.username = payload.username.strip()
+        snapshot.public_repo_count = payload.public_repo_count
+        snapshot.followers_count = payload.followers_count
+        snapshot.following_count = payload.following_count
+        snapshot.total_stars = payload.total_stars
+        snapshot.total_commits = payload.total_commits
+        snapshot.raw_payload = payload.raw_payload
+        self._replace_github_contribution_days(snapshot, payload)
+        self.session.commit()
+        return self.get_github_snapshot(snapshot_id)
+
+    def delete_github_snapshot(self, snapshot_id: UUID) -> bool:
+        snapshot = self.session.get(GithubSnapshot, snapshot_id)
+        if snapshot is None:
+            return False
+        self.session.delete(snapshot)
+        self.session.commit()
+        return True
+
     def get_profile(self) -> AdminProfileOut | None:
         profile = self.session.scalar(
             select(Profile)
             .options(
-                selectinload(Profile.social_links),
                 selectinload(Profile.avatar_file),
                 selectinload(Profile.hero_image_file),
                 selectinload(Profile.resume_file),
+                selectinload(Profile.social_links),
             )
             .order_by(Profile.updated_at.desc())
         )
@@ -368,6 +692,26 @@ class AdminContentRepository:
             project.skill_links.append(ProjectSkill(skill_id=skill_id))
         self.session.flush()
 
+    def _replace_experience_skill_links(self, experience: Experience, skill_ids: list[str]) -> None:
+        parsed_skill_ids = [self._required_uuid(skill_id) for skill_id in skill_ids if skill_id]
+        experience.skill_links.clear()
+        for skill_id in parsed_skill_ids:
+            experience.skill_links.append(ExperienceSkill(skill_id=skill_id))
+        self.session.flush()
+
+    def _replace_github_contribution_days(self, snapshot: GithubSnapshot, payload: AdminGithubSnapshotUpsertIn) -> None:
+        snapshot.contribution_days.clear()
+        self.session.flush()
+        for day in payload.contribution_days:
+            snapshot.contribution_days.append(
+                GithubContributionDay(
+                    contribution_date=self._parse_date(day.date) or date.today(),
+                    contribution_count=day.count,
+                    level=day.level,
+                )
+            )
+        self.session.flush()
+
     def _sync_cover_project_image(self, project: Project) -> None:
         cover_image = next((image for image in project.images if image.is_cover), None)
         if project.cover_image_file_id is None:
@@ -388,29 +732,12 @@ class AdminContentRepository:
         cover_image.alt_text = cover_image.alt_text or f'{project.title} cover image'
         cover_image.sort_order = 0
 
-    def _replace_blog_post_tags(self, post: BlogPost, tag_names: list[str]) -> None:
-        normalized_names = []
-        seen = set()
-        for raw_name in tag_names:
-            name = raw_name.strip()
-            if not name:
-                continue
-            key = name.lower()
-            if key in seen:
-                continue
-            seen.add(key)
-            normalized_names.append(name)
-
+    def _replace_blog_post_tags(self, post: BlogPost, tag_ids: list[str]) -> None:
+        parsed_tag_ids = [self._required_uuid(tag_id) for tag_id in tag_ids if tag_id]
         post.tag_links.clear()
         self.session.flush()
-        for name in normalized_names:
-            slug = self._slugify(name)
-            tag = self.session.scalar(select(BlogTag).where(BlogTag.slug == slug))
-            if tag is None:
-                tag = BlogTag(name=name, slug=slug)
-                self.session.add(tag)
-                self.session.flush()
-            post.tag_links.append(BlogPostTag(tag_id=tag.id))
+        for tag_id in parsed_tag_ids:
+            post.tag_links.append(BlogPostTag(tag_id=tag_id))
 
     def _map_profile(self, profile: Profile) -> AdminProfileOut:
         return AdminProfileOut(
@@ -448,6 +775,25 @@ class AdminContentRepository:
             ],
             created_at=profile.created_at.isoformat(),
             updated_at=profile.updated_at.isoformat(),
+        )
+
+    def _map_skill_category(self, category: SkillCategory) -> AdminSkillCategoryOut:
+        return AdminSkillCategoryOut(
+            id=str(category.id),
+            name=category.name,
+            description=category.description,
+            sort_order=category.sort_order,
+        )
+
+    def _map_admin_skill(self, skill: Skill) -> AdminSkillOut:
+        return AdminSkillOut(
+            id=str(skill.id),
+            category_id=str(skill.category_id),
+            name=skill.name,
+            years_of_experience=skill.years_of_experience,
+            icon_key=skill.icon_key,
+            sort_order=skill.sort_order,
+            is_highlighted=skill.is_highlighted,
         )
 
     def _map_project(self, project: Project) -> AdminProjectOut:
@@ -499,8 +845,65 @@ class AdminContentRepository:
             seo_description=post.seo_description,
             created_at=post.created_at.isoformat(),
             updated_at=post.updated_at.isoformat(),
+            tag_ids=[str(tag.id) for tag in ordered_tags],
             tag_names=[tag.name for tag in ordered_tags],
             tags=[AdminBlogTagOut(id=str(tag.id), name=tag.name, slug=tag.slug) for tag in ordered_tags],
+        )
+
+    def _map_experience(self, experience: Experience) -> AdminExperienceOut:
+        ordered_skills = sorted(experience.skill_links, key=lambda link: (link.skill.sort_order, link.skill.name.lower()))
+        return AdminExperienceOut(
+            id=str(experience.id),
+            organization_name=experience.organization_name,
+            role_title=experience.role_title,
+            location=experience.location,
+            experience_type=experience.experience_type,
+            start_date=experience.start_date.isoformat(),
+            end_date=experience.end_date.isoformat() if experience.end_date else None,
+            is_current=experience.is_current,
+            summary=experience.summary,
+            description_markdown=experience.description_markdown,
+            logo_file_id=str(experience.logo_file_id) if experience.logo_file_id else None,
+            logo=self._map_media(experience.logo_file, alt=f'{experience.organization_name} logo'),
+            sort_order=experience.sort_order,
+            created_at=experience.created_at.isoformat(),
+            updated_at=experience.updated_at.isoformat(),
+            skill_ids=[str(link.skill_id) for link in ordered_skills],
+            skills=[self._map_skill(link.skill) for link in ordered_skills],
+        )
+
+    def _map_navigation_item(self, item: NavigationItem) -> AdminNavigationItemOut:
+        return AdminNavigationItemOut(
+            id=str(item.id),
+            label=item.label,
+            route_path=item.route_path,
+            is_external=item.is_external,
+            sort_order=item.sort_order,
+            is_visible=item.is_visible,
+        )
+
+    def _map_github_snapshot(self, snapshot: GithubSnapshot) -> AdminGithubSnapshotOut:
+        ordered_days = sorted(snapshot.contribution_days, key=lambda day: day.contribution_date)
+        return AdminGithubSnapshotOut(
+            id=str(snapshot.id),
+            snapshot_date=snapshot.snapshot_date.isoformat(),
+            username=snapshot.username,
+            public_repo_count=snapshot.public_repo_count,
+            followers_count=snapshot.followers_count,
+            following_count=snapshot.following_count,
+            total_stars=snapshot.total_stars,
+            total_commits=snapshot.total_commits,
+            raw_payload=snapshot.raw_payload,
+            contribution_days=[
+                AdminGithubContributionDayOut(
+                    date=day.contribution_date.isoformat(),
+                    count=day.contribution_count,
+                    level=day.level,
+                )
+                for day in ordered_days
+            ],
+            created_at=snapshot.created_at.isoformat(),
+            updated_at=snapshot.created_at.isoformat(),
         )
 
     def _map_contact_message(self, message: ContactMessage) -> AdminContactMessageOut:
@@ -526,7 +929,7 @@ class AdminContentRepository:
             visibility=media_file.visibility.value,
             alt_text=media_file.alt_text,
             title=media_file.title,
-            public_url=self.media_resolver.resolve(media_file) or media_file.public_url,
+            public_url=media_file.public_url,
             resolved_asset=self._map_media(media_file, alt=media_file.alt_text),
             created_at=media_file.created_at.isoformat(),
             updated_at=media_file.updated_at.isoformat(),

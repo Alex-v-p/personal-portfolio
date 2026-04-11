@@ -8,6 +8,20 @@ export interface AdminUser {
   createdAt: string;
 }
 
+export interface AdminUserCreate {
+  email: string;
+  displayName: string;
+  password: string;
+  isActive: boolean;
+}
+
+export interface AdminUserUpdate {
+  email: string;
+  displayName: string;
+  password?: string | null;
+  isActive: boolean;
+}
+
 export interface AdminAuthToken {
   accessToken: string;
   tokenType: string;
@@ -30,8 +44,30 @@ export interface AdminMediaFile {
   updatedAt: string;
 }
 
+export interface AdminSkillCategory {
+  id: string;
+  name: string;
+  description?: string | null;
+  sortOrder: number;
+}
+
+export interface AdminSkillCategoryUpsert {
+  name: string;
+  description?: string | null;
+  sortOrder: number;
+}
+
 export interface AdminSkillOption {
   id: string;
+  categoryId: string;
+  name: string;
+  yearsOfExperience?: number | null;
+  iconKey?: string | null;
+  sortOrder: number;
+  isHighlighted: boolean;
+}
+
+export interface AdminSkillUpsert {
   categoryId: string;
   name: string;
   yearsOfExperience?: number | null;
@@ -68,7 +104,6 @@ export interface AdminProject {
   skills: AdminSkillOption[];
 }
 
-
 export interface AdminProjectUpsert {
   slug?: string | null;
   title: string;
@@ -98,6 +133,11 @@ export interface AdminBlogTag {
   slug: string;
 }
 
+export interface AdminBlogTagUpsert {
+  name: string;
+  slug?: string | null;
+}
+
 export interface AdminBlogPost {
   id: string;
   slug: string;
@@ -115,10 +155,10 @@ export interface AdminBlogPost {
   seoDescription?: string | null;
   createdAt: string;
   updatedAt: string;
+  tagIds: string[];
   tagNames: string[];
   tags: AdminBlogTag[];
 }
-
 
 export interface AdminBlogPostUpsert {
   slug?: string | null;
@@ -133,7 +173,7 @@ export interface AdminBlogPostUpsert {
   publishedAt?: string | null;
   seoTitle?: string | null;
   seoDescription?: string | null;
-  tagNames: string[];
+  tagIds: string[];
 }
 
 export interface AdminSocialLink {
@@ -172,7 +212,6 @@ export interface AdminProfile {
   updatedAt: string;
 }
 
-
 export interface AdminProfileUpdate {
   firstName: string;
   lastName: string;
@@ -193,6 +232,91 @@ export interface AdminProfileUpdate {
   socialLinks: AdminSocialLink[];
 }
 
+export interface AdminExperience {
+  id: string;
+  organizationName: string;
+  roleTitle: string;
+  location?: string | null;
+  experienceType: string;
+  startDate: string;
+  endDate?: string | null;
+  isCurrent: boolean;
+  summary: string;
+  descriptionMarkdown?: string | null;
+  logoFileId?: string | null;
+  logo?: ResolvedMedia | null;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+  skillIds: string[];
+  skills: AdminSkillOption[];
+}
+
+export interface AdminExperienceUpsert {
+  organizationName: string;
+  roleTitle: string;
+  location?: string | null;
+  experienceType: string;
+  startDate: string;
+  endDate?: string | null;
+  isCurrent: boolean;
+  summary: string;
+  descriptionMarkdown?: string | null;
+  logoFileId?: string | null;
+  sortOrder: number;
+  skillIds: string[];
+}
+
+export interface AdminNavigationItem {
+  id: string;
+  label: string;
+  routePath: string;
+  isExternal: boolean;
+  sortOrder: number;
+  isVisible: boolean;
+}
+
+export interface AdminNavigationItemUpsert {
+  label: string;
+  routePath: string;
+  isExternal: boolean;
+  sortOrder: number;
+  isVisible: boolean;
+}
+
+export interface AdminGithubContributionDay {
+  date: string;
+  count: number;
+  level: number;
+}
+
+export interface AdminGithubSnapshot {
+  id: string;
+  snapshotDate: string;
+  username: string;
+  publicRepoCount: number;
+  followersCount?: number | null;
+  followingCount?: number | null;
+  totalStars?: number | null;
+  totalCommits?: number | null;
+  rawPayload?: Record<string, unknown> | null;
+  contributionDays: AdminGithubContributionDay[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminGithubSnapshotUpsert {
+  snapshotDate: string;
+  username: string;
+  publicRepoCount: number;
+  followersCount?: number | null;
+  followingCount?: number | null;
+  totalStars?: number | null;
+  totalCommits?: number | null;
+  rawPayload?: Record<string, unknown> | null;
+  contributionDays: AdminGithubContributionDay[];
+}
+
 export interface AdminContactMessage {
   id: string;
   name: string;
@@ -207,6 +331,7 @@ export interface AdminContactMessage {
 
 export interface AdminReferenceData {
   skills: AdminSkillOption[];
+  skillCategories: AdminSkillCategory[];
   mediaFiles: AdminMediaFile[];
   blogTags: AdminBlogTag[];
   projectStates: Array<'published' | 'archived' | 'completed' | 'paused'>;
@@ -218,7 +343,13 @@ export interface AdminDashboardSummary {
   blogPosts: number;
   unreadMessages: number;
   skills: number;
+  skillCategories: number;
   mediaFiles: number;
+  experiences: number;
+  navigationItems: number;
+  blogTags: number;
+  adminUsers: number;
+  githubSnapshots: number;
 }
 
 export interface AdminCollectionResponse<T> {
