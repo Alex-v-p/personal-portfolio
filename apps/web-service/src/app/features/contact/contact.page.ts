@@ -1,5 +1,5 @@
 import { NgFor, NgIf } from '@angular/common';
-import { ChangeDetectorRef, Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize, take } from 'rxjs/operators';
 
@@ -7,10 +7,11 @@ import { UiButtonComponent } from '../../shared/components/button/ui-button.comp
 import { UiCardComponent } from '../../shared/components/card/ui-card.component';
 import { UiChipComponent } from '../../shared/components/chip/ui-chip.component';
 import { UiLinkButtonComponent } from '../../shared/components/link-button/ui-link-button.component';
-import { CONTACT_METHODS } from '../../shared/mock-data/contact-links.mock';
-import { PROFILE } from '../../shared/mock-data/profile.mock';
 import { ContactMessageDraft } from '../../shared/models/contact-message.model';
+import { ContactMethod } from '../../shared/models/contact-method.model';
+import { Profile } from '../../shared/models/profile.model';
 import { PublicPortfolioApiService } from '../../shared/services/public-portfolio-api.service';
+import { buildContactMethodsFromProfile, createEmptyProfile } from '../../shared/utils/profile-view.util';
 
 interface ContactTopic {
   label: string;
@@ -25,13 +26,13 @@ type SubmissionState = 'idle' | 'submitting' | 'success' | 'error';
   imports: [NgFor, NgIf, ReactiveFormsModule, UiButtonComponent, UiCardComponent, UiChipComponent, UiLinkButtonComponent],
   templateUrl: './contact.page.html'
 })
-export class ContactPageComponent {
+export class ContactPageComponent implements OnInit {
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly portfolioApi = inject(PublicPortfolioApiService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
-  protected readonly profile = PROFILE;
-  protected readonly contactMethods = CONTACT_METHODS;
+  protected profile: Profile = createEmptyProfile();
+  protected contactMethods: ContactMethod[] = [];
   protected readonly preferredTopics: ContactTopic[] = [
     { label: 'Internships', hint: 'Questions about availability, timing, and current study status.' },
     { label: 'Freelance work', hint: 'Small product sites, portfolio builds, or front-end feature work.' },
@@ -50,6 +51,11 @@ export class ContactPageComponent {
   protected submissionState: SubmissionState = 'idle';
   protected errorMessage = '';
   protected lastSubmittedMessage: ContactMessageDraft | null = null;
+  protected isLoadingProfile = true;
+
+  ngOnInit(): void {
+    this.loadProfile();
+  }
 
   protected submit(): void {
     this.hasAttemptedSubmit = true;
@@ -87,7 +93,7 @@ export class ContactPageComponent {
         },
         error: () => {
           this.submissionState = 'error';
-          this.errorMessage = 'The message could not be sent to the portfolio API. Make sure the portfolio-api-service is running on port 8001 and try again.';
+          this.errorMessage = 'The message could not be sent to the portfolio API. Make sure the portfolio-api-service is running on port 8011 and try again.';
         }
       });
   }
@@ -166,6 +172,15 @@ export class ContactPageComponent {
 
   protected get isSubmitDisabled(): boolean {
     return this.submissionState === 'submitting';
+  }
+
+  private loadProfile(): void {
+    this.portfolioApi.getProfile().pipe(take(1), finalize(() => { this.isLoadingProfile = false; this.changeDetectorRef.detectChanges(); })).subscribe({
+      next: (profile) => {
+        this.profile = profile;
+        this.contactMethods = buildContactMethodsFromProfile(this.profile);
+      }
+    });
   }
 
   private buildDraft(): ContactMessageDraft {

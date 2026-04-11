@@ -2,15 +2,27 @@
   <header [class]="headerClasses">
     <div class="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 rounded-full border border-stone-300 bg-stone-200/90 px-3 py-2 shadow-[0_10px_25px_rgba(40,31,20,0.08)] backdrop-blur">
       <nav class="flex flex-1 flex-wrap items-center gap-2">
-        <a
-          *ngFor="let item of quickLinks"
-          [routerLink]="item.path"
-          routerLinkActive="bg-white text-stone-950 shadow-sm"
-          [routerLinkActiveOptions]="{ exact: item.path === '/' }"
-          class="inline-flex min-h-10 items-center rounded-full px-4 text-sm font-medium text-stone-600 transition hover:bg-white/80 hover:text-stone-950"
-        >
-          {{ item.label }}
-        </a>
+        <ng-container *ngFor="let item of quickLinks">
+          <a
+            *ngIf="!item.isExternal; else externalHeaderLink"
+            [routerLink]="item.path"
+            routerLinkActive="bg-white text-stone-950 shadow-sm"
+            [routerLinkActiveOptions]="{ exact: item.path === '/' }"
+            class="inline-flex min-h-10 items-center rounded-full px-4 text-sm font-medium text-stone-600 transition hover:bg-white/80 hover:text-stone-950"
+          >
+            {{ item.label }}
+          </a>
+          <ng-template #externalHeaderLink>
+            <a
+              [href]="item.path"
+              target="_blank"
+              rel="noreferrer noopener"
+              class="inline-flex min-h-10 items-center rounded-full px-4 text-sm font-medium text-stone-600 transition hover:bg-white/80 hover:text-stone-950"
+            >
+              {{ item.label }}
+            </a>
+          </ng-template>
+        </ng-container>
       </nav>
     </div>
   </header>
@@ -32,20 +44,28 @@
     <div class="mx-auto grid w-full max-w-6xl gap-8 md:grid-cols-[1.35fr_0.8fr_0.8fr_1fr]">
       <section class="space-y-3">
         <div class="flex items-center gap-3">
-          <span class="h-10 w-10 rounded-md bg-stone-500"></span>
+          <img *ngIf="profile.avatarUrl; else avatarFallback" [src]="profile.avatarUrl" [alt]="profile.name || 'Profile avatar'" class="h-10 w-10 rounded-md object-cover" />
+          <ng-template #avatarFallback>
+            <span class="h-10 w-10 rounded-md bg-stone-500"></span>
+          </ng-template>
           <div>
             <p class="text-sm font-semibold text-stone-950">{{ profile.name }}</p>
             <p class="text-xs text-stone-600">{{ profile.role }} portfolio</p>
           </div>
         </div>
-        <p class="max-w-sm text-sm leading-6 text-stone-600">{{ profile.footerDescription }}</p>
+        <p class="max-w-sm text-sm leading-6 text-stone-600">{{ profile.footerDescription || shellData?.footerText }}</p>
         <p class="text-sm text-stone-600">{{ profile.location }}</p>
       </section>
 
       <section class="space-y-3">
         <p class="text-sm font-semibold text-stone-950">Quick Links</p>
         <div class="grid gap-2 text-sm text-stone-600">
-          <a *ngFor="let item of footerLinks" [routerLink]="item.path" class="transition hover:text-stone-950">{{ item.label }}</a>
+          <ng-container *ngFor="let item of footerLinks">
+            <a *ngIf="!item.isExternal; else footerExternalLink" [routerLink]="item.path" class="transition hover:text-stone-950">{{ item.label }}</a>
+            <ng-template #footerExternalLink>
+              <a [href]="item.path" target="_blank" rel="noreferrer noopener" class="transition hover:text-stone-950">{{ item.label }}</a>
+            </ng-template>
+          </ng-container>
         </div>
       </section>
 
@@ -66,7 +86,7 @@
 
       <section class="space-y-3">
         <p class="text-sm font-semibold text-stone-950">Get in touch</p>
-        <a [href]="'mailto:' + primaryEmail" class="text-sm text-stone-600 transition hover:text-stone-950">{{ primaryEmail }}</a>
+        <a *ngIf="primaryEmail" [href]="'mailto:' + primaryEmail" class="text-sm text-stone-600 transition hover:text-stone-950">{{ primaryEmail }}</a>
         <div class="flex gap-2">
           <a
             *ngFor="let item of socialLinks"

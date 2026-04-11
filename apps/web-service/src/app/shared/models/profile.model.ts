@@ -1,3 +1,5 @@
+import { SocialLink } from './social-link.model';
+
 export interface HeroAction {
   label: string;
   appearance: 'primary' | 'secondary' | 'ghost';
@@ -39,6 +41,7 @@ export interface Profile {
   introParagraphs: string[];
   availability: string[];
   heroActions: HeroAction[];
+  socialLinks?: SocialLink[];
   createdAt?: string;
   updatedAt?: string;
 }

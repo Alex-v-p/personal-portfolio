@@ -36,9 +36,12 @@
   </div>
 
   <div class="mx-auto w-full max-w-md">
-    <div class="relative mx-auto aspect-[4/5] w-full max-w-sm rounded-[1.75rem] border border-stone-300 bg-stone-300/85 shadow-[0.8rem_0.8rem_0_rgba(87,83,78,0.28),1.35rem_1.35rem_0_rgba(87,83,78,0.14)]">
-      <div class="absolute inset-4 rounded-[1.4rem] border border-stone-400/60 bg-gradient-to-br from-stone-200 to-stone-300/70"></div>
-      <div class="absolute inset-x-8 bottom-8 top-8 rounded-[1.2rem] border border-dashed border-stone-500/40 bg-white/20"></div>
+    <div class="relative mx-auto aspect-[4/5] w-full max-w-sm overflow-hidden rounded-[1.75rem] border border-stone-300 bg-stone-300/85 shadow-[0.8rem_0.8rem_0_rgba(87,83,78,0.28),1.35rem_1.35rem_0_rgba(87,83,78,0.14)]">
+      <img *ngIf="profile.heroImageUrl || profile.avatarUrl; else heroFallback" [src]="profile.heroImageUrl || profile.avatarUrl" [alt]="profile.name || 'Profile image'" class="absolute inset-0 h-full w-full object-cover" />
+      <ng-template #heroFallback>
+        <div class="absolute inset-4 rounded-[1.4rem] border border-stone-400/60 bg-gradient-to-br from-stone-200 to-stone-300/70"></div>
+        <div class="absolute inset-x-8 bottom-8 top-8 rounded-[1.2rem] border border-dashed border-stone-500/40 bg-white/20"></div>
+      </ng-template>
       <div class="absolute left-8 top-8 rounded-full border border-white/70 bg-white/85 px-3 py-1 text-xs font-semibold text-stone-700">
         {{ profile.firstName }} {{ profile.lastName }}
       </div>
@@ -49,7 +52,7 @@
     </div>
 
     <div class="mt-6 flex justify-end gap-3">
-      <span class="inline-flex h-10 w-10 items-center justify-center rounded-md bg-stone-300 text-xs font-semibold text-stone-600">CV</span>
+      <a *ngIf="profile.resumeUrl" [href]="profile.resumeUrl" target="_blank" rel="noreferrer noopener" class="inline-flex h-10 min-w-10 items-center justify-center rounded-md bg-stone-300 px-3 text-xs font-semibold text-stone-600">CV</a>
       <span class="inline-flex h-10 w-10 items-center justify-center rounded-md bg-stone-300 text-xs font-semibold text-stone-600">UX</span>
     </div>
   </div>

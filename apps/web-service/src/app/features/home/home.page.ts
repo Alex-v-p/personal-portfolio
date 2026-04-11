@@ -1,13 +1,14 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { NgIf } from '@angular/common';
+import { finalize, take } from 'rxjs/operators';
 
-import {
-  HOME_CONTACT_PREVIEW_METHODS,
-  HOME_EXPERIENCE_PREVIEW,
-  HOME_EXPERTISE_GROUPS,
-  HOME_FEATURED_BLOG_POST,
-  HOME_HERO_PROFILE,
-  HOME_PRIMARY_FEATURED_PROJECT
-} from '../../shared/mock-data/home.mock';
+import { ContactMethod } from '../../shared/models/contact-method.model';
+import { Experience } from '../../shared/models/experience.model';
+import { BlogPost } from '../../shared/models/blog-post.model';
+import { Profile, ExpertiseGroup } from '../../shared/models/profile.model';
+import { Project } from '../../shared/models/project.model';
+import { PublicPortfolioApiService } from '../../shared/services/public-portfolio-api.service';
+import { createEmptyProfile } from '../../shared/utils/profile-view.util';
 import { HomeContactPreviewSectionComponent } from './components/home-contact-preview/home-contact-preview.component';
 import { HomeExperienceSectionComponent } from './components/home-experience/home-experience.component';
 import { HomeExpertiseSectionComponent } from './components/home-expertise/home-expertise.component';
@@ -18,6 +19,7 @@ import { HomeHeroSectionComponent } from './components/home-hero/home-hero.compo
   selector: 'app-home-page',
   standalone: true,
   imports: [
+    NgIf,
     HomeHeroSectionComponent,
     HomeFeaturedSectionComponent,
     HomeExpertiseSectionComponent,
@@ -26,11 +28,32 @@ import { HomeHeroSectionComponent } from './components/home-hero/home-hero.compo
   ],
   templateUrl: './home.page.html'
 })
-export class HomePageComponent {
-  protected readonly profile = HOME_HERO_PROFILE;
-  protected readonly featuredBlogPost = HOME_FEATURED_BLOG_POST;
-  protected readonly primaryProject = HOME_PRIMARY_FEATURED_PROJECT;
-  protected readonly expertiseGroups = HOME_EXPERTISE_GROUPS;
-  protected readonly experiencePreview = HOME_EXPERIENCE_PREVIEW;
-  protected readonly contactPreviewMethods = HOME_CONTACT_PREVIEW_METHODS;
+export class HomePageComponent implements OnInit {
+  private readonly portfolioApi = inject(PublicPortfolioApiService);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
+
+  protected profile: Profile = createEmptyProfile();
+  protected featuredBlogPost: BlogPost = {
+    id: '', slug: '', title: '', excerpt: '', publishedAt: '', readTime: '', readingTimeMinutes: 0, category: '', tags: [], featured: false, isFeatured: false, coverAlt: '', coverImageAlt: '', coverImageFileId: null, status: 'draft', contentMarkdown: ''
+  };
+  protected primaryProject: Project = {
+    id: '', slug: '', title: '', teaser: '', shortDescription: '', summary: '', organization: '', duration: '', durationLabel: '', status: '', state: 'published', category: '', tags: [], featured: false, isFeatured: false, imageAlt: '', coverImageAlt: '', coverImageFileId: null, highlight: '', sortOrder: 0, links: []
+  };
+  protected contactPreviewMethods: ContactMethod[] = [];
+  protected expertiseGroups: ExpertiseGroup[] = [];
+  protected experiencePreview: Experience[] = [];
+  protected isLoading = true;
+
+  ngOnInit(): void {
+    this.portfolioApi.getHome().pipe(take(1), finalize(() => { this.isLoading = false; this.changeDetectorRef.detectChanges(); })).subscribe({
+      next: (home) => {
+        this.profile = home.hero;
+        this.primaryProject = home.featuredProjects[0] ?? this.primaryProject;
+        this.featuredBlogPost = home.featuredBlogPosts[0] ?? this.featuredBlogPost;
+        this.contactPreviewMethods = home.contactPreview;
+        this.expertiseGroups = home.expertiseGroups;
+        this.experiencePreview = home.experiencePreview;
+      }
+    });
+  }
 }
