@@ -34,3 +34,15 @@ http://localhost:9000/portfolio/blog/building-a-portfolio-shell/cover.png
 ```
 
 This keeps file metadata in the database while serving actual bytes from MinIO.
+
+## Admin endpoints
+
+The API now exposes protected Stage 10 CMS endpoints under `/api/admin`, including:
+
+- `/api/admin/auth/login`
+- `/api/admin/projects`
+- `/api/admin/blog-posts`
+- `/api/admin/profile`
+- `/api/admin/contact-messages`
+
+Use the bearer token returned by `/api/admin/auth/login` for subsequent admin requests.

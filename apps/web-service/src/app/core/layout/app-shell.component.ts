@@ -1,7 +1,7 @@
 import { NgFor, NgIf } from '@angular/common';
 import { ChangeDetectorRef, Component, HostListener, OnInit, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { take } from 'rxjs/operators';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter, take } from 'rxjs/operators';
 
 import { Profile } from '../../shared/models/profile.model';
 import { SiteShellData } from '../../shared/models/site-shell.model';
@@ -17,9 +17,11 @@ import { createEmptyProfile } from '../../shared/utils/profile-view.util';
 export class AppShellComponent implements OnInit {
   private readonly portfolioApi = inject(PublicPortfolioApiService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private readonly router = inject(Router);
 
   protected profile: Profile = createEmptyProfile();
   protected shellData: SiteShellData | null = null;
+  protected isAdminRoute = false;
   protected quickLinks: Array<{ label: string; path: string; isExternal: boolean }> = [];
   protected footerLinks: Array<{ label: string; path: string; isExternal: boolean }> = [];
 
@@ -34,6 +36,12 @@ export class AppShellComponent implements OnInit {
   private lastScrollY = 0;
 
   ngOnInit(): void {
+    this.isAdminRoute = this.router.url.startsWith('/admin');
+    this.router.events.pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd)).subscribe((event) => {
+      this.isAdminRoute = event.urlAfterRedirects.startsWith('/admin');
+      this.changeDetectorRef.detectChanges();
+    });
+
     this.portfolioApi.getSiteShell().pipe(take(1)).subscribe({
       next: (shell) => {
         this.shellData = shell;

@@ -101,3 +101,11 @@ Object storage responsible for:
 - The API returns direct public media URLs so the frontend never needs MinIO credentials.
 - `portfolio-db-init` owns schema creation and seeding, so the API no longer mutates PostgreSQL on startup.
 - `minio-init` mirrors the seed media in `infra/minio/seed` into the configured public bucket on startup.
+
+## Admin CMS
+
+- Admin login page: `http://localhost:4200/admin/login`
+- The seeded admin account is created by `portfolio-db-init` from `.env`
+- Default local credentials are `ADMIN_EMAIL=admin@example.com` and `ADMIN_PASSWORD=change-me-admin`
+- Change those values in `.env` before first bootstrap if you do not want the defaults
+

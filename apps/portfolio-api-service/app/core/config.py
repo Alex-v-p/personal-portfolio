@@ -28,6 +28,10 @@ class Settings(BaseSettings):
         default='http://localhost:9000',
         validation_alias=AliasChoices('MEDIA_PUBLIC_BASE_URL', 'PORTFOLIO_API_MEDIA_PUBLIC_BASE_URL'),
     )
+    admin_access_token_expire_minutes: int = Field(
+        default=480,
+        validation_alias=AliasChoices('ADMIN_ACCESS_TOKEN_EXPIRE_MINUTES', 'PORTFOLIO_API_ADMIN_ACCESS_TOKEN_EXPIRE_MINUTES'),
+    )
 
     model_config = SettingsConfigDict(env_file='.env', extra='ignore')
 

@@ -1,4 +1,25 @@
 services:
+  portfolio-db-init:
+    build:
+      context: .
+      dockerfile: infra/postgres/bootstrap/Dockerfile
+    container_name: portfolio_db_init
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${PORTFOLIO_API_DB_URL:-postgresql+psycopg://portfolio_user:portfolio_pass@postgres:5432/portfolio_platform}
+      DB_BOOTSTRAP_AUTO_SEED: ${DB_BOOTSTRAP_AUTO_SEED:-true}
+      DB_BOOTSTRAP_RECREATE_ON_DRIFT: ${DB_BOOTSTRAP_RECREATE_ON_DRIFT:-true}
+      DB_BOOTSTRAP_MAX_RETRIES: ${DB_BOOTSTRAP_MAX_RETRIES:-30}
+      DB_BOOTSTRAP_RETRY_DELAY_SECONDS: ${DB_BOOTSTRAP_RETRY_DELAY_SECONDS:-2}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me-admin}
+      ADMIN_DISPLAY_NAME: ${ADMIN_DISPLAY_NAME:-Portfolio Admin}
+      MEDIA_PUBLIC_BASE_URL: ${MEDIA_PUBLIC_BASE_URL:-http://localhost:9000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   web:
     build:
       context: ./apps/web-service
@@ -14,31 +35,10 @@ services:
         condition: service_started
       assistant:
         condition: service_started
+      portfolio-db-init:
+        condition: service_completed_successfully
       minio-init:
         condition: service_completed_successfully
-
-  portfolio-db-init:
-    build:
-      context: .
-      dockerfile: infra/postgres/bootstrap/Dockerfile
-    container_name: portfolio_db_init
-    working_dir: /workspace
-    env_file:
-      - .env
-    environment:
-      PYTHONPATH: /workspace/apps/portfolio-api-service:/workspace
-      DATABASE_URL: ${PORTFOLIO_API_DB_URL:-postgresql+psycopg://portfolio_user:portfolio_pass@postgres:5432/portfolio_platform}
-      DB_BOOTSTRAP_AUTO_SEED: ${DB_BOOTSTRAP_AUTO_SEED:-true}
-      DB_BOOTSTRAP_RECREATE_ON_DRIFT: ${DB_BOOTSTRAP_RECREATE_ON_DRIFT:-true}
-      DB_BOOTSTRAP_MAX_RETRIES: ${DB_BOOTSTRAP_MAX_RETRIES:-30}
-      DB_BOOTSTRAP_RETRY_DELAY_SECONDS: ${DB_BOOTSTRAP_RETRY_DELAY_SECONDS:-2}
-    command: ["python", "-m", "infra.postgres.bootstrap.bootstrap_database"]
-    volumes:
-      - .:/workspace
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: "no"
 
   portfolio-api:
     build:
@@ -60,10 +60,12 @@ services:
     volumes:
       - ./apps/portfolio-api-service:/app
     depends_on:
-      portfolio-db-init:
-        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
       redis:
         condition: service_started
+      portfolio-db-init:
+        condition: service_completed_successfully
       minio-init:
         condition: service_completed_successfully
 
@@ -85,10 +87,12 @@ services:
     volumes:
       - ./apps/assistant-service:/app
     depends_on:
-      portfolio-db-init:
-        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
       redis:
         condition: service_started
+      portfolio-db-init:
+        condition: service_completed_successfully
 
   postgres:
     image: pgvector/pgvector:pg16
@@ -128,7 +132,9 @@ services:
       - minio_data:/data
 
   minio-init:
-    image: minio/mc:RELEASE.2025-03-12T17-29-24Z
+    build:
+      context: .
+      dockerfile: infra/minio/init/Dockerfile
     container_name: portfolio_minio_init
     depends_on:
       minio:
@@ -139,8 +145,6 @@ services:
       MINIO_PUBLIC_BUCKET: ${MINIO_PUBLIC_BUCKET:-portfolio}
     volumes:
       - ./infra/minio/seed:/seed:ro
-      - ./infra/minio/init-public-bucket.sh:/init-public-bucket.sh:ro
-    entrypoint: ["/bin/sh", "/init-public-bucket.sh"]
 
   nginx:
     image: nginx:1.27-alpine
