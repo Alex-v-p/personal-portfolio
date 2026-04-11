@@ -1,4 +1,8 @@
-<div class="space-y-14 lg:space-y-16">
+<div *ngIf="errorMessage" class="mb-6 rounded-[1.75rem] border border-red-200 bg-red-50 px-6 py-5 text-sm text-red-700">
+  {{ errorMessage }}
+</div>
+
+<div class="space-y-14 lg:space-y-16" [class.opacity-60]="isLoading">
   <app-home-hero-section [profile]="profile"></app-home-hero-section>
 
   <app-home-featured-section [featuredBlogPost]="featuredBlogPost" [primaryProject]="primaryProject"></app-home-featured-section>

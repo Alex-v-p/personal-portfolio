@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, shareReplay } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { API_BASE_URL } from '../../core/config/api.config';
@@ -13,7 +13,7 @@ import { HomePageData } from '../models/home.model';
 import { Profile } from '../models/profile.model';
 import { Project, ProjectLink } from '../models/project.model';
 import { ResolvedMedia } from '../models/resolved-media.model';
-import { SiteShellData, NavigationItem } from '../models/site-shell.model';
+import { NavigationItem, SiteShellData } from '../models/site-shell.model';
 import { SocialLink } from '../models/social-link.model';
 import { StatItem } from '../models/stat-item.model';
 import { StatsPageData } from '../models/stats-page.model';
@@ -243,7 +243,7 @@ interface StatItemApi {
 interface StatsApi {
   contributionWeeks: number[][];
   githubSummary: StatItemApi;
-  latestGithubSnapshot: GithubSnapshotApi;
+  latestGithubSnapshot?: GithubSnapshotApi | null;
   portfolioHighlights: StatItemApi[];
   portfolioStats: StatItemApi[];
   monthLabels: string[];
@@ -255,29 +255,47 @@ export class PublicPortfolioApiService {
   private readonly http = inject(HttpClient);
   private readonly apiBaseUrl = inject(API_BASE_URL);
 
+  private profile$?: Observable<Profile>;
+  private navigation$?: Observable<NavigationItem[]>;
+  private siteShell$?: Observable<SiteShellData>;
+  private home$?: Observable<HomePageData>;
+  private projects$?: Observable<Project[]>;
+  private blogPosts$?: Observable<BlogPost[]>;
+  private experience$?: Observable<Experience[]>;
+  private stats$?: Observable<StatsPageData>;
+
   getProfile(): Observable<Profile> {
-    return this.http.get<ProfileApi>(`${this.apiBaseUrl}/public/profile`).pipe(map((profile) => this.normalizeProfile(profile)));
+    this.profile$ ??= this.http
+      .get<ProfileApi>(`${this.apiBaseUrl}/public/profile`)
+      .pipe(map((profile) => this.normalizeProfile(profile)), shareReplay(1));
+
+    return this.profile$;
   }
 
   getNavigation(): Observable<NavigationItem[]> {
-    return this.http
+    this.navigation$ ??= this.http
       .get<CollectionResponse<NavigationItemApi>>(`${this.apiBaseUrl}/public/navigation`)
-      .pipe(map((response) => (response.items ?? []).map((item) => this.normalizeNavigationItem(item))));
+      .pipe(map((response) => (response.items ?? []).map((item) => this.normalizeNavigationItem(item))), shareReplay(1));
+
+    return this.navigation$;
   }
 
   getSiteShell(): Observable<SiteShellData> {
-    return this.http.get<SiteShellApi>(`${this.apiBaseUrl}/public/site-shell`).pipe(
+    this.siteShell$ ??= this.http.get<SiteShellApi>(`${this.apiBaseUrl}/public/site-shell`).pipe(
       map((shell) => ({
         navigation: (shell.navigation.items ?? []).map((item) => this.normalizeNavigationItem(item)),
         profile: this.normalizeProfile(shell.profile),
         footerText: shell.footerText ?? '',
         contactMethods: this.normalizeContactMethods(shell.contactMethods),
-      }))
+      })),
+      shareReplay(1)
     );
+
+    return this.siteShell$;
   }
 
   getHome(): Observable<HomePageData> {
-    return this.http.get<HomeApi>(`${this.apiBaseUrl}/public/home`).pipe(
+    this.home$ ??= this.http.get<HomeApi>(`${this.apiBaseUrl}/public/home`).pipe(
       map((home) => ({
         hero: this.normalizeProfile(home.hero),
         featuredProjects: this.normalizeProjects(home.featuredProjects),
@@ -285,14 +303,19 @@ export class PublicPortfolioApiService {
         expertiseGroups: home.expertiseGroups ?? [],
         experiencePreview: this.normalizeExperienceList(home.experiencePreview),
         contactPreview: this.normalizeContactMethods(home.contactPreview),
-      }))
+      })),
+      shareReplay(1)
     );
+
+    return this.home$;
   }
 
   getProjects(): Observable<Project[]> {
-    return this.http
+    this.projects$ ??= this.http
       .get<CollectionResponse<ProjectApi>>(`${this.apiBaseUrl}/public/projects`)
-      .pipe(map((response) => this.normalizeProjects(response.items)));
+      .pipe(map((response) => this.normalizeProjects(response.items)), shareReplay(1));
+
+    return this.projects$;
   }
 
   getProjectBySlug(slug: string): Observable<Project> {
@@ -300,9 +323,11 @@ export class PublicPortfolioApiService {
   }
 
   getBlogPosts(): Observable<BlogPost[]> {
-    return this.http
+    this.blogPosts$ ??= this.http
       .get<CollectionResponse<BlogPostApi>>(`${this.apiBaseUrl}/public/blog-posts`)
-      .pipe(map((response) => this.normalizeBlogPosts(response.items)));
+      .pipe(map((response) => this.normalizeBlogPosts(response.items)), shareReplay(1));
+
+    return this.blogPosts$;
   }
 
   getBlogPostBySlug(slug: string): Observable<BlogPost> {
@@ -310,17 +335,21 @@ export class PublicPortfolioApiService {
   }
 
   getExperience(): Observable<Experience[]> {
-    return this.http
+    this.experience$ ??= this.http
       .get<CollectionResponse<ExperienceApi>>(`${this.apiBaseUrl}/public/experience`)
-      .pipe(map((response) => this.normalizeExperienceList(response.items)));
+      .pipe(map((response) => this.normalizeExperienceList(response.items)), shareReplay(1));
+
+    return this.experience$;
   }
 
-  getGithubSnapshot(): Observable<GithubSnapshot> {
+  getGithubSnapshot(): Observable<GithubSnapshot | null> {
     return this.http.get<GithubSnapshotApi>(`${this.apiBaseUrl}/public/github`).pipe(map((snapshot) => this.normalizeGithubSnapshot(snapshot)));
   }
 
   getStats(): Observable<StatsPageData> {
-    return this.http.get<StatsApi>(`${this.apiBaseUrl}/public/stats`).pipe(map((stats) => this.normalizeStats(stats)));
+    this.stats$ ??= this.http.get<StatsApi>(`${this.apiBaseUrl}/public/stats`).pipe(map((stats) => this.normalizeStats(stats)), shareReplay(1));
+
+    return this.stats$;
   }
 
   submitContactMessage(payload: ContactMessageDraft): Observable<ContactMessageCreatedResponse> {
@@ -472,7 +501,9 @@ export class PublicPortfolioApiService {
   private normalizeProject(project: ProjectApi): Project {
     const orderedSkills = [...(project.skills ?? [])].sort((left, right) => left.sortOrder - right.sortOrder || left.name.localeCompare(right.name));
     const orderedImages = [...(project.images ?? [])].sort((left, right) => left.sortOrder - right.sortOrder);
-    const coverImage = this.normalizeMedia(project.coverImage) ?? this.normalizeMedia(orderedImages.find((image) => image.isCover)?.image) ?? this.normalizeMedia(orderedImages[0]?.image);
+    const coverImage = this.normalizeMedia(project.coverImage)
+      ?? this.normalizeMedia(orderedImages.find((image) => image.isCover)?.image)
+      ?? this.normalizeMedia(orderedImages[0]?.image);
     const coverAlt = coverImage?.alt ?? orderedImages.find((image) => image.isCover)?.altText ?? orderedImages[0]?.altText ?? project.title;
     const tags = orderedSkills.map((skill) => skill.name);
     const links: ProjectLink[] = [];
@@ -591,7 +622,11 @@ export class PublicPortfolioApiService {
     };
   }
 
-  private normalizeGithubSnapshot(snapshot: GithubSnapshotApi): GithubSnapshot {
+  private normalizeGithubSnapshot(snapshot: GithubSnapshotApi | null | undefined): GithubSnapshot | null {
+    if (!snapshot) {
+      return null;
+    }
+
     return {
       id: snapshot.id,
       snapshotDate: snapshot.snapshotDate,

@@ -17,6 +17,7 @@ def client(tmp_path: Path) -> TestClient:
     os.environ['DB_AUTO_CREATE'] = 'true'
     os.environ['DB_AUTO_SEED'] = 'true'
     os.environ['DB_STARTUP_GRACEFUL'] = 'false'
+    os.environ['MEDIA_PUBLIC_BASE_URL'] = 'http://media.example.test'
     get_settings.cache_clear()
     reset_database_caches()
 

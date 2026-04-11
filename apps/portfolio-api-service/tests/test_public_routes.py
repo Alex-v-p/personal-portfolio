@@ -11,7 +11,8 @@ def test_get_profile_returns_media_and_derived_fields(client: TestClient) -> Non
     body = response.json()
     UUID(body['id'])
     assert body['headline'] == 'Software Engineer'
-    assert body['avatar']['url'].startswith('/assets/mock/')
+    assert body['avatar']['url'].startswith('http://media.example.test/portfolio/profiles/alex/')
+    assert body['ctaPrimaryUrl'].startswith('http://media.example.test/portfolio/profiles/alex/resume.pdf')
     assert body['resume']['mimeType'] == 'application/pdf'
     assert body['skills']
     assert body['expertiseGroups']
@@ -54,7 +55,7 @@ def test_list_projects_returns_embedded_media(client: TestClient) -> None:
     assert body['total'] >= 5
     project = body['items'][0]
     UUID(project['id'])
-    assert project['coverImage']['url'].startswith('/assets/mock/projects/')
+    assert project['coverImage']['url'].startswith('http://media.example.test/portfolio/projects/')
     assert project['skills'][0]['name']
     assert 'tags' not in project
 
@@ -65,7 +66,7 @@ def test_get_project_by_slug_returns_project_detail(client: TestClient) -> None:
     body = response.json()
     assert body['slug'] == 'personal-portfolio'
     assert body['images']
-    assert body['coverImage']['url'].startswith('/assets/mock/projects/')
+    assert body['coverImage']['url'].startswith('http://media.example.test/portfolio/projects/')
 
 
 def test_list_blog_posts_returns_embedded_cover_media(client: TestClient) -> None:
@@ -73,7 +74,7 @@ def test_list_blog_posts_returns_embedded_cover_media(client: TestClient) -> Non
     assert response.status_code == 200
     body = response.json()
     assert body['total'] >= 4
-    assert body['items'][0]['coverImage']['url'].startswith('/assets/mock/blog/')
+    assert body['items'][0]['coverImage']['url'].startswith('http://media.example.test/portfolio/blog/')
     assert body['items'][0]['tags']
 
 
@@ -84,7 +85,7 @@ def test_get_blog_post_by_slug_returns_single_article(client: TestClient) -> Non
     UUID(body['id'])
     assert body['slug'] == 'building-a-portfolio-shell'
     assert body['status'] == 'published'
-    assert body['coverImage']['url'].startswith('/assets/mock/blog/')
+    assert body['coverImage']['url'].startswith('http://media.example.test/portfolio/blog/')
 
 
 def test_list_experience_returns_rows_with_skill_names(client: TestClient) -> None:

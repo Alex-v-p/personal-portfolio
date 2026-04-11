@@ -40,6 +40,10 @@ class Settings(BaseSettings):
         default=True,
         validation_alias=AliasChoices('DB_RECREATE_ON_DRIFT', 'PORTFOLIO_API_DB_RECREATE_ON_DRIFT'),
     )
+    media_public_base_url: str = Field(
+        default='http://localhost:9000',
+        validation_alias=AliasChoices('MEDIA_PUBLIC_BASE_URL', 'PORTFOLIO_API_MEDIA_PUBLIC_BASE_URL'),
+    )
 
     model_config = SettingsConfigDict(env_file='.env', extra='ignore')
 

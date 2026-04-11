@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { NgFor } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { take } from 'rxjs/operators';
 
 import { UiCardComponent } from '../../shared/components/card/ui-card.component';
@@ -11,17 +11,17 @@ import { StatCardComponent } from './components/stat-card/stat-card.component';
 @Component({
   selector: 'app-stats-page',
   standalone: true,
-  imports: [NgFor, UiCardComponent, StatCardComponent],
+  imports: [NgFor, NgIf, UiCardComponent, StatCardComponent],
   templateUrl: './stats.page.html'
 })
 export class StatsPageComponent implements OnInit {
   private readonly portfolioApi = inject(PublicPortfolioApiService);
 
+  protected isLoading = true;
+  protected errorMessage = '';
   protected contributionWeeks: number[][] = [];
   protected githubSummary: StatItem = { id: 'github-summary', label: 'GitHub activity', value: '0', description: '' };
-  protected latestGithubSnapshot: GithubSnapshot = {
-    id: '', snapshotDate: '', username: '', publicRepoCount: 0, followersCount: 0, followingCount: 0, totalStars: 0, totalCommits: 0, createdAt: '', contributionDays: []
-  };
+  protected latestGithubSnapshot: GithubSnapshot | null = null;
   protected portfolioHighlights: StatItem[] = [];
   protected portfolioStats: StatItem[] = [];
   protected monthLabels: string[] = [];
@@ -37,8 +37,21 @@ export class StatsPageComponent implements OnInit {
         this.portfolioStats = stats.portfolioStats;
         this.monthLabels = stats.monthLabels;
         this.weekdayLabels = stats.weekdayLabels;
+        this.isLoading = false;
+      },
+      error: () => {
+        this.errorMessage = 'Stats could not be loaded right now.';
+        this.isLoading = false;
       }
     });
+  }
+
+  protected get snapshotLabel(): string {
+    if (!this.latestGithubSnapshot) {
+      return 'Latest snapshot: not available yet';
+    }
+
+    return `Latest snapshot: ${this.latestGithubSnapshot.snapshotDate} · ${this.latestGithubSnapshot.username}`;
   }
 
   protected getContributionClass(value: number): string {

@@ -7,6 +7,7 @@ Monorepo base for a portfolio platform with:
 - **FastAPI** assistant backend (`assistant-service`)
 - **PostgreSQL** for application data
 - **Redis** for async/caching support
+- **MinIO** for public media/object storage
 - **Nginx** as an optional reverse proxy entrypoint
 
 ## Repository layout
@@ -18,6 +19,7 @@ personal-portfolio/
 │  ├─ portfolio-api-service/
 │  └─ assistant-service/
 ├─ infra/
+│  ├─ minio/
 │  ├─ nginx/
 │  ├─ postgres/
 │  └─ redis/
@@ -41,6 +43,7 @@ Frontend application responsible for:
 ### portfolio-api-service
 Backend responsible for:
 - public content endpoints
+- public media URL resolution
 - admin authentication
 - admin CRUD
 - projects
@@ -56,6 +59,12 @@ Backend responsible for:
 - conversation handling
 - future retrieval / RAG / search
 
+### minio
+Object storage responsible for:
+- serving seeded public portfolio media
+- hosting future uploaded images/files
+- separating file delivery from the Angular frontend
+
 ## Quick start
 
 1. Copy the environment file:
@@ -68,13 +77,15 @@ Backend responsible for:
    docker compose up --build
    ```
 
-## Health endpoints
+## Local endpoints
 
 - Portfolio API: `http://localhost:8011/api/health`
 - Assistant API: `http://localhost:8012/api/health`
+- MinIO API: `http://localhost:9000`
+- MinIO Console: `http://localhost:9001`
 
 ## Notes
 
-- This is intentionally a **base scaffold** only.
-- No database migrations or business logic have been added yet.
-- The frontend is structured as an Angular app skeleton so you can start building features immediately.
+- Public media is now served from MinIO rather than the Angular app's `/assets` folder.
+- The API returns direct public media URLs so the frontend never needs MinIO credentials.
+- `minio-init` mirrors the seed media in `infra/minio/seed` into the configured public bucket on startup.

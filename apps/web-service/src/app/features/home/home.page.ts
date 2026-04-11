@@ -1,10 +1,11 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { NgIf } from '@angular/common';
 import { take } from 'rxjs/operators';
 
 import { ContactMethod } from '../../shared/models/contact-method.model';
 import { Experience } from '../../shared/models/experience.model';
 import { BlogPost } from '../../shared/models/blog-post.model';
-import { Profile, ExpertiseGroup } from '../../shared/models/profile.model';
+import { ExpertiseGroup, Profile } from '../../shared/models/profile.model';
 import { Project } from '../../shared/models/project.model';
 import { PublicPortfolioApiService } from '../../shared/services/public-portfolio-api.service';
 import { createEmptyProfile } from '../../shared/utils/profile-view.util';
@@ -18,6 +19,7 @@ import { HomeHeroSectionComponent } from './components/home-hero/home-hero.compo
   selector: 'app-home-page',
   standalone: true,
   imports: [
+    NgIf,
     HomeHeroSectionComponent,
     HomeFeaturedSectionComponent,
     HomeExpertiseSectionComponent,
@@ -29,6 +31,8 @@ import { HomeHeroSectionComponent } from './components/home-hero/home-hero.compo
 export class HomePageComponent implements OnInit {
   private readonly portfolioApi = inject(PublicPortfolioApiService);
 
+  protected isLoading = true;
+  protected errorMessage = '';
   protected profile: Profile = createEmptyProfile();
   protected featuredBlogPost: BlogPost = {
     id: '', slug: '', title: '', excerpt: '', publishedAt: '', readTime: '', readingTimeMinutes: 0, category: '', tags: [], featured: false, isFeatured: false, coverAlt: '', coverImageAlt: '', coverImageFileId: null, status: 'draft', contentMarkdown: ''
@@ -49,6 +53,11 @@ export class HomePageComponent implements OnInit {
         this.contactPreviewMethods = home.contactPreview;
         this.expertiseGroups = home.expertiseGroups;
         this.experiencePreview = home.experiencePreview;
+        this.isLoading = false;
+      },
+      error: () => {
+        this.errorMessage = 'Home content could not be loaded right now.';
+        this.isLoading = false;
       }
     });
   }

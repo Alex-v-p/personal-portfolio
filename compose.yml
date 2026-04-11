@@ -32,11 +32,15 @@ services:
       DB_AUTO_CREATE: ${PORTFOLIO_API_DB_AUTO_CREATE:-true}
       DB_AUTO_SEED: ${PORTFOLIO_API_DB_AUTO_SEED:-true}
       DB_STARTUP_GRACEFUL: ${PORTFOLIO_API_DB_STARTUP_GRACEFUL:-true}
+      DB_RECREATE_ON_DRIFT: ${DB_RECREATE_ON_DRIFT:-true}
+      MEDIA_PUBLIC_BASE_URL: ${MEDIA_PUBLIC_BASE_URL:-http://localhost:9000}
     volumes:
       - ./apps/portfolio-api-service:/app
     depends_on:
       - postgres
       - redis
+      - minio
+      - minio-init
 
   assistant:
     build:
@@ -77,6 +81,35 @@ services:
     ports:
       - "${REDIS_PORT:-6379}:6379"
 
+  minio:
+    image: minio/minio:latest
+    container_name: portfolio_minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-portfolioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-portfoliosecret}
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: portfolio_minio_init
+    depends_on:
+      - minio
+    environment:
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-portfolioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-portfoliosecret}
+      MINIO_PUBLIC_BUCKET: ${MINIO_PUBLIC_BUCKET:-portfolio}
+      MINIO_SEED_DIR: /seed
+    entrypoint: ["/bin/sh", "/init/init-public-bucket.sh"]
+    volumes:
+      - ./infra/minio:/init:ro
+      - ./infra/minio/seed:/seed:ro
+
   nginx:
     image: nginx:1.27-alpine
     container_name: portfolio_nginx
@@ -92,3 +125,4 @@ services:
 
 volumes:
   postgres_data:
+  minio_data:

@@ -25,7 +25,7 @@
 
         <div class="space-y-4">
           <div *ngIf="featuredBlogPost.coverImageUrl; else featuredFallback" class="overflow-hidden rounded-[1.4rem] border border-stone-300">
-            <img [src]="featuredBlogPost.coverImageUrl" [alt]="featuredBlogPost.coverImageAlt" class="aspect-[16/10] w-full object-cover" />
+            <img [src]="featuredBlogPost.coverImageUrl" [alt]="featuredBlogPost.coverImageAlt" loading="lazy" decoding="async" class="aspect-[16/10] w-full object-cover" />
           </div>
           <ng-template #featuredFallback>
             <div class="flex aspect-[16/10] items-end rounded-[1.4rem] border border-stone-300 bg-stone-300/80 p-4 text-xs font-semibold uppercase tracking-[0.16em] text-stone-600">

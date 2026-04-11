@@ -1,11 +1,15 @@
 <div class="mx-auto max-w-5xl space-y-10">
   <p class="text-sm text-stone-600">Home &gt; Stats</p>
 
-  <section class="space-y-6">
+  <section *ngIf="errorMessage" class="rounded-[1.75rem] border border-red-200 bg-red-50 px-6 py-5 text-sm text-red-700">
+    {{ errorMessage }}
+  </section>
+
+  <section class="space-y-6" [class.opacity-60]="isLoading">
     <div class="space-y-2">
       <h1 class="text-4xl font-semibold tracking-tight text-stone-950">GitHub Stats</h1>
       <p class="max-w-3xl text-base leading-7 text-stone-600">Insights and metrics about my GitHub portfolio.</p>
-      <p class="text-sm text-stone-500">Latest snapshot: {{ latestGithubSnapshot.snapshotDate }} · {{ latestGithubSnapshot.username }}</p>
+      <p class="text-sm text-stone-500">{{ snapshotLabel }}</p>
     </div>
 
     <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_15rem] lg:items-stretch">
@@ -28,7 +32,7 @@
               </div>
 
               <div class="flex items-center justify-between text-[11px] text-stone-500">
-                <span>Learn how we count contributions.</span>
+                <span>Contribution intensity grouped from the latest stored snapshot.</span>
                 <span>Less <span class="mx-1">⟶</span> More</span>
               </div>
             </div>
@@ -40,7 +44,7 @@
     </div>
   </section>
 
-  <section class="space-y-6">
+  <section class="space-y-6" [class.opacity-60]="isLoading">
     <div class="space-y-2">
       <h2 class="text-4xl font-semibold tracking-tight text-stone-950">About this portfolio</h2>
       <p class="max-w-3xl text-base leading-7 text-stone-600">Insights and metrics about my portfolio website.</p>
