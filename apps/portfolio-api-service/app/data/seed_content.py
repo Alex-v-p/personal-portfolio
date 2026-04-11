@@ -3,7 +3,7 @@ from __future__ import annotations
 PROFILE_ROW = {'avatar_file_id': 'file-avatar-alex',
  'created_at': '2025-09-28T10:00:00Z',
  'cta_primary_label': 'Download CV',
- 'cta_primary_url': None,
+ 'cta_primary_url': 'media://resume',
  'cta_secondary_label': 'Contact me',
  'cta_secondary_url': '/contact',
  'email': 'hello@shuzu.dev',

@@ -4,7 +4,7 @@ import { StatItem } from './stat-item.model';
 export interface StatsPageData {
   contributionWeeks: number[][];
   githubSummary: StatItem;
-  latestGithubSnapshot: GithubSnapshot | null;
+  latestGithubSnapshot: GithubSnapshot;
   portfolioHighlights: StatItem[];
   portfolioStats: StatItem[];
   monthLabels: string[];

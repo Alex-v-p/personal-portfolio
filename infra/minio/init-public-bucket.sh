@@ -1,20 +1,11 @@
 #!/bin/sh
 set -eu
 
-MINIO_ALIAS="${MINIO_ALIAS:-local}"
-MINIO_ENDPOINT="${MINIO_ENDPOINT:-http://minio:9000}"
-MINIO_ROOT_USER="${MINIO_ROOT_USER:?MINIO_ROOT_USER is required}"
-MINIO_ROOT_PASSWORD="${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD is required}"
-MINIO_PUBLIC_BUCKET="${MINIO_PUBLIC_BUCKET:?MINIO_PUBLIC_BUCKET is required}"
-MINIO_SEED_DIR="${MINIO_SEED_DIR:-/seed}"
+MINIO_ALIAS="local"
+MINIO_ENDPOINT="http://minio:9000"
+BUCKET="${MINIO_PUBLIC_BUCKET:-portfolio}"
 
-until mc alias set "$MINIO_ALIAS" "$MINIO_ENDPOINT" "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" >/dev/null 2>&1; do
-  sleep 1
-done
-
-mc mb --ignore-existing "$MINIO_ALIAS/$MINIO_PUBLIC_BUCKET"
-mc anonymous set download "$MINIO_ALIAS/$MINIO_PUBLIC_BUCKET"
-
-if [ -d "$MINIO_SEED_DIR/$MINIO_PUBLIC_BUCKET" ]; then
-  mc mirror --overwrite "$MINIO_SEED_DIR/$MINIO_PUBLIC_BUCKET" "$MINIO_ALIAS/$MINIO_PUBLIC_BUCKET"
-fi
+mc alias set "$MINIO_ALIAS" "$MINIO_ENDPOINT" "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
+mc mb --ignore-existing "$MINIO_ALIAS/$BUCKET"
+mc anonymous set download "$MINIO_ALIAS/$BUCKET"
+mc mirror --overwrite /seed/ "$MINIO_ALIAS/$BUCKET/"

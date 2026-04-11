@@ -1,5 +1,5 @@
 import { NgFor, NgIf } from '@angular/common';
-import { Component, HostListener, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnInit, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { take } from 'rxjs/operators';
 
@@ -16,6 +16,7 @@ import { createEmptyProfile } from '../../shared/utils/profile-view.util';
 })
 export class AppShellComponent implements OnInit {
   private readonly portfolioApi = inject(PublicPortfolioApiService);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   protected profile: Profile = createEmptyProfile();
   protected shellData: SiteShellData | null = null;
@@ -43,6 +44,7 @@ export class AppShellComponent implements OnInit {
           isExternal: item.isExternal,
         }));
         this.footerLinks = [...this.quickLinks];
+        this.changeDetectorRef.detectChanges();
       }
     });
   }

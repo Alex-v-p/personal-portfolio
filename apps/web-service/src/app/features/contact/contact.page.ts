@@ -51,6 +51,7 @@ export class ContactPageComponent implements OnInit {
   protected submissionState: SubmissionState = 'idle';
   protected errorMessage = '';
   protected lastSubmittedMessage: ContactMessageDraft | null = null;
+  protected isLoadingProfile = true;
 
   ngOnInit(): void {
     this.loadProfile();
@@ -174,7 +175,7 @@ export class ContactPageComponent implements OnInit {
   }
 
   private loadProfile(): void {
-    this.portfolioApi.getProfile().pipe(take(1)).subscribe({
+    this.portfolioApi.getProfile().pipe(take(1), finalize(() => { this.isLoadingProfile = false; this.changeDetectorRef.detectChanges(); })).subscribe({
       next: (profile) => {
         this.profile = profile;
         this.contactMethods = buildContactMethodsFromProfile(this.profile);

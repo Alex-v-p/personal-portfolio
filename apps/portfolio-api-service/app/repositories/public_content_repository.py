@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import defaultdict
 from datetime import date
 
 from sqlalchemy import func, select
@@ -57,9 +58,7 @@ class PublicContentRepository:
 
     def list_navigation(self) -> list[NavigationItemOut]:
         items = self.session.scalars(
-            select(NavigationItem)
-            .where(NavigationItem.is_visible.is_(True))
-            .order_by(NavigationItem.sort_order.asc(), NavigationItem.label.asc())
+            select(NavigationItem).where(NavigationItem.is_visible.is_(True)).order_by(NavigationItem.sort_order.asc(), NavigationItem.label.asc())
         ).all()
         return [
             NavigationItemOut(
@@ -89,37 +88,104 @@ class PublicContentRepository:
         profile = self.get_profile()
         if profile is None:
             return None
+
+        featured_projects = self.session.scalars(
+            select(Project)
+            .options(
+                selectinload(Project.skill_links).selectinload(ProjectSkill.skill),
+                selectinload(Project.images).selectinload(ProjectImage.image_file),
+                selectinload(Project.cover_image_file),
+            )
+            .order_by(Project.is_featured.desc(), Project.sort_order.asc(), Project.title.asc())
+            .limit(2)
+        ).all()
+        featured_blog_posts = self.session.scalars(
+            select(BlogPost)
+            .options(
+                selectinload(BlogPost.tag_links).selectinload(BlogPostTag.tag),
+                selectinload(BlogPost.cover_image_file),
+            )
+            .order_by(BlogPost.is_featured.desc(), BlogPost.published_at.desc(), BlogPost.created_at.desc())
+            .limit(2)
+        ).all()
+        experience_rows = self.session.scalars(
+            select(Experience)
+            .options(
+                selectinload(Experience.skill_links).selectinload(ExperienceSkill.skill),
+                selectinload(Experience.logo_file),
+            )
+            .order_by(Experience.sort_order.asc(), Experience.start_date.desc())
+            .limit(3)
+        ).all()
+
         return HomeOut(
             hero=profile,
-            featured_projects=self._list_home_projects(limit=2),
-            featured_blog_posts=self._list_home_blog_posts(limit=2),
+            featured_projects=[self._map_project(project) for project in featured_projects],
+            featured_blog_posts=[self._map_blog_post(post) for post in featured_blog_posts],
             expertise_groups=profile.expertise_groups,
-            experience_preview=self._list_experience_preview(limit=3),
+            experience_preview=[self._map_experience(item) for item in experience_rows],
             contact_preview=self._build_contact_methods(profile)[:4],
         )
 
     def list_projects(self) -> list[ProjectOut]:
-        projects = self.session.scalars(self._project_select()).all()
+        projects = self.session.scalars(
+            select(Project)
+            .options(
+                selectinload(Project.skill_links).selectinload(ProjectSkill.skill),
+                selectinload(Project.images).selectinload(ProjectImage.image_file),
+                selectinload(Project.cover_image_file),
+            )
+            .order_by(Project.sort_order.asc(), Project.title.asc())
+        ).all()
         return [self._map_project(project) for project in projects]
 
     def get_project_by_slug(self, slug: str) -> ProjectOut | None:
-        project = self.session.scalar(self._project_select().where(Project.slug == slug))
+        project = self.session.scalar(
+            select(Project)
+            .options(
+                selectinload(Project.skill_links).selectinload(ProjectSkill.skill),
+                selectinload(Project.images).selectinload(ProjectImage.image_file),
+                selectinload(Project.cover_image_file),
+            )
+            .where(Project.slug == slug)
+        )
         if project is None:
             return None
         return self._map_project(project)
 
     def list_blog_posts(self) -> list[BlogPostOut]:
-        posts = self.session.scalars(self._blog_post_select()).all()
+        posts = self.session.scalars(
+            select(BlogPost)
+            .options(
+                selectinload(BlogPost.tag_links).selectinload(BlogPostTag.tag),
+                selectinload(BlogPost.cover_image_file),
+            )
+            .order_by(BlogPost.published_at.desc().nullslast(), BlogPost.title.asc())
+        ).all()
         return [self._map_blog_post(post) for post in posts]
 
     def get_blog_post_by_slug(self, slug: str) -> BlogPostOut | None:
-        post = self.session.scalar(self._blog_post_select().where(BlogPost.slug == slug))
+        post = self.session.scalar(
+            select(BlogPost)
+            .options(
+                selectinload(BlogPost.tag_links).selectinload(BlogPostTag.tag),
+                selectinload(BlogPost.cover_image_file),
+            )
+            .where(BlogPost.slug == slug)
+        )
         if post is None:
             return None
         return self._map_blog_post(post)
 
     def list_experience(self) -> list[ExperienceOut]:
-        items = self.session.scalars(self._experience_select()).all()
+        items = self.session.scalars(
+            select(Experience)
+            .options(
+                selectinload(Experience.skill_links).selectinload(ExperienceSkill.skill),
+                selectinload(Experience.logo_file),
+            )
+            .order_by(Experience.sort_order.asc(), Experience.start_date.desc())
+        ).all()
         return [self._map_experience(item) for item in items]
 
     def get_latest_github_snapshot(self) -> GithubSnapshotOut | None:
@@ -140,17 +206,16 @@ class PublicContentRepository:
         featured_blog_count = self.session.scalar(select(func.count(BlogPost.id)).where(BlogPost.is_featured.is_(True))) or 0
         experience_count = self.session.scalar(select(func.count(Experience.id))) or 0
         snapshot = self.get_latest_github_snapshot()
-        contribution_days = snapshot.contribution_days if snapshot else []
-
+        contribution_weeks = self._build_contribution_weeks(snapshot.contribution_days if snapshot else [])
         return StatsOut(
-            contribution_weeks=self._build_contribution_weeks(contribution_days),
+            contribution_weeks=contribution_weeks,
             github_summary=StatItemOut(
                 id='github-total-commits',
                 label='GitHub activity',
                 value=str(snapshot.total_commits if snapshot and snapshot.total_commits is not None else 0),
-                description='Stored GitHub snapshot activity currently available for the public stats page.',
-                meta=f'{snapshot.username} · latest snapshot' if snapshot else 'No snapshot available yet',
-                footnote=f'{snapshot.public_repo_count} public repositories' if snapshot else 'Add a GitHub snapshot to enrich this page',
+                description='Seeded GitHub snapshot total commits currently available for the public stats page.',
+                meta=f"{snapshot.username} · latest snapshot" if snapshot else 'No snapshot available',
+                footnote=f"{snapshot.public_repo_count} public repositories" if snapshot else 'Seed GitHub data not available',
             ),
             latest_github_snapshot=snapshot,
             portfolio_highlights=[
@@ -173,68 +238,9 @@ class PublicContentRepository:
                 StatItemOut(id='stat-skills', label='Skills', value=str(skill_count), description='Skills currently modeled in the database.'),
                 StatItemOut(id='stat-experience', label='Experience entries', value=str(experience_count), description='Experience timeline rows available publicly.'),
             ],
-            month_labels=self._build_month_labels(contribution_days),
+            month_labels=self._build_month_labels(snapshot.contribution_days if snapshot else []),
             weekday_labels=['Mon', '', 'Wed', '', 'Fri', '', ''],
         )
-
-    def _project_select(self):
-        return (
-            select(Project)
-            .options(
-                selectinload(Project.skill_links).selectinload(ProjectSkill.skill),
-                selectinload(Project.images).selectinload(ProjectImage.image_file),
-                selectinload(Project.cover_image_file),
-            )
-            .order_by(Project.sort_order.asc(), Project.title.asc())
-        )
-
-    def _blog_post_select(self):
-        return (
-            select(BlogPost)
-            .options(
-                selectinload(BlogPost.tag_links).selectinload(BlogPostTag.tag),
-                selectinload(BlogPost.cover_image_file),
-            )
-            .order_by(BlogPost.published_at.desc().nullslast(), BlogPost.title.asc())
-        )
-
-    def _experience_select(self):
-        return (
-            select(Experience)
-            .options(
-                selectinload(Experience.skill_links).selectinload(ExperienceSkill.skill),
-                selectinload(Experience.logo_file),
-            )
-            .order_by(Experience.sort_order.asc(), Experience.start_date.desc())
-        )
-
-    def _list_home_projects(self, limit: int) -> list[ProjectOut]:
-        featured = self.session.scalars(self._project_select().where(Project.is_featured.is_(True)).limit(limit)).all()
-        if len(featured) >= limit:
-            return [self._map_project(project) for project in featured]
-
-        featured_ids = [project.id for project in featured]
-        fallback_query = self._project_select()
-        if featured_ids:
-            fallback_query = fallback_query.where(Project.id.not_in(featured_ids))
-        fallback = self.session.scalars(fallback_query.limit(limit - len(featured))).all()
-        return [self._map_project(project) for project in [*featured, *fallback]]
-
-    def _list_home_blog_posts(self, limit: int) -> list[BlogPostOut]:
-        featured = self.session.scalars(self._blog_post_select().where(BlogPost.is_featured.is_(True)).limit(limit)).all()
-        if len(featured) >= limit:
-            return [self._map_blog_post(post) for post in featured]
-
-        featured_ids = [post.id for post in featured]
-        fallback_query = self._blog_post_select()
-        if featured_ids:
-            fallback_query = fallback_query.where(BlogPost.id.not_in(featured_ids))
-        fallback = self.session.scalars(fallback_query.limit(limit - len(featured))).all()
-        return [self._map_blog_post(post) for post in [*featured, *fallback]]
-
-    def _list_experience_preview(self, limit: int) -> list[ExperienceOut]:
-        items = self.session.scalars(self._experience_select().limit(limit)).all()
-        return [self._map_experience(item) for item in items]
 
     def _get_profile_record(self) -> Profile | None:
         return self.session.scalar(
@@ -260,20 +266,23 @@ class PublicContentRepository:
             ordered_skills = sorted(category.skills, key=lambda skill: (skill.sort_order, skill.name.lower()))
             if not ordered_skills:
                 continue
-            groups.append(ExpertiseGroupOut(title=category.name, tags=[skill.name for skill in ordered_skills]))
+            groups.append(
+                ExpertiseGroupOut(
+                    title=category.name,
+                    tags=[skill.name for skill in ordered_skills],
+                )
+            )
         return groups
 
     def _map_profile(self, profile: Profile) -> ProfileOut:
         intro_paragraphs = [part for part in [profile.short_intro, profile.long_bio] if part]
         expertise_groups = self._get_expertise_groups()
-        avatar = self._map_media(profile.avatar_file, alt=f'{profile.first_name} {profile.last_name} avatar')
-        hero_image = self._map_media(profile.hero_image_file, alt=f'{profile.first_name} {profile.last_name} hero image')
-        resume = self._map_media(profile.resume_file, alt=f'{profile.first_name} {profile.last_name} resume')
-
-        cta_primary_url = profile.cta_primary_url
-        if resume is not None and (not cta_primary_url or cta_primary_url.startswith('/assets/')):
-            cta_primary_url = resume.url
-
+        resume_url = self.media_resolver.resolve(profile.resume_file)
+        primary_cta_url = profile.cta_primary_url
+        if primary_cta_url == 'media://resume' or (primary_cta_url and primary_cta_url.startswith('/assets/')):
+            primary_cta_url = resume_url
+        elif not primary_cta_url and resume_url:
+            primary_cta_url = resume_url
         return ProfileOut(
             id=str(profile.id),
             first_name=profile.first_name,
@@ -287,11 +296,11 @@ class PublicContentRepository:
             avatar_file_id=str(profile.avatar_file_id) if profile.avatar_file_id else None,
             hero_image_file_id=str(profile.hero_image_file_id) if profile.hero_image_file_id else None,
             resume_file_id=str(profile.resume_file_id) if profile.resume_file_id else None,
-            avatar=avatar,
-            hero_image=hero_image,
-            resume=resume,
+            avatar=self._map_media(profile.avatar_file, alt=f'{profile.first_name} {profile.last_name} avatar'),
+            hero_image=self._map_media(profile.hero_image_file, alt=f'{profile.first_name} {profile.last_name} hero image'),
+            resume=self._map_media(profile.resume_file, alt=f'{profile.first_name} {profile.last_name} resume'),
             cta_primary_label=profile.cta_primary_label,
-            cta_primary_url=cta_primary_url,
+            cta_primary_url=primary_cta_url,
             cta_secondary_label=profile.cta_secondary_label,
             cta_secondary_url=profile.cta_secondary_url,
             is_public=profile.is_public,
@@ -465,67 +474,59 @@ class PublicContentRepository:
     def _build_contact_methods(self, profile: ProfileOut) -> list[ContactMethodOut]:
         methods: list[ContactMethodOut] = []
         if profile.email:
-            methods.append(
-                ContactMethodOut(
-                    id='contact-email',
-                    platform='email',
-                    label='Email',
-                    value=profile.email,
-                    href=f'mailto:{profile.email}',
-                    action_label='Send Email',
-                    icon_key='mail',
-                    description='Best for project enquiries, internships, and collaboration.',
-                    sort_order=1,
-                    is_visible=True,
-                )
-            )
+            methods.append(ContactMethodOut(
+                id='contact-email',
+                platform='email',
+                label='Email',
+                value=profile.email,
+                href=f'mailto:{profile.email}',
+                action_label='Send Email',
+                icon_key='mail',
+                description='Best for project enquiries, internships, and collaboration.',
+                sort_order=1,
+                is_visible=True,
+            ))
         if profile.phone:
-            methods.append(
-                ContactMethodOut(
-                    id='contact-phone',
-                    platform='phone',
-                    label='Phone',
-                    value=profile.phone,
-                    href=f"tel:{profile.phone.replace(' ', '')}",
-                    action_label='Call',
-                    icon_key='phone',
-                    description='Useful for quick coordination or planning a meeting.',
-                    sort_order=2,
-                    is_visible=True,
-                )
-            )
+            methods.append(ContactMethodOut(
+                id='contact-phone',
+                platform='phone',
+                label='Phone',
+                value=profile.phone,
+                href=f"tel:{profile.phone.replace(' ', '')}",
+                action_label='Call',
+                icon_key='phone',
+                description='Useful for quick coordination or planning a meeting.',
+                sort_order=2,
+                is_visible=True,
+            ))
         for link in profile.social_links:
-            methods.append(
-                ContactMethodOut(
-                    id=f'contact-{link.platform}',
-                    platform=link.platform,
-                    label=link.label,
-                    value=link.url.replace('https://', '').replace('http://', ''),
-                    href=link.url,
-                    action_label='Connect +' if link.platform in {'github', 'linkedin'} else 'Open',
-                    icon_key=link.icon_key,
-                    description='Code samples, experiments, and project work.'
-                    if link.platform == 'github'
-                    else ('Professional background and experience.' if link.platform == 'linkedin' else 'Direct line for portfolio contact.'),
-                    sort_order=(link.sort_order or 0) + 10,
-                    is_visible=link.is_visible,
-                )
-            )
+            methods.append(ContactMethodOut(
+                id=f'contact-{link.platform}',
+                platform=link.platform,
+                label=link.label,
+                value=link.url.replace('https://', '').replace('http://', ''),
+                href=link.url,
+                action_label='Connect +' if link.platform in {'github', 'linkedin'} else 'Open',
+                icon_key=link.icon_key,
+                description='Code samples, experiments, and project work.' if link.platform == 'github' else (
+                    'Professional background and experience.' if link.platform == 'linkedin' else 'Direct line for portfolio contact.'
+                ),
+                sort_order=(link.sort_order or 0) + 10,
+                is_visible=link.is_visible,
+            ))
         if profile.location:
-            methods.append(
-                ContactMethodOut(
-                    id='contact-location',
-                    platform='location',
-                    label='Location',
-                    value=profile.location,
-                    href=f'https://maps.google.com/?q={profile.location}',
-                    action_label='View Map',
-                    icon_key='map-pin',
-                    description='Available for on-site, hybrid, or remote collaboration.',
-                    sort_order=99,
-                    is_visible=True,
-                )
-            )
+            methods.append(ContactMethodOut(
+                id='contact-location',
+                platform='location',
+                label='Location',
+                value=profile.location,
+                href=f'https://maps.google.com/?q={profile.location}',
+                action_label='View Map',
+                icon_key='map-pin',
+                description='Available for on-site, hybrid, or remote collaboration.',
+                sort_order=99,
+                is_visible=True,
+            ))
         return sorted([method for method in methods if method.is_visible], key=lambda item: (item.sort_order, item.label.lower()))
 
     def _build_contribution_weeks(self, days: list[GithubContributionDayOut]) -> list[list[int]]:
@@ -533,7 +534,8 @@ class PublicContentRepository:
             return [[0] * 7 for _ in range(12)]
         grouped: dict[date, int] = {date.fromisoformat(day.date): day.level for day in days}
         ordered_dates = sorted(grouped)
-        start = ordered_dates[0]
+        first = ordered_dates[0]
+        start = first
         while start.weekday() != 0:
             start = date.fromordinal(start.toordinal() - 1)
         end = ordered_dates[-1]
@@ -562,7 +564,7 @@ class PublicContentRepository:
             end = date.fromordinal(end.toordinal() + 1)
         labels: list[str] = []
         current = start
-        last_month: int | None = None
+        last_month = None
         while current <= end:
             labels.append(current.strftime('%b') if current.month != last_month else '')
             last_month = current.month

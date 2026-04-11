@@ -1,11 +1,11 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { NgIf } from '@angular/common';
-import { take } from 'rxjs/operators';
+import { finalize, take } from 'rxjs/operators';
 
 import { ContactMethod } from '../../shared/models/contact-method.model';
 import { Experience } from '../../shared/models/experience.model';
 import { BlogPost } from '../../shared/models/blog-post.model';
-import { ExpertiseGroup, Profile } from '../../shared/models/profile.model';
+import { Profile, ExpertiseGroup } from '../../shared/models/profile.model';
 import { Project } from '../../shared/models/project.model';
 import { PublicPortfolioApiService } from '../../shared/services/public-portfolio-api.service';
 import { createEmptyProfile } from '../../shared/utils/profile-view.util';
@@ -30,9 +30,8 @@ import { HomeHeroSectionComponent } from './components/home-hero/home-hero.compo
 })
 export class HomePageComponent implements OnInit {
   private readonly portfolioApi = inject(PublicPortfolioApiService);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
-  protected isLoading = true;
-  protected errorMessage = '';
   protected profile: Profile = createEmptyProfile();
   protected featuredBlogPost: BlogPost = {
     id: '', slug: '', title: '', excerpt: '', publishedAt: '', readTime: '', readingTimeMinutes: 0, category: '', tags: [], featured: false, isFeatured: false, coverAlt: '', coverImageAlt: '', coverImageFileId: null, status: 'draft', contentMarkdown: ''
@@ -43,9 +42,10 @@ export class HomePageComponent implements OnInit {
   protected contactPreviewMethods: ContactMethod[] = [];
   protected expertiseGroups: ExpertiseGroup[] = [];
   protected experiencePreview: Experience[] = [];
+  protected isLoading = true;
 
   ngOnInit(): void {
-    this.portfolioApi.getHome().pipe(take(1)).subscribe({
+    this.portfolioApi.getHome().pipe(take(1), finalize(() => { this.isLoading = false; this.changeDetectorRef.detectChanges(); })).subscribe({
       next: (home) => {
         this.profile = home.hero;
         this.primaryProject = home.featuredProjects[0] ?? this.primaryProject;
@@ -53,11 +53,6 @@ export class HomePageComponent implements OnInit {
         this.contactPreviewMethods = home.contactPreview;
         this.expertiseGroups = home.expertiseGroups;
         this.experiencePreview = home.experiencePreview;
-        this.isLoading = false;
-      },
-      error: () => {
-        this.errorMessage = 'Home content could not be loaded right now.';
-        this.isLoading = false;
       }
     });
   }

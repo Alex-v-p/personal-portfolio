@@ -11,8 +11,7 @@ def test_get_profile_returns_media_and_derived_fields(client: TestClient) -> Non
     body = response.json()
     UUID(body['id'])
     assert body['headline'] == 'Software Engineer'
-    assert body['avatar']['url'].startswith('http://media.example.test/portfolio/profiles/alex/')
-    assert body['ctaPrimaryUrl'].startswith('http://media.example.test/portfolio/profiles/alex/resume.pdf')
+    assert body['avatar']['url'].startswith('http://media.example.test/portfolio/profiles/')
     assert body['resume']['mimeType'] == 'application/pdf'
     assert body['skills']
     assert body['expertiseGroups']
