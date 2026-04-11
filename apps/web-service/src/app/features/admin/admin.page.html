@@ -1,0 +1,585 @@
+<div class="space-y-8">
+  <header class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] sm:p-8">
+    <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+      <div class="space-y-3">
+        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-stone-500">Portfolio CMS</p>
+        <h1 class="text-3xl font-semibold text-stone-950">Content management</h1>
+        <p class="max-w-3xl text-sm leading-6 text-stone-600">
+          Manage projects, blog posts, taxonomy, experience, navigation, profile content, GitHub stats, admin users, and uploaded media.
+        </p>
+      </div>
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="rounded-full border border-stone-300 bg-stone-50 px-4 py-2 text-sm text-stone-700">
+          Signed in as <span class="font-semibold text-stone-950">{{ adminDisplayName }}</span>
+        </div>
+        <button type="button" (click)="loadCms()" class="inline-flex min-h-11 items-center rounded-full border border-stone-300 bg-white px-4 text-sm font-semibold text-stone-800 transition hover:border-stone-400 hover:bg-stone-50">Refresh</button>
+        <button type="button" (click)="logout()" class="inline-flex min-h-11 items-center rounded-full bg-stone-900 px-5 text-sm font-semibold text-white transition hover:bg-stone-700">Sign out</button>
+      </div>
+    </div>
+
+    <div *ngIf="statusMessage" class="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{{ statusMessage }}</div>
+    <div *ngIf="errorMessage" class="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{{ errorMessage }}</div>
+  </header>
+
+  <section *ngIf="isLoading" class="rounded-[2rem] border border-stone-300 bg-white p-6 text-sm text-stone-600 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">Loading admin CMS data…</section>
+
+  <ng-container *ngIf="!isLoading && !errorMessage">
+    <nav class="flex flex-wrap gap-3 rounded-[2rem] border border-stone-300 bg-white p-4 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
+      <button *ngFor="let tab of tabs" type="button" (click)="setActiveTab(tab.id)" [ngClass]="tab.id === activeTab ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'" class="inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold transition">{{ tab.label }}</button>
+    </nav>
+
+    <section *ngIf="activeTab === 'overview'" class="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+      <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)]" *ngFor="let item of [
+        ['Projects', dashboard.projects],
+        ['Blog posts', dashboard.blogPosts],
+        ['Unread messages', dashboard.unreadMessages],
+        ['Skills', dashboard.skills],
+        ['Skill categories', dashboard.skillCategories],
+        ['Media files', dashboard.mediaFiles],
+        ['Experience', dashboard.experiences],
+        ['Navigation', dashboard.navigationItems],
+        ['Blog tags', dashboard.blogTags],
+        ['Admin users', dashboard.adminUsers],
+        ['GitHub snapshots', dashboard.githubSnapshots]
+      ]">
+        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">{{ item[0] }}</p>
+        <p class="mt-3 text-4xl font-semibold text-stone-950">{{ item[1] }}</p>
+      </article>
+
+      <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] md:col-span-2 xl:col-span-2">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-semibold text-stone-950">Recent contact messages</h2>
+            <p class="text-sm text-stone-600">A quick snapshot before you jump into the inbox tab.</p>
+          </div>
+          <button type="button" (click)="setActiveTab('messages')" class="text-sm font-semibold text-stone-700 hover:text-stone-950">Open inbox</button>
+        </div>
+        <div class="mt-5 grid gap-3">
+          <article *ngFor="let message of messages.slice(0, 3)" class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <p class="text-sm font-semibold text-stone-950">{{ message.subject }}</p>
+                <p class="text-sm text-stone-600">{{ message.name }} · {{ message.email }}</p>
+              </div>
+              <span [ngClass]="message.isRead ? 'bg-stone-200 text-stone-700' : 'bg-amber-100 text-amber-800'" class="rounded-full px-3 py-1 text-xs font-semibold">{{ message.isRead ? 'Read' : 'Unread' }}</span>
+            </div>
+            <p class="mt-3 text-sm leading-6 text-stone-700">{{ message.message }}</p>
+          </article>
+        </div>
+      </article>
+
+      <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] md:col-span-2 xl:col-span-2">
+        <h2 class="text-lg font-semibold text-stone-950">Media catalog</h2>
+        <p class="mt-1 text-sm text-stone-600">New uploads appear here immediately and can be selected in editors.</p>
+        <div class="mt-5 grid gap-3 max-h-[30rem] overflow-y-auto pr-1">
+          <article *ngFor="let media of referenceData.mediaFiles.slice(0, 12)" class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
+            <div class="flex items-center gap-4">
+              <img *ngIf="media.resolvedAsset?.url && media.mimeType?.startsWith('image/')" [src]="media.resolvedAsset?.url" [alt]="media.altText || media.originalFilename" class="h-14 w-14 rounded-2xl object-cover" />
+              <div class="min-w-0">
+                <p class="truncate text-sm font-semibold text-stone-950">{{ media.title || media.originalFilename }}</p>
+                <p class="truncate text-xs text-stone-500">{{ media.objectKey }}</p>
+                <p class="mt-1 text-xs text-stone-600">{{ media.id }}</p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </article>
+    </section>
+
+    <section *ngIf="activeTab === 'projects'" class="grid gap-6 xl:grid-cols-[20rem_minmax(0,1fr)]">
+      <aside class="rounded-[2rem] border border-stone-300 bg-white p-5 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
+        <div class="flex items-center justify-between gap-4"><h2 class="text-lg font-semibold text-stone-950">Projects</h2><button type="button" (click)="startNewProject()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">New</button></div>
+        <div class="mt-5 grid gap-3 max-h-[42rem] overflow-y-auto pr-1">
+          <button *ngFor="let project of projects" type="button" (click)="selectProject(project.id)" [ngClass]="project.id === selectedProjectId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-[1.5rem] border p-4 text-left transition">
+            <p class="text-sm font-semibold text-stone-950">{{ project.title }}</p><p class="mt-1 text-sm text-stone-600">{{ project.state }} · {{ project.status }}</p><p class="mt-2 text-xs text-stone-500">{{ project.slug }}</p>
+          </button>
+        </div>
+      </aside>
+      <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
+        <div class="flex items-center justify-between gap-3"><h2 class="text-xl font-semibold text-stone-950">{{ selectedProjectId ? 'Edit project' : 'Create project' }}</h2><button *ngIf="selectedProjectId" type="button" (click)="deleteProject()" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700">Delete</button></div>
+        <div class="mt-6 grid gap-4 lg:grid-cols-2">
+          <label class="space-y-2"><span class="text-sm font-semibold">Title</span><input [(ngModel)]="projectForm.title" name="projectTitle" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold">Slug</span><input [(ngModel)]="projectForm.slug" name="projectSlug" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Teaser</span><textarea [(ngModel)]="projectForm.teaser" name="projectTeaser" rows="3" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"></textarea></label>
+          <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Summary</span><textarea [(ngModel)]="projectForm.summary" name="projectSummary" rows="3" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"></textarea></label>
+          <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Description markdown</span><textarea [(ngModel)]="projectForm.descriptionMarkdown" name="projectDescriptionMarkdown" rows="8" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm font-mono"></textarea></label>
+          <label class="space-y-2"><span class="text-sm font-semibold">Status</span><input [(ngModel)]="projectForm.status" name="projectStatus" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold">State</span><select [(ngModel)]="projectForm.state" name="projectState" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"><option *ngFor="let state of referenceData.projectStates" [ngValue]="state">{{ state }}</option></select></label>
+          <label class="space-y-2"><span class="text-sm font-semibold">Start date</span><input [(ngModel)]="projectForm.startedOn" name="projectStartedOn" type="date" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold">End date</span><input [(ngModel)]="projectForm.endedOn" name="projectEndedOn" type="date" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold">Duration label</span><input [(ngModel)]="projectForm.durationLabel" name="projectDurationLabel" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold">Published at</span><input [(ngModel)]="projectForm.publishedAt" name="projectPublishedAt" type="datetime-local" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold">GitHub URL</span><input [(ngModel)]="projectForm.githubUrl" name="projectGithubUrl" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold">Demo URL</span><input [(ngModel)]="projectForm.demoUrl" name="projectDemoUrl" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold">GitHub owner</span><input [(ngModel)]="projectForm.githubRepoOwner" name="projectGithubOwner" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold">GitHub repo</span><input [(ngModel)]="projectForm.githubRepoName" name="projectGithubRepo" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Company / context</span><input [(ngModel)]="projectForm.companyName" name="projectCompanyName" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+          <label class="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm lg:col-span-2"><input [(ngModel)]="projectForm.isFeatured" name="projectFeatured" type="checkbox" class="h-4 w-4" /> Feature on home page</label>
+          <div class="space-y-3 lg:col-span-2 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
+            <div class="flex items-center justify-between gap-4"><div><p class="text-sm font-semibold">Project cover upload</p><p class="text-xs text-stone-500">Uploaded to {{ buildProjectFolder() }}</p></div></div>
+            <div class="grid gap-3 lg:grid-cols-2"><input [(ngModel)]="projectUploadForm.title" name="projectUploadTitle" placeholder="Media title" class="rounded-2xl border border-stone-300 px-4 py-3 text-sm" /><input [(ngModel)]="projectUploadForm.altText" name="projectUploadAltText" placeholder="Alt text" class="rounded-2xl border border-stone-300 px-4 py-3 text-sm" /><textarea [(ngModel)]="projectUploadForm.description" name="projectUploadDescription" rows="2" placeholder="Description" class="rounded-2xl border border-stone-300 px-4 py-3 text-sm lg:col-span-2"></textarea><input type="file" (change)="onScopedFileSelected($event, projectUploadForm)" class="rounded-2xl border border-stone-300 px-4 py-3 text-sm lg:col-span-2" /></div>
+            <button type="button" (click)="uploadProjectCover()" [disabled]="uploadInProgressKey === 'project-cover'" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Upload and select</button>
+          </div>
+          <div class="space-y-3 lg:col-span-2"><span class="text-sm font-semibold">Cover image media</span><select [(ngModel)]="projectForm.coverImageFileId" name="projectCoverImageFileId" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"><option [ngValue]="null">No cover image selected</option><option *ngFor="let media of referenceData.mediaFiles" [ngValue]="media.id">{{ media.title || media.originalFilename }} · {{ media.objectKey }}</option></select></div>
+          <div class="space-y-3 lg:col-span-2"><span class="text-sm font-semibold">Attached skills</span><div class="grid gap-2 md:grid-cols-2 xl:grid-cols-3"><label *ngFor="let skill of referenceData.skills" class="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm"><input type="checkbox" [checked]="projectForm.skillIds.includes(skill.id)" (change)="toggleProjectSkill(skill.id)" class="h-4 w-4" />{{ skill.name }}</label></div></div>
+        </div>
+        <div class="mt-6 flex justify-end gap-3"><button type="button" (click)="startNewProject()" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold">Reset</button><button type="button" (click)="saveProject()" class="rounded-full bg-stone-900 px-5 py-2 text-sm font-semibold text-white">Save project</button></div>
+      </article>
+    </section>
+
+    <section *ngIf="activeTab === 'blog'" class="grid gap-6 xl:grid-cols-[20rem_minmax(0,1fr)]">
+      <aside class="rounded-[2rem] border border-stone-300 bg-white p-5 shadow-[0_20px_45px_rgba(40,31,20,0.08)]"><div class="flex items-center justify-between gap-4"><h2 class="text-lg font-semibold text-stone-950">Blog posts</h2><button type="button" (click)="startNewBlogPost()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">New</button></div><div class="mt-5 grid gap-3 max-h-[42rem] overflow-y-auto pr-1"><button *ngFor="let post of blogPosts" type="button" (click)="selectBlogPost(post.id)" [ngClass]="post.id === selectedBlogPostId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-[1.5rem] border p-4 text-left"><p class="text-sm font-semibold text-stone-950">{{ post.title }}</p><p class="mt-1 text-sm text-stone-600">{{ post.status }} · {{ formatTagSummary(post) }}</p><p class="mt-2 text-xs text-stone-500">{{ post.slug }}</p></button></div></aside>
+      <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)]"><div class="flex items-center justify-between gap-3"><h2 class="text-xl font-semibold text-stone-950">{{ selectedBlogPostId ? 'Edit blog post' : 'Create blog post' }}</h2><button *ngIf="selectedBlogPostId" type="button" (click)="deleteBlogPost()" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700">Delete</button></div>
+        <div class="mt-6 grid gap-4 lg:grid-cols-2">
+          <label class="space-y-2"><span class="text-sm font-semibold">Title</span><input [(ngModel)]="blogPostForm.title" name="blogTitle" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold">Slug</span><input [(ngModel)]="blogPostForm.slug" name="blogSlug" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Excerpt</span><textarea [(ngModel)]="blogPostForm.excerpt" name="blogExcerpt" rows="3" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"></textarea></label>
+          <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Content markdown</span><textarea [(ngModel)]="blogPostForm.contentMarkdown" name="blogMarkdown" rows="10" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm font-mono"></textarea></label>
+          <label class="space-y-2"><span class="text-sm font-semibold">Status</span><select [(ngModel)]="blogPostForm.status" name="blogStatus" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"><option *ngFor="let status of referenceData.publicationStatuses" [ngValue]="status">{{ status }}</option></select></label>
+          <label class="space-y-2"><span class="text-sm font-semibold">Reading time</span><input [(ngModel)]="blogPostForm.readingTimeMinutes" name="blogReadingTime" type="number" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold">Published at</span><input [(ngModel)]="blogPostForm.publishedAt" name="blogPublishedAt" type="datetime-local" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold">Cover alt text</span><input [(ngModel)]="blogPostForm.coverImageAlt" name="blogCoverAlt" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">SEO title</span><input [(ngModel)]="blogPostForm.seoTitle" name="blogSeoTitle" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">SEO description</span><textarea [(ngModel)]="blogPostForm.seoDescription" name="blogSeoDescription" rows="3" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"></textarea></label>
+          <label class="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm lg:col-span-2"><input [(ngModel)]="blogPostForm.isFeatured" name="blogFeatured" type="checkbox" class="h-4 w-4" /> Feature on home page</label>
+          <div class="space-y-3 lg:col-span-2 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4"><div><p class="text-sm font-semibold">Blog cover upload</p><p class="text-xs text-stone-500">Uploaded to {{ buildBlogFolder() }}</p></div><div class="grid gap-3 lg:grid-cols-2"><input [(ngModel)]="blogUploadForm.title" name="blogUploadTitle" placeholder="Media title" class="rounded-2xl border border-stone-300 px-4 py-3 text-sm" /><input [(ngModel)]="blogUploadForm.altText" name="blogUploadAltText" placeholder="Alt text" class="rounded-2xl border border-stone-300 px-4 py-3 text-sm" /><textarea [(ngModel)]="blogUploadForm.description" name="blogUploadDescription" rows="2" placeholder="Description" class="rounded-2xl border border-stone-300 px-4 py-3 text-sm lg:col-span-2"></textarea><input type="file" (change)="onScopedFileSelected($event, blogUploadForm)" class="rounded-2xl border border-stone-300 px-4 py-3 text-sm lg:col-span-2" /></div><button type="button" (click)="uploadBlogCover()" [disabled]="uploadInProgressKey === 'blog-cover'" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Upload and select</button></div>
+          <div class="space-y-3 lg:col-span-2"><span class="text-sm font-semibold">Cover image media</span><select [(ngModel)]="blogPostForm.coverImageFileId" name="blogCoverMediaId" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"><option [ngValue]="null">No cover image selected</option><option *ngFor="let media of referenceData.mediaFiles" [ngValue]="media.id">{{ media.title || media.originalFilename }} · {{ media.objectKey }}</option></select></div>
+          <div class="space-y-3 lg:col-span-2"><span class="text-sm font-semibold">Assigned blog tags</span><div class="grid gap-2 md:grid-cols-2 xl:grid-cols-3"><label *ngFor="let tag of referenceData.blogTags" class="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm"><input type="checkbox" [checked]="blogPostForm.tagIds.includes(tag.id)" (change)="toggleBlogTag(tag.id)" class="h-4 w-4" />{{ tag.name }} <span class="text-xs text-stone-500">({{ tag.slug }})</span></label></div></div>
+        </div>
+        <div class="mt-6 flex justify-end gap-3"><button type="button" (click)="startNewBlogPost()" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold">Reset</button><button type="button" (click)="saveBlogPost()" class="rounded-full bg-stone-900 px-5 py-2 text-sm font-semibold text-white">Save blog post</button></div>
+      </article>
+    </section>
+
+
+    <section *ngIf="activeTab === 'taxonomy'" class="grid gap-6 xl:grid-cols-3">
+      <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-semibold text-stone-950">Skill categories</h2>
+            <p class="mt-1 text-sm text-stone-600">Categories group reusable skills into homepage expertise blocks and cleaner admin selectors.</p>
+          </div>
+          <button type="button" (click)="startNewSkillCategory()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">New</button>
+        </div>
+
+        <div class="mt-4 grid gap-2 max-h-52 overflow-y-auto">
+          <button *ngFor="let category of referenceData.skillCategories" type="button" (click)="selectSkillCategory(category.id)" [ngClass]="category.id === selectedSkillCategoryId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-2xl border px-4 py-3 text-left text-sm">
+            <div class="font-semibold">{{ category.name }}</div>
+            <div class="text-xs text-stone-500">Sort {{ category.sortOrder }} · {{ category.description || 'No description yet' }}</div>
+          </button>
+        </div>
+
+        <div class="mt-6 grid gap-4">
+          <label class="space-y-2">
+            <span class="text-sm font-semibold text-stone-800">Category name</span>
+            <p class="text-xs leading-5 text-stone-500">This is the heading visitors eventually see for grouped expertise, such as Frontend, Backend, or AI.</p>
+            <input [(ngModel)]="skillCategoryForm.name" name="skillCategoryName" placeholder="Frontend" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+          </label>
+
+          <label class="space-y-2">
+            <span class="text-sm font-semibold text-stone-800">Description</span>
+            <p class="text-xs leading-5 text-stone-500">Internal guidance for what belongs in this category. Helpful later when you have many similar skills.</p>
+            <textarea [(ngModel)]="skillCategoryForm.description" name="skillCategoryDescription" rows="4" placeholder="Skills used for client-side UI and interaction work." class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm"></textarea>
+          </label>
+
+          <label class="space-y-2">
+            <span class="text-sm font-semibold text-stone-800">Sort order</span>
+            <p class="text-xs leading-5 text-stone-500">Lower numbers appear earlier when categories are rendered in the public experience and home sections.</p>
+            <input [(ngModel)]="skillCategoryForm.sortOrder" name="skillCategorySortOrder" type="number" placeholder="10" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+          </label>
+        </div>
+
+        <div class="mt-6 flex flex-wrap gap-3">
+          <button type="button" (click)="saveSkillCategory()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Save category</button>
+          <button type="button" (click)="startNewSkillCategory()" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700">Reset form</button>
+          <button *ngIf="selectedSkillCategoryId" type="button" (click)="deleteSkillCategory()" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700">Delete category</button>
+        </div>
+      </article>
+
+      <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-semibold text-stone-950">Skills</h2>
+            <p class="mt-1 text-sm text-stone-600">Skills are reusable records you can attach to projects and experience entries, and surface in homepage expertise groups.</p>
+          </div>
+          <button type="button" (click)="startNewSkill()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">New</button>
+        </div>
+
+        <div class="mt-4 grid gap-2 max-h-52 overflow-y-auto">
+          <button *ngFor="let skill of referenceData.skills" type="button" (click)="selectSkill(skill.id)" [ngClass]="skill.id === selectedSkillId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-2xl border px-4 py-3 text-left text-sm">
+            <div class="font-semibold">{{ skill.name }}</div>
+            <div class="text-xs text-stone-500">{{ categoryName(skill.categoryId) }} · {{ skill.yearsOfExperience ?? 0 }} years</div>
+          </button>
+        </div>
+
+        <div class="mt-6 grid gap-4">
+          <label class="space-y-2">
+            <span class="text-sm font-semibold text-stone-800">Category</span>
+            <p class="text-xs leading-5 text-stone-500">Choose which expertise group this skill belongs to. Categories keep the public site grouped cleanly.</p>
+            <select [(ngModel)]="skillForm.categoryId" name="skillCategoryId" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm">
+              <option *ngFor="let category of referenceData.skillCategories" [ngValue]="category.id">{{ category.name }}</option>
+            </select>
+          </label>
+
+          <label class="space-y-2">
+            <span class="text-sm font-semibold text-stone-800">Skill name</span>
+            <p class="text-xs leading-5 text-stone-500">The label shown to visitors and in admin selectors, for example Angular, Laravel, or Docker.</p>
+            <input [(ngModel)]="skillForm.name" name="skillName" placeholder="Angular" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+          </label>
+
+          <label class="space-y-2">
+            <span class="text-sm font-semibold text-stone-800">Years of experience</span>
+            <p class="text-xs leading-5 text-stone-500">Optional numeric value for summary displays or future stats. Leave blank if you do not want to expose it.</p>
+            <input [(ngModel)]="skillForm.yearsOfExperience" name="skillYearsOfExperience" type="number" placeholder="2" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+          </label>
+
+          <label class="space-y-2">
+            <span class="text-sm font-semibold text-stone-800">Icon key</span>
+            <p class="text-xs leading-5 text-stone-500">Optional internal icon identifier if the frontend later maps this skill to a specific icon.</p>
+            <input [(ngModel)]="skillForm.iconKey" name="skillIconKey" placeholder="angular" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+          </label>
+
+          <label class="space-y-2">
+            <span class="text-sm font-semibold text-stone-800">Sort order</span>
+            <p class="text-xs leading-5 text-stone-500">Lower numbers appear earlier inside the category.</p>
+            <input [(ngModel)]="skillForm.sortOrder" name="skillSortOrder" type="number" placeholder="10" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+          </label>
+
+          <label class="flex items-start gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-800">
+            <input [(ngModel)]="skillForm.isHighlighted" name="skillHighlighted" type="checkbox" class="mt-1 h-4 w-4" />
+            <span><span class="font-semibold text-stone-900">Highlighted skill</span><span class="mt-1 block text-xs leading-5 text-stone-500">Use this when the skill should receive extra emphasis in summaries or future featured areas.</span></span>
+          </label>
+        </div>
+
+        <div class="mt-6 flex flex-wrap gap-3">
+          <button type="button" (click)="saveSkill()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Save skill</button>
+          <button type="button" (click)="startNewSkill()" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700">Reset form</button>
+          <button *ngIf="selectedSkillId" type="button" (click)="deleteSkill()" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700">Delete skill</button>
+        </div>
+      </article>
+
+      <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-semibold text-stone-950">Blog tags</h2>
+            <p class="mt-1 text-sm text-stone-600">Tags are reusable labels you attach to blog posts for filtering, grouping, and quick topic scanning.</p>
+          </div>
+          <button type="button" (click)="startNewBlogTag()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">New</button>
+        </div>
+
+        <div class="mt-4 grid gap-2 max-h-52 overflow-y-auto">
+          <button *ngFor="let tag of referenceData.blogTags" type="button" (click)="selectBlogTag(tag.id)" [ngClass]="tag.id === selectedBlogTagId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-2xl border px-4 py-3 text-left text-sm">
+            <div class="font-semibold">{{ tag.name }}</div>
+            <div class="text-xs text-stone-500">/{{ tag.slug }}</div>
+          </button>
+        </div>
+
+        <div class="mt-6 grid gap-4">
+          <label class="space-y-2">
+            <span class="text-sm font-semibold text-stone-800">Tag name</span>
+            <p class="text-xs leading-5 text-stone-500">The readable chip text visitors will see on blog cards and post pages.</p>
+            <input [(ngModel)]="blogTagForm.name" name="blogTagName" placeholder="Laravel" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+          </label>
+
+          <label class="space-y-2">
+            <span class="text-sm font-semibold text-stone-800">Tag slug</span>
+            <p class="text-xs leading-5 text-stone-500">The URL-safe identifier used internally and useful for future filtered routes or query params.</p>
+            <input [(ngModel)]="blogTagForm.slug" name="blogTagSlug" placeholder="laravel" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+          </label>
+        </div>
+
+        <div class="mt-6 flex flex-wrap gap-3">
+          <button type="button" (click)="saveBlogTag()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Save tag</button>
+          <button type="button" (click)="startNewBlogTag()" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700">Reset form</button>
+          <button *ngIf="selectedBlogTagId" type="button" (click)="deleteBlogTag()" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700">Delete tag</button>
+        </div>
+      </article>
+    </section>
+
+
+
+    <section *ngIf="activeTab === 'experience'" class="grid gap-6 xl:grid-cols-[20rem_minmax(0,1fr)]">
+      <aside class="rounded-[2rem] border border-stone-300 bg-white p-5 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-semibold text-stone-950">Experience entries</h2>
+            <p class="mt-1 text-sm text-stone-600">These rows feed your public timeline and home-page experience preview.</p>
+          </div>
+          <button type="button" (click)="startNewExperience()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">New</button>
+        </div>
+
+        <div class="mt-4 grid gap-2 max-h-[42rem] overflow-y-auto">
+          <button *ngFor="let experience of experiences" type="button" (click)="selectExperience(experience.id)" [ngClass]="experience.id === selectedExperienceId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-2xl border px-4 py-3 text-left text-sm">
+            <div class="font-semibold">{{ experience.roleTitle }}</div>
+            <div class="text-xs text-stone-500">{{ experience.organizationName }} · {{ experience.startDate }}{{ experience.endDate ? ' → ' + experience.endDate : '' }}</div>
+          </button>
+        </div>
+      </aside>
+
+      <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] sm:p-8">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-xl font-semibold text-stone-950">{{ selectedExperienceId ? 'Edit experience entry' : 'Create experience entry' }}</h2>
+            <p class="text-sm text-stone-600">Use this editor for work, internships, education roles, volunteer work, or any timeline entry that should appear publicly.</p>
+          </div>
+          <button *ngIf="selectedExperienceId" type="button" (click)="deleteExperience()" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700">Delete experience</button>
+        </div>
+
+        <div class="mt-6 grid gap-5 lg:grid-cols-2">
+          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Organization</span><p class="text-xs leading-5 text-stone-500">Company, school, client, or organization name shown in the timeline.</p><input [(ngModel)]="experienceForm.organizationName" name="experienceOrganizationName" placeholder="Thomas More" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Role title</span><p class="text-xs leading-5 text-stone-500">Public-facing role label such as Student, Intern, Developer, or Volunteer.</p><input [(ngModel)]="experienceForm.roleTitle" name="experienceRoleTitle" placeholder="Applied AI student" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Location</span><p class="text-xs leading-5 text-stone-500">City, country, or remote label that helps contextualize the entry.</p><input [(ngModel)]="experienceForm.location" name="experienceLocation" placeholder="Geel, Belgium" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Experience type</span><p class="text-xs leading-5 text-stone-500">Examples: education, work, internship, freelance, volunteer.</p><input [(ngModel)]="experienceForm.experienceType" name="experienceType" placeholder="education" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Start date</span><p class="text-xs leading-5 text-stone-500">The beginning of the experience entry on your public timeline.</p><input [(ngModel)]="experienceForm.startDate" name="experienceStartDate" type="date" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">End date</span><p class="text-xs leading-5 text-stone-500">Leave this filled only when the entry is finished. Use the checkbox below for current roles.</p><input [(ngModel)]="experienceForm.endDate" name="experienceEndDate" type="date" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <label class="flex items-start gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-800 lg:col-span-2"><input [(ngModel)]="experienceForm.isCurrent" name="experienceCurrent" type="checkbox" class="mt-1 h-4 w-4" /><span><span class="font-semibold text-stone-900">Current role</span><span class="mt-1 block text-xs leading-5 text-stone-500">Enable this when the experience is still ongoing and the public timeline should treat it as current.</span></span></label>
+          <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold text-stone-800">Short summary</span><p class="text-xs leading-5 text-stone-500">A compact description that works well in preview cards and timeline summaries.</p><textarea [(ngModel)]="experienceForm.summary" name="experienceSummary" rows="3" placeholder="Short overview of the role and what made it important." class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm"></textarea></label>
+          <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold text-stone-800">Description markdown</span><p class="text-xs leading-5 text-stone-500">Longer details about responsibilities, technologies, or outcomes. Markdown is supported.</p><textarea [(ngModel)]="experienceForm.descriptionMarkdown" name="experienceDescriptionMarkdown" rows="8" placeholder="Write the long-form body for this experience entry." class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm font-mono"></textarea></label>
+          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Sort order</span><p class="text-xs leading-5 text-stone-500">Lower numbers appear earlier when you manually order experience items.</p><input [(ngModel)]="experienceForm.sortOrder" name="experienceSortOrder" type="number" placeholder="10" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+
+          <div class="space-y-3 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4 lg:col-span-2">
+            <div>
+              <p class="text-sm font-semibold text-stone-950">Experience logo upload</p>
+              <p class="text-xs text-stone-500">Files uploaded here are stored under <span class="font-medium text-stone-700">{{ buildExperienceFolder() }}</span> and can be selected immediately below.</p>
+            </div>
+            <div class="grid gap-4 lg:grid-cols-2">
+              <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Media title</span><input [(ngModel)]="experienceUploadForm.title" name="experienceUploadTitle" placeholder="Thomas More logo" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
+              <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Alt text</span><input [(ngModel)]="experienceUploadForm.altText" name="experienceUploadAltText" placeholder="Thomas More logo" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
+              <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold text-stone-800">Description</span><textarea [(ngModel)]="experienceUploadForm.description" name="experienceUploadDescription" rows="2" placeholder="Optional internal note about this asset." class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea></label>
+              <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Visibility</span><select [(ngModel)]="experienceUploadForm.visibility" name="experienceUploadVisibility" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"><option [ngValue]="'public'">public</option><option [ngValue]="'private'">private</option><option [ngValue]="'signed'">signed</option></select></label>
+              <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold text-stone-800">Choose file</span><input type="file" (change)="onScopedFileSelected($event, experienceUploadForm)" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
+            </div>
+            <button type="button" (click)="uploadExperienceLogo()" [disabled]="uploadInProgressKey === 'experience-logo'" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Upload and select logo</button>
+          </div>
+
+          <div class="space-y-3 lg:col-span-2">
+            <span class="text-sm font-semibold text-stone-800">Logo media</span>
+            <p class="text-xs leading-5 text-stone-500">Choose which uploaded media record should represent this entry in the timeline.</p>
+            <select [(ngModel)]="experienceForm.logoFileId" name="experienceLogoFileId" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm"><option [ngValue]="null">No logo selected</option><option *ngFor="let media of referenceData.mediaFiles" [ngValue]="media.id">{{ media.title || media.originalFilename }} · {{ media.objectKey }}</option></select>
+            <div *ngIf="mediaPreview(experienceForm.logoFileId) as selectedMedia" class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
+              <img *ngIf="selectedMedia.resolvedAsset?.url && selectedMedia.mimeType?.startsWith('image/')" [src]="selectedMedia.resolvedAsset?.url" [alt]="selectedMedia.altText || selectedMedia.originalFilename" class="h-28 w-full rounded-2xl object-contain bg-white p-3" />
+              <p class="mt-3 text-sm font-semibold text-stone-950">{{ selectedMedia.title || selectedMedia.originalFilename }}</p>
+              <p class="text-xs text-stone-500">{{ selectedMedia.objectKey }}</p>
+            </div>
+          </div>
+
+          <div class="space-y-3 lg:col-span-2">
+            <span class="text-sm font-semibold text-stone-800">Attached skills</span>
+            <p class="text-xs leading-5 text-stone-500">Attach the reusable skills that best describe this experience entry. These can power chips, filters, or summary groupings later.</p>
+            <div class="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+              <label *ngFor="let skill of referenceData.skills" class="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700"><input type="checkbox" [checked]="experienceForm.skillIds.includes(skill.id)" (change)="toggleExperienceSkill(skill.id)" class="h-4 w-4" />{{ skill.name }}</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 flex flex-wrap items-center justify-end gap-3">
+          <button type="button" (click)="startNewExperience()" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700">Reset form</button>
+          <button type="button" (click)="saveExperience()" class="rounded-full bg-stone-900 px-5 py-2 text-sm font-semibold text-white">Save experience</button>
+        </div>
+      </article>
+    </section>
+
+
+
+    <section *ngIf="activeTab === 'navigation'" class="grid gap-6 xl:grid-cols-[20rem_minmax(0,1fr)]">
+      <aside class="rounded-[2rem] border border-stone-300 bg-white p-5 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-semibold text-stone-950">Navigation items</h2>
+            <p class="mt-1 text-sm text-stone-600">These rows power your visible shell navigation and footer-style link groups.</p>
+          </div>
+          <button type="button" (click)="startNewNavigationItem()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">New</button>
+        </div>
+
+        <div class="mt-4 grid gap-2 max-h-[42rem] overflow-y-auto">
+          <button *ngFor="let item of navigationItems" type="button" (click)="selectNavigationItem(item.id)" [ngClass]="item.id === selectedNavigationItemId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-2xl border px-4 py-3 text-left text-sm">
+            <div class="font-semibold">{{ item.label }}</div>
+            <div class="text-xs text-stone-500">{{ item.routePath }} · {{ item.isExternal ? 'External' : 'Internal' }}</div>
+          </button>
+        </div>
+      </aside>
+
+      <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] sm:p-8">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-xl font-semibold text-stone-950">{{ selectedNavigationItemId ? 'Edit navigation item' : 'Create navigation item' }}</h2>
+            <p class="text-sm text-stone-600">Use these fields to control the links shown in the site shell. Internal items usually point at Angular routes, while external items can open elsewhere.</p>
+          </div>
+          <button *ngIf="selectedNavigationItemId" type="button" (click)="deleteNavigationItem()" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700">Delete item</button>
+        </div>
+
+        <div class="mt-6 grid gap-5 lg:grid-cols-2">
+          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Label</span><p class="text-xs leading-5 text-stone-500">The readable link text shown to visitors in the header or footer.</p><input [(ngModel)]="navigationItemForm.label" name="navLabel" placeholder="Projects" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Route path or URL</span><p class="text-xs leading-5 text-stone-500">For internal links use values like <span class="font-medium text-stone-700">/projects</span>. For external links, use a full URL.</p><input [(ngModel)]="navigationItemForm.routePath" name="navRoutePath" placeholder="/projects or https://..." class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Sort order</span><p class="text-xs leading-5 text-stone-500">Lower numbers appear earlier in the rendered navigation list.</p><input [(ngModel)]="navigationItemForm.sortOrder" name="navSortOrder" type="number" placeholder="10" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <div class="grid gap-4 lg:col-span-2 lg:grid-cols-2">
+            <label class="flex items-start gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-800"><input [(ngModel)]="navigationItemForm.isExternal" name="navExternal" type="checkbox" class="mt-1 h-4 w-4" /><span><span class="font-semibold text-stone-900">External link</span><span class="mt-1 block text-xs leading-5 text-stone-500">Enable this when the route path is a full external URL and the frontend should treat it as such.</span></span></label>
+            <label class="flex items-start gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-800"><input [(ngModel)]="navigationItemForm.isVisible" name="navVisible" type="checkbox" class="mt-1 h-4 w-4" /><span><span class="font-semibold text-stone-900">Visible in shell</span><span class="mt-1 block text-xs leading-5 text-stone-500">Turn this off to keep the item in the CMS without showing it publicly.</span></span></label>
+          </div>
+        </div>
+
+        <div class="mt-6 flex flex-wrap items-center justify-end gap-3">
+          <button type="button" (click)="startNewNavigationItem()" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700">Reset form</button>
+          <button type="button" (click)="saveNavigationItem()" class="rounded-full bg-stone-900 px-5 py-2 text-sm font-semibold text-white">Save navigation item</button>
+        </div>
+      </article>
+    </section>
+
+
+
+    <section *ngIf="activeTab === 'profile'" class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] sm:p-8">
+      <div>
+        <h2 class="text-xl font-semibold text-stone-950">Profile and shell content</h2>
+        <p class="mt-1 text-sm text-stone-600">This section controls the public hero text, contact identity, CTA buttons, social links, and the profile media used throughout the site shell.</p>
+      </div>
+
+      <section class="mt-6 grid gap-5 lg:grid-cols-2">
+        <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">First name</span><p class="text-xs leading-5 text-stone-500">Used anywhere the public site displays your personal identity.</p><input [(ngModel)]="profileForm.firstName" name="profileFirstName" placeholder="Alex" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+        <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Last name</span><p class="text-xs leading-5 text-stone-500">Usually paired with the first name for the full public profile heading.</p><input [(ngModel)]="profileForm.lastName" name="profileLastName" placeholder="Van Poppel" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+        <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold text-stone-800">Headline</span><p class="text-xs leading-5 text-stone-500">Primary hero line that quickly explains who you are or what you specialize in.</p><input [(ngModel)]="profileForm.headline" name="profileHeadline" placeholder="Applied AI student building practical software" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+        <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold text-stone-800">Short intro</span><p class="text-xs leading-5 text-stone-500">Compact intro paragraph used in previews or the homepage hero area.</p><textarea [(ngModel)]="profileForm.shortIntro" name="profileShortIntro" rows="3" placeholder="A short introduction for visitors landing on the homepage." class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm"></textarea></label>
+        <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold text-stone-800">Long bio</span><p class="text-xs leading-5 text-stone-500">Longer descriptive body for your about/profile content. Good for background, approach, and goals.</p><textarea [(ngModel)]="profileForm.longBio" name="profileLongBio" rows="8" placeholder="Write the fuller profile story shown in the portfolio." class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm"></textarea></label>
+        <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Location</span><p class="text-xs leading-5 text-stone-500">Public-facing city / country or remote availability text.</p><input [(ngModel)]="profileForm.location" name="profileLocation" placeholder="Belgium" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+        <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Email</span><p class="text-xs leading-5 text-stone-500">Contact address used in shell/contact sections.</p><input [(ngModel)]="profileForm.email" name="profileEmail" placeholder="you@example.com" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+        <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold text-stone-800">Phone</span><p class="text-xs leading-5 text-stone-500">Optional public phone number. Leave blank if you do not want to expose one.</p><input [(ngModel)]="profileForm.phone" name="profilePhone" placeholder="Optional phone number" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+        <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Primary CTA label</span><p class="text-xs leading-5 text-stone-500">Text shown on the main action button in the hero section.</p><input [(ngModel)]="profileForm.ctaPrimaryLabel" name="profileCtaPrimaryLabel" placeholder="View projects" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+        <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Primary CTA URL</span><p class="text-xs leading-5 text-stone-500">Destination for the main button, usually a route like <span class="font-medium text-stone-700">/projects</span> or a file link.</p><input [(ngModel)]="profileForm.ctaPrimaryUrl" name="profileCtaPrimaryUrl" placeholder="/projects or https://..." class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+        <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Secondary CTA label</span><p class="text-xs leading-5 text-stone-500">Text shown on the secondary supporting action next to the main CTA.</p><input [(ngModel)]="profileForm.ctaSecondaryLabel" name="profileCtaSecondaryLabel" placeholder="Contact me" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+        <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Secondary CTA URL</span><p class="text-xs leading-5 text-stone-500">Destination for the second button, often <span class="font-medium text-stone-700">/contact</span> or an external link.</p><input [(ngModel)]="profileForm.ctaSecondaryUrl" name="profileCtaSecondaryUrl" placeholder="/contact or https://..." class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+        <label class="flex items-start gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-800 lg:col-span-2"><input [(ngModel)]="profileForm.isPublic" name="profilePublic" type="checkbox" class="mt-1 h-4 w-4" /><span><span class="font-semibold text-stone-900">Public profile enabled</span><span class="mt-1 block text-xs leading-5 text-stone-500">Turn this off only if you want to temporarily hide the public profile content while keeping it saved in the CMS.</span></span></label>
+      </section>
+
+      <div class="mt-6 grid gap-6 xl:grid-cols-3">
+        <div class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4 space-y-3"><div><p class="text-sm font-semibold text-stone-950">Avatar upload</p><p class="text-xs text-stone-500">Used for smaller profile portraits and identity images. Files go to <span class="font-medium text-stone-700">{{ buildProfileFolder() }}</span>.</p></div><input [(ngModel)]="profileAvatarUploadForm.title" name="profileAvatarUploadTitle" placeholder="Avatar title" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /><input [(ngModel)]="profileAvatarUploadForm.altText" name="profileAvatarUploadAltText" placeholder="Alt text for accessibility" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /><textarea [(ngModel)]="profileAvatarUploadForm.description" name="profileAvatarUploadDescription" rows="2" placeholder="Optional internal note" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea><select [(ngModel)]="profileAvatarUploadForm.visibility" name="profileAvatarUploadVisibility" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"><option [ngValue]="'public'">public</option><option [ngValue]="'private'">private</option><option [ngValue]="'signed'">signed</option></select><input type="file" (change)="onScopedFileSelected($event, profileAvatarUploadForm)" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /><button type="button" (click)="uploadProfileAvatar()" [disabled]="uploadInProgressKey === 'profile-avatar'" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Upload avatar</button><select [(ngModel)]="profileForm.avatarFileId" name="profileAvatarFileId" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"><option [ngValue]="null">No avatar selected</option><option *ngFor="let media of referenceData.mediaFiles" [ngValue]="media.id">{{ media.title || media.originalFilename }}</option></select></div>
+        <div class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4 space-y-3"><div><p class="text-sm font-semibold text-stone-950">Hero image upload</p><p class="text-xs text-stone-500">Used in the homepage hero or profile banner area. Files go to <span class="font-medium text-stone-700">{{ buildProfileFolder() }}</span>.</p></div><input [(ngModel)]="profileHeroUploadForm.title" name="profileHeroUploadTitle" placeholder="Hero title" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /><input [(ngModel)]="profileHeroUploadForm.altText" name="profileHeroUploadAltText" placeholder="Alt text for accessibility" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /><textarea [(ngModel)]="profileHeroUploadForm.description" name="profileHeroUploadDescription" rows="2" placeholder="Optional internal note" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea><select [(ngModel)]="profileHeroUploadForm.visibility" name="profileHeroUploadVisibility" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"><option [ngValue]="'public'">public</option><option [ngValue]="'private'">private</option><option [ngValue]="'signed'">signed</option></select><input type="file" (change)="onScopedFileSelected($event, profileHeroUploadForm)" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /><button type="button" (click)="uploadProfileHero()" [disabled]="uploadInProgressKey === 'profile-hero'" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Upload hero image</button><select [(ngModel)]="profileForm.heroImageFileId" name="profileHeroImageFileId" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"><option [ngValue]="null">No hero selected</option><option *ngFor="let media of referenceData.mediaFiles" [ngValue]="media.id">{{ media.title || media.originalFilename }}</option></select></div>
+        <div class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4 space-y-3"><div><p class="text-sm font-semibold text-stone-950">Resume upload</p><p class="text-xs text-stone-500">Document opened by your resume CTA or download link. Files go to <span class="font-medium text-stone-700">{{ buildProfileFolder() }}</span>.</p></div><input [(ngModel)]="profileResumeUploadForm.title" name="profileResumeUploadTitle" placeholder="Resume title" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /><input [(ngModel)]="profileResumeUploadForm.altText" name="profileResumeUploadAltText" placeholder="Alt text or short note" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /><textarea [(ngModel)]="profileResumeUploadForm.description" name="profileResumeUploadDescription" rows="2" placeholder="Optional internal note" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea><select [(ngModel)]="profileResumeUploadForm.visibility" name="profileResumeUploadVisibility" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"><option [ngValue]="'public'">public</option><option [ngValue]="'private'">private</option><option [ngValue]="'signed'">signed</option></select><input type="file" (change)="onScopedFileSelected($event, profileResumeUploadForm)" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /><button type="button" (click)="uploadProfileResume()" [disabled]="uploadInProgressKey === 'profile-resume'" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Upload resume</button><select [(ngModel)]="profileForm.resumeFileId" name="profileResumeFileId" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"><option [ngValue]="null">No resume selected</option><option *ngFor="let media of referenceData.mediaFiles" [ngValue]="media.id">{{ media.title || media.originalFilename }}</option></select></div>
+      </div>
+
+      <div class="mt-8 space-y-4">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <h3 class="text-lg font-semibold text-stone-950">Social links</h3>
+            <p class="text-sm text-stone-600">These rows power repeated social/contact links in the shell and profile areas.</p>
+          </div>
+          <button type="button" (click)="addSocialLink()" class="inline-flex min-h-10 items-center rounded-full border border-stone-300 px-4 text-sm font-semibold text-stone-700 transition hover:bg-stone-50">Add link</button>
+        </div>
+
+        <div class="grid gap-4">
+          <article *ngFor="let link of profileForm.socialLinks; let index = index" class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
+            <div class="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
+              <label class="space-y-2"><span class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Platform</span><p class="text-xs leading-5 text-stone-500">Internal platform name such as GitHub, LinkedIn, Email, or Instagram.</p><input [(ngModel)]="link.platform" [name]="'socialPlatform' + index" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
+              <label class="space-y-2"><span class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Label</span><p class="text-xs leading-5 text-stone-500">Readable text shown to visitors on the button or link.</p><input [(ngModel)]="link.label" [name]="'socialLabel' + index" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
+              <label class="space-y-2"><span class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">URL</span><p class="text-xs leading-5 text-stone-500">Destination opened when the visitor clicks this row.</p><input [(ngModel)]="link.url" [name]="'socialUrl' + index" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
+              <label class="space-y-2"><span class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Icon key</span><p class="text-xs leading-5 text-stone-500">Optional identifier the frontend can map to a specific icon.</p><input [(ngModel)]="link.iconKey" [name]="'socialIconKey' + index" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
+              <label class="space-y-2"><span class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Sort order</span><p class="text-xs leading-5 text-stone-500">Lower numbers appear earlier in the visible social links list.</p><input [(ngModel)]="link.sortOrder" [name]="'socialSortOrder' + index" type="number" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
+              <label class="flex items-start gap-3 rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm text-stone-800"><input [(ngModel)]="link.isVisible" [name]="'socialIsVisible' + index" type="checkbox" class="mt-1 h-4 w-4" /> <span><span class="font-semibold text-stone-900">Visible</span><span class="mt-1 block text-xs leading-5 text-stone-500">Turn this off to keep the row saved in the CMS without showing it publicly.</span></span></label>
+              <div class="flex items-end justify-end xl:col-span-2">
+                <button type="button" (click)="removeSocialLink(index)" class="inline-flex min-h-11 items-center rounded-full border border-rose-300 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50">Remove link</button>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-end">
+        <button type="button" (click)="saveProfile()" class="inline-flex min-h-11 items-center rounded-full bg-stone-900 px-5 text-sm font-semibold text-white transition hover:bg-stone-700">Save profile</button>
+      </div>
+    </section>
+
+
+
+    <section *ngIf="activeTab === 'stats'" class="grid gap-6 xl:grid-cols-[20rem_minmax(0,1fr)]">
+      <aside class="rounded-[2rem] border border-stone-300 bg-white p-5 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-semibold text-stone-950">GitHub snapshots</h2>
+            <p class="mt-1 text-sm text-stone-600">Store point-in-time GitHub stats and contribution data that the public stats page can render from the database.</p>
+          </div>
+          <button type="button" (click)="startNewGithubSnapshot()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">New</button>
+        </div>
+
+        <div class="mt-4 grid gap-2 max-h-[42rem] overflow-y-auto">
+          <button *ngFor="let snapshot of githubSnapshots" type="button" (click)="selectGithubSnapshot(snapshot.id)" [ngClass]="snapshot.id === selectedGithubSnapshotId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-2xl border px-4 py-3 text-left text-sm">
+            <div class="font-semibold">{{ snapshot.username }}</div>
+            <div class="text-xs text-stone-500">{{ snapshot.snapshotDate }} · {{ contributionPreview(snapshot) }}</div>
+          </button>
+        </div>
+      </aside>
+
+      <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] sm:p-8">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-xl font-semibold text-stone-950">{{ selectedGithubSnapshotId ? 'Edit GitHub snapshot' : 'Create GitHub snapshot' }}</h2>
+            <p class="text-sm text-stone-600">This record backs the public stats page. You can save both quick numeric totals and the raw contribution-day payload used for the grid.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <button type="button" (click)="refreshGithubSnapshot()" [disabled]="isRefreshingGithub" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-stone-400 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-60">{{ isRefreshingGithub ? 'Refreshing…' : 'Refresh from GitHub' }}</button>
+            <button *ngIf="selectedGithubSnapshotId" type="button" (click)="deleteGithubSnapshot()" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700">Delete snapshot</button>
+          </div>
+        </div>
+
+        <div class="mt-6 grid gap-5 lg:grid-cols-2">
+          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Snapshot date</span><p class="text-xs leading-5 text-stone-500">The date this GitHub data should represent on the public stats page.</p><input [(ngModel)]="githubSnapshotForm.snapshotDate" name="githubSnapshotDate" type="date" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">GitHub username</span><p class="text-xs leading-5 text-stone-500">Account name this snapshot belongs to.</p><input [(ngModel)]="githubSnapshotForm.username" name="githubUsername" placeholder="shuzu" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Public repository count</span><p class="text-xs leading-5 text-stone-500">How many public repositories should be shown for this snapshot.</p><input [(ngModel)]="githubSnapshotForm.publicRepoCount" name="githubPublicRepoCount" type="number" placeholder="12" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Followers</span><p class="text-xs leading-5 text-stone-500">Optional follower count shown in public summary cards.</p><input [(ngModel)]="githubSnapshotForm.followersCount" name="githubFollowersCount" type="number" placeholder="25" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Following</span><p class="text-xs leading-5 text-stone-500">Optional following count if you want to expose it.</p><input [(ngModel)]="githubSnapshotForm.followingCount" name="githubFollowingCount" type="number" placeholder="15" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Total stars</span><p class="text-xs leading-5 text-stone-500">Aggregate stars across repositories or another curated total you want to show.</p><input [(ngModel)]="githubSnapshotForm.totalStars" name="githubTotalStars" type="number" placeholder="30" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold text-stone-800">Total commits</span><p class="text-xs leading-5 text-stone-500">Optional total commit count for the same point in time.</p><input [(ngModel)]="githubSnapshotForm.totalCommits" name="githubTotalCommits" type="number" placeholder="500" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold text-stone-800">Raw payload JSON</span><p class="text-xs leading-5 text-stone-500">Store the original API response or your own structured note. Useful for auditing how the summary numbers were derived.</p><textarea [(ngModel)]="githubSnapshotForm.rawPayloadText" name="githubRawPayload" rows="8" placeholder='Raw payload JSON e.g. { "source": "manual" }' class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm font-mono"></textarea></label>
+          <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold text-stone-800">Contribution days JSON array</span><p class="text-xs leading-5 text-stone-500">Paste the serialized day-by-day contribution array that powers the public contribution grid.</p><textarea [(ngModel)]="githubSnapshotForm.contributionDaysText" name="githubContributionDays" rows="8" placeholder='[{"date":"2026-04-11","count":3}]' class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm font-mono"></textarea></label>
+        </div>
+
+        <div class="mt-6 flex flex-wrap items-center justify-end gap-3">
+          <button type="button" (click)="startNewGithubSnapshot()" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700">Reset form</button>
+          <button type="button" (click)="saveGithubSnapshot()" class="rounded-full bg-stone-900 px-5 py-2 text-sm font-semibold text-white">Save GitHub snapshot</button>
+        </div>
+      </article>
+    </section>
+
+
+
+    <section *ngIf="activeTab === 'admins'" class="grid gap-6 xl:grid-cols-[20rem_minmax(0,1fr)]">
+      <aside class="rounded-[2rem] border border-stone-300 bg-white p-5 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-semibold text-stone-950">Admin users</h2>
+            <p class="mt-1 text-sm text-stone-600">These accounts can sign into the CMS and manage portfolio content.</p>
+          </div>
+          <button type="button" (click)="startNewAdminUser()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">New</button>
+        </div>
+
+        <div class="mt-4 grid gap-2 max-h-[42rem] overflow-y-auto">
+          <button *ngFor="let user of adminUsers" type="button" (click)="selectAdminUser(user.id)" [ngClass]="user.id === selectedAdminUserId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-2xl border px-4 py-3 text-left text-sm">
+            <div class="font-semibold">{{ user.displayName }}</div>
+            <div class="text-xs text-stone-500">{{ user.email }}</div>
+          </button>
+        </div>
+      </aside>
+
+      <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] sm:p-8">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-xl font-semibold text-stone-950">{{ selectedAdminUserId ? 'Edit admin user' : 'Create admin user' }}</h2>
+            <p class="text-sm text-stone-600">Create another CMS login or update an existing one. Passwords can be rotated here without touching the database manually.</p>
+          </div>
+          <button *ngIf="selectedAdminUserId && selectedAdminUserId !== currentAdminId" type="button" (click)="deleteAdminUser()" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700">Delete admin user</button>
+        </div>
+
+        <div class="mt-6 grid gap-5 lg:grid-cols-2">
+          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Email address</span><p class="text-xs leading-5 text-stone-500">Used as the login identifier when signing into the CMS.</p><input [(ngModel)]="adminUserForm.email" name="adminUserEmail" placeholder="admin@example.com" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Display name</span><p class="text-xs leading-5 text-stone-500">Friendly name shown in the CMS header and user list.</p><input [(ngModel)]="adminUserForm.displayName" name="adminUserDisplayName" placeholder="Site administrator" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold text-stone-800">Password</span><p class="text-xs leading-5 text-stone-500">When editing an existing account, leave this blank to keep the current password unchanged.</p><input [(ngModel)]="adminUserForm.password" name="adminUserPassword" type="password" placeholder="Create or replace the password" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <label class="flex items-start gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-800 lg:col-span-2"><input [(ngModel)]="adminUserForm.isActive" name="adminUserActive" type="checkbox" class="mt-1 h-4 w-4" /><span><span class="font-semibold text-stone-900">Active account</span><span class="mt-1 block text-xs leading-5 text-stone-500">Disable this if the admin should keep their record but no longer be able to sign in.</span></span></label>
+        </div>
+
+        <div class="mt-6 flex flex-wrap items-center justify-end gap-3">
+          <button type="button" (click)="startNewAdminUser()" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700">Reset form</button>
+          <button type="button" (click)="saveAdminUser()" class="rounded-full bg-stone-900 px-5 py-2 text-sm font-semibold text-white">Save admin user</button>
+        </div>
+      </article>
+    </section>
+
+
+    <section *ngIf="activeTab === 'messages'" class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)]"><div class="flex items-center justify-between"><h2 class="text-xl font-semibold">Inbox</h2><p class="text-sm text-stone-600">Review and mark contact form submissions.</p></div><div class="mt-6 grid gap-4"><article *ngFor="let message of messages" class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5"><div class="flex flex-wrap items-start justify-between gap-4"><div><p class="text-lg font-semibold text-stone-950">{{ message.subject }}</p><p class="text-sm text-stone-600">{{ message.name }} · {{ message.email }} · {{ message.createdAt | date:'medium' }}</p><p class="mt-1 text-xs uppercase tracking-[0.18em] text-stone-500">{{ message.sourcePage }}</p></div><button type="button" (click)="toggleMessageRead(message)" [ngClass]="message.isRead ? 'border-stone-300 text-stone-700' : 'border-amber-300 text-amber-800'" class="rounded-full border px-4 py-2 text-sm font-semibold">{{ message.isRead ? 'Mark unread' : 'Mark read' }}</button></div><p class="mt-4 whitespace-pre-wrap text-sm leading-6 text-stone-700">{{ message.message }}</p></article></div></section>
+  </ng-container>
+</div>

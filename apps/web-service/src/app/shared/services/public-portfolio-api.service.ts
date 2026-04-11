@@ -345,8 +345,8 @@ export class PublicPortfolioApiService {
     const headline = profile.headline ?? 'Portfolio Builder';
     const socialLinks = this.normalizeSocialLinks(profile.socialLinks);
     const heroActions = [
-      this.toHeroAction(profile.ctaPrimaryLabel, profile.ctaPrimaryUrl, 'secondary'),
-      this.toHeroAction(profile.ctaSecondaryLabel, profile.ctaSecondaryUrl, 'primary')
+      this.toHeroAction(profile.ctaPrimaryLabel, profile.ctaPrimaryUrl, 'primary'),
+      this.toHeroAction(profile.ctaSecondaryLabel, profile.ctaSecondaryUrl, 'secondary')
     ].filter((action): action is Profile['heroActions'][number] => action !== null);
 
     return {

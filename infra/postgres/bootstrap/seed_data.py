@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from datetime import UTC, date, datetime
+import os
 from uuid import UUID
 
+from passlib.context import CryptContext
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -15,6 +17,7 @@ from infra.postgres.bootstrap.seed_content import (
 )
 from infra.postgres.bootstrap.seed_ids import seed_uuid
 from app.db.models import (
+    AdminUser,
     BlogPost,
     BlogPostTag,
     BlogTag,
@@ -46,6 +49,20 @@ NAVIGATION_ITEMS = [
 ]
 
 TIMESTAMP = datetime(2025, 10, 1, 9, 0, tzinfo=UTC)
+
+
+_pwd_context = CryptContext(schemes=['pbkdf2_sha256'], deprecated='auto')
+
+def _admin_user_seed() -> dict:
+    return {
+        'id': 'admin-primary',
+        'email': os.getenv('ADMIN_EMAIL', 'admin@example.com').strip().lower(),
+        'password': os.getenv('ADMIN_PASSWORD', 'change-me-admin'),
+        'display_name': os.getenv('ADMIN_DISPLAY_NAME', 'Portfolio Admin').strip() or 'Portfolio Admin',
+        'is_active': True,
+        'created_at': TIMESTAMP,
+        'updated_at': TIMESTAMP,
+    }
 
 MEDIA_FILES = [
     {
@@ -418,12 +435,46 @@ def _parse_datetime(value: str | None) -> datetime | None:
         return datetime.strptime(value, '%B %d, %Y').replace(tzinfo=UTC)
 
 
-def seed_database(session: Session) -> None:
-    already_seeded = session.scalar(select(Project.id).limit(1))
-    if already_seeded:
+def _upsert_admin_user(session: Session) -> None:
+    admin_user_seed = _admin_user_seed()
+    admin_user_id = _seed_uuid(admin_user_seed['id'])
+
+    existing_admin = session.scalar(select(AdminUser).where(AdminUser.id == admin_user_id))
+    if existing_admin is None:
+        existing_admin = session.scalar(select(AdminUser).where(AdminUser.email == admin_user_seed['email']))
+
+    if existing_admin is None:
+        session.add(
+            AdminUser(
+                id=admin_user_id,
+                email=admin_user_seed['email'],
+                password_hash=_pwd_context.hash(admin_user_seed['password']),
+                display_name=admin_user_seed['display_name'],
+                is_active=admin_user_seed['is_active'],
+                created_at=admin_user_seed['created_at'],
+                updated_at=admin_user_seed['updated_at'],
+            )
+        )
+        session.flush()
         return
 
+    existing_admin.email = admin_user_seed['email']
+    existing_admin.password_hash = _pwd_context.hash(admin_user_seed['password'])
+    existing_admin.display_name = admin_user_seed['display_name']
+    existing_admin.is_active = admin_user_seed['is_active']
+    existing_admin.updated_at = admin_user_seed['updated_at']
+    session.flush()
+
+
+def seed_database(session: Session) -> None:
     try:
+        _upsert_admin_user(session)
+
+        already_seeded = session.scalar(select(Project.id).limit(1))
+        if already_seeded:
+            session.commit()
+            return
+
         session.add_all([NavigationItem(**_with_uuid_fields(item, 'id')) for item in NAVIGATION_ITEMS])
         session.add_all([MediaFile(**_with_uuid_fields(item, 'id', 'uploaded_by_id')) for item in MEDIA_FILES])
         session.add_all([SkillCategory(**_with_uuid_fields(item, 'id')) for item in SKILL_CATEGORIES])
