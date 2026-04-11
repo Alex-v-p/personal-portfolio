@@ -1,10 +1,25 @@
 <div class="mx-auto max-w-4xl space-y-6">
   <div class="space-y-2 text-sm text-stone-600">
-    <p>Home &gt; Blog &gt; {{ post.title }}</p>
+    <p>Home &gt; Blog <ng-container *ngIf="post">&gt; {{ post.title }}</ng-container></p>
     <a routerLink="/blog" class="inline-flex items-center gap-2 transition hover:text-stone-950">← Back to Blog</a>
   </div>
 
-  <article class="space-y-6">
+  <section *ngIf="isLoading" class="rounded-[1.5rem] border border-stone-300 bg-white p-6 shadow-[0_12px_30px_rgba(40,31,20,0.08)]">
+    <p class="text-sm text-stone-600">Loading article from the API…</p>
+  </section>
+
+  <app-ui-empty-state
+    *ngIf="!isLoading && errorMessage"
+    title="Could not load article"
+    [description]="errorMessage"
+    [hasActions]="true"
+  >
+    <div actions>
+      <app-ui-button appearance="secondary" type="button" (click)="retry()">Retry</app-ui-button>
+    </div>
+  </app-ui-empty-state>
+
+  <article *ngIf="!isLoading && post" class="space-y-6">
     <header class="space-y-4">
       <div class="flex flex-wrap items-center gap-3 text-xs text-stone-500">
         <span>{{ post.category }}</span>
@@ -33,9 +48,14 @@
     </header>
 
     <div class="overflow-hidden rounded-[1.5rem] border border-stone-300 bg-white shadow-[0_12px_30px_rgba(40,31,20,0.08)]">
-      <div class="flex min-h-[21rem] items-end bg-stone-600/90 p-6 text-xs font-semibold uppercase tracking-[0.16em] text-stone-200 sm:p-8">
-        <span class="max-w-[18ch]">{{ post.coverImageAlt }}</span>
+      <div *ngIf="post.coverImageUrl; else postCoverFallback" class="overflow-hidden border-b border-stone-300">
+        <img [src]="post.coverImageUrl" [alt]="post.coverImageAlt" class="max-h-[32rem] w-full object-cover" />
       </div>
+      <ng-template #postCoverFallback>
+        <div class="flex min-h-[21rem] items-end bg-stone-600/90 p-6 text-xs font-semibold uppercase tracking-[0.16em] text-stone-200 sm:p-8">
+          <span class="max-w-[18ch]">{{ post.coverImageAlt }}</span>
+        </div>
+      </ng-template>
 
       <div class="px-6 py-8 sm:px-8">
         <div class="blog-markdown" [innerHTML]="renderedContent"></div>

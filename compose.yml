@@ -10,8 +10,35 @@ services:
       - ./apps/web-service:/app
       - /app/node_modules
     depends_on:
-      - portfolio-api
-      - assistant
+      portfolio-api:
+        condition: service_started
+      assistant:
+        condition: service_started
+      minio-init:
+        condition: service_completed_successfully
+
+  portfolio-db-init:
+    build:
+      context: .
+      dockerfile: infra/postgres/bootstrap/Dockerfile
+    container_name: portfolio_db_init
+    working_dir: /workspace
+    env_file:
+      - .env
+    environment:
+      PYTHONPATH: /workspace/apps/portfolio-api-service:/workspace
+      DATABASE_URL: ${PORTFOLIO_API_DB_URL:-postgresql+psycopg://portfolio_user:portfolio_pass@postgres:5432/portfolio_platform}
+      DB_BOOTSTRAP_AUTO_SEED: ${DB_BOOTSTRAP_AUTO_SEED:-true}
+      DB_BOOTSTRAP_RECREATE_ON_DRIFT: ${DB_BOOTSTRAP_RECREATE_ON_DRIFT:-true}
+      DB_BOOTSTRAP_MAX_RETRIES: ${DB_BOOTSTRAP_MAX_RETRIES:-30}
+      DB_BOOTSTRAP_RETRY_DELAY_SECONDS: ${DB_BOOTSTRAP_RETRY_DELAY_SECONDS:-2}
+    command: ["python", "-m", "infra.postgres.bootstrap.bootstrap_database"]
+    volumes:
+      - .:/workspace
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
 
   portfolio-api:
     build:
@@ -19,14 +46,26 @@ services:
       dockerfile: Dockerfile
     container_name: portfolio_api
     ports:
-      - "${PORTFOLIO_API_PORT:-8001}:8001"
+      - "${PORTFOLIO_API_PORT:-8011}:8011"
     env_file:
       - .env
+    environment:
+      APP_HOST: ${PORTFOLIO_API_HOST:-0.0.0.0}
+      APP_PORT: ${PORTFOLIO_API_PORT:-8011}
+      DATABASE_URL: ${PORTFOLIO_API_DB_URL:-postgresql+psycopg://portfolio_user:portfolio_pass@postgres:5432/portfolio_platform}
+      REDIS_URL: ${PORTFOLIO_API_REDIS_URL:-redis://redis:6379/0}
+      SECRET_KEY: ${PORTFOLIO_API_SECRET_KEY:-change-me}
+      CORS_ALLOWED_ORIGINS: ${PORTFOLIO_API_CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200}
+      MEDIA_PUBLIC_BASE_URL: ${MEDIA_PUBLIC_BASE_URL:-http://localhost:9000}
     volumes:
       - ./apps/portfolio-api-service:/app
     depends_on:
-      - postgres
-      - redis
+      portfolio-db-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
+      minio-init:
+        condition: service_completed_successfully
 
   assistant:
     build:
@@ -34,14 +73,22 @@ services:
       dockerfile: Dockerfile
     container_name: assistant_api
     ports:
-      - "${ASSISTANT_API_PORT:-8002}:8002"
+      - "${ASSISTANT_API_PORT:-8012}:8012"
     env_file:
       - .env
+    environment:
+      APP_HOST: ${ASSISTANT_API_HOST:-0.0.0.0}
+      APP_PORT: ${ASSISTANT_API_PORT:-8012}
+      DATABASE_URL: ${ASSISTANT_API_DB_URL:-postgresql+psycopg://portfolio_user:portfolio_pass@postgres:5432/portfolio_platform}
+      REDIS_URL: ${ASSISTANT_API_REDIS_URL:-redis://redis:6379/0}
+      SECRET_KEY: ${ASSISTANT_API_SECRET_KEY:-change-me-too}
     volumes:
       - ./apps/assistant-service:/app
     depends_on:
-      - postgres
-      - redis
+      portfolio-db-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
 
   postgres:
     image: pgvector/pgvector:pg16
@@ -54,12 +101,46 @@ services:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-portfolio_user} -d ${POSTGRES_DB:-portfolio_platform}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
 
   redis:
     image: redis:7-alpine
     container_name: portfolio_redis
     ports:
       - "${REDIS_PORT:-6379}:6379"
+
+  minio:
+    image: minio/minio:RELEASE.2025-02-28T09-55-16Z
+    container_name: portfolio_minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+
+  minio-init:
+    image: minio/mc:RELEASE.2025-03-12T17-29-24Z
+    container_name: portfolio_minio_init
+    depends_on:
+      minio:
+        condition: service_started
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MINIO_PUBLIC_BUCKET: ${MINIO_PUBLIC_BUCKET:-portfolio}
+    volumes:
+      - ./infra/minio/seed:/seed:ro
+      - ./infra/minio/init-public-bucket.sh:/init-public-bucket.sh:ro
+    entrypoint: ["/bin/sh", "/init-public-bucket.sh"]
 
   nginx:
     image: nginx:1.27-alpine
@@ -76,3 +157,4 @@ services:
 
 volumes:
   postgres_data:
+  minio_data:

@@ -1,12 +1,13 @@
 import { NgFor, NgIf } from '@angular/common';
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { finalize, take } from 'rxjs/operators';
 
+import { PublicPortfolioApiService } from '../../shared/services/public-portfolio-api.service';
 import { UiButtonComponent } from '../../shared/components/button/ui-button.component';
 import { UiChipComponent } from '../../shared/components/chip/ui-chip.component';
 import { UiEmptyStateComponent } from '../../shared/components/empty-state/ui-empty-state.component';
 import { UiSectionTitleComponent } from '../../shared/components/section-title/ui-section-title.component';
-import { FEATURED_PROJECT, PROJECTS } from '../../shared/mock-data/projects.mock';
 import { Project } from '../../shared/models/project.model';
 import { ProjectCardComponent } from './components/project-card/project-card.component';
 
@@ -21,22 +22,44 @@ interface SkillFilterOption {
   imports: [NgFor, NgIf, FormsModule, UiButtonComponent, UiChipComponent, UiEmptyStateComponent, UiSectionTitleComponent, ProjectCardComponent],
   templateUrl: './projects.page.html'
 })
-export class ProjectsPageComponent {
-  protected readonly featuredProject = FEATURED_PROJECT;
-  protected readonly browsableProjects = PROJECTS.filter((project) => !project.isFeatured);
-  protected readonly totalProjectCount = PROJECTS.length;
-  protected readonly availableSkillFilters: SkillFilterOption[] = Array.from(
-    new Set(this.browsableProjects.flatMap((project) => project.tags))
-  )
-    .sort((left, right) => left.localeCompare(right))
-    .map((name) => ({
-      name,
-      projectCount: this.browsableProjects.filter((project) => project.tags.includes(name)).length
-    }));
+export class ProjectsPageComponent implements OnInit {
+  private readonly portfolioApi = inject(PublicPortfolioApiService);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
+  protected projects: Project[] = [];
   protected searchQuery = '';
   protected selectedSkillFilters: string[] = [];
   protected isSkillMenuOpen = false;
+  protected isLoading = true;
+  protected errorMessage = '';
+
+  ngOnInit(): void {
+    this.loadProjects();
+  }
+
+  protected loadProjects(): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.portfolioApi
+      .getProjects()
+      .pipe(
+        take(1),
+        finalize(() => {
+          this.isLoading = false;
+          this.changeDetectorRef.detectChanges();
+        })
+      )
+      .subscribe({
+        next: (projects) => {
+          this.projects = Array.isArray(projects) ? projects : [];
+        },
+        error: () => {
+          this.projects = [];
+          this.errorMessage = 'Projects could not be loaded from the portfolio API. Make sure the portfolio-api-service is running on port 8011.';
+        }
+      });
+  }
 
   protected toggleSkillMenu(): void {
     this.isSkillMenuOpen = !this.isSkillMenuOpen;
@@ -64,6 +87,28 @@ export class ProjectsPageComponent {
 
   protected isSkillSelected(filter: string): boolean {
     return this.selectedSkillFilters.includes(filter);
+  }
+
+  protected get featuredProject(): Project | null {
+    return this.projects.find((project) => project.isFeatured) ?? this.projects[0] ?? null;
+  }
+
+  protected get browsableProjects(): Project[] {
+    const featuredProjectId = this.featuredProject?.id;
+    return this.projects.filter((project) => project.id !== featuredProjectId);
+  }
+
+  protected get totalProjectCount(): number {
+    return this.projects.length;
+  }
+
+  protected get availableSkillFilters(): SkillFilterOption[] {
+    return Array.from(new Set(this.browsableProjects.flatMap((project) => project.tags ?? [])))
+      .sort((left, right) => left.localeCompare(right))
+      .map((name) => ({
+        name,
+        projectCount: this.browsableProjects.filter((project) => (project.tags ?? []).includes(name)).length
+      }));
   }
 
   protected get hasActiveFilters(): boolean {
@@ -94,12 +139,9 @@ export class ProjectsPageComponent {
     const normalizedQuery = this.searchQuery.trim().toLowerCase();
 
     return this.browsableProjects.filter((project) => {
-      const matchesSkill =
-        this.selectedSkillFilters.length === 0 ||
-        this.selectedSkillFilters.some((filter) => project.tags.includes(filter));
-      const searchableContent = [project.title, project.shortDescription, project.summary, project.organization, ...project.tags]
-        .join(' ')
-        .toLowerCase();
+      const tags = project.tags ?? [];
+      const matchesSkill = this.selectedSkillFilters.length === 0 || this.selectedSkillFilters.some((filter) => tags.includes(filter));
+      const searchableContent = [project.title, project.shortDescription, project.summary, project.organization, ...tags].join(' ').toLowerCase();
       const matchesSearch = !normalizedQuery || searchableContent.includes(normalizedQuery);
 
       return matchesSkill && matchesSearch;

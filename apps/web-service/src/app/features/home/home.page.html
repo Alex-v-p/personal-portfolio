@@ -1,4 +1,6 @@
-<div class="space-y-14 lg:space-y-16">
+<div *ngIf="isLoading" class="rounded-[2rem] border border-stone-200 bg-white/80 p-6 text-sm text-stone-600">Loading homepage content…</div>
+
+<div *ngIf="!isLoading" class="space-y-14 lg:space-y-16">
   <app-home-hero-section [profile]="profile"></app-home-hero-section>
 
   <app-home-featured-section [featuredBlogPost]="featuredBlogPost" [primaryProject]="primaryProject"></app-home-featured-section>
