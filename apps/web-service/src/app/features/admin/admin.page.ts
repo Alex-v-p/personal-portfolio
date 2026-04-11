@@ -256,6 +256,12 @@ export class AdminPageComponent implements OnInit {
   protected projectSkillSearchTerm = '';
   protected experienceSkillSearchTerm = '';
   protected blogPostTagSearchTerm = '';
+  protected projectMediaSearchTerm = '';
+  protected blogMediaSearchTerm = '';
+  protected experienceMediaSearchTerm = '';
+  protected profileAvatarMediaSearchTerm = '';
+  protected profileHeroMediaSearchTerm = '';
+  protected profileResumeMediaSearchTerm = '';
 
   ngOnInit(): void {
     this.loadCms();
@@ -360,6 +366,30 @@ export class AdminPageComponent implements OnInit {
     return this.referenceData.mediaFiles.find((item) => item.id === mediaId);
   }
 
+  protected get filteredProjectMediaFiles(): AdminMediaFile[] {
+    return this.filterMediaFiles(this.projectMediaSearchTerm);
+  }
+
+  protected get filteredBlogMediaFiles(): AdminMediaFile[] {
+    return this.filterMediaFiles(this.blogMediaSearchTerm);
+  }
+
+  protected get filteredExperienceMediaFiles(): AdminMediaFile[] {
+    return this.filterMediaFiles(this.experienceMediaSearchTerm);
+  }
+
+  protected get filteredProfileAvatarMediaFiles(): AdminMediaFile[] {
+    return this.filterMediaFiles(this.profileAvatarMediaSearchTerm);
+  }
+
+  protected get filteredProfileHeroMediaFiles(): AdminMediaFile[] {
+    return this.filterMediaFiles(this.profileHeroMediaSearchTerm);
+  }
+
+  protected get filteredProfileResumeMediaFiles(): AdminMediaFile[] {
+    return this.filterMediaFiles(this.profileResumeMediaSearchTerm);
+  }
+
   protected categoryName(categoryId: string): string {
     return this.referenceData.skillCategories.find((item) => item.id === categoryId)?.name ?? 'Unknown category';
   }
@@ -414,6 +444,18 @@ export class AdminPageComponent implements OnInit {
     }
     return this.referenceData.blogTags.filter((tag) =>
       tag.name.toLowerCase().includes(term) || tag.slug.toLowerCase().includes(term)
+    );
+  }
+
+  protected filterMediaFiles(searchTerm: string): AdminMediaFile[] {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) {
+      return this.referenceData.mediaFiles;
+    }
+
+    return this.referenceData.mediaFiles.filter((media) =>
+      [media.title, media.originalFilename, media.objectKey, media.altText, media.bucketName]
+        .some((value) => (value ?? '').toLowerCase().includes(term))
     );
   }
 
