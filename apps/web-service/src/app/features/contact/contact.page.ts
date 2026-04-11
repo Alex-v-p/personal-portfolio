@@ -7,13 +7,11 @@ import { UiButtonComponent } from '../../shared/components/button/ui-button.comp
 import { UiCardComponent } from '../../shared/components/card/ui-card.component';
 import { UiChipComponent } from '../../shared/components/chip/ui-chip.component';
 import { UiLinkButtonComponent } from '../../shared/components/link-button/ui-link-button.component';
-import { CONTACT_METHODS } from '../../shared/mock-data/contact-links.mock';
-import { PROFILE } from '../../shared/mock-data/profile.mock';
 import { ContactMessageDraft } from '../../shared/models/contact-message.model';
 import { ContactMethod } from '../../shared/models/contact-method.model';
 import { Profile } from '../../shared/models/profile.model';
 import { PublicPortfolioApiService } from '../../shared/services/public-portfolio-api.service';
-import { buildContactMethodsFromProfile, mergeProfileWithFallback } from '../../shared/utils/profile-view.util';
+import { buildContactMethodsFromProfile, createEmptyProfile } from '../../shared/utils/profile-view.util';
 
 interface ContactTopic {
   label: string;
@@ -33,8 +31,8 @@ export class ContactPageComponent implements OnInit {
   private readonly portfolioApi = inject(PublicPortfolioApiService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
-  protected profile: Profile = PROFILE;
-  protected contactMethods: ContactMethod[] = CONTACT_METHODS;
+  protected profile: Profile = createEmptyProfile();
+  protected contactMethods: ContactMethod[] = [];
   protected readonly preferredTopics: ContactTopic[] = [
     { label: 'Internships', hint: 'Questions about availability, timing, and current study status.' },
     { label: 'Freelance work', hint: 'Small product sites, portfolio builds, or front-end feature work.' },
@@ -178,11 +176,8 @@ export class ContactPageComponent implements OnInit {
   private loadProfile(): void {
     this.portfolioApi.getProfile().pipe(take(1)).subscribe({
       next: (profile) => {
-        this.profile = mergeProfileWithFallback(profile, PROFILE);
-        const methods = buildContactMethodsFromProfile(this.profile);
-        if (methods.length) {
-          this.contactMethods = methods;
-        }
+        this.profile = profile;
+        this.contactMethods = buildContactMethodsFromProfile(this.profile);
       }
     });
   }

@@ -48,9 +48,14 @@
     </header>
 
     <div class="overflow-hidden rounded-[1.5rem] border border-stone-300 bg-white shadow-[0_12px_30px_rgba(40,31,20,0.08)]">
-      <div class="flex min-h-[21rem] items-end bg-stone-600/90 p-6 text-xs font-semibold uppercase tracking-[0.16em] text-stone-200 sm:p-8">
-        <span class="max-w-[18ch]">{{ post.coverImageAlt }}</span>
+      <div *ngIf="post.coverImageUrl; else postCoverFallback" class="overflow-hidden border-b border-stone-300">
+        <img [src]="post.coverImageUrl" [alt]="post.coverImageAlt" class="max-h-[32rem] w-full object-cover" />
       </div>
+      <ng-template #postCoverFallback>
+        <div class="flex min-h-[21rem] items-end bg-stone-600/90 p-6 text-xs font-semibold uppercase tracking-[0.16em] text-stone-200 sm:p-8">
+          <span class="max-w-[18ch]">{{ post.coverImageAlt }}</span>
+        </div>
+      </ng-template>
 
       <div class="px-6 py-8 sm:px-8">
         <div class="blog-markdown" [innerHTML]="renderedContent"></div>

@@ -1,32 +1,26 @@
-import { NgFor } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { Component, HostListener, OnInit, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { take } from 'rxjs/operators';
 
-import { NAVIGATION_ITEMS } from '../../shared/mock-data/navigation-items.mock';
-import { PROFILE } from '../../shared/mock-data/profile.mock';
-import { SOCIAL_LINKS } from '../../shared/mock-data/social-links.mock';
-import { PublicPortfolioApiService } from '../../shared/services/public-portfolio-api.service';
-import { mergeProfileWithFallback } from '../../shared/utils/profile-view.util';
 import { Profile } from '../../shared/models/profile.model';
+import { SiteShellData } from '../../shared/models/site-shell.model';
+import { PublicPortfolioApiService } from '../../shared/services/public-portfolio-api.service';
+import { createEmptyProfile } from '../../shared/utils/profile-view.util';
 
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [NgFor, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [NgFor, NgIf, RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './app-shell.component.html'
 })
 export class AppShellComponent implements OnInit {
   private readonly portfolioApi = inject(PublicPortfolioApiService);
 
-  protected profile: Profile = PROFILE;
-
-  protected readonly quickLinks = NAVIGATION_ITEMS.filter((item) => item.isVisible).map((item) => ({
-    label: item.label,
-    path: item.routePath
-  }));
-
-  protected readonly footerLinks = [...this.quickLinks];
+  protected profile: Profile = createEmptyProfile();
+  protected shellData: SiteShellData | null = null;
+  protected quickLinks: Array<{ label: string; path: string; isExternal: boolean }> = [];
+  protected footerLinks: Array<{ label: string; path: string; isExternal: boolean }> = [];
 
   protected readonly shellChrome = {
     headerVisible: true,
@@ -39,9 +33,16 @@ export class AppShellComponent implements OnInit {
   private lastScrollY = 0;
 
   ngOnInit(): void {
-    this.portfolioApi.getProfile().pipe(take(1)).subscribe({
-      next: (profile) => {
-        this.profile = mergeProfileWithFallback(profile, PROFILE);
+    this.portfolioApi.getSiteShell().pipe(take(1)).subscribe({
+      next: (shell) => {
+        this.shellData = shell;
+        this.profile = shell.profile;
+        this.quickLinks = shell.navigation.filter((item) => item.isVisible).map((item) => ({
+          label: item.label,
+          path: item.routePath,
+          isExternal: item.isExternal,
+        }));
+        this.footerLinks = [...this.quickLinks];
       }
     });
   }
@@ -53,7 +54,7 @@ export class AppShellComponent implements OnInit {
       items.push({ label: 'Resume', href: this.profile.resumeUrl });
     }
 
-    for (const link of (this.profile.socialLinks ?? SOCIAL_LINKS)) {
+    for (const link of this.profile.socialLinks ?? []) {
       if (['github', 'linkedin'].includes(link.platform)) {
         items.push({ label: link.label, href: link.url });
       }
@@ -63,7 +64,7 @@ export class AppShellComponent implements OnInit {
   }
 
   protected get socialLinks(): Array<{ label: string; href: string; mark: string }> {
-    return (this.profile.socialLinks ?? SOCIAL_LINKS)
+    return (this.profile.socialLinks ?? [])
       .filter((link) => ['email', 'github', 'linkedin'].includes(link.platform))
       .map((link) => ({
         label: link.label,

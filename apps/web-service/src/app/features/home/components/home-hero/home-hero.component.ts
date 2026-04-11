@@ -1,4 +1,4 @@
-import { NgFor } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { Component, Input } from '@angular/core';
 
 import { UiChipComponent } from '../../../../shared/components/chip/ui-chip.component';
@@ -8,7 +8,7 @@ import { Profile } from '../../../../shared/models/profile.model';
 @Component({
   selector: 'app-home-hero-section',
   standalone: true,
-  imports: [NgFor, UiChipComponent, UiLinkButtonComponent],
+  imports: [NgFor, NgIf, UiChipComponent, UiLinkButtonComponent],
   templateUrl: './home-hero.component.html'
 })
 export class HomeHeroSectionComponent {

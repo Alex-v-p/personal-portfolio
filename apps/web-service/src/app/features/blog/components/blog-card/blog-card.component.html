@@ -1,8 +1,13 @@
 <app-ui-card *ngIf="featured; else defaultCard" [featured]="true" padding="lg">
   <div class="grid gap-6 lg:grid-cols-[0.92fr_1.08fr] lg:gap-7">
-    <div class="relative flex min-h-72 items-end rounded-[1.5rem] border border-stone-300 bg-stone-300/80 p-5 text-xs font-semibold uppercase tracking-[0.16em] text-stone-600">
+    <div class="relative min-h-72 overflow-hidden rounded-[1.5rem] border border-stone-300 bg-stone-300/80">
+      <img *ngIf="post.coverImageUrl; else blogFeaturedFallback" [src]="post.coverImageUrl" [alt]="post.coverImageAlt" class="h-full w-full object-cover" />
+      <ng-template #blogFeaturedFallback>
+        <div class="flex h-full items-end p-5 text-xs font-semibold uppercase tracking-[0.16em] text-stone-600">
+          <span class="max-w-[18ch]">{{ placeholderLabel }}</span>
+        </div>
+      </ng-template>
       <app-ui-chip *ngIf="post.isFeatured" tone="accent" class="absolute left-4 top-4">Featured</app-ui-chip>
-      <span class="max-w-[18ch]">{{ placeholderLabel }}</span>
     </div>
 
     <div class="flex h-full flex-col justify-between gap-5">
@@ -34,9 +39,14 @@
 <ng-template #defaultCard>
   <app-ui-card>
     <div class="flex h-full flex-col gap-4">
-      <div class="relative flex aspect-[16/10] items-end rounded-[1.35rem] border border-stone-300 bg-stone-300/80 p-4 text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-stone-600">
+      <div class="relative overflow-hidden rounded-[1.35rem] border border-stone-300 bg-stone-300/80">
+        <img *ngIf="post.coverImageUrl; else blogCardFallback" [src]="post.coverImageUrl" [alt]="post.coverImageAlt" class="aspect-[16/10] w-full object-cover" />
+        <ng-template #blogCardFallback>
+          <div class="relative flex aspect-[16/10] items-end p-4 text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-stone-600">
+            <span class="max-w-[16ch]">{{ placeholderLabel }}</span>
+          </div>
+        </ng-template>
         <app-ui-chip *ngIf="post.isFeatured" tone="accent" class="absolute left-3 top-3">Featured</app-ui-chip>
-        <span class="max-w-[16ch]">{{ placeholderLabel }}</span>
       </div>
 
       <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-stone-500">

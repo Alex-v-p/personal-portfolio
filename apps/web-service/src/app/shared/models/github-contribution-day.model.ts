@@ -1,7 +1,5 @@
 export interface GithubContributionDay {
-  id: string;
-  snapshotId: string;
-  contributionDate: string;
-  contributionCount: number;
+  date: string;
+  count: number;
   level: number;
 }

@@ -1,15 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { NgFor } from '@angular/common';
+import { take } from 'rxjs/operators';
 
 import { UiCardComponent } from '../../shared/components/card/ui-card.component';
-import {
-  CONTRIBUTION_WEEKS,
-  GITHUB_SUMMARY,
-  LATEST_GITHUB_SNAPSHOT,
-  PORTFOLIO_HIGHLIGHTS,
-  PORTFOLIO_STATS
-} from '../../shared/mock-data/stats.mock';
+import { GithubSnapshot } from '../../shared/models/github-snapshot.model';
 import { StatItem } from '../../shared/models/stat-item.model';
+import { PublicPortfolioApiService } from '../../shared/services/public-portfolio-api.service';
 import { StatCardComponent } from './components/stat-card/stat-card.component';
 
 @Component({
@@ -18,14 +14,32 @@ import { StatCardComponent } from './components/stat-card/stat-card.component';
   imports: [NgFor, UiCardComponent, StatCardComponent],
   templateUrl: './stats.page.html'
 })
-export class StatsPageComponent {
-  protected readonly contributionWeeks = CONTRIBUTION_WEEKS;
-  protected readonly githubSummary = GITHUB_SUMMARY;
-  protected readonly latestGithubSnapshot = LATEST_GITHUB_SNAPSHOT;
-  protected readonly portfolioHighlights = PORTFOLIO_HIGHLIGHTS;
-  protected readonly portfolioStats = PORTFOLIO_STATS;
-  protected readonly monthLabels = ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'];
-  protected readonly weekdayLabels = ['Mon', '', 'Wed', '', 'Fri', '', ''];
+export class StatsPageComponent implements OnInit {
+  private readonly portfolioApi = inject(PublicPortfolioApiService);
+
+  protected contributionWeeks: number[][] = [];
+  protected githubSummary: StatItem = { id: 'github-summary', label: 'GitHub activity', value: '0', description: '' };
+  protected latestGithubSnapshot: GithubSnapshot = {
+    id: '', snapshotDate: '', username: '', publicRepoCount: 0, followersCount: 0, followingCount: 0, totalStars: 0, totalCommits: 0, createdAt: '', contributionDays: []
+  };
+  protected portfolioHighlights: StatItem[] = [];
+  protected portfolioStats: StatItem[] = [];
+  protected monthLabels: string[] = [];
+  protected weekdayLabels: string[] = [];
+
+  ngOnInit(): void {
+    this.portfolioApi.getStats().pipe(take(1)).subscribe({
+      next: (stats) => {
+        this.contributionWeeks = stats.contributionWeeks;
+        this.githubSummary = stats.githubSummary;
+        this.latestGithubSnapshot = stats.latestGithubSnapshot;
+        this.portfolioHighlights = stats.portfolioHighlights;
+        this.portfolioStats = stats.portfolioStats;
+        this.monthLabels = stats.monthLabels;
+        this.weekdayLabels = stats.weekdayLabels;
+      }
+    });
+  }
 
   protected getContributionClass(value: number): string {
     const base = 'h-3.5 w-3.5 rounded-[4px] border border-white/30';

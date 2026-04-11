@@ -15,4 +15,5 @@ export interface Experience {
   logoFileId?: string | null;
   logoUrl?: string;
   sortOrder: number;
+  skillNames: string[];
 }

@@ -24,9 +24,14 @@
         </div>
 
         <div class="space-y-4">
-          <div class="flex aspect-[16/10] items-end rounded-[1.4rem] border border-stone-300 bg-stone-300/80 p-4 text-xs font-semibold uppercase tracking-[0.16em] text-stone-600">
-            {{ featuredBlogPost.coverImageAlt }}
+          <div *ngIf="featuredBlogPost.coverImageUrl; else featuredFallback" class="overflow-hidden rounded-[1.4rem] border border-stone-300">
+            <img [src]="featuredBlogPost.coverImageUrl" [alt]="featuredBlogPost.coverImageAlt" class="aspect-[16/10] w-full object-cover" />
           </div>
+          <ng-template #featuredFallback>
+            <div class="flex aspect-[16/10] items-end rounded-[1.4rem] border border-stone-300 bg-stone-300/80 p-4 text-xs font-semibold uppercase tracking-[0.16em] text-stone-600">
+              {{ featuredBlogPost.coverImageAlt }}
+            </div>
+          </ng-template>
           <div class="space-y-3">
             <h3 class="text-2xl font-semibold tracking-tight text-stone-950">{{ featuredBlogPost.title }}</h3>
             <p class="text-sm leading-6 text-stone-600">{{ featuredBlogPost.excerpt }}</p>

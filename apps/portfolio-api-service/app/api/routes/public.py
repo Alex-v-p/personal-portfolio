@@ -5,7 +5,19 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_session
 from app.repositories.public_content_repository import PublicContentRepository
-from app.schemas.public import BlogPostOut, BlogPostsListOut, ProfileOut, ProjectsListOut
+from app.schemas.public import (
+    BlogPostOut,
+    BlogPostsListOut,
+    ExperienceListOut,
+    GithubSnapshotOut,
+    HomeOut,
+    NavigationListOut,
+    ProfileOut,
+    ProjectOut,
+    ProjectsListOut,
+    SiteShellOut,
+    StatsOut,
+)
 
 router = APIRouter()
 
@@ -19,11 +31,45 @@ def get_profile(session: Session = Depends(get_session)) -> ProfileOut:
     return profile
 
 
+@router.get('/navigation', response_model=NavigationListOut)
+def get_navigation(session: Session = Depends(get_session)) -> NavigationListOut:
+    repository = PublicContentRepository(session)
+    items = repository.list_navigation()
+    return NavigationListOut(items=items, total=len(items))
+
+
+@router.get('/site-shell', response_model=SiteShellOut)
+def get_site_shell(session: Session = Depends(get_session)) -> SiteShellOut:
+    repository = PublicContentRepository(session)
+    shell = repository.get_site_shell()
+    if shell is None:
+        raise HTTPException(status_code=404, detail='Site shell not found.')
+    return shell
+
+
+@router.get('/home', response_model=HomeOut)
+def get_home(session: Session = Depends(get_session)) -> HomeOut:
+    repository = PublicContentRepository(session)
+    home = repository.get_home()
+    if home is None:
+        raise HTTPException(status_code=404, detail='Public home content not found.')
+    return home
+
+
 @router.get('/projects', response_model=ProjectsListOut)
 def list_projects(session: Session = Depends(get_session)) -> ProjectsListOut:
     repository = PublicContentRepository(session)
     items = repository.list_projects()
     return ProjectsListOut(items=items, total=len(items))
+
+
+@router.get('/projects/{slug}', response_model=ProjectOut)
+def get_project(slug: str, session: Session = Depends(get_session)) -> ProjectOut:
+    repository = PublicContentRepository(session)
+    project = repository.get_project_by_slug(slug)
+    if project is None:
+        raise HTTPException(status_code=404, detail='Project not found.')
+    return project
 
 
 @router.get('/blog-posts', response_model=BlogPostsListOut)
@@ -39,13 +85,26 @@ def get_blog_post(slug: str, session: Session = Depends(get_session)) -> BlogPos
     post = repository.get_blog_post_by_slug(slug)
     if post is None:
         raise HTTPException(status_code=404, detail='Blog post not found.')
-
     return post
 
 
-@router.get('/experience')
-def list_experience() -> dict:
-    return {
-        'items': [],
-        'message': 'Experience endpoint scaffolded.',
-    }
+@router.get('/experience', response_model=ExperienceListOut)
+def list_experience(session: Session = Depends(get_session)) -> ExperienceListOut:
+    repository = PublicContentRepository(session)
+    items = repository.list_experience()
+    return ExperienceListOut(items=items, total=len(items))
+
+
+@router.get('/github', response_model=GithubSnapshotOut)
+def get_github_snapshot(session: Session = Depends(get_session)) -> GithubSnapshotOut:
+    repository = PublicContentRepository(session)
+    snapshot = repository.get_latest_github_snapshot()
+    if snapshot is None:
+        raise HTTPException(status_code=404, detail='GitHub snapshot not found.')
+    return snapshot
+
+
+@router.get('/stats', response_model=StatsOut)
+def get_stats(session: Session = Depends(get_session)) -> StatsOut:
+    repository = PublicContentRepository(session)
+    return repository.get_stats()
