@@ -251,6 +251,12 @@ export class AdminPageComponent implements OnInit {
   protected profileResumeUploadForm: ScopedUploadForm = this.createEmptyScopedUploadForm();
   protected uploadInProgressKey: string | null = null;
 
+  protected skillSearchTerm = '';
+  protected blogTagSearchTerm = '';
+  protected projectSkillSearchTerm = '';
+  protected experienceSkillSearchTerm = '';
+  protected blogPostTagSearchTerm = '';
+
   ngOnInit(): void {
     this.loadCms();
   }
@@ -356,6 +362,59 @@ export class AdminPageComponent implements OnInit {
 
   protected categoryName(categoryId: string): string {
     return this.referenceData.skillCategories.find((item) => item.id === categoryId)?.name ?? 'Unknown category';
+  }
+
+  protected get filteredSkills(): AdminSkillOption[] {
+    const term = this.skillSearchTerm.trim().toLowerCase();
+    if (!term) {
+      return this.referenceData.skills;
+    }
+    return this.referenceData.skills.filter((skill) => {
+      const category = this.categoryName(skill.categoryId).toLowerCase();
+      return skill.name.toLowerCase().includes(term) || category.includes(term);
+    });
+  }
+
+  protected get filteredBlogTags(): AdminBlogTag[] {
+    const term = this.blogTagSearchTerm.trim().toLowerCase();
+    if (!term) {
+      return this.referenceData.blogTags;
+    }
+    return this.referenceData.blogTags.filter((tag) =>
+      tag.name.toLowerCase().includes(term) || tag.slug.toLowerCase().includes(term)
+    );
+  }
+
+  protected get filteredProjectSkills(): AdminSkillOption[] {
+    const term = this.projectSkillSearchTerm.trim().toLowerCase();
+    if (!term) {
+      return this.referenceData.skills;
+    }
+    return this.referenceData.skills.filter((skill) => {
+      const category = this.categoryName(skill.categoryId).toLowerCase();
+      return skill.name.toLowerCase().includes(term) || category.includes(term);
+    });
+  }
+
+  protected get filteredExperienceSkills(): AdminSkillOption[] {
+    const term = this.experienceSkillSearchTerm.trim().toLowerCase();
+    if (!term) {
+      return this.referenceData.skills;
+    }
+    return this.referenceData.skills.filter((skill) => {
+      const category = this.categoryName(skill.categoryId).toLowerCase();
+      return skill.name.toLowerCase().includes(term) || category.includes(term);
+    });
+  }
+
+  protected get filteredBlogPostTags(): AdminBlogTag[] {
+    const term = this.blogPostTagSearchTerm.trim().toLowerCase();
+    if (!term) {
+      return this.referenceData.blogTags;
+    }
+    return this.referenceData.blogTags.filter((tag) =>
+      tag.name.toLowerCase().includes(term) || tag.slug.toLowerCase().includes(term)
+    );
   }
 
   protected contributionPreview(snapshot: AdminGithubSnapshot): string {
