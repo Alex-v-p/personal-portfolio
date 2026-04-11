@@ -7,14 +7,14 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
 from app.core.config import get_settings
 from app.db.session import reset_database_caches
 from infra.postgres.bootstrap.bootstrap_core import initialize_database
 
+REPO_ROOT = Path(__file__).resolve().parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+    
 
 @pytest.fixture()
 def client(tmp_path: Path) -> TestClient:
