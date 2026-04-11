@@ -56,6 +56,18 @@ class Settings(BaseSettings):
         default=10_485_760,
         validation_alias=AliasChoices('MEDIA_MAX_UPLOAD_BYTES', 'PORTFOLIO_API_MEDIA_MAX_UPLOAD_BYTES'),
     )
+    github_stats_username: str = Field(
+        default='Alex-v-p',
+        validation_alias=AliasChoices('GITHUB_STATS_USERNAME', 'PORTFOLIO_API_GITHUB_STATS_USERNAME'),
+    )
+    github_api_token: str = Field(
+        default='',
+        validation_alias=AliasChoices('GITHUB_API_TOKEN', 'PORTFOLIO_API_GITHUB_API_TOKEN'),
+    )
+    github_stats_lookback_days: int = Field(
+        default=365,
+        validation_alias=AliasChoices('GITHUB_STATS_LOOKBACK_DAYS', 'PORTFOLIO_API_GITHUB_STATS_LOOKBACK_DAYS'),
+    )
 
     model_config = SettingsConfigDict(env_file='.env', extra='ignore')
 

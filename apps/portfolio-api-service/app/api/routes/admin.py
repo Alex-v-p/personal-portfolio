@@ -24,6 +24,7 @@ from app.schemas.admin import (
     AdminExperiencesListOut,
     AdminExperienceUpsertIn,
     AdminGithubSnapshotOut,
+    AdminGithubSnapshotRefreshIn,
     AdminGithubSnapshotsListOut,
     AdminGithubSnapshotUpsertIn,
     AdminLoginIn,
@@ -47,6 +48,7 @@ from app.schemas.admin import (
     AdminUserOut,
     AdminUserUpdateIn,
 )
+from app.services.github_stats_sync import GithubStatsSyncError, GithubStatsSyncService
 from app.services.media_storage import AdminMediaStorageService
 from app.services.security import create_admin_access_token, get_current_admin_user, verify_password
 
@@ -350,6 +352,15 @@ def get_github_snapshot(snapshot_id: UUID, _: AdminUserDependency, session: Sess
 @router.post('/github-snapshots', response_model=AdminGithubSnapshotOut, status_code=status.HTTP_201_CREATED)
 def create_github_snapshot(payload: AdminGithubSnapshotUpsertIn, _: AdminUserDependency, session: Session = Depends(get_session)) -> AdminGithubSnapshotOut:
     return AdminContentRepository(session).create_github_snapshot(payload)
+
+
+@router.post('/github-snapshots/refresh', response_model=AdminGithubSnapshotOut)
+def refresh_github_snapshot(payload: AdminGithubSnapshotRefreshIn, _: AdminUserDependency, session: Session = Depends(get_session)) -> AdminGithubSnapshotOut:
+    try:
+        synced = GithubStatsSyncService().sync_profile(payload.username)
+    except GithubStatsSyncError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    return AdminContentRepository(session).refresh_github_snapshot(synced, prune_history=payload.prune_history)
 
 
 @router.put('/github-snapshots/{snapshot_id}', response_model=AdminGithubSnapshotOut)

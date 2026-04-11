@@ -60,6 +60,7 @@ from app.schemas.admin import (
     AdminUserUpdateIn,
 )
 from app.schemas.public import PublicMediaAssetOut, SkillSummaryOut
+from app.services.github_stats_sync import SyncedGithubSnapshot
 from app.services.media_resolver import PublicMediaUrlResolver
 from app.services.media_storage import StoredMediaObject
 from app.services.security import hash_password
@@ -615,6 +616,62 @@ class AdminContentRepository:
         self.session.delete(snapshot)
         self.session.commit()
         return True
+
+    def refresh_github_snapshot(self, synced_snapshot: SyncedGithubSnapshot, *, prune_history: bool = True) -> AdminGithubSnapshotOut:
+        latest_snapshot = self.session.scalar(
+            select(GithubSnapshot)
+            .options(selectinload(GithubSnapshot.contribution_days))
+            .where(func.lower(GithubSnapshot.username) == synced_snapshot.username.strip().lower())
+            .order_by(GithubSnapshot.snapshot_date.desc(), GithubSnapshot.created_at.desc())
+        )
+
+        if latest_snapshot is None:
+            latest_snapshot = GithubSnapshot(
+                snapshot_date=self._parse_date(synced_snapshot.snapshot_date) or date.today(),
+                username=synced_snapshot.username.strip(),
+                public_repo_count=synced_snapshot.public_repo_count,
+                followers_count=synced_snapshot.followers_count,
+                following_count=synced_snapshot.following_count,
+                total_stars=synced_snapshot.total_stars,
+                total_commits=synced_snapshot.total_commits,
+                raw_payload=synced_snapshot.raw_payload,
+            )
+            self.session.add(latest_snapshot)
+            self.session.flush()
+        else:
+            latest_snapshot.snapshot_date = self._parse_date(synced_snapshot.snapshot_date) or latest_snapshot.snapshot_date
+            latest_snapshot.username = synced_snapshot.username.strip()
+            latest_snapshot.public_repo_count = synced_snapshot.public_repo_count
+            latest_snapshot.followers_count = synced_snapshot.followers_count
+            latest_snapshot.following_count = synced_snapshot.following_count
+            latest_snapshot.total_stars = synced_snapshot.total_stars
+            latest_snapshot.total_commits = synced_snapshot.total_commits
+            latest_snapshot.raw_payload = synced_snapshot.raw_payload
+
+        latest_snapshot.contribution_days.clear()
+        self.session.flush()
+        for day in synced_snapshot.contribution_days:
+            latest_snapshot.contribution_days.append(
+                GithubContributionDay(
+                    contribution_date=self._parse_date(day.date) or date.today(),
+                    contribution_count=day.count,
+                    level=day.level,
+                )
+            )
+        self.session.flush()
+
+        if prune_history:
+            obsolete_snapshots = self.session.scalars(
+                select(GithubSnapshot).where(
+                    func.lower(GithubSnapshot.username) == synced_snapshot.username.strip().lower(),
+                    GithubSnapshot.id != latest_snapshot.id,
+                )
+            ).all()
+            for snapshot in obsolete_snapshots:
+                self.session.delete(snapshot)
+
+        self.session.commit()
+        return self.get_github_snapshot(latest_snapshot.id)  # type: ignore[return-value]
 
     def get_profile(self) -> AdminProfileOut | None:
         profile = self.session.scalar(

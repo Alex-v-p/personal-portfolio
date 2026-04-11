@@ -317,6 +317,11 @@ export interface AdminGithubSnapshotUpsert {
   contributionDays: AdminGithubContributionDay[];
 }
 
+export interface AdminGithubSnapshotRefreshRequest {
+  username?: string | null;
+  pruneHistory: boolean;
+}
+
 export interface AdminContactMessage {
   id: string;
   name: string;

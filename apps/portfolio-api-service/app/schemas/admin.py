@@ -379,6 +379,11 @@ class AdminGithubSnapshotsListOut(ApiSchema):
     total: int
 
 
+class AdminGithubSnapshotRefreshIn(ApiSchema):
+    username: str | None = Field(default=None, max_length=120)
+    prune_history: bool = True
+
+
 class AdminContactMessageOut(ApiSchema):
     id: str
     name: str

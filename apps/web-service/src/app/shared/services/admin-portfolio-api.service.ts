@@ -15,6 +15,7 @@ import {
   AdminExperience,
   AdminExperienceUpsert,
   AdminGithubSnapshot,
+  AdminGithubSnapshotRefreshRequest,
   AdminGithubSnapshotUpsert,
   AdminMediaFile,
   AdminNavigationItem,
@@ -180,6 +181,10 @@ export class AdminPortfolioApiService {
 
   createGithubSnapshot(payload: AdminGithubSnapshotUpsert): Observable<AdminGithubSnapshot> {
     return this.http.post<AdminGithubSnapshot>(`${this.apiBaseUrl}/admin/github-snapshots`, payload);
+  }
+
+  refreshGithubSnapshot(payload: AdminGithubSnapshotRefreshRequest): Observable<AdminGithubSnapshot> {
+    return this.http.post<AdminGithubSnapshot>(`${this.apiBaseUrl}/admin/github-snapshots/refresh`, payload);
   }
 
   updateGithubSnapshot(snapshotId: string, payload: AdminGithubSnapshotUpsert): Observable<AdminGithubSnapshot> {

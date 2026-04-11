@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
+from app.services.github_stats_sync import SyncedGithubContributionDay, SyncedGithubSnapshot
+
 
 ADMIN_EMAIL = 'admin@example.com'
 ADMIN_PASSWORD = 'test-admin-pass'
@@ -353,3 +355,46 @@ def test_admin_can_read_and_mark_contact_messages(client: TestClient) -> None:
     )
     assert mark_response.status_code == 200
     assert mark_response.json()['isRead'] is True
+
+
+def test_admin_can_refresh_github_snapshot_from_github(client: TestClient, monkeypatch) -> None:
+    token = _admin_token(client)
+    headers = {'Authorization': f'Bearer {token}'}
+
+    call_count = {'value': 0}
+
+    def fake_sync_profile(self, username: str | None = None) -> SyncedGithubSnapshot:
+        call_count['value'] += 1
+        return SyncedGithubSnapshot(
+            snapshot_date='2026-04-11',
+            username=username or 'Alex-v-p',
+            public_repo_count=5,
+            followers_count=3,
+            following_count=1,
+            total_stars=9,
+            total_commits=14 + call_count['value'],
+            raw_payload={'source': 'test-refresh', 'run': call_count['value']},
+            contribution_days=[
+                SyncedGithubContributionDay(date='2026-04-10', count=4, level=2),
+                SyncedGithubContributionDay(date='2026-04-11', count=6 + call_count['value'], level=3),
+            ],
+        )
+
+    monkeypatch.setattr('app.api.routes.admin.GithubStatsSyncService.sync_profile', fake_sync_profile)
+
+    first_response = client.post('/api/admin/github-snapshots/refresh', headers=headers, json={'username': 'Alex-v-p', 'pruneHistory': True})
+    assert first_response.status_code == 200
+    first_snapshot = first_response.json()
+    assert first_snapshot['username'] == 'Alex-v-p'
+    assert first_snapshot['totalCommits'] == 15
+
+    second_response = client.post('/api/admin/github-snapshots/refresh', headers=headers, json={'username': 'Alex-v-p', 'pruneHistory': True})
+    assert second_response.status_code == 200
+    second_snapshot = second_response.json()
+    assert second_snapshot['totalCommits'] == 16
+
+    listing_response = client.get('/api/admin/github-snapshots', headers=headers)
+    assert listing_response.status_code == 200
+    matching_snapshots = [item for item in listing_response.json()['items'] if item['username'] == 'Alex-v-p']
+    assert len(matching_snapshots) == 1
+    assert matching_snapshots[0]['id'] == second_snapshot['id']

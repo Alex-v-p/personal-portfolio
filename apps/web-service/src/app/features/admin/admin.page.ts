@@ -242,6 +242,7 @@ export class AdminPageComponent implements OnInit {
   protected navigationItemForm: AdminNavigationItemForm = this.createEmptyNavigationItemForm();
   protected adminUserForm: AdminUserForm = this.createEmptyAdminUserForm();
   protected githubSnapshotForm: AdminGithubSnapshotForm = this.createEmptyGithubSnapshotForm();
+  protected isRefreshingGithub = false;
 
   protected projectUploadForm: ScopedUploadForm = this.createEmptyScopedUploadForm();
   protected blogUploadForm: ScopedUploadForm = this.createEmptyScopedUploadForm();
@@ -250,18 +251,6 @@ export class AdminPageComponent implements OnInit {
   protected profileHeroUploadForm: ScopedUploadForm = this.createEmptyScopedUploadForm();
   protected profileResumeUploadForm: ScopedUploadForm = this.createEmptyScopedUploadForm();
   protected uploadInProgressKey: string | null = null;
-
-  protected skillSearchTerm = '';
-  protected blogTagSearchTerm = '';
-  protected projectSkillSearchTerm = '';
-  protected experienceSkillSearchTerm = '';
-  protected blogPostTagSearchTerm = '';
-  protected projectMediaSearchTerm = '';
-  protected blogMediaSearchTerm = '';
-  protected experienceMediaSearchTerm = '';
-  protected profileAvatarMediaSearchTerm = '';
-  protected profileHeroMediaSearchTerm = '';
-  protected profileResumeMediaSearchTerm = '';
 
   ngOnInit(): void {
     this.loadCms();
@@ -366,97 +355,8 @@ export class AdminPageComponent implements OnInit {
     return this.referenceData.mediaFiles.find((item) => item.id === mediaId);
   }
 
-  protected get filteredProjectMediaFiles(): AdminMediaFile[] {
-    return this.filterMediaFiles(this.projectMediaSearchTerm);
-  }
-
-  protected get filteredBlogMediaFiles(): AdminMediaFile[] {
-    return this.filterMediaFiles(this.blogMediaSearchTerm);
-  }
-
-  protected get filteredExperienceMediaFiles(): AdminMediaFile[] {
-    return this.filterMediaFiles(this.experienceMediaSearchTerm);
-  }
-
-  protected get filteredProfileAvatarMediaFiles(): AdminMediaFile[] {
-    return this.filterMediaFiles(this.profileAvatarMediaSearchTerm);
-  }
-
-  protected get filteredProfileHeroMediaFiles(): AdminMediaFile[] {
-    return this.filterMediaFiles(this.profileHeroMediaSearchTerm);
-  }
-
-  protected get filteredProfileResumeMediaFiles(): AdminMediaFile[] {
-    return this.filterMediaFiles(this.profileResumeMediaSearchTerm);
-  }
-
   protected categoryName(categoryId: string): string {
     return this.referenceData.skillCategories.find((item) => item.id === categoryId)?.name ?? 'Unknown category';
-  }
-
-  protected get filteredSkills(): AdminSkillOption[] {
-    const term = this.skillSearchTerm.trim().toLowerCase();
-    if (!term) {
-      return this.referenceData.skills;
-    }
-    return this.referenceData.skills.filter((skill) => {
-      const category = this.categoryName(skill.categoryId).toLowerCase();
-      return skill.name.toLowerCase().includes(term) || category.includes(term);
-    });
-  }
-
-  protected get filteredBlogTags(): AdminBlogTag[] {
-    const term = this.blogTagSearchTerm.trim().toLowerCase();
-    if (!term) {
-      return this.referenceData.blogTags;
-    }
-    return this.referenceData.blogTags.filter((tag) =>
-      tag.name.toLowerCase().includes(term) || tag.slug.toLowerCase().includes(term)
-    );
-  }
-
-  protected get filteredProjectSkills(): AdminSkillOption[] {
-    const term = this.projectSkillSearchTerm.trim().toLowerCase();
-    if (!term) {
-      return this.referenceData.skills;
-    }
-    return this.referenceData.skills.filter((skill) => {
-      const category = this.categoryName(skill.categoryId).toLowerCase();
-      return skill.name.toLowerCase().includes(term) || category.includes(term);
-    });
-  }
-
-  protected get filteredExperienceSkills(): AdminSkillOption[] {
-    const term = this.experienceSkillSearchTerm.trim().toLowerCase();
-    if (!term) {
-      return this.referenceData.skills;
-    }
-    return this.referenceData.skills.filter((skill) => {
-      const category = this.categoryName(skill.categoryId).toLowerCase();
-      return skill.name.toLowerCase().includes(term) || category.includes(term);
-    });
-  }
-
-  protected get filteredBlogPostTags(): AdminBlogTag[] {
-    const term = this.blogPostTagSearchTerm.trim().toLowerCase();
-    if (!term) {
-      return this.referenceData.blogTags;
-    }
-    return this.referenceData.blogTags.filter((tag) =>
-      tag.name.toLowerCase().includes(term) || tag.slug.toLowerCase().includes(term)
-    );
-  }
-
-  protected filterMediaFiles(searchTerm: string): AdminMediaFile[] {
-    const term = searchTerm.trim().toLowerCase();
-    if (!term) {
-      return this.referenceData.mediaFiles;
-    }
-
-    return this.referenceData.mediaFiles.filter((media) =>
-      [media.title, media.originalFilename, media.objectKey, media.altText, media.bucketName]
-        .some((value) => (value ?? '').toLowerCase().includes(term))
-    );
   }
 
   protected contributionPreview(snapshot: AdminGithubSnapshot): string {
@@ -987,6 +887,27 @@ export class AdminPageComponent implements OnInit {
     this.githubSnapshotForm = this.createEmptyGithubSnapshotForm();
   }
 
+  protected refreshGithubSnapshot(): void {
+    this.isRefreshingGithub = true;
+    this.statusMessage = '';
+    this.adminApi.refreshGithubSnapshot({
+      username: this.githubSnapshotForm.username.trim() || null,
+      pruneHistory: true,
+    }).pipe(take(1)).subscribe({
+      next: (snapshot) => {
+        this.isRefreshingGithub = false;
+        this.selectedGithubSnapshotId = snapshot.id;
+        this.githubSnapshotForm = this.toGithubSnapshotForm(snapshot);
+        this.statusMessage = 'GitHub stats refreshed from the latest public profile data.';
+        this.loadCms();
+      },
+      error: (error) => {
+        this.isRefreshingGithub = false;
+        this.statusMessage = error?.error?.detail || 'Refreshing GitHub stats failed.';
+      }
+    });
+  }
+
   protected saveGithubSnapshot(): void {
     let rawPayload: Record<string, unknown> | null = null;
     let contributionDays: AdminGithubContributionDay[] = [];
@@ -1325,7 +1246,7 @@ export class AdminPageComponent implements OnInit {
   private createEmptyGithubSnapshotForm(): AdminGithubSnapshotForm {
     return {
       snapshotDate: '',
-      username: '',
+      username: 'Alex-v-p',
       publicRepoCount: 0,
       followersCount: null,
       followingCount: null,
