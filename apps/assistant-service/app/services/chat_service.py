@@ -102,8 +102,8 @@ class ChatService:
                 "Try asking about a project, blog post, skill, experience, or the overall portfolio."
             )
 
-        lead = f"Based on the indexed portfolio content, here's the clearest match for '{question.strip()}':"
+        lead = f"Here are the most relevant indexed matches I found for '{question.strip()}':"
         highlights = []
         for citation in citations[:3]:
-            highlights.append(f"{citation.title}: {citation.excerpt}")
-        return f"{lead} {' '.join(highlights)}"
+            highlights.append(f"• {citation.title} ({citation.source_type}): {citation.excerpt}")
+        return f"{lead}\n\n" + '\n'.join(highlights)

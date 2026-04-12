@@ -34,7 +34,7 @@
   </main>
 
   <div *ngIf="!isAdminRoute" [class]="assistantButtonClasses">
-    <div *ngIf="isAssistantOpen" class="mb-4 w-[min(24rem,calc(100vw-2rem))] sm:w-[24rem]">
+    <div *ngIf="isAssistantOpen" class="mb-4 w-[min(36rem,calc(100vw-1.5rem))] sm:w-[32rem] lg:w-[34rem]">
       <app-assistant-panel mode="widget" (close)="closeAssistant()"></app-assistant-panel>
     </div>
 

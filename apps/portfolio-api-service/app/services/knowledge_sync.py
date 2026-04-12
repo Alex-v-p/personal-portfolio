@@ -1,13 +1,16 @@
 from __future__ import annotations
 
+import math
 import re
 from collections import Counter
 from dataclasses import dataclass
 from uuid import uuid4
 
+import httpx
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session, selectinload
 
+from app.core.config import get_settings
 from app.db.models import (
     BlogPost,
     BlogPostTag,
@@ -30,9 +33,84 @@ class KnowledgeSyncReport:
     latest_updated_at: str | None
 
 
+class KnowledgeEmbeddingClient:
+    def __init__(self) -> None:
+        self.settings = get_settings()
+        self._disabled_reason: str | None = None
+
+    @property
+    def is_enabled(self) -> bool:
+        return self.settings.knowledge_embedding_backend.strip().lower() not in {'', 'none', 'disabled'} and self._disabled_reason is None
+
+    def embed(self, text: str) -> str | None:
+        if not text.strip() or not self.is_enabled:
+            return None
+
+        backend = self.settings.knowledge_embedding_backend.strip().lower()
+        try:
+            if backend == 'ollama':
+                vector = self._embed_with_ollama(text)
+            elif backend in {'openai-compatible', 'openai_compatible', 'vllm'}:
+                vector = self._embed_with_openai_compatible(text)
+            else:
+                self._disabled_reason = f'Unsupported embedding backend: {backend}'
+                return None
+        except Exception as exc:  # pragma: no cover - graceful degradation for missing model/provider
+            self._disabled_reason = str(exc)
+            return None
+
+        return self._format_vector(vector) if vector else None
+
+    def _embed_with_ollama(self, text: str) -> list[float]:
+        with httpx.Client(timeout=self.settings.knowledge_embedding_timeout_seconds) as client:
+            response = client.post(
+                f"{self.settings.knowledge_embedding_base_url.rstrip('/')}/api/embed",
+                json={
+                    'model': self.settings.knowledge_embedding_model,
+                    'input': text,
+                },
+            )
+            response.raise_for_status()
+            payload = response.json()
+        embeddings = payload.get('embeddings') or []
+        if embeddings and isinstance(embeddings[0], list):
+            return [float(value) for value in embeddings[0]]
+        embedding = payload.get('embedding') or []
+        return [float(value) for value in embedding]
+
+    def _embed_with_openai_compatible(self, text: str) -> list[float]:
+        headers = {'Content-Type': 'application/json'}
+        if self.settings.knowledge_embedding_api_key.strip():
+            headers['Authorization'] = f"Bearer {self.settings.knowledge_embedding_api_key.strip()}"
+        with httpx.Client(timeout=self.settings.knowledge_embedding_timeout_seconds) as client:
+            response = client.post(
+                f"{self.settings.knowledge_embedding_base_url.rstrip('/')}/v1/embeddings",
+                headers=headers,
+                json={
+                    'model': self.settings.knowledge_embedding_model,
+                    'input': text,
+                },
+            )
+            response.raise_for_status()
+            payload = response.json()
+        data = payload.get('data') or []
+        if not data:
+            return []
+        embedding = data[0].get('embedding') or []
+        return [float(value) for value in embedding]
+
+    def _format_vector(self, vector: list[float]) -> str:
+        if not vector:
+            return '[]'
+        norm = math.sqrt(sum(value * value for value in vector))
+        normalized = vector if norm == 0 else [value / norm for value in vector]
+        return '[' + ','.join(f'{value:.8f}' for value in normalized) + ']'
+
+
 class KnowledgeSyncService:
     def __init__(self, session: Session) -> None:
         self.session = session
+        self.embedding_client = KnowledgeEmbeddingClient()
 
     def rebuild(self) -> KnowledgeSyncReport:
         self.session.execute(delete(KnowledgeChunk))
@@ -52,7 +130,7 @@ class KnowledgeSyncService:
                         document_id=document.id,
                         chunk_index=index,
                         chunk_text=chunk_text,
-                        embedding_vector=None,
+                        embedding_vector=self.embedding_client.embed(chunk_text),
                         metadata_json={'source_type': document.source_type.value, **(document.metadata_json or {})},
                     )
                 )
@@ -238,7 +316,7 @@ class KnowledgeSyncService:
             },
         )
 
-    def _chunk_markdown(self, markdown: str, chunk_target_chars: int = 650) -> list[str]:
+    def _chunk_markdown(self, markdown: str, chunk_target_chars: int = 550) -> list[str]:
         normalized = re.sub(r'\n{3,}', '\n\n', markdown or '').strip()
         if not normalized:
             return []

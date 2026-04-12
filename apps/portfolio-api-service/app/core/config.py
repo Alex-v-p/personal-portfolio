@@ -69,6 +69,27 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices('GITHUB_STATS_LOOKBACK_DAYS', 'PORTFOLIO_API_GITHUB_STATS_LOOKBACK_DAYS'),
     )
 
+    knowledge_embedding_backend: str = Field(
+        default='ollama',
+        validation_alias=AliasChoices('KNOWLEDGE_EMBEDDING_BACKEND', 'PORTFOLIO_API_KNOWLEDGE_EMBEDDING_BACKEND'),
+    )
+    knowledge_embedding_model: str = Field(
+        default='nomic-embed-text',
+        validation_alias=AliasChoices('KNOWLEDGE_EMBEDDING_MODEL', 'PORTFOLIO_API_KNOWLEDGE_EMBEDDING_MODEL'),
+    )
+    knowledge_embedding_base_url: str = Field(
+        default='http://ollama:11434',
+        validation_alias=AliasChoices('KNOWLEDGE_EMBEDDING_BASE_URL', 'PORTFOLIO_API_KNOWLEDGE_EMBEDDING_BASE_URL'),
+    )
+    knowledge_embedding_api_key: str = Field(
+        default='',
+        validation_alias=AliasChoices('KNOWLEDGE_EMBEDDING_API_KEY', 'PORTFOLIO_API_KNOWLEDGE_EMBEDDING_API_KEY'),
+    )
+    knowledge_embedding_timeout_seconds: float = Field(
+        default=20.0,
+        validation_alias=AliasChoices('KNOWLEDGE_EMBEDDING_TIMEOUT_SECONDS', 'PORTFOLIO_API_KNOWLEDGE_EMBEDDING_TIMEOUT_SECONDS'),
+    )
+
     model_config = SettingsConfigDict(env_file='.env', extra='ignore')
 
     @computed_field  # type: ignore[prop-decorator]

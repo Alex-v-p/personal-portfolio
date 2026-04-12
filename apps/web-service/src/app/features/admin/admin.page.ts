@@ -904,13 +904,28 @@ export class AdminPageComponent implements OnInit {
     this.statusMessage = '';
     this.adminApi.rebuildAssistantKnowledge().pipe(take(1)).subscribe({
       next: (status) => {
-        this.isRebuildingAssistantKnowledge = false;
         this.assistantKnowledgeStatus = status;
         this.statusMessage = 'Assistant knowledge index rebuilt from the latest portfolio content.';
+        this.refreshAssistantKnowledgeStatus();
       },
       error: (error) => {
         this.isRebuildingAssistantKnowledge = false;
         this.statusMessage = error?.error?.detail || 'Rebuilding the assistant knowledge index failed.';
+        this.changeDetectorRef.detectChanges();
+      }
+    });
+  }
+
+  private refreshAssistantKnowledgeStatus(): void {
+    this.adminApi.getAssistantKnowledgeStatus().pipe(take(1)).subscribe({
+      next: (status) => {
+        this.assistantKnowledgeStatus = status;
+        this.isRebuildingAssistantKnowledge = false;
+        this.changeDetectorRef.detectChanges();
+      },
+      error: () => {
+        this.isRebuildingAssistantKnowledge = false;
+        this.changeDetectorRef.detectChanges();
       }
     });
   }

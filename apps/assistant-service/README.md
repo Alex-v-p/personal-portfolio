@@ -13,7 +13,7 @@ FastAPI service for the portfolio assistant.
 ## Useful environment variables
 
 - `ASSISTANT_PROVIDER_BACKEND=mock|ollama|openai-compatible`
-- `ASSISTANT_PROVIDER_MODEL=llama3.1:8b`
+- `ASSISTANT_PROVIDER_MODEL=qwen2.5:3b`
 - `ASSISTANT_PROVIDER_BASE_URL=http://ollama:11434`
 - `ASSISTANT_PROVIDER_API_KEY=`
 

@@ -29,7 +29,7 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices('ASSISTANT_PROVIDER_BACKEND', 'PROVIDER_BACKEND'),
     )
     provider_model: str = Field(
-        default='llama3.1:8b',
+        default='qwen2.5:3b',
         validation_alias=AliasChoices('ASSISTANT_PROVIDER_MODEL', 'PROVIDER_MODEL'),
     )
     provider_base_url: str = Field(
@@ -51,6 +51,27 @@ class Settings(BaseSettings):
     max_history_messages: int = Field(
         default=10,
         validation_alias=AliasChoices('ASSISTANT_MAX_HISTORY_MESSAGES', 'MAX_HISTORY_MESSAGES'),
+    )
+
+    retrieval_embedding_backend: str = Field(
+        default='ollama',
+        validation_alias=AliasChoices('ASSISTANT_RETRIEVAL_EMBEDDING_BACKEND', 'RETRIEVAL_EMBEDDING_BACKEND'),
+    )
+    retrieval_embedding_model: str = Field(
+        default='nomic-embed-text',
+        validation_alias=AliasChoices('ASSISTANT_RETRIEVAL_EMBEDDING_MODEL', 'RETRIEVAL_EMBEDDING_MODEL'),
+    )
+    retrieval_embedding_base_url: str = Field(
+        default='http://ollama:11434',
+        validation_alias=AliasChoices('ASSISTANT_RETRIEVAL_EMBEDDING_BASE_URL', 'RETRIEVAL_EMBEDDING_BASE_URL'),
+    )
+    retrieval_embedding_api_key: str = Field(
+        default='',
+        validation_alias=AliasChoices('ASSISTANT_RETRIEVAL_EMBEDDING_API_KEY', 'RETRIEVAL_EMBEDDING_API_KEY'),
+    )
+    retrieval_embedding_timeout_seconds: float = Field(
+        default=20.0,
+        validation_alias=AliasChoices('ASSISTANT_RETRIEVAL_EMBEDDING_TIMEOUT_SECONDS', 'RETRIEVAL_EMBEDDING_TIMEOUT_SECONDS'),
     )
 
     model_config = SettingsConfigDict(env_file='.env', extra='ignore')
