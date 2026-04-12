@@ -14,5 +14,6 @@ def respond(payload: ChatRequest, session: Session = Depends(get_session)) -> Ch
         message=payload.message,
         conversation_id=payload.conversation_id,
         session_id=payload.session_id,
+        page_path=payload.page_path,
     )
     return ChatResponse(**result)

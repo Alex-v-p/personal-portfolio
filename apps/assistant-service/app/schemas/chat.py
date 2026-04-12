@@ -1,43 +1,43 @@
 from __future__ import annotations
 
-from pydantic import Field
+from pydantic import AliasChoices, Field
 
 from app.schemas.base import ApiSchema
 
 
 class CitationOut(ApiSchema):
     title: str
-    source_type: str
-    canonical_url: str | None = None
+    source_type: str = Field(serialization_alias='sourceType')
+    canonical_url: str | None = Field(default=None, serialization_alias='canonicalUrl')
     excerpt: str
 
 
 class ChatMessageOut(ApiSchema):
     role: str
     text: str
-    created_at: str | None = None
+    created_at: str | None = Field(default=None, serialization_alias='createdAt')
     citations: list[CitationOut] = Field(default_factory=list)
 
 
 class ChatRequest(ApiSchema):
     message: str = Field(min_length=1, max_length=4000)
-    conversation_id: str | None = None
-    session_id: str | None = None
-    page_path: str | None = None
+    conversation_id: str | None = Field(default=None, validation_alias=AliasChoices('conversation_id', 'conversationId'))
+    session_id: str | None = Field(default=None, validation_alias=AliasChoices('session_id', 'sessionId'))
+    page_path: str | None = Field(default=None, validation_alias=AliasChoices('page_path', 'pagePath'))
 
 
 class ChatResponse(ApiSchema):
-    conversation_id: str
+    conversation_id: str = Field(serialization_alias='conversationId')
     message: str
-    provider_backend: str
+    provider_backend: str = Field(serialization_alias='providerBackend')
     citations: list[CitationOut] = Field(default_factory=list)
 
 
 class ConversationOut(ApiSchema):
     id: str
-    session_id: str
-    started_at: str
-    last_message_at: str
+    session_id: str = Field(serialization_alias='sessionId')
+    started_at: str = Field(serialization_alias='startedAt')
+    last_message_at: str = Field(serialization_alias='lastMessageAt')
     messages: list[ChatMessageOut] = Field(default_factory=list)
 
 
@@ -49,12 +49,12 @@ class ConversationsListOut(ApiSchema):
 class ProviderStatusOut(ApiSchema):
     backend: str
     model: str
-    base_url: str | None = None
+    base_url: str | None = Field(default=None, serialization_alias='baseUrl')
     configured: bool
 
 
 class KnowledgeStatusOut(ApiSchema):
-    total_documents: int
-    total_chunks: int
-    documents_by_source_type: dict[str, int] = Field(default_factory=dict)
-    latest_updated_at: str | None = None
+    total_documents: int = Field(serialization_alias='totalDocuments')
+    total_chunks: int = Field(serialization_alias='totalChunks')
+    documents_by_source_type: dict[str, int] = Field(default_factory=dict, serialization_alias='documentsBySourceType')
+    latest_updated_at: str | None = Field(default=None, serialization_alias='latestUpdatedAt')

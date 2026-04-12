@@ -39,6 +39,8 @@ services:
         condition: service_completed_successfully
       minio-init:
         condition: service_completed_successfully
+      ollama:
+        condition: service_started
 
   portfolio-api:
     build:
@@ -116,6 +118,8 @@ services:
         condition: service_started
       portfolio-db-init:
         condition: service_completed_successfully
+      ollama:
+        condition: service_started
 
 
   ollama:

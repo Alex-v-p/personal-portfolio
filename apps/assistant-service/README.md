@@ -20,3 +20,8 @@ FastAPI service for the portfolio assistant.
 ## CMS workflow
 
 The portfolio CMS rebuilds the assistant knowledge index through the portfolio API. After content changes, use the **Assistant** tab in the CMS to rebuild the searchable index.
+
+
+Notes:
+- Docker Compose reads the root `.env` file for the assistant container. Changing only `apps/assistant-service/.env` will not change the container's backend when running through Compose.
+- With the Ollama backend enabled, successful generation requests show up as `POST /api/chat` in the Ollama logs. Embedding requests show up as `POST /api/embed`.

@@ -55,11 +55,12 @@ export class AssistantApiService {
 
     this.http.post<AssistantChatResponse>(`${this.assistantApiBaseUrl}/chat/respond`, {
       message,
-      conversationId: this.snapshot.conversationId,
-      sessionId: this.getOrCreateSessionId(),
-      pagePath: pagePath ?? this.router.url,
+      conversation_id: this.snapshot.conversationId,
+      session_id: this.getOrCreateSessionId(),
+      page_path: pagePath ?? this.router.url,
     }).subscribe({
       next: (response) => {
+        const normalizedResponse = response as AssistantChatResponse & { conversation_id?: string; provider_backend?: string };
         const assistantMessage: AssistantChatMessage = {
           role: 'assistant',
           text: response.message,
@@ -67,7 +68,7 @@ export class AssistantApiService {
           citations: response.citations ?? [],
         };
         this.patchState({
-          conversationId: response.conversationId,
+          conversationId: normalizedResponse.conversationId ?? normalizedResponse.conversation_id ?? null,
           messages: [...this.snapshot.messages, assistantMessage],
           isLoading: false,
           errorMessage: null,
@@ -96,6 +97,9 @@ export class AssistantApiService {
       isLoading: false,
       errorMessage: null,
     };
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.removeItem(ASSISTANT_SESSION_STORAGE_KEY);
+    }
     this.stateSubject.next(emptyState);
     this.persistState(emptyState);
   }
