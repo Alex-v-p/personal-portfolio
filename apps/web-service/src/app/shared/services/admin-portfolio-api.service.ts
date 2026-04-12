@@ -78,6 +78,10 @@ export class AdminPortfolioApiService {
     return this.http.post<AdminMediaFile>(`${this.apiBaseUrl}/admin/media-files/upload`, formData);
   }
 
+  deleteMediaFile(mediaId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiBaseUrl}/admin/media-files/${mediaId}`);
+  }
+
   listSkillCategories(): Observable<AdminSkillCategory[]> {
     return this.http.get<AdminSkillCategory[]>(`${this.apiBaseUrl}/admin/skill-categories`);
   }

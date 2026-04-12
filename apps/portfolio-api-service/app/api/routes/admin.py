@@ -134,6 +134,24 @@ async def upload_media_file(
         raise
 
 
+@router.delete('/media-files/{media_id}', status_code=status.HTTP_204_NO_CONTENT, response_model=None)
+def delete_media_file(media_id: UUID, _: AdminUserDependency, session: Session = Depends(get_session)) -> None:
+    repository = AdminContentRepository(session)
+    media_file = repository.get_media_file(media_id)
+    if media_file is None:
+        raise HTTPException(status_code=404, detail='Media file not found.')
+
+    storage_service = AdminMediaStorageService()
+    try:
+        storage_service.delete_object(bucket_name=media_file.bucket_name, object_key=media_file.object_key)
+    except Exception:
+        pass
+
+    deleted = repository.delete_media_file(media_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail='Media file not found.')
+
+
 @router.get('/skill-categories', response_model=list[AdminSkillCategoryOut])
 def list_skill_categories(_: AdminUserDependency, session: Session = Depends(get_session)) -> list[AdminSkillCategoryOut]:
     return AdminContentRepository(session).list_skill_categories()

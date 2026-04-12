@@ -186,6 +186,7 @@ export class AdminPageComponent implements OnInit {
 
   protected readonly tabs = [
     { id: 'overview', label: 'Overview' },
+    { id: 'media', label: 'Media' },
     { id: 'projects', label: 'Projects' },
     { id: 'blog', label: 'Blog' },
     { id: 'taxonomy', label: 'Taxonomy' },
@@ -255,6 +256,7 @@ export class AdminPageComponent implements OnInit {
   protected messageSourceFilter = 'all';
   protected updatingMessageIds: string[] = [];
 
+  protected selectedMediaFileId: string | null = null;
   protected selectedProjectId: string | null = null;
   protected selectedBlogPostId: string | null = null;
   protected selectedSkillCategoryId: string | null = null;
@@ -287,6 +289,11 @@ export class AdminPageComponent implements OnInit {
   protected profileResumeUploadForm: ScopedUploadForm = this.createEmptyScopedUploadForm();
   protected uploadInProgressKey: string | null = null;
   protected blogMediaSearchTerm = '';
+  protected mediaSearchTerm = '';
+  protected mediaVisibilityFilter: 'all' | 'public' | 'private' | 'signed' = 'all';
+  protected mediaKindFilter: 'all' | 'image' | 'document' | 'video' | 'audio' | 'archive' | 'other' = 'all';
+  protected mediaFolderFilter = 'all';
+  protected deletingMediaFileIds: string[] = [];
 
   ngOnInit(): void {
     this.loadCms();
@@ -294,6 +301,9 @@ export class AdminPageComponent implements OnInit {
 
   protected setActiveTab(tabId: typeof this.activeTab): void {
     this.activeTab = tabId;
+    if (tabId === 'media' && !this.selectedMediaFileId) {
+      this.selectedMediaFileId = this.filteredMediaFiles[0]?.id ?? this.referenceData.mediaFiles[0]?.id ?? null;
+    }
   }
 
   protected logout(): void {
@@ -302,6 +312,7 @@ export class AdminPageComponent implements OnInit {
 
   protected loadCms(): void {
     const currentSelections = {
+      mediaFile: this.selectedMediaFileId,
       project: this.selectedProjectId,
       blogPost: this.selectedBlogPostId,
       skillCategory: this.selectedSkillCategoryId,
@@ -354,6 +365,7 @@ export class AdminPageComponent implements OnInit {
           this.assistantKnowledgeStatus = result.assistantKnowledgeStatus;
           this.siteActivity = result.siteActivity;
 
+          this.selectedMediaFileId = this.resolveSelection(currentSelections.mediaFile, this.referenceData.mediaFiles) ?? this.referenceData.mediaFiles[0]?.id ?? null;
           this.selectedProjectId = this.resolveSelection(currentSelections.project, this.projects);
           this.selectedBlogPostId = this.resolveSelection(currentSelections.blogPost, this.blogPosts);
           this.selectedSkillCategoryId = this.resolveSelection(currentSelections.skillCategory, this.referenceData.skillCategories);
@@ -414,6 +426,41 @@ export class AdminPageComponent implements OnInit {
       .filter((media) => this.isImageMedia(media))
       .filter((media) => this.matchesSearch([media.title, media.altText, media.originalFilename, media.objectKey], this.blogMediaSearchTerm))
       .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+  }
+
+  protected get mediaFolderOptions(): string[] {
+    return Array.from(
+      new Set(
+        this.referenceData.mediaFiles
+          .map((media) => this.mediaFolder(media))
+          .filter((folder) => folder !== 'root')
+      )
+    ).sort((left, right) => left.localeCompare(right));
+  }
+
+  protected get filteredMediaFiles(): AdminMediaFile[] {
+    return [...this.referenceData.mediaFiles]
+      .filter((media) => this.mediaVisibilityFilter === 'all' || media.visibility === this.mediaVisibilityFilter)
+      .filter((media) => this.mediaKindFilter === 'all' || this.mediaKind(media) === this.mediaKindFilter)
+      .filter((media) => this.mediaFolderFilter === 'all' || this.mediaFolder(media) === this.mediaFolderFilter)
+      .filter((media) => this.matchesSearch([media.title, media.altText, media.originalFilename, media.objectKey, this.mediaFolder(media)], this.mediaSearchTerm))
+      .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+  }
+
+  protected get filteredMediaCount(): number {
+    return this.filteredMediaFiles.length;
+  }
+
+  protected get imageMediaCount(): number {
+    return this.referenceData.mediaFiles.filter((media) => this.mediaKind(media) === 'image').length;
+  }
+
+  protected get documentMediaCount(): number {
+    return this.referenceData.mediaFiles.filter((media) => this.mediaKind(media) === 'document').length;
+  }
+
+  protected get selectedMediaFile(): AdminMediaFile | null {
+    return this.referenceData.mediaFiles.find((media) => media.id === this.selectedMediaFileId) ?? null;
   }
 
   protected get messageSourceOptions(): string[] {
@@ -521,6 +568,94 @@ export class AdminPageComponent implements OnInit {
 
   protected mediaPreview(mediaId: string | null | undefined): AdminMediaFile | undefined {
     return this.referenceData.mediaFiles.find((item) => item.id === mediaId);
+  }
+
+  protected selectMediaFile(mediaId: string): void {
+    this.selectedMediaFileId = mediaId;
+    this.statusMessage = '';
+  }
+
+  protected clearMediaFilters(): void {
+    this.mediaSearchTerm = '';
+    this.mediaVisibilityFilter = 'all';
+    this.mediaKindFilter = 'all';
+    this.mediaFolderFilter = 'all';
+  }
+
+  protected isDeletingMediaFile(mediaId: string): boolean {
+    return this.deletingMediaFileIds.includes(mediaId);
+  }
+
+  protected deleteSelectedMediaFile(): void {
+    const media = this.selectedMediaFile;
+    if (!media) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Delete "${media.title || media.originalFilename}"? This removes the media record from the CMS and attempts to delete the stored file too. Existing blog markdown or content pointing at this file may break.`
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    this.deletingMediaFileIds = [...this.deletingMediaFileIds, media.id];
+    this.statusMessage = 'Deleting media file…';
+    this.adminApi.deleteMediaFile(media.id).pipe(take(1)).subscribe({
+      next: () => {
+        this.statusMessage = 'Media file deleted.';
+        this.selectedMediaFileId = null;
+        this.deletingMediaFileIds = this.deletingMediaFileIds.filter((id) => id !== media.id);
+        this.loadCms();
+      },
+      error: (error) => {
+        this.statusMessage = error?.error?.detail || 'Deleting the media file failed.';
+        this.deletingMediaFileIds = this.deletingMediaFileIds.filter((id) => id !== media.id);
+        this.changeDetectorRef.detectChanges();
+      }
+    });
+  }
+
+  protected mediaFolder(media: AdminMediaFile): string {
+    const parts = (media.objectKey || '').split('/').filter(Boolean);
+    if (parts.length <= 1) {
+      return 'root';
+    }
+    return parts.slice(0, -1).join('/');
+  }
+
+  protected mediaKind(media: AdminMediaFile): 'image' | 'document' | 'video' | 'audio' | 'archive' | 'other' {
+    if (this.isImageMedia(media)) {
+      return 'image';
+    }
+
+    const mimeType = (media.mimeType || '').toLowerCase();
+    const fileName = (media.originalFilename || media.objectKey || '').toLowerCase();
+
+    if (mimeType.startsWith('video/') || /\.(mp4|mov|avi|m4v|webm)$/i.test(fileName)) {
+      return 'video';
+    }
+    if (mimeType.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|flac)$/i.test(fileName)) {
+      return 'audio';
+    }
+    if (
+      mimeType.includes('pdf')
+      || mimeType.includes('officedocument')
+      || mimeType.includes('msword')
+      || mimeType.startsWith('text/')
+      || /\.(pdf|docx?|xlsx?|pptx?|txt|md)$/i.test(fileName)
+    ) {
+      return 'document';
+    }
+    if (mimeType.includes('zip') || mimeType.includes('tar') || /\.(zip|rar|7z|tar|gz)$/i.test(fileName)) {
+      return 'archive';
+    }
+    return 'other';
+  }
+
+  protected mediaKindLabel(media: AdminMediaFile): string {
+    const kind = this.mediaKind(media);
+    return kind.charAt(0).toUpperCase() + kind.slice(1);
   }
 
   protected categoryName(categoryId: string): string {
@@ -1478,7 +1613,7 @@ export class AdminPageComponent implements OnInit {
     });
   }
 
-  private isImageMedia(media: AdminMediaFile): boolean {
+  isImageMedia(media: AdminMediaFile): boolean {
     if (media.mimeType?.startsWith('image/')) {
       return true;
     }
