@@ -18,6 +18,15 @@ class AssistantRole(str, Enum):
     ASSISTANT = 'assistant'
 
 
+class EventType(str, Enum):
+    PAGE_VIEW = 'page_view'
+    PORTFOLIO_LIKE = 'portfolio_like'
+    BLOG_VIEW = 'blog_view'
+    PROJECT_CLICK = 'project_click'
+    CONTACT_SUBMIT = 'contact_submit'
+    ASSISTANT_MESSAGE = 'assistant_message'
+
+
 class KnowledgeSourceType(str, Enum):
     PROFILE = 'profile'
     PROJECT = 'project'
@@ -46,6 +55,20 @@ class AssistantMessage(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
 
     conversation: Mapped[AssistantConversation] = relationship(back_populates='messages')
+
+
+class SiteEvent(Base):
+    __tablename__ = 'site_events'
+
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    session_id: Mapped[str | None] = mapped_column(String(255))
+    visitor_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    page_path: Mapped[str] = mapped_column(String(255), nullable=False)
+    event_type: Mapped[EventType] = mapped_column(SqlEnum(EventType, native_enum=False), nullable=False)
+    referrer: Mapped[str | None] = mapped_column(String(500))
+    user_agent: Mapped[str | None] = mapped_column(String(500))
+    metadata_json: Mapped[dict | None] = mapped_column('metadata', JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
 
 
 class KnowledgeDocument(Base):

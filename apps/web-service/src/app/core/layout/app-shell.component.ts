@@ -7,6 +7,7 @@ import { Profile } from '../../shared/models/profile.model';
 import { SiteShellData } from '../../shared/models/site-shell.model';
 import { PublicPortfolioApiService } from '../../shared/services/public-portfolio-api.service';
 import { AssistantPanelComponent } from '../../shared/components/assistant-panel/assistant-panel.component';
+import { SiteTrackingService } from '../../shared/services/site-tracking.service';
 import { createEmptyProfile } from '../../shared/utils/profile-view.util';
 
 @Component({
@@ -19,6 +20,7 @@ export class AppShellComponent implements OnInit {
   private readonly portfolioApi = inject(PublicPortfolioApiService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly router = inject(Router);
+  private readonly siteTracking = inject(SiteTrackingService);
 
   protected profile: Profile = createEmptyProfile();
   protected shellData: SiteShellData | null = null;
@@ -39,8 +41,14 @@ export class AppShellComponent implements OnInit {
 
   ngOnInit(): void {
     this.isAdminRoute = this.router.url.startsWith('/admin');
+    if (!this.isAdminRoute) {
+      this.siteTracking.trackPageView(this.router.url);
+    }
     this.router.events.pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd)).subscribe((event) => {
       this.isAdminRoute = event.urlAfterRedirects.startsWith('/admin');
+      if (!this.isAdminRoute) {
+        this.siteTracking.trackPageView(event.urlAfterRedirects);
+      }
       this.changeDetectorRef.detectChanges();
     });
 

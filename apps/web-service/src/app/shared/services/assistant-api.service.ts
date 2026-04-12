@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 
 import { AssistantChatMessage, AssistantChatResponse, AssistantChatState } from '../models/assistant-chat.model';
+import { SiteTrackingService } from './site-tracking.service';
 
 const ASSISTANT_STATE_STORAGE_KEY = 'portfolio.assistant.state';
 const ASSISTANT_SESSION_STORAGE_KEY = 'portfolio.assistant.session-id';
@@ -26,6 +27,7 @@ export class AssistantApiService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly assistantApiBaseUrl = resolveAssistantApiBaseUrl();
+  private readonly siteTracking = inject(SiteTrackingService);
   private readonly stateSubject = new BehaviorSubject<AssistantChatState>(this.restoreState());
 
   readonly state$ = this.stateSubject.asObservable();
@@ -56,7 +58,9 @@ export class AssistantApiService {
     this.http.post<AssistantChatResponse>(`${this.assistantApiBaseUrl}/chat/respond`, {
       message,
       conversation_id: this.snapshot.conversationId,
-      session_id: this.getOrCreateSessionId(),
+      session_id: this.getOrCreateAssistantSessionId(),
+      site_session_id: this.siteTracking.sessionId,
+      visitor_id: this.siteTracking.visitorId,
       page_path: pagePath ?? this.router.url,
     }).subscribe({
       next: (response) => {
@@ -143,7 +147,7 @@ export class AssistantApiService {
     window.sessionStorage.setItem(ASSISTANT_STATE_STORAGE_KEY, JSON.stringify(state));
   }
 
-  private getOrCreateSessionId(): string {
+  private getOrCreateAssistantSessionId(): string {
     if (typeof window === 'undefined') {
       return 'server-render';
     }

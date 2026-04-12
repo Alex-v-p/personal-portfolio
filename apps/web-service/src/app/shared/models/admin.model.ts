@@ -334,6 +334,78 @@ export interface AdminContactMessage {
   updatedAt: string;
 }
 
+export interface AdminSiteEvent {
+  id: string;
+  eventType: string;
+  pagePath: string;
+  visitorId: string;
+  sessionId?: string | null;
+  referrer?: string | null;
+  userAgent?: string | null;
+  ipAddress?: string | null;
+  metadata?: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export interface AdminVisitSessionSummary {
+  sessionId: string;
+  visitorId: string;
+  startedAt: string;
+  lastActivityAt: string;
+  totalEvents: number;
+  pageViews: number;
+  assistantMessages: number;
+  contactSubmissions: number;
+  entryPagePath?: string | null;
+  lastPagePath?: string | null;
+  ipAddress?: string | null;
+}
+
+export interface AdminVisitorActivitySummary {
+  visitorId: string;
+  firstSeenAt: string;
+  lastSeenAt: string;
+  totalEvents: number;
+  uniqueSessions: number;
+  pageViews: number;
+  assistantMessages: number;
+  contactSubmissions: number;
+  latestPagePath?: string | null;
+  latestIpAddress?: string | null;
+}
+
+export interface AdminAssistantConversationSummary {
+  id: string;
+  sessionId: string;
+  visitorId?: string | null;
+  siteSessionId?: string | null;
+  pagePath?: string | null;
+  startedAt: string;
+  lastMessageAt: string;
+  totalMessages: number;
+  userMessageCount: number;
+  assistantMessageCount: number;
+  usedFallback?: boolean | null;
+  firstUserMessage?: string | null;
+  latestAssistantMessage?: string | null;
+}
+
+export interface AdminSiteActivitySummary {
+  totalEvents: number;
+  uniqueVisitors: number;
+  pageViews: number;
+  assistantMessages: number;
+  contactSubmissions: number;
+}
+
+export interface AdminSiteActivity {
+  summary: AdminSiteActivitySummary;
+  visitors: AdminVisitorActivitySummary[];
+  visits: AdminVisitSessionSummary[];
+  events: AdminSiteEvent[];
+  assistantConversations: AdminAssistantConversationSummary[];
+}
+
 export interface AdminReferenceData {
   skills: AdminSkillOption[];
   skillCategories: AdminSkillCategory[];

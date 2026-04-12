@@ -23,6 +23,8 @@ class ChatRequest(ApiSchema):
     message: str = Field(min_length=1, max_length=4000)
     conversation_id: str | None = Field(default=None, validation_alias=AliasChoices('conversation_id', 'conversationId'))
     session_id: str | None = Field(default=None, validation_alias=AliasChoices('session_id', 'sessionId'))
+    site_session_id: str | None = Field(default=None, validation_alias=AliasChoices('site_session_id', 'siteSessionId'))
+    visitor_id: str | None = Field(default=None, validation_alias=AliasChoices('visitor_id', 'visitorId'))
     page_path: str | None = Field(default=None, validation_alias=AliasChoices('page_path', 'pagePath'))
 
 

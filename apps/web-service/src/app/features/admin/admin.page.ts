@@ -5,6 +5,7 @@ import { forkJoin } from 'rxjs';
 import { finalize, take } from 'rxjs/operators';
 
 import {
+  AdminAssistantConversationSummary,
   AdminAssistantKnowledgeStatus,
   AdminBlogPost,
   AdminBlogTag,
@@ -18,6 +19,10 @@ import {
   AdminProfile,
   AdminProject,
   AdminReferenceData,
+  AdminSiteActivity,
+  AdminSiteEvent,
+  AdminVisitSessionSummary,
+  AdminVisitorActivitySummary,
   AdminSkillCategory,
   AdminSkillOption,
   AdminSocialLink,
@@ -186,6 +191,7 @@ export class AdminPageComponent implements OnInit {
     { id: 'profile', label: 'Profile' },
     { id: 'stats', label: 'GitHub / Stats' },
     { id: 'assistant', label: 'Assistant' },
+    { id: 'activity', label: 'Activity' },
     { id: 'admins', label: 'Admin users' },
     { id: 'messages', label: 'Messages' },
   ] as const;
@@ -229,6 +235,22 @@ export class AdminPageComponent implements OnInit {
     documentsBySourceType: {},
     latestUpdatedAt: null,
   };
+  protected siteActivity: AdminSiteActivity = {
+    summary: { totalEvents: 0, uniqueVisitors: 0, pageViews: 0, assistantMessages: 0, contactSubmissions: 0 },
+    visitors: [],
+    visits: [],
+    events: [],
+    assistantConversations: [],
+  };
+  protected selectedActivityVisitorId: string | null = null;
+  protected selectedActivityVisitSessionId: string | null = null;
+  protected activityVisitorSearchTerm = '';
+  protected activityVisitorFocus: 'all' | 'withAssistant' | 'withContacts' | 'withPageViews' = 'all';
+  protected activityTimelineEventFilter: 'all' | 'page_view' | 'assistant_message' | 'contact_submit' = 'all';
+  protected messageSearchTerm = '';
+  protected messageStatusFilter: 'all' | 'unread' | 'read' = 'all';
+  protected messageSourceFilter = 'all';
+  protected updatingMessageIds: string[] = [];
 
   protected selectedProjectId: string | null = null;
   protected selectedBlogPostId: string | null = null;
@@ -284,6 +306,8 @@ export class AdminPageComponent implements OnInit {
       navigation: this.selectedNavigationItemId,
       adminUser: this.selectedAdminUserId,
       github: this.selectedGithubSnapshotId,
+      activityVisitor: this.selectedActivityVisitorId,
+      activityVisit: this.selectedActivityVisitSessionId,
     };
 
     this.isLoading = true;
@@ -301,6 +325,7 @@ export class AdminPageComponent implements OnInit {
       profile: this.adminApi.getProfile(),
       messages: this.adminApi.getContactMessages(),
       assistantKnowledgeStatus: this.adminApi.getAssistantKnowledgeStatus(),
+      siteActivity: this.adminApi.getSiteActivity(),
     })
       .pipe(
         take(1),
@@ -322,6 +347,7 @@ export class AdminPageComponent implements OnInit {
           this.profile = result.profile;
           this.messages = result.messages.items;
           this.assistantKnowledgeStatus = result.assistantKnowledgeStatus;
+          this.siteActivity = result.siteActivity;
 
           this.selectedProjectId = this.resolveSelection(currentSelections.project, this.projects);
           this.selectedBlogPostId = this.resolveSelection(currentSelections.blogPost, this.blogPosts);
@@ -332,6 +358,9 @@ export class AdminPageComponent implements OnInit {
           this.selectedNavigationItemId = this.resolveSelection(currentSelections.navigation, this.navigationItems);
           this.selectedAdminUserId = this.resolveSelection(currentSelections.adminUser, this.adminUsers);
           this.selectedGithubSnapshotId = this.resolveSelection(currentSelections.github, this.githubSnapshots);
+          this.selectedActivityVisitorId = currentSelections.activityVisitor;
+          this.selectedActivityVisitSessionId = currentSelections.activityVisit;
+          this.ensureActivitySelections();
 
           this.projectForm = this.selectedProjectId ? this.toProjectForm(this.projects.find((item) => item.id === this.selectedProjectId)!) : this.createEmptyProjectForm();
           this.blogPostForm = this.selectedBlogPostId ? this.toBlogPostForm(this.blogPosts.find((item) => item.id === this.selectedBlogPostId)!) : this.createEmptyBlogPostForm();
@@ -360,6 +389,109 @@ export class AdminPageComponent implements OnInit {
 
   protected get currentAdminId(): string | null {
     return this.adminSession.currentUser?.id ?? null;
+  }
+
+  protected get messageSourceOptions(): string[] {
+    return Array.from(new Set(this.messages.map((message) => message.sourcePage).filter(Boolean))).sort((left, right) => left.localeCompare(right));
+  }
+
+  protected get filteredMessages(): AdminContactMessage[] {
+    const searchNeedle = this.messageSearchTerm.trim().toLowerCase();
+    return [...this.messages]
+      .filter((message) => {
+        if (this.messageStatusFilter === 'read' && !message.isRead) {
+          return false;
+        }
+        if (this.messageStatusFilter === 'unread' && message.isRead) {
+          return false;
+        }
+        if (this.messageSourceFilter !== 'all' && message.sourcePage !== this.messageSourceFilter) {
+          return false;
+        }
+        if (!searchNeedle) {
+          return true;
+        }
+        return this.matchesSearch([message.name, message.email, message.subject, message.message, message.sourcePage], searchNeedle);
+      })
+      .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+  }
+
+  protected get filteredMessageCount(): number {
+    return this.filteredMessages.length;
+  }
+
+  protected get unreadFilteredMessageCount(): number {
+    return this.filteredMessages.filter((message) => !message.isRead).length;
+  }
+
+  protected get filteredActivityVisitors(): AdminVisitorActivitySummary[] {
+    const searchNeedle = this.activityVisitorSearchTerm.trim().toLowerCase();
+    return this.siteActivity.visitors.filter((visitor) => {
+      if (this.activityVisitorFocus === 'withAssistant' && visitor.assistantMessages === 0) {
+        return false;
+      }
+      if (this.activityVisitorFocus === 'withContacts' && visitor.contactSubmissions === 0) {
+        return false;
+      }
+      if (this.activityVisitorFocus === 'withPageViews' && visitor.pageViews === 0) {
+        return false;
+      }
+      if (!searchNeedle) {
+        return true;
+      }
+      return this.matchesSearch([visitor.visitorId, visitor.latestPagePath, visitor.latestIpAddress], searchNeedle);
+    });
+  }
+
+  protected get selectedActivityVisitor(): AdminVisitorActivitySummary | null {
+    return this.filteredActivityVisitors.find((visitor) => visitor.visitorId === this.selectedActivityVisitorId) ?? null;
+  }
+
+  protected get selectedActivityVisits(): AdminVisitSessionSummary[] {
+    return this.visitsForVisitor(this.selectedActivityVisitorId);
+  }
+
+  protected get selectedActivityVisit(): AdminVisitSessionSummary | null {
+    return this.selectedActivityVisits.find((visit) => visit.sessionId === this.selectedActivityVisitSessionId) ?? null;
+  }
+
+  protected get selectedActivityEvents(): AdminSiteEvent[] {
+    const visitorId = this.selectedActivityVisitorId;
+    if (!visitorId) {
+      return [];
+    }
+    return this.siteActivity.events.filter((event) => {
+      if (event.visitorId !== visitorId) {
+        return false;
+      }
+      if (this.selectedActivityVisitSessionId && event.sessionId !== this.selectedActivityVisitSessionId) {
+        return false;
+      }
+      if (this.activityTimelineEventFilter !== 'all' && event.eventType !== this.activityTimelineEventFilter) {
+        return false;
+      }
+      return true;
+    });
+  }
+
+  protected get selectedActivityConversations(): AdminAssistantConversationSummary[] {
+    const visitorId = this.selectedActivityVisitorId;
+    if (!visitorId) {
+      return [];
+    }
+    return this.siteActivity.assistantConversations.filter((conversation) => {
+      if (conversation.visitorId !== visitorId) {
+        return false;
+      }
+      if (this.selectedActivityVisitSessionId && conversation.siteSessionId !== this.selectedActivityVisitSessionId) {
+        return false;
+      }
+      return true;
+    });
+  }
+
+  protected get selectedActivityEventCount(): number {
+    return this.selectedActivityEvents.length;
   }
 
   protected mediaPreview(mediaId: string | null | undefined): AdminMediaFile | undefined {
@@ -1003,15 +1135,46 @@ export class AdminPageComponent implements OnInit {
     });
   }
 
+  protected selectActivityVisitor(visitorId: string): void {
+    this.selectedActivityVisitorId = visitorId;
+    this.selectedActivityVisitSessionId = this.visitsForVisitor(visitorId)[0]?.sessionId ?? null;
+  }
+
+  protected selectActivityVisit(sessionId: string | null): void {
+    this.selectedActivityVisitSessionId = sessionId;
+  }
+
+  protected onActivityFiltersChanged(): void {
+    this.ensureActivitySelections();
+  }
+
+  protected isMessageUpdating(messageId: string): boolean {
+    return this.updatingMessageIds.includes(messageId);
+  }
+
   protected toggleMessageRead(message: AdminContactMessage): void {
-    this.adminApi.updateContactMessage(message.id, !message.isRead).pipe(take(1)).subscribe({
+    const nextIsRead = !message.isRead;
+    const previousMessages = this.messages.map((item) => ({ ...item }));
+    this.updatingMessageIds = [...this.updatingMessageIds, message.id];
+    this.messages = this.messages.map((item) => item.id === message.id ? { ...item, isRead: nextIsRead } : item);
+    this.dashboard.unreadMessages = this.messages.filter((item) => !item.isRead).length;
+    this.statusMessage = nextIsRead ? 'Marking message as read…' : 'Marking message as unread…';
+    this.changeDetectorRef.detectChanges();
+
+    this.adminApi.updateContactMessage(message.id, nextIsRead).pipe(take(1)).subscribe({
       next: (updatedMessage) => {
         this.messages = this.messages.map((item) => item.id === updatedMessage.id ? updatedMessage : item);
         this.dashboard.unreadMessages = this.messages.filter((item) => !item.isRead).length;
         this.statusMessage = updatedMessage.isRead ? 'Message marked as read.' : 'Message marked as unread.';
+        this.updatingMessageIds = this.updatingMessageIds.filter((id) => id !== message.id);
+        this.changeDetectorRef.detectChanges();
       },
       error: (error) => {
+        this.messages = previousMessages;
+        this.dashboard.unreadMessages = this.messages.filter((item) => !item.isRead).length;
         this.statusMessage = error?.error?.detail || 'Updating message status failed.';
+        this.updatingMessageIds = this.updatingMessageIds.filter((id) => id !== message.id);
+        this.changeDetectorRef.detectChanges();
       }
     });
   }
@@ -1130,6 +1293,46 @@ export class AdminPageComponent implements OnInit {
     form.description = '';
     form.visibility = 'public';
     form.file = null;
+  }
+
+  private matchesSearch(values: Array<string | null | undefined>, needle: string): boolean {
+    const normalizedNeedle = needle.trim().toLowerCase();
+    if (!normalizedNeedle) {
+      return true;
+    }
+    return values.some((value) => (value ?? '').toLowerCase().includes(normalizedNeedle));
+  }
+
+  private visitsForVisitor(visitorId: string | null): AdminVisitSessionSummary[] {
+    if (!visitorId) {
+      return [];
+    }
+    return this.siteActivity.visits
+      .filter((visit) => visit.visitorId === visitorId)
+      .sort((left, right) => right.lastActivityAt.localeCompare(left.lastActivityAt));
+  }
+
+  private ensureActivitySelections(): void {
+    const visitors = this.filteredActivityVisitors;
+    if (!visitors.length) {
+      this.selectedActivityVisitorId = null;
+      this.selectedActivityVisitSessionId = null;
+      return;
+    }
+    if (!this.selectedActivityVisitorId || !visitors.some((visitor) => visitor.visitorId === this.selectedActivityVisitorId)) {
+      this.selectedActivityVisitorId = visitors[0].visitorId;
+    }
+    const visits = this.visitsForVisitor(this.selectedActivityVisitorId);
+    if (!visits.length) {
+      this.selectedActivityVisitSessionId = null;
+      return;
+    }
+    if (this.selectedActivityVisitSessionId === null) {
+      return;
+    }
+    if (!visits.some((visit) => visit.sessionId === this.selectedActivityVisitSessionId)) {
+      this.selectedActivityVisitSessionId = visits[0].sessionId;
+    }
   }
 
   private toggleSelection(items: string[], value: string): string[] {

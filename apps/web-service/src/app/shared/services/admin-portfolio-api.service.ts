@@ -26,6 +26,7 @@ import {
   AdminProject,
   AdminProjectUpsert,
   AdminReferenceData,
+  AdminSiteActivity,
   AdminSkillCategory,
   AdminSkillCategoryUpsert,
   AdminSkillOption,
@@ -51,6 +52,10 @@ export class AdminPortfolioApiService {
 
   getAssistantKnowledgeStatus(): Observable<AdminAssistantKnowledgeStatus> {
     return this.http.get<AdminAssistantKnowledgeStatus>(`${this.apiBaseUrl}/admin/assistant/knowledge`);
+  }
+
+  getSiteActivity(): Observable<AdminSiteActivity> {
+    return this.http.get<AdminSiteActivity>(`${this.apiBaseUrl}/admin/site-activity`);
   }
 
   rebuildAssistantKnowledge(): Observable<AdminAssistantKnowledgeStatus> {
