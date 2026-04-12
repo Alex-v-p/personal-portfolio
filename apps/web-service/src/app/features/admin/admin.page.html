@@ -69,8 +69,13 @@
       </article>
 
       <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] md:col-span-2 xl:col-span-2">
-        <h2 class="text-lg font-semibold text-stone-950">Media catalog</h2>
-        <p class="mt-1 text-sm text-stone-600">New uploads appear here immediately and can be selected in editors.</p>
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-semibold text-stone-950">Media catalog</h2>
+            <p class="mt-1 text-sm text-stone-600">New uploads appear here immediately and can be selected in editors.</p>
+          </div>
+          <button type="button" (click)="setActiveTab('media')" class="text-sm font-semibold text-stone-700 hover:text-stone-950">Open library</button>
+        </div>
         <div class="mt-5 grid gap-3 max-h-[30rem] overflow-y-auto pr-1">
           <article *ngFor="let media of referenceData.mediaFiles.slice(0, 12)" class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
             <div class="flex items-center gap-4">
@@ -84,6 +89,117 @@
           </article>
         </div>
       </article>
+    </section>
+
+    <section *ngIf="activeTab === 'media'" class="space-y-6">
+      <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-semibold text-stone-950">Media library</h2>
+            <p class="mt-1 max-w-3xl text-sm leading-6 text-stone-600">Browse every uploaded media file in one place, narrow the list with search and filters, and remove files you no longer need. Deleting a file can break inline markdown images or content that still points to its URL.</p>
+          </div>
+          <div class="flex flex-wrap gap-3 text-sm">
+            <span class="rounded-full bg-stone-100 px-4 py-2 font-semibold text-stone-700">{{ dashboard.mediaFiles }} total</span>
+            <span class="rounded-full bg-stone-100 px-4 py-2 font-semibold text-stone-700">{{ imageMediaCount }} images</span>
+            <span class="rounded-full bg-stone-100 px-4 py-2 font-semibold text-stone-700">{{ documentMediaCount }} documents</span>
+            <span class="rounded-full bg-amber-100 px-4 py-2 font-semibold text-amber-800">{{ filteredMediaCount }} shown</span>
+          </div>
+        </div>
+
+        <div class="mt-6 grid gap-3 xl:grid-cols-[minmax(0,1.5fr)_minmax(12rem,0.5fr)_minmax(12rem,0.5fr)_minmax(12rem,0.6fr)_auto]">
+          <input [(ngModel)]="mediaSearchTerm" name="mediaSearchTerm" placeholder="Search by title, alt text, filename, path, or folder" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+          <select [(ngModel)]="mediaKindFilter" name="mediaKindFilter" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm">
+            <option value="all">All file types</option>
+            <option value="image">Images</option>
+            <option value="document">Documents</option>
+            <option value="video">Video</option>
+            <option value="audio">Audio</option>
+            <option value="archive">Archives</option>
+            <option value="other">Other</option>
+          </select>
+          <select [(ngModel)]="mediaVisibilityFilter" name="mediaVisibilityFilter" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm">
+            <option value="all">All visibility</option>
+            <option value="public">Public</option>
+            <option value="private">Private</option>
+            <option value="signed">Signed</option>
+          </select>
+          <select [(ngModel)]="mediaFolderFilter" name="mediaFolderFilter" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm">
+            <option value="all">All folders</option>
+            <option value="root">root</option>
+            <option *ngFor="let folder of mediaFolderOptions" [value]="folder">{{ folder }}</option>
+          </select>
+          <button type="button" (click)="clearMediaFilters()" class="rounded-full border border-stone-300 px-4 py-3 text-sm font-semibold text-stone-700">Reset filters</button>
+        </div>
+      </article>
+
+      <div class="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_22rem]">
+        <section class="rounded-[2rem] border border-stone-300 bg-white p-5 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <h3 class="text-lg font-semibold text-stone-950">All files</h3>
+              <p class="text-sm text-stone-600">Newest uploads first. Click any file to inspect it and delete it if needed.</p>
+            </div>
+          </div>
+
+          <div *ngIf="filteredMediaFiles.length; else noFilteredMedia" class="mt-5 grid gap-3 max-h-[52rem] overflow-y-auto pr-1">
+            <button *ngFor="let media of filteredMediaFiles" type="button" (click)="selectMediaFile(media.id)" [ngClass]="media.id === selectedMediaFileId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50 hover:border-stone-300 hover:bg-stone-100'" class="rounded-[1.5rem] border p-4 text-left transition">
+              <div class="flex items-start gap-4">
+                <div class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-stone-200 bg-white">
+                  <img *ngIf="media.resolvedAsset?.url && isImageMedia(media)" [src]="media.resolvedAsset?.url" [alt]="media.altText || media.title || media.originalFilename" class="h-full w-full object-cover" />
+                  <span *ngIf="!(media.resolvedAsset?.url && isImageMedia(media))" class="px-2 text-center text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-400">{{ mediaKindLabel(media) }}</span>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <p class="truncate text-sm font-semibold text-stone-950">{{ media.title || media.originalFilename }}</p>
+                    <span class="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-600">{{ mediaKindLabel(media) }}</span>
+                    <span class="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-600">{{ media.visibility }}</span>
+                  </div>
+                  <p class="mt-1 truncate text-xs text-stone-500">{{ media.objectKey }}</p>
+                  <p class="mt-2 text-xs text-stone-600">Folder: {{ mediaFolder(media) }} · {{ media.createdAt | date:'medium' }}</p>
+                  <p *ngIf="media.altText" class="mt-1 truncate text-xs text-stone-500">Alt: {{ media.altText }}</p>
+                </div>
+              </div>
+            </button>
+          </div>
+        </section>
+
+        <aside class="rounded-[2rem] border border-stone-300 bg-white p-5 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
+          <ng-container *ngIf="selectedMediaFile as media; else noSelectedMedia">
+            <div class="space-y-4">
+              <div>
+                <h3 class="text-lg font-semibold text-stone-950">{{ media.title || media.originalFilename }}</h3>
+                <p class="mt-1 text-sm text-stone-600">Inspect the selected file before using or deleting it.</p>
+              </div>
+
+              <div class="overflow-hidden rounded-[1.5rem] border border-stone-200 bg-stone-50">
+                <img *ngIf="media.resolvedAsset?.url && isImageMedia(media)" [src]="media.resolvedAsset?.url" [alt]="media.altText || media.title || media.originalFilename" class="h-56 w-full object-cover" />
+                <div *ngIf="!(media.resolvedAsset?.url && isImageMedia(media))" class="flex h-56 items-center justify-center px-6 text-center">
+                  <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-400">{{ mediaKindLabel(media) }}</p>
+                    <p class="mt-2 text-sm text-stone-600">No image preview is available for this file type.</p>
+                  </div>
+                </div>
+              </div>
+
+              <dl class="grid gap-3 text-sm">
+                <div class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3"><dt class="text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">Filename</dt><dd class="mt-1 break-all text-stone-800">{{ media.originalFilename }}</dd></div>
+                <div class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3"><dt class="text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">Stored path</dt><dd class="mt-1 break-all text-stone-800">{{ media.objectKey }}</dd></div>
+                <div class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3"><dt class="text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">Folder</dt><dd class="mt-1 text-stone-800">{{ mediaFolder(media) }}</dd></div>
+                <div class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3"><dt class="text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">Type</dt><dd class="mt-1 text-stone-800">{{ mediaKindLabel(media) }}<span *ngIf="media.mimeType"> · {{ media.mimeType }}</span></dd></div>
+                <div class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3"><dt class="text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">Visibility</dt><dd class="mt-1 text-stone-800">{{ media.visibility }}</dd></div>
+                <div class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3"><dt class="text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">Alt text</dt><dd class="mt-1 text-stone-800">{{ media.altText || '—' }}</dd></div>
+                <div class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3"><dt class="text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">Created</dt><dd class="mt-1 text-stone-800">{{ media.createdAt | date:'medium' }}</dd></div>
+              </dl>
+
+              <a *ngIf="media.resolvedAsset?.url" [href]="media.resolvedAsset?.url" target="_blank" rel="noreferrer" class="inline-flex min-h-11 items-center justify-center rounded-full border border-stone-300 px-4 text-sm font-semibold text-stone-700 transition hover:border-stone-400 hover:bg-stone-50">Open file</a>
+              <button type="button" (click)="deleteSelectedMediaFile()" [disabled]="isDeletingMediaFile(media.id)" class="inline-flex min-h-11 items-center justify-center rounded-full border border-rose-300 px-4 text-sm font-semibold text-rose-700 disabled:cursor-not-allowed disabled:opacity-60">{{ isDeletingMediaFile(media.id) ? 'Deleting…' : 'Delete media file' }}</button>
+            </div>
+          </ng-container>
+        </aside>
+      </div>
+
+      <ng-template #noFilteredMedia><div class="mt-5 rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50 p-6 text-sm text-stone-600">No media files match the current search and filter settings.</div></ng-template>
+      <ng-template #noSelectedMedia><div class="flex h-full min-h-[20rem] items-center justify-center rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50 p-6 text-center text-sm text-stone-600">Select a media file from the list to preview its details and manage it.</div></ng-template>
     </section>
 
     <section *ngIf="activeTab === 'projects'" class="grid gap-6 xl:grid-cols-[20rem_minmax(0,1fr)]">
@@ -134,9 +250,91 @@
           <label class="space-y-2"><span class="text-sm font-semibold">Title</span><input [(ngModel)]="blogPostForm.title" name="blogTitle" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
           <label class="space-y-2"><span class="text-sm font-semibold">Slug</span><input [(ngModel)]="blogPostForm.slug" name="blogSlug" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
           <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Excerpt</span><textarea [(ngModel)]="blogPostForm.excerpt" name="blogExcerpt" rows="3" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"></textarea></label>
-          <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Content markdown</span><textarea [(ngModel)]="blogPostForm.contentMarkdown" name="blogMarkdown" rows="10" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm font-mono"></textarea></label>
+          <div class="space-y-4 lg:col-span-2 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
+            <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <p class="text-sm font-semibold text-stone-950">Markdown editor</p>
+                <p class="text-xs leading-5 text-stone-500">Use the shortcuts below to insert headings, emphasis, code, links, lists, quotes, dividers, and inline images without leaving the editor.</p>
+              </div>
+              <div class="flex flex-wrap gap-2 text-xs text-stone-500">
+                <span class="rounded-full border border-stone-300 bg-white px-3 py-1">{{ blogMarkdownWordCount }} words</span>
+                <button type="button" (click)="applySuggestedBlogReadingTime()" class="rounded-full border border-stone-300 bg-white px-3 py-1 font-medium text-stone-700">Use {{ suggestedBlogReadingTimeMinutes || 1 }} min estimate</button>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+              <button type="button" (click)="toggleBlogLinePrefix('# ')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">H1</button>
+              <button type="button" (click)="toggleBlogLinePrefix('## ')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">H2</button>
+              <button type="button" (click)="toggleBlogLinePrefix('### ')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">H3</button>
+              <button type="button" (click)="wrapBlogSelection('**', '**', 'Bold text')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Bold</button>
+              <button type="button" (click)="wrapBlogSelection('*', '*', 'Italic text')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Italic</button>
+              <button type="button" (click)="wrapBlogSelection('`', '`', 'inline code')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Inline code</button>
+              <button type="button" (click)="insertBlogMarkdownLink()" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Link</button>
+              <button type="button" (click)="insertBlogMarkdownImageTemplate()" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Image</button>
+              <button type="button" (click)="toggleBlogLinePrefix('- ')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Bullets</button>
+              <button type="button" (click)="toggleBlogLinePrefix('1. ')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Numbered list</button>
+              <button type="button" (click)="toggleBlogLinePrefix('> ')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Quote</button>
+              <button type="button" (click)="insertBlogMarkdownCodeBlock()" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Code block</button>
+              <button type="button" (click)="insertBlogMarkdownDivider()" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Divider</button>
+            </div>
+
+            <div class="grid gap-4 xl:grid-cols-[minmax(0,1.25fr)_minmax(20rem,0.9fr)]">
+              <label class="space-y-2">
+                <span class="text-sm font-semibold">Content markdown</span>
+                <textarea #blogMarkdownEditor [(ngModel)]="blogPostForm.contentMarkdown" name="blogMarkdown" rows="18" class="min-h-[26rem] w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm font-mono"></textarea>
+              </label>
+              <div class="space-y-2">
+                <div class="flex items-center justify-between gap-3">
+                  <span class="text-sm font-semibold text-stone-950">Live preview</span>
+                  <span class="text-xs text-stone-500">Matches the public blog renderer</span>
+                </div>
+                <div class="min-h-[26rem] rounded-2xl border border-stone-300 bg-white px-5 py-4">
+                  <div class="blog-markdown" [innerHTML]="renderedBlogContentPreview"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid gap-4 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+              <div class="space-y-3 rounded-[1.25rem] border border-stone-200 bg-white p-4">
+                <div>
+                  <p class="text-sm font-semibold text-stone-950">Upload inline image</p>
+                  <p class="text-xs text-stone-500">Uploads to {{ buildBlogFolder() }} and inserts the markdown image syntax into the editor automatically.</p>
+                </div>
+                <input [(ngModel)]="blogInlineImageUploadForm.title" name="blogInlineImageUploadTitle" placeholder="Image title" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" />
+                <input [(ngModel)]="blogInlineImageUploadForm.altText" name="blogInlineImageUploadAltText" placeholder="Alt text for the article" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" />
+                <textarea [(ngModel)]="blogInlineImageUploadForm.description" name="blogInlineImageUploadDescription" rows="2" placeholder="Optional description" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"></textarea>
+                <select [(ngModel)]="blogInlineImageUploadForm.visibility" name="blogInlineImageUploadVisibility" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"><option [ngValue]="'public'">public</option><option [ngValue]="'private'">private</option><option [ngValue]="'signed'">signed</option></select>
+                <input type="file" (change)="onScopedFileSelected($event, blogInlineImageUploadForm)" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" />
+                <button type="button" (click)="uploadBlogInlineImage()" [disabled]="uploadInProgressKey === 'blog-inline-image'" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Upload and insert image</button>
+              </div>
+
+              <div class="space-y-3 rounded-[1.25rem] border border-stone-200 bg-white p-4">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <p class="text-sm font-semibold text-stone-950">Insert from media library</p>
+                    <p class="text-xs text-stone-500">Search your existing uploads and insert any image into the article at the current cursor position.</p>
+                  </div>
+                  <span class="rounded-full border border-stone-300 bg-stone-50 px-3 py-1 text-xs text-stone-500">{{ filteredBlogImageMediaFiles.length }} image{{ filteredBlogImageMediaFiles.length === 1 ? '' : 's' }}</span>
+                </div>
+                <input [(ngModel)]="blogMediaSearchTerm" name="blogMediaSearchTerm" placeholder="Search by title, alt text, filename, or path" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" />
+                <div class="grid max-h-72 gap-2 overflow-y-auto pr-1">
+                  <button *ngFor="let media of filteredBlogImageMediaFiles.slice(0, 16)" type="button" (click)="insertBlogImageFromMedia(media)" class="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-3 py-3 text-left transition hover:border-stone-300 hover:bg-stone-100">
+                    <div class="h-14 w-14 overflow-hidden rounded-xl border border-stone-200 bg-white">
+                      <img *ngIf="media.resolvedAsset?.url" [src]="media.resolvedAsset?.url" [alt]="media.altText || media.title || media.originalFilename" class="h-full w-full object-cover" />
+                      <div *ngIf="!media.resolvedAsset?.url" class="flex h-full w-full items-center justify-center text-[10px] font-semibold uppercase tracking-[0.12em] text-stone-400">IMG</div>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <p class="truncate text-sm font-semibold text-stone-900">{{ media.title || media.originalFilename }}</p>
+                      <p class="truncate text-xs text-stone-500">{{ media.objectKey }}</p>
+                    </div>
+                  </button>
+                  <p *ngIf="filteredBlogImageMediaFiles.length === 0" class="rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-4 py-5 text-sm text-stone-500">No matching images yet. Upload one on the left or clear the search.</p>
+                </div>
+              </div>
+            </div>
+          </div>
           <label class="space-y-2"><span class="text-sm font-semibold">Status</span><select [(ngModel)]="blogPostForm.status" name="blogStatus" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"><option *ngFor="let status of referenceData.publicationStatuses" [ngValue]="status">{{ status }}</option></select></label>
-          <label class="space-y-2"><span class="text-sm font-semibold">Reading time</span><input [(ngModel)]="blogPostForm.readingTimeMinutes" name="blogReadingTime" type="number" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold">Reading time</span><div class="space-y-2"><input [(ngModel)]="blogPostForm.readingTimeMinutes" name="blogReadingTime" type="number" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /><p class="text-xs text-stone-500">Suggested from content: {{ suggestedBlogReadingTimeMinutes || 1 }} minute{{ (suggestedBlogReadingTimeMinutes || 1) === 1 ? '' : 's' }}.</p></div></label>
           <label class="space-y-2"><span class="text-sm font-semibold">Published at</span><input [(ngModel)]="blogPostForm.publishedAt" name="blogPublishedAt" type="datetime-local" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
           <label class="space-y-2"><span class="text-sm font-semibold">Cover alt text</span><input [(ngModel)]="blogPostForm.coverImageAlt" name="blogCoverAlt" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
           <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">SEO title</span><input [(ngModel)]="blogPostForm.seoTitle" name="blogSeoTitle" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
@@ -693,7 +891,7 @@
             <div class="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h2 class="text-xl font-semibold text-stone-950">Visitor activity detail</h2>
-                <p class="text-sm text-stone-500">Timeline and assistant usage for {{ visitor.visitorId }}<span *ngIf="selectedActivityVisit"> during session {{ selectedActivityVisit?.sessionId }}</span>.</p>
+                <p class="text-sm text-stone-500">Timeline and assistant usage for {{ visitor.visitorId }}<span *ngIf="selectedActivityVisit"> during session {{ selectedActivityVisit.sessionId }}</span>.</p>
               </div>
               <select [(ngModel)]="activityTimelineEventFilter" (ngModelChange)="onActivityFiltersChanged()" name="activityTimelineEventFilter" class="rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm">
                 <option value="all">All event types</option>

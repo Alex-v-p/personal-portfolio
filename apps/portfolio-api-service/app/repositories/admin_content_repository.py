@@ -196,6 +196,17 @@ class AdminContentRepository:
         self.session.refresh(media_file)
         return self._map_media_file(media_file)
 
+    def get_media_file(self, media_id: UUID) -> MediaFile | None:
+        return self.session.get(MediaFile, media_id)
+
+    def delete_media_file(self, media_id: UUID) -> bool:
+        media_file = self.session.get(MediaFile, media_id)
+        if media_file is None:
+            return False
+        self.session.delete(media_file)
+        self.session.commit()
+        return True
+
     def list_skill_categories(self) -> list[AdminSkillCategoryOut]:
         categories = self.session.scalars(select(SkillCategory).order_by(SkillCategory.sort_order.asc(), SkillCategory.name.asc())).all()
         return [self._map_skill_category(category) for category in categories]
