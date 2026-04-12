@@ -1,5 +1,5 @@
 import { DatePipe, KeyValuePipe, NgClass, NgFor, NgIf } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { finalize, take } from 'rxjs/operators';
@@ -30,6 +30,7 @@ import {
 } from '../../shared/models/admin.model';
 import { AdminPortfolioApiService } from '../../shared/services/admin-portfolio-api.service';
 import { AdminSessionService } from '../../shared/services/admin-session.service';
+import { renderMarkdownToHtml } from '../../shared/utils/markdown.util';
 
 interface ScopedUploadForm {
   title: string;
@@ -181,6 +182,8 @@ export class AdminPageComponent implements OnInit {
   private readonly adminSession = inject(AdminSessionService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
+  @ViewChild('blogMarkdownEditor') private blogMarkdownEditor?: ElementRef<HTMLTextAreaElement>;
+
   protected readonly tabs = [
     { id: 'overview', label: 'Overview' },
     { id: 'projects', label: 'Projects' },
@@ -277,11 +280,13 @@ export class AdminPageComponent implements OnInit {
 
   protected projectUploadForm: ScopedUploadForm = this.createEmptyScopedUploadForm();
   protected blogUploadForm: ScopedUploadForm = this.createEmptyScopedUploadForm();
+  protected blogInlineImageUploadForm: ScopedUploadForm = this.createEmptyScopedUploadForm();
   protected experienceUploadForm: ScopedUploadForm = this.createEmptyScopedUploadForm();
   protected profileAvatarUploadForm: ScopedUploadForm = this.createEmptyScopedUploadForm();
   protected profileHeroUploadForm: ScopedUploadForm = this.createEmptyScopedUploadForm();
   protected profileResumeUploadForm: ScopedUploadForm = this.createEmptyScopedUploadForm();
   protected uploadInProgressKey: string | null = null;
+  protected blogMediaSearchTerm = '';
 
   ngOnInit(): void {
     this.loadCms();
@@ -389,6 +394,26 @@ export class AdminPageComponent implements OnInit {
 
   protected get currentAdminId(): string | null {
     return this.adminSession.currentUser?.id ?? null;
+  }
+
+  protected get renderedBlogContentPreview(): string {
+    return renderMarkdownToHtml(this.blogPostForm.contentMarkdown || '');
+  }
+
+  protected get blogMarkdownWordCount(): number {
+    const matches = (this.blogPostForm.contentMarkdown || '').match(/\b[\p{L}\p{N}][\p{L}\p{N}'’-]*\b/gu);
+    return matches?.length ?? 0;
+  }
+
+  protected get suggestedBlogReadingTimeMinutes(): number {
+    return this.blogMarkdownWordCount > 0 ? Math.max(1, Math.ceil(this.blogMarkdownWordCount / 200)) : 0;
+  }
+
+  protected get filteredBlogImageMediaFiles(): AdminMediaFile[] {
+    return [...this.referenceData.mediaFiles]
+      .filter((media) => this.isImageMedia(media))
+      .filter((media) => this.matchesSearch([media.title, media.altText, media.originalFilename, media.objectKey], this.blogMediaSearchTerm))
+      .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
   }
 
   protected get messageSourceOptions(): string[] {
@@ -594,6 +619,9 @@ export class AdminPageComponent implements OnInit {
     const post = this.blogPosts.find((item) => item.id === postId);
     if (post) {
       this.blogPostForm = this.toBlogPostForm(post);
+      this.blogUploadForm = this.createEmptyScopedUploadForm();
+      this.blogInlineImageUploadForm = this.createEmptyScopedUploadForm();
+      this.blogMediaSearchTerm = '';
       this.statusMessage = '';
     }
   }
@@ -602,6 +630,119 @@ export class AdminPageComponent implements OnInit {
     this.selectedBlogPostId = null;
     this.blogPostForm = this.createEmptyBlogPostForm();
     this.blogUploadForm = this.createEmptyScopedUploadForm();
+    this.blogInlineImageUploadForm = this.createEmptyScopedUploadForm();
+    this.blogMediaSearchTerm = '';
+  }
+
+  protected applySuggestedBlogReadingTime(): void {
+    this.blogPostForm.readingTimeMinutes = this.suggestedBlogReadingTimeMinutes || null;
+  }
+
+  protected wrapBlogSelection(prefix: string, suffix = '', placeholder = 'text'): void {
+    this.updateBlogMarkdownSelection((content, selectionStart, selectionEnd) => {
+      const selectedText = content.slice(selectionStart, selectionEnd);
+      const replacement = `${prefix}${selectedText || placeholder}${suffix}`;
+      const value = `${content.slice(0, selectionStart)}${replacement}${content.slice(selectionEnd)}`;
+      const highlightStart = selectionStart + prefix.length;
+      const highlightEnd = highlightStart + (selectedText || placeholder).length;
+
+      return {
+        value,
+        selectionStart: highlightStart,
+        selectionEnd: highlightEnd,
+      };
+    });
+  }
+
+  protected toggleBlogLinePrefix(prefix: string): void {
+    this.updateBlogMarkdownSelection((content, selectionStart, selectionEnd) => {
+      const lineStart = content.lastIndexOf('\n', Math.max(0, selectionStart - 1)) + 1;
+      let lineEnd = content.indexOf('\n', selectionEnd);
+      if (lineEnd === -1) {
+        lineEnd = content.length;
+      }
+
+      const block = content.slice(lineStart, lineEnd);
+      const lines = block.split('\n');
+      const populatedLines = lines.filter((line) => line.trim().length > 0);
+      const allPrefixed = populatedLines.length > 0 && populatedLines.every((line) => line.startsWith(prefix));
+      const replacement = lines
+        .map((line) => {
+          if (!line.trim()) {
+            return line;
+          }
+
+          return allPrefixed ? line.slice(prefix.length) : `${prefix}${line}`;
+        })
+        .join('\n');
+
+      return {
+        value: `${content.slice(0, lineStart)}${replacement}${content.slice(lineEnd)}`,
+        selectionStart: lineStart,
+        selectionEnd: lineStart + replacement.length,
+      };
+    });
+  }
+
+  protected insertBlogMarkdownSnippet(snippet: string, selectLength = 0): void {
+    this.updateBlogMarkdownSelection((content, selectionStart, selectionEnd) => {
+      const value = `${content.slice(0, selectionStart)}${snippet}${content.slice(selectionEnd)}`;
+      const caretEnd = selectionStart + snippet.length;
+      const caretStart = selectLength > 0 ? caretEnd - selectLength : caretEnd;
+
+      return {
+        value,
+        selectionStart: caretStart,
+        selectionEnd: caretEnd,
+      };
+    });
+  }
+
+  protected insertBlogMarkdownLink(): void {
+    this.wrapBlogSelection('[', '](https://example.com)', 'Link text');
+  }
+
+  protected insertBlogMarkdownCodeBlock(): void {
+    this.updateBlogMarkdownSelection((content, selectionStart, selectionEnd) => {
+      const snippet = '\n```\nconst example = true;\n```\n';
+      const value = `${content.slice(0, selectionStart)}${snippet}${content.slice(selectionEnd)}`;
+      const codeStart = selectionStart + '\n```\n'.length;
+
+      return {
+        value,
+        selectionStart: codeStart,
+        selectionEnd: codeStart + 'const example = true;'.length,
+      };
+    });
+  }
+
+  protected insertBlogMarkdownDivider(): void {
+    this.insertBlogMarkdownSnippet('\n---\n');
+  }
+
+  protected insertBlogMarkdownImageTemplate(): void {
+    this.updateBlogMarkdownSelection((content, selectionStart, selectionEnd) => {
+      const snippet = '\n![Describe image](https://example.com/image.jpg)\n';
+      const value = `${content.slice(0, selectionStart)}${snippet}${content.slice(selectionEnd)}`;
+      const urlStart = selectionStart + '\n![Describe image]('.length;
+
+      return {
+        value,
+        selectionStart: urlStart,
+        selectionEnd: urlStart + 'https://example.com/image.jpg'.length,
+      };
+    });
+  }
+
+  protected insertBlogImageFromMedia(media: AdminMediaFile): void {
+    const url = this.resolveMediaUrl(media);
+    if (!url) {
+      this.statusMessage = 'That media file does not have a usable URL yet.';
+      return;
+    }
+
+    this.insertBlogMarkdownSnippet(`\n${this.buildBlogImageMarkdown(media, url)}\n`);
+    this.statusMessage = 'Image markdown inserted into the blog post.';
   }
 
   protected toggleBlogTag(tagId: string): void {
@@ -1199,6 +1340,16 @@ export class AdminPageComponent implements OnInit {
     });
   }
 
+  protected uploadBlogInlineImage(): void {
+    this.uploadScopedMedia(
+      'blog-inline-image',
+      this.blogInlineImageUploadForm,
+      this.buildBlogFolder(),
+      (media) => this.insertBlogImageFromMedia(media),
+      (media) => `Image uploaded to ${this.buildBlogFolder()} and inserted into the article.`
+    );
+  }
+
   protected uploadExperienceLogo(): void {
     this.uploadScopedMedia('experience-logo', this.experienceUploadForm, this.buildExperienceFolder(), (media) => {
       this.experienceForm.logoFileId = media.id;
@@ -1240,7 +1391,13 @@ export class AdminPageComponent implements OnInit {
     return `experience/${this.slugify(this.experienceForm.organizationName || this.experienceForm.roleTitle || 'experience')}`;
   }
 
-  private uploadScopedMedia(uploadKey: string, form: ScopedUploadForm, folder: string, onSuccess: (media: AdminMediaFile) => void): void {
+  private uploadScopedMedia(
+    uploadKey: string,
+    form: ScopedUploadForm,
+    folder: string,
+    onSuccess: (media: AdminMediaFile) => void,
+    successMessageBuilder?: (media: AdminMediaFile) => string,
+  ): void {
     if (!form.file) {
       this.statusMessage = 'Choose a file before uploading.';
       return;
@@ -1279,7 +1436,7 @@ export class AdminPageComponent implements OnInit {
         };
         onSuccess(media);
         this.resetScopedUploadForm(form);
-        this.statusMessage = `Media uploaded to ${folder} and selected automatically.`;
+        this.statusMessage = successMessageBuilder?.(media) ?? `Media uploaded to ${folder} and selected automatically.`;
       },
       error: (error) => {
         this.statusMessage = error?.error?.detail || 'Uploading media failed.';
@@ -1293,6 +1450,52 @@ export class AdminPageComponent implements OnInit {
     form.description = '';
     form.visibility = 'public';
     form.file = null;
+  }
+
+  private updateBlogMarkdownSelection(
+    updater: (content: string, selectionStart: number, selectionEnd: number) => {
+      value: string;
+      selectionStart: number;
+      selectionEnd: number;
+    }
+  ): void {
+    const textarea = this.blogMarkdownEditor?.nativeElement;
+    const content = this.blogPostForm.contentMarkdown || '';
+    const selectionStart = textarea?.selectionStart ?? content.length;
+    const selectionEnd = textarea?.selectionEnd ?? content.length;
+    const nextState = updater(content, selectionStart, selectionEnd);
+
+    this.blogPostForm.contentMarkdown = nextState.value;
+    this.changeDetectorRef.detectChanges();
+
+    if (!textarea) {
+      return;
+    }
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(nextState.selectionStart, nextState.selectionEnd);
+    });
+  }
+
+  private isImageMedia(media: AdminMediaFile): boolean {
+    if (media.mimeType?.startsWith('image/')) {
+      return true;
+    }
+
+    return /\.(avif|gif|jpe?g|png|svg|webp)$/i.test(media.originalFilename || media.objectKey);
+  }
+
+  private resolveMediaUrl(media: AdminMediaFile): string | null {
+    return media.resolvedAsset?.url ?? media.publicUrl ?? null;
+  }
+
+  private buildBlogImageMarkdown(media: AdminMediaFile, url: string): string {
+    const altText = (media.altText || media.title || media.originalFilename || 'Blog image')
+      .replace(/[\r\n]+/g, ' ')
+      .replace(/\]/g, '\\]')
+      .trim();
+    return `![${altText}](${url})`;
   }
 
   private matchesSearch(values: Array<string | null | undefined>, needle: string): boolean {

@@ -134,9 +134,91 @@
           <label class="space-y-2"><span class="text-sm font-semibold">Title</span><input [(ngModel)]="blogPostForm.title" name="blogTitle" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
           <label class="space-y-2"><span class="text-sm font-semibold">Slug</span><input [(ngModel)]="blogPostForm.slug" name="blogSlug" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
           <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Excerpt</span><textarea [(ngModel)]="blogPostForm.excerpt" name="blogExcerpt" rows="3" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"></textarea></label>
-          <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Content markdown</span><textarea [(ngModel)]="blogPostForm.contentMarkdown" name="blogMarkdown" rows="10" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm font-mono"></textarea></label>
+          <div class="space-y-4 lg:col-span-2 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
+            <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <p class="text-sm font-semibold text-stone-950">Markdown editor</p>
+                <p class="text-xs leading-5 text-stone-500">Use the shortcuts below to insert headings, emphasis, code, links, lists, quotes, dividers, and inline images without leaving the editor.</p>
+              </div>
+              <div class="flex flex-wrap gap-2 text-xs text-stone-500">
+                <span class="rounded-full border border-stone-300 bg-white px-3 py-1">{{ blogMarkdownWordCount }} words</span>
+                <button type="button" (click)="applySuggestedBlogReadingTime()" class="rounded-full border border-stone-300 bg-white px-3 py-1 font-medium text-stone-700">Use {{ suggestedBlogReadingTimeMinutes || 1 }} min estimate</button>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+              <button type="button" (click)="toggleBlogLinePrefix('# ')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">H1</button>
+              <button type="button" (click)="toggleBlogLinePrefix('## ')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">H2</button>
+              <button type="button" (click)="toggleBlogLinePrefix('### ')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">H3</button>
+              <button type="button" (click)="wrapBlogSelection('**', '**', 'Bold text')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Bold</button>
+              <button type="button" (click)="wrapBlogSelection('*', '*', 'Italic text')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Italic</button>
+              <button type="button" (click)="wrapBlogSelection('`', '`', 'inline code')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Inline code</button>
+              <button type="button" (click)="insertBlogMarkdownLink()" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Link</button>
+              <button type="button" (click)="insertBlogMarkdownImageTemplate()" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Image</button>
+              <button type="button" (click)="toggleBlogLinePrefix('- ')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Bullets</button>
+              <button type="button" (click)="toggleBlogLinePrefix('1. ')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Numbered list</button>
+              <button type="button" (click)="toggleBlogLinePrefix('> ')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Quote</button>
+              <button type="button" (click)="insertBlogMarkdownCodeBlock()" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Code block</button>
+              <button type="button" (click)="insertBlogMarkdownDivider()" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Divider</button>
+            </div>
+
+            <div class="grid gap-4 xl:grid-cols-[minmax(0,1.25fr)_minmax(20rem,0.9fr)]">
+              <label class="space-y-2">
+                <span class="text-sm font-semibold">Content markdown</span>
+                <textarea #blogMarkdownEditor [(ngModel)]="blogPostForm.contentMarkdown" name="blogMarkdown" rows="18" class="min-h-[26rem] w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm font-mono"></textarea>
+              </label>
+              <div class="space-y-2">
+                <div class="flex items-center justify-between gap-3">
+                  <span class="text-sm font-semibold text-stone-950">Live preview</span>
+                  <span class="text-xs text-stone-500">Matches the public blog renderer</span>
+                </div>
+                <div class="min-h-[26rem] rounded-2xl border border-stone-300 bg-white px-5 py-4">
+                  <div class="blog-markdown" [innerHTML]="renderedBlogContentPreview"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid gap-4 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+              <div class="space-y-3 rounded-[1.25rem] border border-stone-200 bg-white p-4">
+                <div>
+                  <p class="text-sm font-semibold text-stone-950">Upload inline image</p>
+                  <p class="text-xs text-stone-500">Uploads to {{ buildBlogFolder() }} and inserts the markdown image syntax into the editor automatically.</p>
+                </div>
+                <input [(ngModel)]="blogInlineImageUploadForm.title" name="blogInlineImageUploadTitle" placeholder="Image title" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" />
+                <input [(ngModel)]="blogInlineImageUploadForm.altText" name="blogInlineImageUploadAltText" placeholder="Alt text for the article" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" />
+                <textarea [(ngModel)]="blogInlineImageUploadForm.description" name="blogInlineImageUploadDescription" rows="2" placeholder="Optional description" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"></textarea>
+                <select [(ngModel)]="blogInlineImageUploadForm.visibility" name="blogInlineImageUploadVisibility" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"><option [ngValue]="'public'">public</option><option [ngValue]="'private'">private</option><option [ngValue]="'signed'">signed</option></select>
+                <input type="file" (change)="onScopedFileSelected($event, blogInlineImageUploadForm)" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" />
+                <button type="button" (click)="uploadBlogInlineImage()" [disabled]="uploadInProgressKey === 'blog-inline-image'" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Upload and insert image</button>
+              </div>
+
+              <div class="space-y-3 rounded-[1.25rem] border border-stone-200 bg-white p-4">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <p class="text-sm font-semibold text-stone-950">Insert from media library</p>
+                    <p class="text-xs text-stone-500">Search your existing uploads and insert any image into the article at the current cursor position.</p>
+                  </div>
+                  <span class="rounded-full border border-stone-300 bg-stone-50 px-3 py-1 text-xs text-stone-500">{{ filteredBlogImageMediaFiles.length }} image{{ filteredBlogImageMediaFiles.length === 1 ? '' : 's' }}</span>
+                </div>
+                <input [(ngModel)]="blogMediaSearchTerm" name="blogMediaSearchTerm" placeholder="Search by title, alt text, filename, or path" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" />
+                <div class="grid max-h-72 gap-2 overflow-y-auto pr-1">
+                  <button *ngFor="let media of filteredBlogImageMediaFiles.slice(0, 16)" type="button" (click)="insertBlogImageFromMedia(media)" class="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-3 py-3 text-left transition hover:border-stone-300 hover:bg-stone-100">
+                    <div class="h-14 w-14 overflow-hidden rounded-xl border border-stone-200 bg-white">
+                      <img *ngIf="media.resolvedAsset?.url" [src]="media.resolvedAsset?.url" [alt]="media.altText || media.title || media.originalFilename" class="h-full w-full object-cover" />
+                      <div *ngIf="!media.resolvedAsset?.url" class="flex h-full w-full items-center justify-center text-[10px] font-semibold uppercase tracking-[0.12em] text-stone-400">IMG</div>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <p class="truncate text-sm font-semibold text-stone-900">{{ media.title || media.originalFilename }}</p>
+                      <p class="truncate text-xs text-stone-500">{{ media.objectKey }}</p>
+                    </div>
+                  </button>
+                  <p *ngIf="filteredBlogImageMediaFiles.length === 0" class="rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-4 py-5 text-sm text-stone-500">No matching images yet. Upload one on the left or clear the search.</p>
+                </div>
+              </div>
+            </div>
+          </div>
           <label class="space-y-2"><span class="text-sm font-semibold">Status</span><select [(ngModel)]="blogPostForm.status" name="blogStatus" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"><option *ngFor="let status of referenceData.publicationStatuses" [ngValue]="status">{{ status }}</option></select></label>
-          <label class="space-y-2"><span class="text-sm font-semibold">Reading time</span><input [(ngModel)]="blogPostForm.readingTimeMinutes" name="blogReadingTime" type="number" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold">Reading time</span><div class="space-y-2"><input [(ngModel)]="blogPostForm.readingTimeMinutes" name="blogReadingTime" type="number" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /><p class="text-xs text-stone-500">Suggested from content: {{ suggestedBlogReadingTimeMinutes || 1 }} minute{{ (suggestedBlogReadingTimeMinutes || 1) === 1 ? '' : 's' }}.</p></div></label>
           <label class="space-y-2"><span class="text-sm font-semibold">Published at</span><input [(ngModel)]="blogPostForm.publishedAt" name="blogPublishedAt" type="datetime-local" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
           <label class="space-y-2"><span class="text-sm font-semibold">Cover alt text</span><input [(ngModel)]="blogPostForm.coverImageAlt" name="blogCoverAlt" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
           <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">SEO title</span><input [(ngModel)]="blogPostForm.seoTitle" name="blogSeoTitle" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
