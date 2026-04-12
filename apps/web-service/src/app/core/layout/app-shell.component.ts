@@ -6,12 +6,13 @@ import { filter, take } from 'rxjs/operators';
 import { Profile } from '../../shared/models/profile.model';
 import { SiteShellData } from '../../shared/models/site-shell.model';
 import { PublicPortfolioApiService } from '../../shared/services/public-portfolio-api.service';
+import { AssistantPanelComponent } from '../../shared/components/assistant-panel/assistant-panel.component';
 import { createEmptyProfile } from '../../shared/utils/profile-view.util';
 
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [NgFor, NgIf, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [NgFor, NgIf, RouterOutlet, RouterLink, RouterLinkActive, AssistantPanelComponent],
   templateUrl: './app-shell.component.html'
 })
 export class AppShellComponent implements OnInit {
@@ -24,6 +25,7 @@ export class AppShellComponent implements OnInit {
   protected isAdminRoute = false;
   protected quickLinks: Array<{ label: string; path: string; isExternal: boolean }> = [];
   protected footerLinks: Array<{ label: string; path: string; isExternal: boolean }> = [];
+  protected isAssistantOpen = false;
 
   protected readonly shellChrome = {
     headerVisible: true,
@@ -92,6 +94,14 @@ export class AppShellComponent implements OnInit {
     const visibleState = this.shellChrome.headerVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0';
 
     return `${stickyState} z-30 px-4 pt-4 transition duration-300 sm:px-6 lg:px-8 ${visibleState}`;
+  }
+
+  protected toggleAssistant(): void {
+    this.isAssistantOpen = !this.isAssistantOpen;
+  }
+
+  protected closeAssistant(): void {
+    this.isAssistantOpen = false;
   }
 
   protected get assistantButtonClasses(): string {

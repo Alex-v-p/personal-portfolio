@@ -398,3 +398,21 @@ def test_admin_can_refresh_github_snapshot_from_github(client: TestClient, monke
     matching_snapshots = [item for item in listing_response.json()['items'] if item['username'] == 'Alex-v-p']
     assert len(matching_snapshots) == 1
     assert matching_snapshots[0]['id'] == second_snapshot['id']
+
+
+def test_admin_can_rebuild_assistant_knowledge_index(client: TestClient) -> None:
+    token = _admin_token(client)
+    headers = {'Authorization': f'Bearer {token}'}
+
+    status_response = client.get('/api/admin/assistant/knowledge', headers=headers)
+    assert status_response.status_code == 200
+    initial_status = status_response.json()
+    assert 'totalDocuments' in initial_status
+    assert 'totalChunks' in initial_status
+
+    rebuild_response = client.post('/api/admin/assistant/knowledge/rebuild', headers=headers, json={})
+    assert rebuild_response.status_code == 200
+    rebuilt = rebuild_response.json()
+    assert rebuilt['totalDocuments'] >= 1
+    assert rebuilt['totalChunks'] >= rebuilt['totalDocuments']
+    assert rebuilt['documentsBySourceType']

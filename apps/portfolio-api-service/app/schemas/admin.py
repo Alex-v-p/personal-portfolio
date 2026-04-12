@@ -405,6 +405,22 @@ class AdminMessageStatusUpdateIn(ApiSchema):
     is_read: bool
 
 
+
+
+class AdminAssistantKnowledgeStatusOut(ApiSchema):
+    total_documents: int
+    total_chunks: int
+    documents_by_source_type: dict[str, int]
+    latest_updated_at: str | None = None
+
+
+class AdminAssistantKnowledgeRebuildIn(ApiSchema):
+    pass
+
+
+class AdminAssistantKnowledgeRebuildOut(AdminAssistantKnowledgeStatusOut):
+    pass
+
 class AdminReferenceDataOut(ApiSchema):
     skills: list[AdminSkillOut]
     skill_categories: list[AdminSkillCategoryOut]

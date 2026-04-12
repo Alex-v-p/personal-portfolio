@@ -1,4 +1,8 @@
-from pydantic import AliasChoices, Field
+from __future__ import annotations
+
+from functools import lru_cache
+
+from pydantic import AliasChoices, Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,8 +20,50 @@ class Settings(BaseSettings):
         default='redis://redis:6379/0',
         validation_alias=AliasChoices('REDIS_URL', 'ASSISTANT_API_REDIS_URL'),
     )
+    cors_allowed_origins: str = Field(
+        default='http://localhost:4200,http://127.0.0.1:4200',
+        validation_alias=AliasChoices('CORS_ALLOWED_ORIGINS', 'ASSISTANT_API_CORS_ALLOWED_ORIGINS'),
+    )
+    provider_backend: str = Field(
+        default='mock',
+        validation_alias=AliasChoices('ASSISTANT_PROVIDER_BACKEND', 'PROVIDER_BACKEND'),
+    )
+    provider_model: str = Field(
+        default='llama3.1:8b',
+        validation_alias=AliasChoices('ASSISTANT_PROVIDER_MODEL', 'PROVIDER_MODEL'),
+    )
+    provider_base_url: str = Field(
+        default='http://ollama:11434',
+        validation_alias=AliasChoices('ASSISTANT_PROVIDER_BASE_URL', 'PROVIDER_BASE_URL'),
+    )
+    provider_api_key: str = Field(
+        default='',
+        validation_alias=AliasChoices('ASSISTANT_PROVIDER_API_KEY', 'PROVIDER_API_KEY'),
+    )
+    retrieval_chunk_limit: int = Field(
+        default=5,
+        validation_alias=AliasChoices('ASSISTANT_RETRIEVAL_CHUNK_LIMIT', 'RETRIEVAL_CHUNK_LIMIT'),
+    )
+    retrieval_candidate_limit: int = Field(
+        default=18,
+        validation_alias=AliasChoices('ASSISTANT_RETRIEVAL_CANDIDATE_LIMIT', 'RETRIEVAL_CANDIDATE_LIMIT'),
+    )
+    max_history_messages: int = Field(
+        default=10,
+        validation_alias=AliasChoices('ASSISTANT_MAX_HISTORY_MESSAGES', 'MAX_HISTORY_MESSAGES'),
+    )
 
     model_config = SettingsConfigDict(env_file='.env', extra='ignore')
 
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def cors_allowed_origins_list(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_allowed_origins.split(',') if origin.strip()]
 
-settings = Settings()
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
+
+
+settings = get_settings()
