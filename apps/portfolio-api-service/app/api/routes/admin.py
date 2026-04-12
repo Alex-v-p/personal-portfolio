@@ -44,6 +44,7 @@ from app.schemas.admin import (
     AdminProjectsListOut,
     AdminProjectUpsertIn,
     AdminReferenceDataOut,
+    AdminSiteActivityOut,
     AdminSkillCategoryOut,
     AdminSkillCategoryUpsertIn,
     AdminSkillOut,
@@ -426,6 +427,11 @@ def update_profile(payload: AdminProfileUpdateIn, _: AdminUserDependency, sessio
     return profile
 
 
+
+
+@router.get('/site-activity', response_model=AdminSiteActivityOut)
+def get_site_activity(_: AdminUserDependency, session: Session = Depends(get_session)) -> AdminSiteActivityOut:
+    return AdminContentRepository(session).get_site_activity()
 
 
 @router.get('/assistant/knowledge', response_model=AdminAssistantKnowledgeStatusOut)

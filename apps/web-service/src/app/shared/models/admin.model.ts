@@ -334,6 +334,45 @@ export interface AdminContactMessage {
   updatedAt: string;
 }
 
+export interface AdminSiteEvent {
+  id: string;
+  eventType: string;
+  pagePath: string;
+  visitorId: string;
+  sessionId?: string | null;
+  referrer?: string | null;
+  userAgent?: string | null;
+  ipAddress?: string | null;
+  metadata?: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export interface AdminAssistantConversationSummary {
+  id: string;
+  sessionId: string;
+  startedAt: string;
+  lastMessageAt: string;
+  totalMessages: number;
+  userMessageCount: number;
+  assistantMessageCount: number;
+  firstUserMessage?: string | null;
+  latestAssistantMessage?: string | null;
+}
+
+export interface AdminSiteActivitySummary {
+  totalEvents: number;
+  uniqueVisitors: number;
+  pageViews: number;
+  assistantMessages: number;
+  contactSubmissions: number;
+}
+
+export interface AdminSiteActivity {
+  summary: AdminSiteActivitySummary;
+  recentEvents: AdminSiteEvent[];
+  recentAssistantConversations: AdminAssistantConversationSummary[];
+}
+
 export interface AdminReferenceData {
   skills: AdminSkillOption[];
   skillCategories: AdminSkillCategory[];

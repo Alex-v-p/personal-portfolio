@@ -11,6 +11,7 @@ import { ContactMessageDraft } from '../../shared/models/contact-message.model';
 import { ContactMethod } from '../../shared/models/contact-method.model';
 import { Profile } from '../../shared/models/profile.model';
 import { PublicPortfolioApiService } from '../../shared/services/public-portfolio-api.service';
+import { SiteTrackingService } from '../../shared/services/site-tracking.service';
 import { buildContactMethodsFromProfile, createEmptyProfile } from '../../shared/utils/profile-view.util';
 
 interface ContactTopic {
@@ -30,6 +31,7 @@ export class ContactPageComponent implements OnInit {
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly portfolioApi = inject(PublicPortfolioApiService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private readonly siteTracking = inject(SiteTrackingService);
 
   protected profile: Profile = createEmptyProfile();
   protected contactMethods: ContactMethod[] = [];
@@ -191,7 +193,9 @@ export class ContactPageComponent implements OnInit {
       email: value.email.trim(),
       subject: value.subject.trim(),
       message: value.message.trim(),
-      sourcePage: '/contact'
+      sourcePage: '/contact',
+      visitorId: this.siteTracking.visitorId,
+      sessionId: this.siteTracking.sessionId
     };
   }
 }

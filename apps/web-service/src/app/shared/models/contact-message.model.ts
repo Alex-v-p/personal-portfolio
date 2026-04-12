@@ -4,6 +4,8 @@ export interface ContactMessageDraft {
   subject: string;
   message: string;
   sourcePage: string;
+  visitorId?: string | null;
+  sessionId?: string | null;
 }
 
 export interface ContactMessageRecord extends ContactMessageDraft {

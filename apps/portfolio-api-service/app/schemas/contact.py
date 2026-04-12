@@ -11,6 +11,8 @@ class ContactMessageIn(ApiSchema):
     subject: str = Field(min_length=4, max_length=120)
     message: str = Field(min_length=20, max_length=1200)
     source_page: str = '/contact'
+    visitor_id: str | None = None
+    session_id: str | None = None
 
 
 class ContactMessageOut(ApiSchema):

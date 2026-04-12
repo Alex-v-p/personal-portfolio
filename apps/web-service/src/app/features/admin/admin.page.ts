@@ -18,6 +18,7 @@ import {
   AdminProfile,
   AdminProject,
   AdminReferenceData,
+  AdminSiteActivity,
   AdminSkillCategory,
   AdminSkillOption,
   AdminSocialLink,
@@ -186,6 +187,7 @@ export class AdminPageComponent implements OnInit {
     { id: 'profile', label: 'Profile' },
     { id: 'stats', label: 'GitHub / Stats' },
     { id: 'assistant', label: 'Assistant' },
+    { id: 'activity', label: 'Activity' },
     { id: 'admins', label: 'Admin users' },
     { id: 'messages', label: 'Messages' },
   ] as const;
@@ -228,6 +230,11 @@ export class AdminPageComponent implements OnInit {
     totalChunks: 0,
     documentsBySourceType: {},
     latestUpdatedAt: null,
+  };
+  protected siteActivity: AdminSiteActivity = {
+    summary: { totalEvents: 0, uniqueVisitors: 0, pageViews: 0, assistantMessages: 0, contactSubmissions: 0 },
+    recentEvents: [],
+    recentAssistantConversations: [],
   };
 
   protected selectedProjectId: string | null = null;
@@ -301,6 +308,7 @@ export class AdminPageComponent implements OnInit {
       profile: this.adminApi.getProfile(),
       messages: this.adminApi.getContactMessages(),
       assistantKnowledgeStatus: this.adminApi.getAssistantKnowledgeStatus(),
+      siteActivity: this.adminApi.getSiteActivity(),
     })
       .pipe(
         take(1),
@@ -322,6 +330,7 @@ export class AdminPageComponent implements OnInit {
           this.profile = result.profile;
           this.messages = result.messages.items;
           this.assistantKnowledgeStatus = result.assistantKnowledgeStatus;
+          this.siteActivity = result.siteActivity;
 
           this.selectedProjectId = this.resolveSelection(currentSelections.project, this.projects);
           this.selectedBlogPostId = this.resolveSelection(currentSelections.blogPost, this.blogPosts);

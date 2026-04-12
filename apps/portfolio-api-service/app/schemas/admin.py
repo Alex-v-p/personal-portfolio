@@ -405,6 +405,43 @@ class AdminMessageStatusUpdateIn(ApiSchema):
     is_read: bool
 
 
+class AdminSiteEventOut(ApiSchema):
+    id: str
+    event_type: str
+    page_path: str
+    visitor_id: str
+    session_id: str | None = None
+    referrer: str | None = None
+    user_agent: str | None = None
+    ip_address: str | None = None
+    metadata: dict[str, Any] | None = None
+    created_at: str
+
+
+class AdminAssistantConversationSummaryOut(ApiSchema):
+    id: str
+    session_id: str
+    started_at: str
+    last_message_at: str
+    total_messages: int
+    user_message_count: int
+    assistant_message_count: int
+    first_user_message: str | None = None
+    latest_assistant_message: str | None = None
+
+
+class AdminSiteActivitySummaryOut(ApiSchema):
+    total_events: int
+    unique_visitors: int
+    page_views: int
+    assistant_messages: int
+    contact_submissions: int
+
+
+class AdminSiteActivityOut(ApiSchema):
+    summary: AdminSiteActivitySummaryOut
+    recent_events: list[AdminSiteEventOut]
+    recent_assistant_conversations: list[AdminAssistantConversationSummaryOut]
 
 
 class AdminAssistantKnowledgeStatusOut(ApiSchema):

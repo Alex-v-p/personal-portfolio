@@ -9,10 +9,14 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.db.models import (
     AdminUser,
+    AssistantConversation,
+    AssistantMessage,
+    AssistantRole,
     BlogPost,
     BlogPostTag,
     BlogTag,
     ContactMessage,
+    EventType,
     Experience,
     ExperienceSkill,
     GithubContributionDay,
@@ -22,6 +26,7 @@ from app.db.models import (
     NavigationItem,
     Profile,
     Project,
+    SiteEvent,
     ProjectImage,
     ProjectSkill,
     ProjectState,
@@ -31,12 +36,16 @@ from app.db.models import (
     SocialLink,
 )
 from app.schemas.admin import (
+    AdminAssistantConversationSummaryOut,
     AdminBlogPostOut,
     AdminBlogPostUpsertIn,
     AdminBlogTagOut,
     AdminBlogTagUpsertIn,
     AdminContactMessageOut,
     AdminDashboardSummaryOut,
+    AdminSiteActivityOut,
+    AdminSiteActivitySummaryOut,
+    AdminSiteEventOut,
     AdminExperienceOut,
     AdminExperienceUpsertIn,
     AdminGithubContributionDayOut,
@@ -733,6 +742,28 @@ class AdminContentRepository:
         messages = self.session.scalars(select(ContactMessage).order_by(ContactMessage.created_at.desc())).all()
         return [self._map_contact_message(message) for message in messages]
 
+    def get_site_activity(self, *, event_limit: int = 120, conversation_limit: int = 40) -> AdminSiteActivityOut:
+        recent_events = self.session.scalars(
+            select(SiteEvent).order_by(SiteEvent.created_at.desc()).limit(event_limit)
+        ).all()
+        recent_conversations = self.session.scalars(
+            select(AssistantConversation)
+            .options(selectinload(AssistantConversation.messages))
+            .order_by(AssistantConversation.last_message_at.desc())
+            .limit(conversation_limit)
+        ).all()
+        return AdminSiteActivityOut(
+            summary=AdminSiteActivitySummaryOut(
+                total_events=self.session.scalar(select(func.count(SiteEvent.id))) or 0,
+                unique_visitors=self.session.scalar(select(func.count(func.distinct(SiteEvent.visitor_id)))) or 0,
+                page_views=self.session.scalar(select(func.count(SiteEvent.id)).where(SiteEvent.event_type == EventType.PAGE_VIEW)) or 0,
+                assistant_messages=self.session.scalar(select(func.count(SiteEvent.id)).where(SiteEvent.event_type == EventType.ASSISTANT_MESSAGE)) or 0,
+                contact_submissions=self.session.scalar(select(func.count(SiteEvent.id)).where(SiteEvent.event_type == EventType.CONTACT_SUBMIT)) or 0,
+            ),
+            recent_events=[self._map_site_event(item) for item in recent_events],
+            recent_assistant_conversations=[self._map_assistant_conversation(item) for item in recent_conversations],
+        )
+
     def update_contact_message_status(self, message_id: UUID, *, is_read: bool) -> AdminContactMessageOut | None:
         message = self.session.get(ContactMessage, message_id)
         if message is None:
@@ -974,6 +1005,42 @@ class AdminContentRepository:
             is_read=message.is_read,
             created_at=message.created_at.isoformat(),
             updated_at=message.updated_at.isoformat(),
+        )
+
+    def _map_site_event(self, event: SiteEvent) -> AdminSiteEventOut:
+        metadata = event.metadata_json or None
+        ip_address = None
+        if isinstance(metadata, dict):
+            ip_value = metadata.get('ip_address')
+            if isinstance(ip_value, str):
+                ip_address = ip_value
+        return AdminSiteEventOut(
+            id=str(event.id),
+            event_type=event.event_type.value if hasattr(event.event_type, 'value') else str(event.event_type),
+            page_path=event.page_path,
+            visitor_id=event.visitor_id,
+            session_id=event.session_id,
+            referrer=event.referrer,
+            user_agent=event.user_agent,
+            ip_address=ip_address,
+            metadata=metadata,
+            created_at=event.created_at.isoformat(),
+        )
+
+    def _map_assistant_conversation(self, conversation: AssistantConversation) -> AdminAssistantConversationSummaryOut:
+        ordered_messages = sorted(conversation.messages, key=lambda item: item.created_at)
+        user_messages = [item for item in ordered_messages if item.role == AssistantRole.USER]
+        assistant_messages = [item for item in ordered_messages if item.role == AssistantRole.ASSISTANT]
+        return AdminAssistantConversationSummaryOut(
+            id=str(conversation.id),
+            session_id=conversation.session_id,
+            started_at=conversation.started_at.isoformat(),
+            last_message_at=conversation.last_message_at.isoformat(),
+            total_messages=len(ordered_messages),
+            user_message_count=len(user_messages),
+            assistant_message_count=len(assistant_messages),
+            first_user_message=user_messages[0].message_text if user_messages else None,
+            latest_assistant_message=assistant_messages[-1].message_text if assistant_messages else None,
         )
 
     def _map_media_file(self, media_file: MediaFile) -> AdminMediaFileOut:

@@ -20,8 +20,7 @@ class ContactMessageRepository:
             is_read=False,
         )
         self.session.add(item)
-        self.session.commit()
-        self.session.refresh(item)
+        self.session.flush()
         return ContactMessageOut.model_validate(
             {
                 'id': str(item.id),
