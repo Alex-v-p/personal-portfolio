@@ -10,7 +10,7 @@ from app.core.config import get_settings
 from infra.postgres.bootstrap.bootstrap_core import initialize_database
 from infra.postgres.bootstrap.seed_content import BLOG_POST_ROWS, PROFILE_ROW, PROJECT_ROWS
 from infra.postgres.bootstrap.seed_ids import seed_uuid
-from app.db.models import BlogPost, BlogTag, MediaFile, Profile, Project, ProjectSkill, SocialLink
+from app.db.models import BlogPost, BlogTag, MediaFile, Profile, Project, ProjectSkill, SocialLink, AdminUser
 from infra.postgres.bootstrap.seed_data import MEDIA_FILES
 from app.db.session import get_session_factory, reset_database_caches
 
@@ -45,8 +45,13 @@ def test_seed_uuid_helper_returns_valid_uuids() -> None:
     assert isinstance(seed_uuid('post-building-a-portfolio-shell'), UUID)
 
 
-def test_initialize_database_creates_and_seeds_expected_content() -> None:
+def test_initialize_database_creates_and_seeds_expected_content(tmp_path: Path) -> None:
+    database_path = tmp_path / 'seed.sqlite3'
+    os.environ['DATABASE_URL'] = f'sqlite:///{database_path}'
+    os.environ['ADMIN_EMAIL'] = 'admin@example.com'
+    os.environ['ADMIN_PASSWORD'] = 'test-admin-pass'
     reset_database_caches()
+    get_settings.cache_clear()
     assert initialize_database(auto_seed=True, recreate_on_drift=True, raise_on_error=True) is True
 
     session_factory = get_session_factory()
@@ -69,6 +74,35 @@ def test_initialize_database_creates_and_seeds_expected_content() -> None:
 
         assert initialize_database(auto_seed=True, recreate_on_drift=True, raise_on_error=True) is True
         assert session.scalar(select(func.count()).select_from(Project)) == len(PROJECT_ROWS)
+
+
+
+
+def test_initialize_database_upserts_admin_user_for_existing_seeded_database(tmp_path: Path) -> None:
+    database_path = tmp_path / 'existing-seeded.sqlite3'
+    os.environ['DATABASE_URL'] = f'sqlite:///{database_path}'
+    os.environ['ADMIN_EMAIL'] = 'admin@example.com'
+    os.environ['ADMIN_PASSWORD'] = 'first-pass'
+    os.environ['ADMIN_DISPLAY_NAME'] = 'First Admin'
+    reset_database_caches()
+    get_settings.cache_clear()
+
+    assert initialize_database(auto_seed=True, recreate_on_drift=True, raise_on_error=True) is True
+
+    os.environ['ADMIN_EMAIL'] = 'owner@example.com'
+    os.environ['ADMIN_PASSWORD'] = 'second-pass'
+    os.environ['ADMIN_DISPLAY_NAME'] = 'Owner Admin'
+    reset_database_caches()
+    get_settings.cache_clear()
+
+    assert initialize_database(auto_seed=True, recreate_on_drift=True, raise_on_error=True) is True
+
+    session_factory = get_session_factory()
+    with session_factory() as session:
+        admins = session.scalars(select(AdminUser)).all()
+        assert len(admins) == 1
+        assert admins[0].email == 'owner@example.com'
+        assert admins[0].display_name == 'Owner Admin'
 
 
 def test_initialize_database_recreates_legacy_schema_with_string_foreign_keys(tmp_path: Path) -> None:

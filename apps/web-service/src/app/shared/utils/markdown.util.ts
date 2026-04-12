@@ -7,9 +7,16 @@ const escapeHtml = (value: string): string => value
 
 const isSafeUrl = (url: string): boolean => /^(https?:\/\/|mailto:|\/)/i.test(url.trim());
 
+const renderImage = (altText: string, url: string): string => {
+  const safeUrl = isSafeUrl(url) ? escapeHtml(url.trim()) : '#';
+  const safeAltText = altText.trim();
+  return `<img src="${safeUrl}" alt="${safeAltText}" loading="lazy" />`;
+};
+
 const renderInline = (value: string): string => {
   let text = escapeHtml(value);
 
+  text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_match, altText: string, url: string) => renderImage(altText, url));
   text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
   text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');

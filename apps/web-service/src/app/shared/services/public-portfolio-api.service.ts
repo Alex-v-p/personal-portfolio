@@ -17,6 +17,7 @@ import { SiteShellData, NavigationItem } from '../models/site-shell.model';
 import { SocialLink } from '../models/social-link.model';
 import { StatItem } from '../models/stat-item.model';
 import { StatsPageData } from '../models/stats-page.model';
+import { SiteEventCreatePayload } from '../models/site-event.model';
 
 interface CollectionResponse<T> {
   items?: T[] | null;
@@ -327,6 +328,10 @@ export class PublicPortfolioApiService {
     return this.http.post<ContactMessageCreatedResponse>(`${this.apiBaseUrl}/contact/messages`, payload);
   }
 
+  createSiteEvent(payload: SiteEventCreatePayload): Observable<{ message: string; eventId: string }> {
+    return this.http.post<{ message: string; eventId: string }>(`${this.apiBaseUrl}/events`, payload);
+  }
+
   private normalizeNavigationItem(item: NavigationItemApi): NavigationItem {
     return {
       id: item.id,
@@ -345,8 +350,8 @@ export class PublicPortfolioApiService {
     const headline = profile.headline ?? 'Portfolio Builder';
     const socialLinks = this.normalizeSocialLinks(profile.socialLinks);
     const heroActions = [
-      this.toHeroAction(profile.ctaPrimaryLabel, profile.ctaPrimaryUrl, 'secondary'),
-      this.toHeroAction(profile.ctaSecondaryLabel, profile.ctaSecondaryUrl, 'primary')
+      this.toHeroAction(profile.ctaPrimaryLabel, profile.ctaPrimaryUrl, 'primary'),
+      this.toHeroAction(profile.ctaSecondaryLabel, profile.ctaSecondaryUrl, 'secondary')
     ].filter((action): action is Profile['heroActions'][number] => action !== null);
 
     return {

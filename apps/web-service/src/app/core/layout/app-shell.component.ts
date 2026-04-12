@@ -1,27 +1,33 @@
 import { NgFor, NgIf } from '@angular/common';
 import { ChangeDetectorRef, Component, HostListener, OnInit, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { take } from 'rxjs/operators';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter, take } from 'rxjs/operators';
 
 import { Profile } from '../../shared/models/profile.model';
 import { SiteShellData } from '../../shared/models/site-shell.model';
 import { PublicPortfolioApiService } from '../../shared/services/public-portfolio-api.service';
+import { AssistantPanelComponent } from '../../shared/components/assistant-panel/assistant-panel.component';
+import { SiteTrackingService } from '../../shared/services/site-tracking.service';
 import { createEmptyProfile } from '../../shared/utils/profile-view.util';
 
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [NgFor, NgIf, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [NgFor, NgIf, RouterOutlet, RouterLink, RouterLinkActive, AssistantPanelComponent],
   templateUrl: './app-shell.component.html'
 })
 export class AppShellComponent implements OnInit {
   private readonly portfolioApi = inject(PublicPortfolioApiService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private readonly router = inject(Router);
+  private readonly siteTracking = inject(SiteTrackingService);
 
   protected profile: Profile = createEmptyProfile();
   protected shellData: SiteShellData | null = null;
+  protected isAdminRoute = false;
   protected quickLinks: Array<{ label: string; path: string; isExternal: boolean }> = [];
   protected footerLinks: Array<{ label: string; path: string; isExternal: boolean }> = [];
+  protected isAssistantOpen = false;
 
   protected readonly shellChrome = {
     headerVisible: true,
@@ -34,6 +40,18 @@ export class AppShellComponent implements OnInit {
   private lastScrollY = 0;
 
   ngOnInit(): void {
+    this.isAdminRoute = this.router.url.startsWith('/admin');
+    if (!this.isAdminRoute) {
+      this.siteTracking.trackPageView(this.router.url);
+    }
+    this.router.events.pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd)).subscribe((event) => {
+      this.isAdminRoute = event.urlAfterRedirects.startsWith('/admin');
+      if (!this.isAdminRoute) {
+        this.siteTracking.trackPageView(event.urlAfterRedirects);
+      }
+      this.changeDetectorRef.detectChanges();
+    });
+
     this.portfolioApi.getSiteShell().pipe(take(1)).subscribe({
       next: (shell) => {
         this.shellData = shell;
@@ -84,6 +102,14 @@ export class AppShellComponent implements OnInit {
     const visibleState = this.shellChrome.headerVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0';
 
     return `${stickyState} z-30 px-4 pt-4 transition duration-300 sm:px-6 lg:px-8 ${visibleState}`;
+  }
+
+  protected toggleAssistant(): void {
+    this.isAssistantOpen = !this.isAssistantOpen;
+  }
+
+  protected closeAssistant(): void {
+    this.isAssistantOpen = false;
   }
 
   protected get assistantButtonClasses(): string {

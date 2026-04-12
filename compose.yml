@@ -1,4 +1,25 @@
 services:
+  portfolio-db-init:
+    build:
+      context: .
+      dockerfile: infra/postgres/bootstrap/Dockerfile
+    container_name: portfolio_db_init
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${PORTFOLIO_API_DB_URL:-postgresql+psycopg://portfolio_user:portfolio_pass@postgres:5432/portfolio_platform}
+      DB_BOOTSTRAP_AUTO_SEED: ${DB_BOOTSTRAP_AUTO_SEED:-true}
+      DB_BOOTSTRAP_RECREATE_ON_DRIFT: ${DB_BOOTSTRAP_RECREATE_ON_DRIFT:-true}
+      DB_BOOTSTRAP_MAX_RETRIES: ${DB_BOOTSTRAP_MAX_RETRIES:-30}
+      DB_BOOTSTRAP_RETRY_DELAY_SECONDS: ${DB_BOOTSTRAP_RETRY_DELAY_SECONDS:-2}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me-admin}
+      ADMIN_DISPLAY_NAME: ${ADMIN_DISPLAY_NAME:-Portfolio Admin}
+      MEDIA_PUBLIC_BASE_URL: ${MEDIA_PUBLIC_BASE_URL:-http://localhost:9000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   web:
     build:
       context: ./apps/web-service
@@ -14,31 +35,12 @@ services:
         condition: service_started
       assistant:
         condition: service_started
+      portfolio-db-init:
+        condition: service_completed_successfully
       minio-init:
         condition: service_completed_successfully
-
-  portfolio-db-init:
-    build:
-      context: .
-      dockerfile: infra/postgres/bootstrap/Dockerfile
-    container_name: portfolio_db_init
-    working_dir: /workspace
-    env_file:
-      - .env
-    environment:
-      PYTHONPATH: /workspace/apps/portfolio-api-service:/workspace
-      DATABASE_URL: ${PORTFOLIO_API_DB_URL:-postgresql+psycopg://portfolio_user:portfolio_pass@postgres:5432/portfolio_platform}
-      DB_BOOTSTRAP_AUTO_SEED: ${DB_BOOTSTRAP_AUTO_SEED:-true}
-      DB_BOOTSTRAP_RECREATE_ON_DRIFT: ${DB_BOOTSTRAP_RECREATE_ON_DRIFT:-true}
-      DB_BOOTSTRAP_MAX_RETRIES: ${DB_BOOTSTRAP_MAX_RETRIES:-30}
-      DB_BOOTSTRAP_RETRY_DELAY_SECONDS: ${DB_BOOTSTRAP_RETRY_DELAY_SECONDS:-2}
-    command: ["python", "-m", "infra.postgres.bootstrap.bootstrap_database"]
-    volumes:
-      - .:/workspace
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: "no"
+      ollama:
+        condition: service_started
 
   portfolio-api:
     build:
@@ -57,13 +59,26 @@ services:
       SECRET_KEY: ${PORTFOLIO_API_SECRET_KEY:-change-me}
       CORS_ALLOWED_ORIGINS: ${PORTFOLIO_API_CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200}
       MEDIA_PUBLIC_BASE_URL: ${MEDIA_PUBLIC_BASE_URL:-http://localhost:9000}
+      MEDIA_STORAGE_ENDPOINT: ${MEDIA_STORAGE_ENDPOINT:-minio:9000}
+      MEDIA_STORAGE_ACCESS_KEY: ${MEDIA_STORAGE_ACCESS_KEY:-minioadmin}
+      MEDIA_STORAGE_SECRET_KEY: ${MEDIA_STORAGE_SECRET_KEY:-minioadmin}
+      MEDIA_STORAGE_SECURE: ${MEDIA_STORAGE_SECURE:-false}
+      MEDIA_PUBLIC_BUCKET: ${MEDIA_PUBLIC_BUCKET:-portfolio}
+      MEDIA_MAX_UPLOAD_BYTES: ${MEDIA_MAX_UPLOAD_BYTES:-10485760}
+      KNOWLEDGE_EMBEDDING_BACKEND: ${KNOWLEDGE_EMBEDDING_BACKEND:-ollama}
+      KNOWLEDGE_EMBEDDING_MODEL: ${KNOWLEDGE_EMBEDDING_MODEL:-nomic-embed-text}
+      KNOWLEDGE_EMBEDDING_BASE_URL: ${KNOWLEDGE_EMBEDDING_BASE_URL:-http://ollama:11434}
+      KNOWLEDGE_EMBEDDING_API_KEY: ${KNOWLEDGE_EMBEDDING_API_KEY:-}
+      KNOWLEDGE_EMBEDDING_TIMEOUT_SECONDS: ${KNOWLEDGE_EMBEDDING_TIMEOUT_SECONDS:-20}
     volumes:
       - ./apps/portfolio-api-service:/app
     depends_on:
-      portfolio-db-init:
-        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
       redis:
         condition: service_started
+      portfolio-db-init:
+        condition: service_completed_successfully
       minio-init:
         condition: service_completed_successfully
 
@@ -82,13 +97,38 @@ services:
       DATABASE_URL: ${ASSISTANT_API_DB_URL:-postgresql+psycopg://portfolio_user:portfolio_pass@postgres:5432/portfolio_platform}
       REDIS_URL: ${ASSISTANT_API_REDIS_URL:-redis://redis:6379/0}
       SECRET_KEY: ${ASSISTANT_API_SECRET_KEY:-change-me-too}
+      CORS_ALLOWED_ORIGINS: ${ASSISTANT_API_CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200}
+      ASSISTANT_PROVIDER_BACKEND: ${ASSISTANT_PROVIDER_BACKEND:-mock}
+      ASSISTANT_PROVIDER_MODEL: ${ASSISTANT_PROVIDER_MODEL:-qwen2.5:3b}
+      ASSISTANT_PROVIDER_BASE_URL: ${ASSISTANT_PROVIDER_BASE_URL:-http://ollama:11434}
+      ASSISTANT_PROVIDER_API_KEY: ${ASSISTANT_PROVIDER_API_KEY:-}
+      ASSISTANT_RETRIEVAL_CHUNK_LIMIT: ${ASSISTANT_RETRIEVAL_CHUNK_LIMIT:-5}
+      ASSISTANT_RETRIEVAL_CANDIDATE_LIMIT: ${ASSISTANT_RETRIEVAL_CANDIDATE_LIMIT:-18}
+      ASSISTANT_RETRIEVAL_EMBEDDING_BACKEND: ${ASSISTANT_RETRIEVAL_EMBEDDING_BACKEND:-ollama}
+      ASSISTANT_RETRIEVAL_EMBEDDING_MODEL: ${ASSISTANT_RETRIEVAL_EMBEDDING_MODEL:-nomic-embed-text}
+      ASSISTANT_RETRIEVAL_EMBEDDING_BASE_URL: ${ASSISTANT_RETRIEVAL_EMBEDDING_BASE_URL:-http://ollama:11434}
+      ASSISTANT_RETRIEVAL_EMBEDDING_API_KEY: ${ASSISTANT_RETRIEVAL_EMBEDDING_API_KEY:-}
+      ASSISTANT_RETRIEVAL_EMBEDDING_TIMEOUT_SECONDS: ${ASSISTANT_RETRIEVAL_EMBEDDING_TIMEOUT_SECONDS:-20}
     volumes:
       - ./apps/assistant-service:/app
     depends_on:
-      portfolio-db-init:
-        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
       redis:
         condition: service_started
+      portfolio-db-init:
+        condition: service_completed_successfully
+      ollama:
+        condition: service_started
+
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: portfolio_ollama
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ollama_data:/root/.ollama
 
   postgres:
     image: pgvector/pgvector:pg16
@@ -128,7 +168,9 @@ services:
       - minio_data:/data
 
   minio-init:
-    image: minio/mc:RELEASE.2025-03-12T17-29-24Z
+    build:
+      context: .
+      dockerfile: infra/minio/init/Dockerfile
     container_name: portfolio_minio_init
     depends_on:
       minio:
@@ -139,8 +181,6 @@ services:
       MINIO_PUBLIC_BUCKET: ${MINIO_PUBLIC_BUCKET:-portfolio}
     volumes:
       - ./infra/minio/seed:/seed:ro
-      - ./infra/minio/init-public-bucket.sh:/init-public-bucket.sh:ro
-    entrypoint: ["/bin/sh", "/init-public-bucket.sh"]
 
   nginx:
     image: nginx:1.27-alpine
@@ -158,3 +198,4 @@ services:
 volumes:
   postgres_data:
   minio_data:
+  ollama_data:
