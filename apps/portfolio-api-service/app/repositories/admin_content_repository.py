@@ -11,7 +11,6 @@ from sqlalchemy.orm import Session, selectinload
 from app.db.models import (
     AdminUser,
     AssistantConversation,
-    AssistantMessage,
     AssistantRole,
     BlogPost,
     BlogPostTag,
