@@ -347,14 +347,45 @@ export interface AdminSiteEvent {
   createdAt: string;
 }
 
+export interface AdminVisitSessionSummary {
+  sessionId: string;
+  visitorId: string;
+  startedAt: string;
+  lastActivityAt: string;
+  totalEvents: number;
+  pageViews: number;
+  assistantMessages: number;
+  contactSubmissions: number;
+  entryPagePath?: string | null;
+  lastPagePath?: string | null;
+  ipAddress?: string | null;
+}
+
+export interface AdminVisitorActivitySummary {
+  visitorId: string;
+  firstSeenAt: string;
+  lastSeenAt: string;
+  totalEvents: number;
+  uniqueSessions: number;
+  pageViews: number;
+  assistantMessages: number;
+  contactSubmissions: number;
+  latestPagePath?: string | null;
+  latestIpAddress?: string | null;
+}
+
 export interface AdminAssistantConversationSummary {
   id: string;
   sessionId: string;
+  visitorId?: string | null;
+  siteSessionId?: string | null;
+  pagePath?: string | null;
   startedAt: string;
   lastMessageAt: string;
   totalMessages: number;
   userMessageCount: number;
   assistantMessageCount: number;
+  usedFallback?: boolean | null;
   firstUserMessage?: string | null;
   latestAssistantMessage?: string | null;
 }
@@ -369,8 +400,10 @@ export interface AdminSiteActivitySummary {
 
 export interface AdminSiteActivity {
   summary: AdminSiteActivitySummary;
-  recentEvents: AdminSiteEvent[];
-  recentAssistantConversations: AdminAssistantConversationSummary[];
+  visitors: AdminVisitorActivitySummary[];
+  visits: AdminVisitSessionSummary[];
+  events: AdminSiteEvent[];
+  assistantConversations: AdminAssistantConversationSummary[];
 }
 
 export interface AdminReferenceData {

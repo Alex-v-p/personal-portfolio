@@ -603,28 +603,180 @@
         <article class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5"><p class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Contact submits</p><p class="mt-3 text-3xl font-semibold text-stone-950">{{ siteActivity.summary.contactSubmissions }}</p></article>
       </div>
 
-      <div class="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+      <div class="grid gap-6 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,0.85fr)_minmax(0,1.35fr)]">
         <section class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
-          <div class="flex items-center justify-between gap-4"><div><h2 class="text-xl font-semibold text-stone-950">Recent site events</h2><p class="text-sm text-stone-500">Page views, contact submissions, and assistant interactions with request metadata.</p></div><button type="button" (click)="loadCms()" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700">Refresh</button></div>
-          <div class="mt-6 space-y-4" *ngIf="siteActivity.recentEvents.length; else noSiteEvents">
-            <article *ngFor="let event of siteActivity.recentEvents" class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5">
-              <div class="flex flex-wrap items-start justify-between gap-3"><div><p class="text-sm font-semibold uppercase tracking-[0.16em] text-stone-500">{{ event.eventType }}</p><h3 class="mt-1 text-base font-semibold text-stone-950">{{ event.pagePath }}</h3><p class="mt-1 text-xs text-stone-500">{{ event.createdAt | date:'medium' }}</p></div><div class="text-right text-xs text-stone-500"><p>Visitor {{ event.visitorId }}</p><p *ngIf="event.sessionId">Session {{ event.sessionId }}</p><p *ngIf="event.ipAddress">IP {{ event.ipAddress }}</p></div></div>
-              <div class="mt-4 grid gap-2 text-sm text-stone-600 md:grid-cols-2"><p><span class="font-semibold text-stone-800">Referrer:</span> {{ event.referrer || '—' }}</p><p><span class="font-semibold text-stone-800">User agent:</span> {{ event.userAgent || '—' }}</p></div>
-              <div class="mt-4 rounded-2xl border border-stone-200 bg-white p-4" *ngIf="event.metadata as metadata"><p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Metadata</p><div class="mt-2 space-y-1 text-sm text-stone-700"><p *ngFor="let entry of metadata | keyvalue"><span class="font-semibold text-stone-800">{{ entry.key }}:</span> {{ entry.value }}</p></div></div>
-            </article>
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 class="text-xl font-semibold text-stone-950">Visitors</h2>
+              <p class="text-sm text-stone-500">Search visitors and open one to inspect visits, event history, and assistant usage.</p>
+            </div>
+            <button type="button" (click)="loadCms()" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700">Refresh</button>
           </div>
-          <ng-template #noSiteEvents><div class="mt-6 rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50 p-6 text-sm text-stone-600">No site events have been recorded yet.</div></ng-template>
+          <div class="mt-5 grid gap-3">
+            <input [(ngModel)]="activityVisitorSearchTerm" (ngModelChange)="onActivityFiltersChanged()" name="activityVisitorSearch" placeholder="Search visitor id, path, or IP" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+            <select [(ngModel)]="activityVisitorFocus" (ngModelChange)="onActivityFiltersChanged()" name="activityVisitorFocus" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm">
+              <option value="all">All visitors</option>
+              <option value="withAssistant">Visitors with assistant usage</option>
+              <option value="withContacts">Visitors with contact submissions</option>
+              <option value="withPageViews">Visitors with page views</option>
+            </select>
+          </div>
+          <div class="mt-6 space-y-3 max-h-[48rem] overflow-y-auto" *ngIf="filteredActivityVisitors.length; else noVisitors">
+            <button *ngFor="let visitor of filteredActivityVisitors" type="button" (click)="selectActivityVisitor(visitor.visitorId)" [ngClass]="visitor.visitorId === selectedActivityVisitorId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="w-full rounded-[1.5rem] border p-4 text-left transition">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <p class="text-sm font-semibold text-stone-950">{{ visitor.visitorId }}</p>
+                  <p class="mt-1 text-xs text-stone-500">Last seen {{ visitor.lastSeenAt | date:'medium' }}</p>
+                </div>
+                <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-stone-700">{{ visitor.totalEvents }} events</span>
+              </div>
+              <div class="mt-3 grid gap-2 text-xs text-stone-600 sm:grid-cols-2">
+                <p><span class="font-semibold text-stone-800">Visits:</span> {{ visitor.uniqueSessions }}</p>
+                <p><span class="font-semibold text-stone-800">Assistant:</span> {{ visitor.assistantMessages }}</p>
+                <p><span class="font-semibold text-stone-800">Contacts:</span> {{ visitor.contactSubmissions }}</p>
+                <p><span class="font-semibold text-stone-800">Latest page:</span> {{ visitor.latestPagePath || '—' }}</p>
+              </div>
+            </button>
+          </div>
+          <ng-template #noVisitors><div class="mt-6 rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50 p-6 text-sm text-stone-600">No visitors match the current filters yet.</div></ng-template>
         </section>
 
         <section class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
-          <div><h2 class="text-xl font-semibold text-stone-950">Assistant conversations</h2><p class="text-sm text-stone-500">Recent chat sessions with counts and previews of what visitors asked.</p></div>
-          <div class="mt-6 space-y-4" *ngIf="siteActivity.recentAssistantConversations.length; else noAssistantConversations">
-            <article *ngFor="let conversation of siteActivity.recentAssistantConversations" class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5">
-              <div class="flex flex-wrap items-start justify-between gap-3"><div><h3 class="text-base font-semibold text-stone-950">Conversation {{ conversation.id }}</h3><p class="mt-1 text-xs text-stone-500">Started {{ conversation.startedAt | date:'medium' }} · Last activity {{ conversation.lastMessageAt | date:'medium' }}</p></div><div class="text-right text-xs text-stone-500"><p>{{ conversation.userMessageCount }} visitor</p><p>{{ conversation.assistantMessageCount }} assistant</p><p>{{ conversation.totalMessages }} total</p></div></div>
-              <div class="mt-4 space-y-3 text-sm leading-6 text-stone-700"><div><p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">First visitor message</p><p class="mt-1 whitespace-pre-wrap">{{ conversation.firstUserMessage || '—' }}</p></div><div><p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Latest assistant reply</p><p class="mt-1 whitespace-pre-wrap">{{ conversation.latestAssistantMessage || '—' }}</p></div></div>
-            </article>
-          </div>
-          <ng-template #noAssistantConversations><div class="mt-6 rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50 p-6 text-sm text-stone-600">No assistant conversations have been recorded yet.</div></ng-template>
+          <ng-container *ngIf="selectedActivityVisitor as visitor; else noSelectedVisitor">
+            <div>
+              <h2 class="text-xl font-semibold text-stone-950">Selected visitor</h2>
+              <p class="text-sm text-stone-500">Click a visit to narrow the timeline and assistant usage for this visitor.</p>
+            </div>
+            <div class="mt-5 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
+              <p class="text-sm font-semibold text-stone-950">{{ visitor.visitorId }}</p>
+              <div class="mt-3 grid gap-2 text-sm text-stone-600 sm:grid-cols-2">
+                <p><span class="font-semibold text-stone-800">First seen:</span> {{ visitor.firstSeenAt | date:'medium' }}</p>
+                <p><span class="font-semibold text-stone-800">Last seen:</span> {{ visitor.lastSeenAt | date:'medium' }}</p>
+                <p><span class="font-semibold text-stone-800">Page views:</span> {{ visitor.pageViews }}</p>
+                <p><span class="font-semibold text-stone-800">Assistant messages:</span> {{ visitor.assistantMessages }}</p>
+                <p><span class="font-semibold text-stone-800">Contact submissions:</span> {{ visitor.contactSubmissions }}</p>
+                <p><span class="font-semibold text-stone-800">Latest IP:</span> {{ visitor.latestIpAddress || '—' }}</p>
+              </div>
+            </div>
+
+            <div class="mt-5 flex items-center justify-between gap-3">
+              <div>
+                <h3 class="text-base font-semibold text-stone-950">Visits / sessions</h3>
+                <p class="text-sm text-stone-500">Each session acts as one visit you can inspect.</p>
+              </div>
+              <button type="button" (click)="selectActivityVisit(null)" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700">Show all visitor activity</button>
+            </div>
+            <div class="mt-4 space-y-3 max-h-[34rem] overflow-y-auto" *ngIf="selectedActivityVisits.length; else noSelectedVisits">
+              <button *ngFor="let visit of selectedActivityVisits" type="button" (click)="selectActivityVisit(visit.sessionId)" [ngClass]="visit.sessionId === selectedActivityVisitSessionId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="w-full rounded-[1.5rem] border p-4 text-left transition">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <p class="text-sm font-semibold text-stone-950">Session {{ visit.sessionId }}</p>
+                    <p class="mt-1 text-xs text-stone-500">{{ visit.startedAt | date:'medium' }} → {{ visit.lastActivityAt | date:'medium' }}</p>
+                  </div>
+                  <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-stone-700">{{ visit.totalEvents }} events</span>
+                </div>
+                <div class="mt-3 grid gap-2 text-xs text-stone-600 sm:grid-cols-2">
+                  <p><span class="font-semibold text-stone-800">Entry page:</span> {{ visit.entryPagePath || '—' }}</p>
+                  <p><span class="font-semibold text-stone-800">Last page:</span> {{ visit.lastPagePath || '—' }}</p>
+                  <p><span class="font-semibold text-stone-800">Assistant:</span> {{ visit.assistantMessages }}</p>
+                  <p><span class="font-semibold text-stone-800">Contacts:</span> {{ visit.contactSubmissions }}</p>
+                </div>
+              </button>
+            </div>
+            <ng-template #noSelectedVisits><div class="mt-4 rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50 p-5 text-sm text-stone-600">This visitor has no tracked sessions yet.</div></ng-template>
+          </ng-container>
+          <ng-template #noSelectedVisitor><div class="rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50 p-6 text-sm text-stone-600">Choose a visitor from the left to inspect their visits and activity.</div></ng-template>
+        </section>
+
+        <section class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
+          <ng-container *ngIf="selectedActivityVisitor as visitor; else noActivityDetails">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 class="text-xl font-semibold text-stone-950">Visitor activity detail</h2>
+                <p class="text-sm text-stone-500">Timeline and assistant usage for {{ visitor.visitorId }}<span *ngIf="selectedActivityVisit"> during session {{ selectedActivityVisit?.sessionId }}</span>.</p>
+              </div>
+              <select [(ngModel)]="activityTimelineEventFilter" (ngModelChange)="onActivityFiltersChanged()" name="activityTimelineEventFilter" class="rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm">
+                <option value="all">All event types</option>
+                <option value="page_view">Page views</option>
+                <option value="assistant_message">Assistant messages</option>
+                <option value="contact_submit">Contact submits</option>
+              </select>
+            </div>
+
+            <div class="mt-5 grid gap-4 md:grid-cols-3">
+              <article class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4"><p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Visible events</p><p class="mt-3 text-2xl font-semibold text-stone-950">{{ selectedActivityEventCount }}</p></article>
+              <article class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4"><p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Visits</p><p class="mt-3 text-2xl font-semibold text-stone-950">{{ selectedActivityVisits.length }}</p></article>
+              <article class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4"><p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Chat sessions</p><p class="mt-3 text-2xl font-semibold text-stone-950">{{ selectedActivityConversations.length }}</p></article>
+            </div>
+
+            <div class="mt-6 space-y-6">
+              <div>
+                <h3 class="text-base font-semibold text-stone-950">Activity timeline</h3>
+                <div class="mt-4 space-y-3" *ngIf="selectedActivityEvents.length; else noSelectedEvents">
+                  <article *ngFor="let event of selectedActivityEvents" class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
+                    <div class="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">{{ event.eventType }}</p>
+                        <p class="mt-1 text-sm font-semibold text-stone-950">{{ event.pagePath }}</p>
+                        <p class="mt-1 text-xs text-stone-500">{{ event.createdAt | date:'medium' }}</p>
+                      </div>
+                      <div class="text-right text-xs text-stone-500">
+                        <p *ngIf="event.sessionId">Session {{ event.sessionId }}</p>
+                        <p *ngIf="event.ipAddress">IP {{ event.ipAddress }}</p>
+                      </div>
+                    </div>
+                    <div class="mt-3 grid gap-2 text-sm text-stone-600 md:grid-cols-2">
+                      <p><span class="font-semibold text-stone-800">Referrer:</span> {{ event.referrer || '—' }}</p>
+                      <p><span class="font-semibold text-stone-800">User agent:</span> {{ event.userAgent || '—' }}</p>
+                    </div>
+                    <div class="mt-3 rounded-2xl border border-stone-200 bg-white p-3" *ngIf="event.metadata as metadata">
+                      <p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Metadata</p>
+                      <div class="mt-2 space-y-1 text-sm text-stone-700">
+                        <p *ngFor="let entry of metadata | keyvalue"><span class="font-semibold text-stone-800">{{ entry.key }}:</span> {{ entry.value }}</p>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+                <ng-template #noSelectedEvents><div class="mt-4 rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50 p-5 text-sm text-stone-600">No site events match the current visitor and event filters.</div></ng-template>
+              </div>
+
+              <div>
+                <h3 class="text-base font-semibold text-stone-950">Assistant conversations</h3>
+                <div class="mt-4 space-y-3" *ngIf="selectedActivityConversations.length; else noSelectedConversations">
+                  <article *ngFor="let conversation of selectedActivityConversations" class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
+                    <div class="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p class="text-sm font-semibold text-stone-950">Conversation {{ conversation.id }}</p>
+                        <p class="mt-1 text-xs text-stone-500">Started {{ conversation.startedAt | date:'medium' }} · Last activity {{ conversation.lastMessageAt | date:'medium' }}</p>
+                      </div>
+                      <div class="text-right text-xs text-stone-500">
+                        <p>{{ conversation.userMessageCount }} visitor</p>
+                        <p>{{ conversation.assistantMessageCount }} assistant</p>
+                        <p *ngIf="conversation.pagePath">{{ conversation.pagePath }}</p>
+                      </div>
+                    </div>
+                    <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                      <span class="rounded-full bg-white px-3 py-1 font-semibold text-stone-700">Session {{ conversation.siteSessionId || conversation.sessionId }}</span>
+                      <span *ngIf="conversation.usedFallback === true" class="rounded-full bg-amber-100 px-3 py-1 font-semibold text-amber-800">Fallback used</span>
+                      <span *ngIf="conversation.usedFallback === false" class="rounded-full bg-emerald-100 px-3 py-1 font-semibold text-emerald-800">Generated answer</span>
+                    </div>
+                    <div class="mt-4 space-y-3 text-sm leading-6 text-stone-700">
+                      <div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">First visitor message</p>
+                        <p class="mt-1 whitespace-pre-wrap">{{ conversation.firstUserMessage || '—' }}</p>
+                      </div>
+                      <div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Latest assistant reply</p>
+                        <p class="mt-1 whitespace-pre-wrap">{{ conversation.latestAssistantMessage || '—' }}</p>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+                <ng-template #noSelectedConversations><div class="mt-4 rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50 p-5 text-sm text-stone-600">No assistant conversations were recorded for the current visitor or visit selection.</div></ng-template>
+              </div>
+            </div>
+          </ng-container>
+          <ng-template #noActivityDetails><div class="rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50 p-6 text-sm text-stone-600">Select a visitor to open the activity timeline and chat usage.</div></ng-template>
         </section>
       </div>
     </section>
@@ -671,6 +823,48 @@
     </section>
 
 
-    <section *ngIf="activeTab === 'messages'" class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)]"><div class="flex items-center justify-between"><h2 class="text-xl font-semibold">Inbox</h2><p class="text-sm text-stone-600">Review and mark contact form submissions.</p></div><div class="mt-6 grid gap-4"><article *ngFor="let message of messages" class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5"><div class="flex flex-wrap items-start justify-between gap-4"><div><p class="text-lg font-semibold text-stone-950">{{ message.subject }}</p><p class="text-sm text-stone-600">{{ message.name }} · {{ message.email }} · {{ message.createdAt | date:'medium' }}</p><p class="mt-1 text-xs uppercase tracking-[0.18em] text-stone-500">{{ message.sourcePage }}</p></div><button type="button" (click)="toggleMessageRead(message)" [ngClass]="message.isRead ? 'border-stone-300 text-stone-700' : 'border-amber-300 text-amber-800'" class="rounded-full border px-4 py-2 text-sm font-semibold">{{ message.isRead ? 'Mark unread' : 'Mark read' }}</button></div><p class="mt-4 whitespace-pre-wrap text-sm leading-6 text-stone-700">{{ message.message }}</p></article></div></section>
+    <section *ngIf="activeTab === 'messages'" class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-semibold">Inbox</h2>
+          <p class="text-sm text-stone-600">Review, search, filter, and mark contact form submissions as read.</p>
+        </div>
+        <div class="flex flex-wrap gap-3 text-sm">
+          <span class="rounded-full bg-stone-100 px-4 py-2 font-semibold text-stone-700">{{ filteredMessageCount }} shown</span>
+          <span class="rounded-full bg-amber-100 px-4 py-2 font-semibold text-amber-800">{{ unreadFilteredMessageCount }} unread</span>
+        </div>
+      </div>
+
+      <div class="mt-6 grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(12rem,0.5fr)_minmax(12rem,0.6fr)]">
+        <input [(ngModel)]="messageSearchTerm" name="messageSearchTerm" placeholder="Search by subject, sender, email, or message" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+        <select [(ngModel)]="messageStatusFilter" name="messageStatusFilter" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm">
+          <option value="all">All statuses</option>
+          <option value="unread">Unread only</option>
+          <option value="read">Read only</option>
+        </select>
+        <select [(ngModel)]="messageSourceFilter" name="messageSourceFilter" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm">
+          <option value="all">All source pages</option>
+          <option *ngFor="let sourcePage of messageSourceOptions" [value]="sourcePage">{{ sourcePage }}</option>
+        </select>
+      </div>
+
+      <div class="mt-6 grid gap-4" *ngIf="filteredMessages.length; else noFilteredMessages">
+        <article *ngFor="let message of filteredMessages" class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5">
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <p class="text-lg font-semibold text-stone-950">{{ message.subject }}</p>
+                <span [ngClass]="message.isRead ? 'bg-stone-200 text-stone-700' : 'bg-amber-100 text-amber-800'" class="rounded-full px-3 py-1 text-xs font-semibold">{{ message.isRead ? 'Read' : 'Unread' }}</span>
+              </div>
+              <p class="text-sm text-stone-600">{{ message.name }} · {{ message.email }} · {{ message.createdAt | date:'medium' }}</p>
+              <p class="mt-1 text-xs uppercase tracking-[0.18em] text-stone-500">{{ message.sourcePage }}</p>
+            </div>
+            <button type="button" (click)="toggleMessageRead(message)" [disabled]="isMessageUpdating(message.id)" [ngClass]="message.isRead ? 'border-stone-300 text-stone-700' : 'border-amber-300 text-amber-800'" class="rounded-full border px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60">{{ isMessageUpdating(message.id) ? 'Updating…' : (message.isRead ? 'Mark unread' : 'Mark read') }}</button>
+          </div>
+          <p class="mt-4 whitespace-pre-wrap text-sm leading-6 text-stone-700">{{ message.message }}</p>
+        </article>
+      </div>
+      <ng-template #noFilteredMessages><div class="mt-6 rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50 p-6 text-sm text-stone-600">No contact messages match the current filters.</div></ng-template>
+    </section>
   </ng-container>
 </div>
