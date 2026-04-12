@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 import { API_BASE_URL } from '../../core/config/api.config';
 import {
+  AdminAssistantKnowledgeStatus,
   AdminAuthToken,
   AdminBlogPost,
   AdminBlogPostUpsert,
@@ -45,6 +46,15 @@ export class AdminPortfolioApiService {
 
   getCurrentAdmin(): Observable<AdminUser> {
     return this.http.get<AdminUser>(`${this.apiBaseUrl}/admin/auth/me`);
+  }
+
+
+  getAssistantKnowledgeStatus(): Observable<AdminAssistantKnowledgeStatus> {
+    return this.http.get<AdminAssistantKnowledgeStatus>(`${this.apiBaseUrl}/admin/assistant/knowledge`);
+  }
+
+  rebuildAssistantKnowledge(): Observable<AdminAssistantKnowledgeStatus> {
+    return this.http.post<AdminAssistantKnowledgeStatus>(`${this.apiBaseUrl}/admin/assistant/knowledge/rebuild`, {});
   }
 
   getDashboardSummary(): Observable<AdminDashboardSummary> {

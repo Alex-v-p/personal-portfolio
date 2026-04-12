@@ -1,10 +1,11 @@
-import { DatePipe, NgClass, NgFor, NgIf } from '@angular/common';
+import { DatePipe, KeyValuePipe, NgClass, NgFor, NgIf } from '@angular/common';
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { finalize, take } from 'rxjs/operators';
 
 import {
+  AdminAssistantKnowledgeStatus,
   AdminBlogPost,
   AdminBlogTag,
   AdminContactMessage,
@@ -167,7 +168,7 @@ interface AdminGithubSnapshotForm {
 @Component({
   selector: 'app-admin-page',
   standalone: true,
-  imports: [NgIf, NgFor, NgClass, FormsModule, DatePipe],
+  imports: [NgIf, NgFor, NgClass, FormsModule, DatePipe, KeyValuePipe],
   templateUrl: './admin.page.html'
 })
 export class AdminPageComponent implements OnInit {
@@ -184,6 +185,7 @@ export class AdminPageComponent implements OnInit {
     { id: 'navigation', label: 'Navigation' },
     { id: 'profile', label: 'Profile' },
     { id: 'stats', label: 'GitHub / Stats' },
+    { id: 'assistant', label: 'Assistant' },
     { id: 'admins', label: 'Admin users' },
     { id: 'messages', label: 'Messages' },
   ] as const;
@@ -221,6 +223,12 @@ export class AdminPageComponent implements OnInit {
   protected githubSnapshots: AdminGithubSnapshot[] = [];
   protected profile: AdminProfile | null = null;
   protected messages: AdminContactMessage[] = [];
+  protected assistantKnowledgeStatus: AdminAssistantKnowledgeStatus = {
+    totalDocuments: 0,
+    totalChunks: 0,
+    documentsBySourceType: {},
+    latestUpdatedAt: null,
+  };
 
   protected selectedProjectId: string | null = null;
   protected selectedBlogPostId: string | null = null;
@@ -243,6 +251,7 @@ export class AdminPageComponent implements OnInit {
   protected adminUserForm: AdminUserForm = this.createEmptyAdminUserForm();
   protected githubSnapshotForm: AdminGithubSnapshotForm = this.createEmptyGithubSnapshotForm();
   protected isRefreshingGithub = false;
+  protected isRebuildingAssistantKnowledge = false;
 
   protected projectUploadForm: ScopedUploadForm = this.createEmptyScopedUploadForm();
   protected blogUploadForm: ScopedUploadForm = this.createEmptyScopedUploadForm();
@@ -291,6 +300,7 @@ export class AdminPageComponent implements OnInit {
       githubSnapshots: this.adminApi.getGithubSnapshots(),
       profile: this.adminApi.getProfile(),
       messages: this.adminApi.getContactMessages(),
+      assistantKnowledgeStatus: this.adminApi.getAssistantKnowledgeStatus(),
     })
       .pipe(
         take(1),
@@ -311,6 +321,7 @@ export class AdminPageComponent implements OnInit {
           this.githubSnapshots = result.githubSnapshots.items;
           this.profile = result.profile;
           this.messages = result.messages.items;
+          this.assistantKnowledgeStatus = result.assistantKnowledgeStatus;
 
           this.selectedProjectId = this.resolveSelection(currentSelections.project, this.projects);
           this.selectedBlogPostId = this.resolveSelection(currentSelections.blogPost, this.blogPosts);
@@ -885,6 +896,38 @@ export class AdminPageComponent implements OnInit {
   protected startNewGithubSnapshot(): void {
     this.selectedGithubSnapshotId = null;
     this.githubSnapshotForm = this.createEmptyGithubSnapshotForm();
+  }
+
+
+  protected rebuildAssistantKnowledge(): void {
+    this.isRebuildingAssistantKnowledge = true;
+    this.statusMessage = '';
+    this.adminApi.rebuildAssistantKnowledge().pipe(take(1)).subscribe({
+      next: (status) => {
+        this.assistantKnowledgeStatus = status;
+        this.statusMessage = 'Assistant knowledge index rebuilt from the latest portfolio content.';
+        this.refreshAssistantKnowledgeStatus();
+      },
+      error: (error) => {
+        this.isRebuildingAssistantKnowledge = false;
+        this.statusMessage = error?.error?.detail || 'Rebuilding the assistant knowledge index failed.';
+        this.changeDetectorRef.detectChanges();
+      }
+    });
+  }
+
+  private refreshAssistantKnowledgeStatus(): void {
+    this.adminApi.getAssistantKnowledgeStatus().pipe(take(1)).subscribe({
+      next: (status) => {
+        this.assistantKnowledgeStatus = status;
+        this.isRebuildingAssistantKnowledge = false;
+        this.changeDetectorRef.detectChanges();
+      },
+      error: () => {
+        this.isRebuildingAssistantKnowledge = false;
+        this.changeDetectorRef.detectChanges();
+      }
+    });
   }
 
   protected refreshGithubSnapshot(): void {

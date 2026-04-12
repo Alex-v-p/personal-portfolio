@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated
 from uuid import UUID
+from dataclasses import asdict
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
@@ -17,6 +18,9 @@ from app.schemas.admin import (
     AdminBlogPostsListOut,
     AdminBlogTagOut,
     AdminBlogTagUpsertIn,
+    AdminAssistantKnowledgeRebuildIn,
+    AdminAssistantKnowledgeRebuildOut,
+    AdminAssistantKnowledgeStatusOut,
     AdminContactMessageOut,
     AdminContactMessagesListOut,
     AdminDashboardSummaryOut,
@@ -49,6 +53,7 @@ from app.schemas.admin import (
     AdminUserUpdateIn,
 )
 from app.services.github_stats_sync import GithubStatsSyncError, GithubStatsSyncService
+from app.services.knowledge_sync import KnowledgeSyncService
 from app.services.media_storage import AdminMediaStorageService
 from app.services.security import create_admin_access_token, get_current_admin_user, verify_password
 
@@ -419,6 +424,23 @@ def update_profile(payload: AdminProfileUpdateIn, _: AdminUserDependency, sessio
     if profile is None:
         raise HTTPException(status_code=404, detail='Profile not found.')
     return profile
+
+
+
+
+@router.get('/assistant/knowledge', response_model=AdminAssistantKnowledgeStatusOut)
+def get_assistant_knowledge_status(_: AdminUserDependency, session: Session = Depends(get_session)) -> AdminAssistantKnowledgeStatusOut:
+    return AdminAssistantKnowledgeStatusOut(**asdict(KnowledgeSyncService(session).get_status()))
+
+
+@router.post('/assistant/knowledge/rebuild', response_model=AdminAssistantKnowledgeRebuildOut)
+def rebuild_assistant_knowledge(
+    payload: AdminAssistantKnowledgeRebuildIn,
+    _: AdminUserDependency,
+    session: Session = Depends(get_session),
+) -> AdminAssistantKnowledgeRebuildOut:
+    del payload
+    return AdminAssistantKnowledgeRebuildOut(**asdict(KnowledgeSyncService(session).rebuild()))
 
 
 @router.get('/contact-messages', response_model=AdminContactMessagesListOut)

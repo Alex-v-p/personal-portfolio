@@ -343,6 +343,14 @@ export interface AdminReferenceData {
   publicationStatuses: Array<'draft' | 'published' | 'archived'>;
 }
 
+
+export interface AdminAssistantKnowledgeStatus {
+  totalDocuments: number;
+  totalChunks: number;
+  documentsBySourceType: Record<string, number>;
+  latestUpdatedAt?: string | null;
+}
+
 export interface AdminDashboardSummary {
   projects: number;
   blogPosts: number;
