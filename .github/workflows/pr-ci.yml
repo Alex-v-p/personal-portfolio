@@ -55,6 +55,11 @@ jobs:
       - name: Reset Nx daemon/cache
         run: npx nx reset
 
+      - name: Migration smoke check
+        shell: pwsh
+        run: |
+          .\.venv\Scripts\python.exe -m infra.postgres.migrations.cli check
+
       - name: Show affected projects
         shell: pwsh
         run: |
