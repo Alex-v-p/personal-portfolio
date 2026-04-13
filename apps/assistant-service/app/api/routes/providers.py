@@ -1,13 +1,14 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from app.core.config import get_settings
 from app.schemas.chat import ProviderStatusOut
+from app.services.security import get_current_admin_user
 
 router = APIRouter()
 
 
 @router.get('/', response_model=list[ProviderStatusOut])
-def list_providers() -> list[ProviderStatusOut]:
+def list_providers(_: dict = Depends(get_current_admin_user)) -> list[ProviderStatusOut]:
     settings = get_settings()
     return [
         ProviderStatusOut(

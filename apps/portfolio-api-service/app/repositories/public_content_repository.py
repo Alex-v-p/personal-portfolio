@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import UTC, date, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
@@ -13,9 +13,11 @@ from app.db.models import (
     GithubSnapshot,
     MediaFile,
     NavigationItem,
+    PublicationStatus,
     Profile,
     Project,
     ProjectImage,
+    ProjectState,
     ProjectSkill,
     Skill,
     SkillCategory,
@@ -48,6 +50,20 @@ class PublicContentRepository:
     def __init__(self, session: Session) -> None:
         self.session = session
         self.media_resolver = PublicMediaUrlResolver()
+
+    @staticmethod
+    def _publication_cutoff() -> datetime:
+        return datetime.now(UTC)
+
+    def _public_project_query(self):
+        return select(Project).where(Project.state != ProjectState.ARCHIVED, Project.published_at <= self._publication_cutoff())
+
+    def _public_blog_post_query(self):
+        return select(BlogPost).where(
+            BlogPost.status == PublicationStatus.PUBLISHED,
+            BlogPost.published_at.is_not(None),
+            BlogPost.published_at <= self._publication_cutoff(),
+        )
 
     def get_profile(self) -> ProfileOut | None:
         profile = self._get_profile_record()
@@ -89,7 +105,7 @@ class PublicContentRepository:
             return None
 
         featured_projects = self.session.scalars(
-            select(Project)
+            self._public_project_query()
             .options(
                 selectinload(Project.skill_links).selectinload(ProjectSkill.skill),
                 selectinload(Project.images).selectinload(ProjectImage.image_file),
@@ -99,7 +115,7 @@ class PublicContentRepository:
             .limit(2)
         ).all()
         featured_blog_posts = self.session.scalars(
-            select(BlogPost)
+            self._public_blog_post_query()
             .options(
                 selectinload(BlogPost.tag_links).selectinload(BlogPostTag.tag),
                 selectinload(BlogPost.cover_image_file),
@@ -128,7 +144,7 @@ class PublicContentRepository:
 
     def list_projects(self) -> list[ProjectOut]:
         projects = self.session.scalars(
-            select(Project)
+            self._public_project_query()
             .options(
                 selectinload(Project.skill_links).selectinload(ProjectSkill.skill),
                 selectinload(Project.images).selectinload(ProjectImage.image_file),
@@ -140,7 +156,7 @@ class PublicContentRepository:
 
     def get_project_by_slug(self, slug: str) -> ProjectOut | None:
         project = self.session.scalar(
-            select(Project)
+            self._public_project_query()
             .options(
                 selectinload(Project.skill_links).selectinload(ProjectSkill.skill),
                 selectinload(Project.images).selectinload(ProjectImage.image_file),
@@ -154,7 +170,7 @@ class PublicContentRepository:
 
     def list_blog_posts(self) -> list[BlogPostOut]:
         posts = self.session.scalars(
-            select(BlogPost)
+            self._public_blog_post_query()
             .options(
                 selectinload(BlogPost.tag_links).selectinload(BlogPostTag.tag),
                 selectinload(BlogPost.cover_image_file),
@@ -165,7 +181,7 @@ class PublicContentRepository:
 
     def get_blog_post_by_slug(self, slug: str) -> BlogPostOut | None:
         post = self.session.scalar(
-            select(BlogPost)
+            self._public_blog_post_query()
             .options(
                 selectinload(BlogPost.tag_links).selectinload(BlogPostTag.tag),
                 selectinload(BlogPost.cover_image_file),
@@ -198,11 +214,30 @@ class PublicContentRepository:
         return self._map_github_snapshot(snapshot)
 
     def get_stats(self) -> StatsOut:
-        project_count = self.session.scalar(select(func.count(Project.id))) or 0
-        blog_count = self.session.scalar(select(func.count(BlogPost.id))) or 0
+        project_count = self.session.scalar(select(func.count(Project.id)).where(Project.state != ProjectState.ARCHIVED, Project.published_at <= self._publication_cutoff())) or 0
+        blog_count = self.session.scalar(
+            select(func.count(BlogPost.id)).where(
+                BlogPost.status == PublicationStatus.PUBLISHED,
+                BlogPost.published_at.is_not(None),
+                BlogPost.published_at <= self._publication_cutoff(),
+            )
+        ) or 0
         skill_count = self.session.scalar(select(func.count(Skill.id))) or 0
-        featured_project_count = self.session.scalar(select(func.count(Project.id)).where(Project.is_featured.is_(True))) or 0
-        featured_blog_count = self.session.scalar(select(func.count(BlogPost.id)).where(BlogPost.is_featured.is_(True))) or 0
+        featured_project_count = self.session.scalar(
+            select(func.count(Project.id)).where(
+                Project.is_featured.is_(True),
+                Project.state != ProjectState.ARCHIVED,
+                Project.published_at <= self._publication_cutoff(),
+            )
+        ) or 0
+        featured_blog_count = self.session.scalar(
+            select(func.count(BlogPost.id)).where(
+                BlogPost.is_featured.is_(True),
+                BlogPost.status == PublicationStatus.PUBLISHED,
+                BlogPost.published_at.is_not(None),
+                BlogPost.published_at <= self._publication_cutoff(),
+            )
+        ) or 0
         experience_count = self.session.scalar(select(func.count(Experience.id))) or 0
         snapshot = self.get_latest_github_snapshot()
         contribution_weeks = self._build_contribution_weeks(snapshot.contribution_days if snapshot else [])

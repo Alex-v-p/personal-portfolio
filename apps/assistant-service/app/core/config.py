@@ -52,6 +52,10 @@ class Settings(BaseSettings):
         default=10,
         validation_alias=AliasChoices('ASSISTANT_MAX_HISTORY_MESSAGES', 'MAX_HISTORY_MESSAGES'),
     )
+    admin_access_token_expire_minutes: int = Field(
+        default=480,
+        validation_alias=AliasChoices('ADMIN_ACCESS_TOKEN_EXPIRE_MINUTES', 'ASSISTANT_ADMIN_ACCESS_TOKEN_EXPIRE_MINUTES'),
+    )
 
     retrieval_embedding_backend: str = Field(
         default='ollama',

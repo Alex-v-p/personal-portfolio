@@ -82,7 +82,7 @@ _slug_cleanup_pattern = re.compile(r'[^a-z0-9]+')
 class AdminContentRepository:
     def __init__(self, session: Session) -> None:
         self.session = session
-        self.media_resolver = PublicMediaUrlResolver()
+        self.media_resolver = PublicMediaUrlResolver(allow_non_public=True)
 
     def get_admin_user_by_email(self, email: str) -> AdminUser | None:
         return self.session.scalar(select(AdminUser).where(func.lower(AdminUser.email) == email.strip().lower()))

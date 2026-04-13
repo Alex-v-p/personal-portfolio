@@ -4,6 +4,7 @@ import math
 import re
 from collections import Counter
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import httpx
@@ -19,8 +20,10 @@ from app.db.models import (
     KnowledgeChunk,
     KnowledgeDocument,
     KnowledgeSourceType,
+    PublicationStatus,
     Profile,
     Project,
+    ProjectState,
     ProjectSkill,
 )
 
@@ -156,8 +159,9 @@ class KnowledgeSyncService:
 
     def _build_documents(self) -> list[KnowledgeDocument]:
         documents: list[KnowledgeDocument] = []
+        publication_cutoff = datetime.now(UTC)
         profile = self.session.scalar(
-            select(Profile).options(selectinload(Profile.social_links)).order_by(Profile.created_at.desc())
+            select(Profile).options(selectinload(Profile.social_links)).where(Profile.is_public.is_(True)).order_by(Profile.created_at.desc())
         )
         if profile is not None:
             documents.append(self._build_profile_document(profile))
@@ -165,6 +169,7 @@ class KnowledgeSyncService:
         projects = self.session.scalars(
             select(Project)
             .options(selectinload(Project.skill_links).selectinload(ProjectSkill.skill))
+            .where(Project.state != ProjectState.ARCHIVED, Project.published_at <= publication_cutoff)
             .order_by(Project.sort_order.asc(), Project.published_at.desc())
         ).all()
         documents.extend(self._build_project_document(project) for project in projects)
@@ -179,6 +184,11 @@ class KnowledgeSyncService:
         blog_posts = self.session.scalars(
             select(BlogPost)
             .options(selectinload(BlogPost.tag_links).selectinload(BlogPostTag.tag))
+            .where(
+                BlogPost.status == PublicationStatus.PUBLISHED,
+                BlogPost.published_at.is_not(None),
+                BlogPost.published_at <= publication_cutoff,
+            )
             .order_by(BlogPost.published_at.desc().nullslast(), BlogPost.created_at.desc())
         ).all()
         documents.extend(self._build_blog_post_document(post) for post in blog_posts)
