@@ -102,6 +102,7 @@ def test_provider_daily_generation_cap_forces_fallback(tmp_path: Path, monkeypat
     os.environ['REDIS_URL'] = 'memory://'
     os.environ['ASSISTANT_PROVIDER_BACKEND'] = 'ollama'
     os.environ['PROVIDER_DAILY_GENERATION_CAP'] = '1'
+    os.environ['CHAT_RATE_LIMIT_MAX_REQUESTS'] = '10'
 
     from app.core.config import get_settings
     from app.db.models import Base
