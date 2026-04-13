@@ -5,10 +5,12 @@ from dataclasses import dataclass
 from enum import StrEnum
 
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import select
 
+from app.db.models import AdminUser, Project
 from app.db.session import get_session_factory
-from infra.postgres.bootstrap.seed_data import seed_database
-from infra.postgres.migrations.manager import get_schema_status, upgrade_database
+from infra.postgres.bootstrap.seed_data import seed_database, sync_admin_user
+from infra.postgres.migrations.manager import get_schema_status, recreate_schema, upgrade_database
 from infra.postgres.migrations.state import SchemaState, SchemaStatus
 
 logger = logging.getLogger(__name__)
@@ -46,6 +48,19 @@ def _should_seed(*, resolved_seed_mode: SeedMode, schema_status_before: SchemaSt
     return schema_status_before.state == SchemaState.EMPTY
 
 
+def _should_sync_admin(*, resolved_seed_mode: SeedMode, schema_status_before: SchemaStatus) -> bool:
+    return resolved_seed_mode != SeedMode.NEVER and schema_status_before.state == SchemaState.MANAGED
+
+
+def _database_has_seed_content() -> bool:
+    session_factory = get_session_factory()
+    with session_factory() as session:
+        return (
+            session.execute(select(Project.id).limit(1)).scalar_one_or_none() is not None
+            or session.execute(select(AdminUser.id).limit(1)).scalar_one_or_none() is not None
+        )
+
+
 def run_bootstrap(*, auto_seed: bool = True, seed_mode: str | None = None, recreate_on_drift: bool = False) -> BootstrapResult:
     if recreate_on_drift:
         logger.warning(
@@ -55,6 +70,16 @@ def run_bootstrap(*, auto_seed: bool = True, seed_mode: str | None = None, recre
 
     resolved_seed_mode = resolve_seed_mode(auto_seed=auto_seed, seed_mode=seed_mode)
     schema_status_before = get_schema_status()
+
+    if recreate_on_drift and schema_status_before.state == SchemaState.INCOMPATIBLE:
+        logger.warning('Existing schema is incompatible with the managed migration baseline. Recreating schema because recreate_on_drift=True.')
+        recreate_schema()
+        schema_status_before = SchemaStatus(
+            state=SchemaState.EMPTY,
+            table_names=(),
+            has_alembic_version=False,
+        )
+
     upgrade_database()
 
     seeded = False
@@ -64,6 +89,11 @@ def run_bootstrap(*, auto_seed: bool = True, seed_mode: str | None = None, recre
             seed_database(session)
         seeded = True
         logger.info('Database seed finished using mode=%s.', resolved_seed_mode.value)
+    elif _should_sync_admin(resolved_seed_mode=resolved_seed_mode, schema_status_before=schema_status_before) and _database_has_seed_content():
+        session_factory = get_session_factory()
+        with session_factory() as session:
+            sync_admin_user(session)
+        logger.info('Admin bootstrap sync finished using mode=%s.', resolved_seed_mode.value)
     else:
         logger.info(
             'Database seed skipped using mode=%s (schema state before migration: %s).',

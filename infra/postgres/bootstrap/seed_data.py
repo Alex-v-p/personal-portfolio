@@ -466,6 +466,11 @@ def _upsert_admin_user(session: Session) -> None:
     session.flush()
 
 
+def sync_admin_user(session: Session) -> None:
+    _upsert_admin_user(session)
+    session.commit()
+
+
 def seed_database(session: Session) -> None:
     try:
         _upsert_admin_user(session)

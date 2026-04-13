@@ -7,7 +7,7 @@ from pathlib import Path
 
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import create_engine
+from sqlalchemy import MetaData, create_engine
 
 from infra.postgres.migrations.state import SchemaState, SchemaStatus, inspect_schema_state
 
@@ -111,6 +111,25 @@ def get_schema_status(*, database_url: str | None = None) -> SchemaStatus:
 
 def stamp_database(*, revision: str = 'head', database_url: str | None = None) -> None:
     command.stamp(build_alembic_config(database_url=database_url), revision)
+
+
+def recreate_schema(*, database_url: str | None = None) -> None:
+    resolved_url = resolve_database_url(database_url)
+    if not resolved_url:
+        raise RuntimeError(
+            'DATABASE_URL must be set before recreating schema. '
+            'The CLI also accepts PORTFOLIO_API_DB_URL from the repo .env files.'
+        )
+
+    engine = create_engine(resolved_url, future=True)
+    try:
+        with engine.begin() as connection:
+            metadata = MetaData()
+            metadata.reflect(bind=connection)
+            if metadata.tables:
+                metadata.drop_all(bind=connection)
+    finally:
+        engine.dispose()
 
 
 def upgrade_database(*, revision: str = 'head', database_url: str | None = None) -> SchemaStatus:
