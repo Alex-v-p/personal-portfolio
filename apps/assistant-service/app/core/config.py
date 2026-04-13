@@ -40,6 +40,31 @@ class Settings(BaseSettings):
         default='',
         validation_alias=AliasChoices('ASSISTANT_PROVIDER_API_KEY', 'PROVIDER_API_KEY'),
     )
+
+    chat_rate_limit_max_requests: int = Field(
+        default=12,
+        validation_alias=AliasChoices('CHAT_RATE_LIMIT_MAX_REQUESTS', 'ASSISTANT_CHAT_RATE_LIMIT_MAX_REQUESTS'),
+    )
+    chat_rate_limit_window_seconds: int = Field(
+        default=60,
+        validation_alias=AliasChoices('CHAT_RATE_LIMIT_WINDOW_SECONDS', 'ASSISTANT_CHAT_RATE_LIMIT_WINDOW_SECONDS'),
+    )
+    chat_max_request_bytes: int = Field(
+        default=16_384,
+        validation_alias=AliasChoices('CHAT_MAX_REQUEST_BYTES', 'ASSISTANT_CHAT_MAX_REQUEST_BYTES'),
+    )
+    provider_request_timeout_seconds: float = Field(
+        default=25.0,
+        validation_alias=AliasChoices('PROVIDER_REQUEST_TIMEOUT_SECONDS', 'ASSISTANT_PROVIDER_REQUEST_TIMEOUT_SECONDS'),
+    )
+    provider_max_retries: int = Field(
+        default=1,
+        validation_alias=AliasChoices('PROVIDER_MAX_RETRIES', 'ASSISTANT_PROVIDER_MAX_RETRIES'),
+    )
+    provider_daily_generation_cap: int = Field(
+        default=1000,
+        validation_alias=AliasChoices('PROVIDER_DAILY_GENERATION_CAP', 'ASSISTANT_PROVIDER_DAILY_GENERATION_CAP'),
+    )
     retrieval_chunk_limit: int = Field(
         default=5,
         validation_alias=AliasChoices('ASSISTANT_RETRIEVAL_CHUNK_LIMIT', 'RETRIEVAL_CHUNK_LIMIT'),
@@ -51,6 +76,10 @@ class Settings(BaseSettings):
     max_history_messages: int = Field(
         default=10,
         validation_alias=AliasChoices('ASSISTANT_MAX_HISTORY_MESSAGES', 'MAX_HISTORY_MESSAGES'),
+    )
+    admin_access_token_expire_minutes: int = Field(
+        default=480,
+        validation_alias=AliasChoices('ADMIN_ACCESS_TOKEN_EXPIRE_MINUTES', 'ASSISTANT_ADMIN_ACCESS_TOKEN_EXPIRE_MINUTES'),
     )
 
     retrieval_embedding_backend: str = Field(

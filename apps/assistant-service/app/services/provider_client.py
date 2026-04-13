@@ -41,18 +41,15 @@ class ProviderClient:
         page_path: str | None,
     ) -> str | None:
         messages = self._build_messages(question=question, context_blocks=context_blocks, history=history, page_path=page_path)
-        with httpx.Client(timeout=25.0) as client:
-            response = client.post(
-                f"{self.settings.provider_base_url.rstrip('/')}/api/chat",
-                json={
-                    'model': self.settings.provider_model,
-                    'stream': False,
-                    'messages': messages,
-                    'options': {'temperature': 0.25},
-                },
-            )
-            response.raise_for_status()
-            payload = response.json()
+        payload = self._post_json_with_retries(
+            f"{self.settings.provider_base_url.rstrip('/')}/api/chat",
+            json={
+                'model': self.settings.provider_model,
+                'stream': False,
+                'messages': messages,
+                'options': {'temperature': 0.25},
+            },
+        )
         message = (payload.get('message') or {}).get('content')
         if isinstance(message, str) and message.strip():
             return message.strip()
@@ -70,18 +67,15 @@ class ProviderClient:
         if self.settings.provider_api_key.strip():
             headers['Authorization'] = f"Bearer {self.settings.provider_api_key.strip()}"
         messages = self._build_messages(question=question, context_blocks=context_blocks, history=history, page_path=page_path)
-        with httpx.Client(timeout=25.0) as client:
-            response = client.post(
-                f"{self.settings.provider_base_url.rstrip('/')}/v1/chat/completions",
-                headers=headers,
-                json={
-                    'model': self.settings.provider_model,
-                    'messages': messages,
-                    'temperature': 0.2,
-                },
-            )
-            response.raise_for_status()
-            payload = response.json()
+        payload = self._post_json_with_retries(
+            f"{self.settings.provider_base_url.rstrip('/')}/v1/chat/completions",
+            headers=headers,
+            json={
+                'model': self.settings.provider_model,
+                'messages': messages,
+                'temperature': 0.2,
+            },
+        )
         choices = payload.get('choices') or []
         if not choices:
             return None
@@ -129,3 +123,31 @@ class ProviderClient:
             }
         )
         return messages
+
+    def _post_json_with_retries(self, url: str, **kwargs) -> dict:
+        max_attempts = max(self.settings.provider_max_retries, 0) + 1
+        last_error: Exception | None = None
+        for attempt in range(1, max_attempts + 1):
+            try:
+                with httpx.Client(timeout=self.settings.provider_request_timeout_seconds) as client:
+                    response = client.post(url, **kwargs)
+                    response.raise_for_status()
+                    return response.json()
+            except (httpx.TimeoutException, httpx.NetworkError, httpx.HTTPStatusError) as exc:
+                last_error = exc
+                if not self._should_retry(exc=exc, attempt=attempt, max_attempts=max_attempts):
+                    raise
+                logger.warning('Assistant provider call failed on attempt %s/%s: %s', attempt, max_attempts, exc)
+        if last_error is not None:
+            raise last_error
+        return {}
+
+    def _should_retry(self, *, exc: Exception, attempt: int, max_attempts: int) -> bool:
+        if attempt >= max_attempts:
+            return False
+        if isinstance(exc, (httpx.TimeoutException, httpx.NetworkError)):
+            return True
+        if isinstance(exc, httpx.HTTPStatusError):
+            status_code = exc.response.status_code
+            return status_code in {408, 429, 500, 502, 503, 504}
+        return False

@@ -1,0 +1,15 @@
+{
+  "/api": {
+    "target": "http://portfolio-api:8011",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/ai": {
+    "target": "http://assistant:8012",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/ai": "/api"
+    }
+  }
+}

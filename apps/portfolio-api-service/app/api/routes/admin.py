@@ -4,7 +4,7 @@ from typing import Annotated
 from uuid import UUID
 from dataclasses import asdict
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
@@ -55,6 +55,7 @@ from app.schemas.admin import (
 )
 from app.services.github_stats_sync import GithubStatsSyncError, GithubStatsSyncService
 from app.services.knowledge_sync import KnowledgeSyncService
+from app.services.request_protection import enforce_rate_limit_or_429
 from app.services.media_storage import AdminMediaStorageService
 from app.services.security import create_admin_access_token, get_current_admin_user, verify_password
 
@@ -94,6 +95,7 @@ def list_media_files(_: AdminUserDependency, session: Session = Depends(get_sess
 
 @router.post('/media-files/upload', response_model=AdminMediaUploadOut, status_code=status.HTTP_201_CREATED)
 async def upload_media_file(
+    request: Request,
     current_admin: AdminUserDependency,
     session: Session = Depends(get_session),
     file: UploadFile = File(...),
@@ -104,6 +106,16 @@ async def upload_media_file(
     visibility: str = Form(default='public'),
 ) -> AdminMediaUploadOut:
     settings = get_settings()
+    enforce_rate_limit_or_429(
+        scope='admin-media-upload',
+        identifier=str(current_admin.id),
+        limit=settings.media_upload_rate_limit_max_requests,
+        window_seconds=settings.media_upload_rate_limit_window_seconds,
+        detail='Too many media uploads were attempted. Please wait before uploading more files.',
+    )
+    request_length = request.headers.get('content-length')
+    if request_length and request_length.isdigit() and int(request_length) > settings.media_max_upload_bytes + 8192:
+        raise HTTPException(status_code=413, detail='Uploaded file exceeds the configured size limit.')
     if visibility not in {'public', 'private', 'signed'}:
         raise HTTPException(status_code=400, detail='Invalid media visibility.')
     file_bytes = await file.read()

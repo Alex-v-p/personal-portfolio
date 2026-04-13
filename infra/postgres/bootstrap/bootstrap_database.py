@@ -25,11 +25,19 @@ def _env_int(name: str, default: int) -> int:
     return int(value)
 
 
+def validate_bootstrap_configuration(app_env: str, recreate_on_drift: bool) -> None:
+    if app_env.strip().lower() == 'production' and recreate_on_drift:
+        raise RuntimeError('DB_BOOTSTRAP_RECREATE_ON_DRIFT cannot be enabled when APP_ENV=production.')
+
+
 def main() -> int:
+    app_env = os.getenv('APP_ENV', 'development')
     auto_seed = _env_bool('DB_BOOTSTRAP_AUTO_SEED', True)
     recreate_on_drift = _env_bool('DB_BOOTSTRAP_RECREATE_ON_DRIFT', True)
     max_retries = _env_int('DB_BOOTSTRAP_MAX_RETRIES', 30)
     retry_delay_seconds = _env_int('DB_BOOTSTRAP_RETRY_DELAY_SECONDS', 2)
+
+    validate_bootstrap_configuration(app_env=app_env, recreate_on_drift=recreate_on_drift)
 
     for attempt in range(1, max_retries + 1):
         try:

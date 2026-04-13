@@ -7,9 +7,10 @@ services:
     env_file:
       - .env
     environment:
+      APP_ENV: ${APP_ENV:-production}
       DATABASE_URL: ${PORTFOLIO_API_DB_URL:-postgresql+psycopg://portfolio_user:portfolio_pass@postgres:5432/portfolio_platform}
       DB_BOOTSTRAP_AUTO_SEED: ${DB_BOOTSTRAP_AUTO_SEED:-true}
-      DB_BOOTSTRAP_RECREATE_ON_DRIFT: ${DB_BOOTSTRAP_RECREATE_ON_DRIFT:-true}
+      DB_BOOTSTRAP_RECREATE_ON_DRIFT: ${DB_BOOTSTRAP_RECREATE_ON_DRIFT:-false}
       DB_BOOTSTRAP_MAX_RETRIES: ${DB_BOOTSTRAP_MAX_RETRIES:-30}
       DB_BOOTSTRAP_RETRY_DELAY_SECONDS: ${DB_BOOTSTRAP_RETRY_DELAY_SECONDS:-2}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
@@ -25,11 +26,8 @@ services:
       context: ./apps/web-service
       dockerfile: Dockerfile
     container_name: portfolio_web
-    ports:
-      - "${WEB_PORT:-4200}:4200"
-    volumes:
-      - ./apps/web-service:/app
-      - /app/node_modules
+    expose:
+      - "80"
     depends_on:
       portfolio-api:
         condition: service_started
@@ -39,19 +37,16 @@ services:
         condition: service_completed_successfully
       minio-init:
         condition: service_completed_successfully
-      ollama:
-        condition: service_started
 
   portfolio-api:
     build:
       context: ./apps/portfolio-api-service
       dockerfile: Dockerfile
     container_name: portfolio_api
-    ports:
-      - "${PORTFOLIO_API_PORT:-8011}:8011"
     env_file:
       - .env
     environment:
+      APP_ENV: ${APP_ENV:-production}
       APP_HOST: ${PORTFOLIO_API_HOST:-0.0.0.0}
       APP_PORT: ${PORTFOLIO_API_PORT:-8011}
       DATABASE_URL: ${PORTFOLIO_API_DB_URL:-postgresql+psycopg://portfolio_user:portfolio_pass@postgres:5432/portfolio_platform}
@@ -65,13 +60,23 @@ services:
       MEDIA_STORAGE_SECURE: ${MEDIA_STORAGE_SECURE:-false}
       MEDIA_PUBLIC_BUCKET: ${MEDIA_PUBLIC_BUCKET:-portfolio}
       MEDIA_MAX_UPLOAD_BYTES: ${MEDIA_MAX_UPLOAD_BYTES:-10485760}
+      CONTACT_RATE_LIMIT_MAX_REQUESTS: ${PORTFOLIO_API_CONTACT_RATE_LIMIT_MAX_REQUESTS:-5}
+      CONTACT_RATE_LIMIT_WINDOW_SECONDS: ${PORTFOLIO_API_CONTACT_RATE_LIMIT_WINDOW_SECONDS:-600}
+      CONTACT_MAX_REQUEST_BYTES: ${PORTFOLIO_API_CONTACT_MAX_REQUEST_BYTES:-16384}
+      EVENTS_RATE_LIMIT_MAX_REQUESTS: ${PORTFOLIO_API_EVENTS_RATE_LIMIT_MAX_REQUESTS:-60}
+      EVENTS_RATE_LIMIT_WINDOW_SECONDS: ${PORTFOLIO_API_EVENTS_RATE_LIMIT_WINDOW_SECONDS:-60}
+      EVENTS_MAX_REQUEST_BYTES: ${PORTFOLIO_API_EVENTS_MAX_REQUEST_BYTES:-65536}
+      EVENTS_METADATA_MAX_ENTRIES: ${PORTFOLIO_API_EVENTS_METADATA_MAX_ENTRIES:-25}
+      EVENTS_METADATA_MAX_DEPTH: ${PORTFOLIO_API_EVENTS_METADATA_MAX_DEPTH:-3}
+      EVENTS_METADATA_MAX_LIST_ITEMS: ${PORTFOLIO_API_EVENTS_METADATA_MAX_LIST_ITEMS:-20}
+      EVENTS_METADATA_MAX_STRING_LENGTH: ${PORTFOLIO_API_EVENTS_METADATA_MAX_STRING_LENGTH:-500}
+      MEDIA_UPLOAD_RATE_LIMIT_MAX_REQUESTS: ${PORTFOLIO_API_MEDIA_UPLOAD_RATE_LIMIT_MAX_REQUESTS:-20}
+      MEDIA_UPLOAD_RATE_LIMIT_WINDOW_SECONDS: ${PORTFOLIO_API_MEDIA_UPLOAD_RATE_LIMIT_WINDOW_SECONDS:-300}
       KNOWLEDGE_EMBEDDING_BACKEND: ${KNOWLEDGE_EMBEDDING_BACKEND:-ollama}
       KNOWLEDGE_EMBEDDING_MODEL: ${KNOWLEDGE_EMBEDDING_MODEL:-nomic-embed-text}
       KNOWLEDGE_EMBEDDING_BASE_URL: ${KNOWLEDGE_EMBEDDING_BASE_URL:-http://ollama:11434}
       KNOWLEDGE_EMBEDDING_API_KEY: ${KNOWLEDGE_EMBEDDING_API_KEY:-}
       KNOWLEDGE_EMBEDDING_TIMEOUT_SECONDS: ${KNOWLEDGE_EMBEDDING_TIMEOUT_SECONDS:-20}
-    volumes:
-      - ./apps/portfolio-api-service:/app
     depends_on:
       postgres:
         condition: service_healthy
@@ -87,11 +92,10 @@ services:
       context: ./apps/assistant-service
       dockerfile: Dockerfile
     container_name: assistant_api
-    ports:
-      - "${ASSISTANT_API_PORT:-8012}:8012"
     env_file:
       - .env
     environment:
+      APP_ENV: ${APP_ENV:-production}
       APP_HOST: ${ASSISTANT_API_HOST:-0.0.0.0}
       APP_PORT: ${ASSISTANT_API_PORT:-8012}
       DATABASE_URL: ${ASSISTANT_API_DB_URL:-postgresql+psycopg://portfolio_user:portfolio_pass@postgres:5432/portfolio_platform}
@@ -104,13 +108,17 @@ services:
       ASSISTANT_PROVIDER_API_KEY: ${ASSISTANT_PROVIDER_API_KEY:-}
       ASSISTANT_RETRIEVAL_CHUNK_LIMIT: ${ASSISTANT_RETRIEVAL_CHUNK_LIMIT:-5}
       ASSISTANT_RETRIEVAL_CANDIDATE_LIMIT: ${ASSISTANT_RETRIEVAL_CANDIDATE_LIMIT:-18}
+      CHAT_RATE_LIMIT_MAX_REQUESTS: ${ASSISTANT_CHAT_RATE_LIMIT_MAX_REQUESTS:-12}
+      CHAT_RATE_LIMIT_WINDOW_SECONDS: ${ASSISTANT_CHAT_RATE_LIMIT_WINDOW_SECONDS:-60}
+      CHAT_MAX_REQUEST_BYTES: ${ASSISTANT_CHAT_MAX_REQUEST_BYTES:-16384}
+      PROVIDER_REQUEST_TIMEOUT_SECONDS: ${ASSISTANT_PROVIDER_REQUEST_TIMEOUT_SECONDS:-25}
+      PROVIDER_MAX_RETRIES: ${ASSISTANT_PROVIDER_MAX_RETRIES:-1}
+      PROVIDER_DAILY_GENERATION_CAP: ${ASSISTANT_PROVIDER_DAILY_GENERATION_CAP:-1000}
       ASSISTANT_RETRIEVAL_EMBEDDING_BACKEND: ${ASSISTANT_RETRIEVAL_EMBEDDING_BACKEND:-ollama}
       ASSISTANT_RETRIEVAL_EMBEDDING_MODEL: ${ASSISTANT_RETRIEVAL_EMBEDDING_MODEL:-nomic-embed-text}
       ASSISTANT_RETRIEVAL_EMBEDDING_BASE_URL: ${ASSISTANT_RETRIEVAL_EMBEDDING_BASE_URL:-http://ollama:11434}
       ASSISTANT_RETRIEVAL_EMBEDDING_API_KEY: ${ASSISTANT_RETRIEVAL_EMBEDDING_API_KEY:-}
       ASSISTANT_RETRIEVAL_EMBEDDING_TIMEOUT_SECONDS: ${ASSISTANT_RETRIEVAL_EMBEDDING_TIMEOUT_SECONDS:-20}
-    volumes:
-      - ./apps/assistant-service:/app
     depends_on:
       postgres:
         condition: service_healthy
@@ -120,7 +128,6 @@ services:
         condition: service_completed_successfully
       ollama:
         condition: service_started
-
 
   ollama:
     image: ollama/ollama:latest
@@ -137,8 +144,6 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-portfolio_platform}
       POSTGRES_USER: ${POSTGRES_USER:-portfolio_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-portfolio_pass}
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -151,8 +156,6 @@ services:
   redis:
     image: redis:7-alpine
     container_name: portfolio_redis
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
 
   minio:
     image: minio/minio:RELEASE.2025-02-28T09-55-16Z
@@ -192,8 +195,6 @@ services:
       - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - web
-      - portfolio-api
-      - assistant
 
 volumes:
   postgres_data:

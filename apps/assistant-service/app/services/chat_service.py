@@ -13,6 +13,7 @@ from app.core.config import get_settings
 from app.db.models import AssistantConversation, AssistantMessage, AssistantRole, EventType, SiteEvent
 from app.schemas.chat import CitationOut
 from app.services.provider_client import ProviderClient
+from app.services.rate_limit import provider_budget_guard
 from app.services.retrieval_service import KnowledgeRetrievalService
 
 logger = logging.getLogger(__name__)
@@ -54,21 +55,32 @@ class ChatService:
         ]
 
         generated = None
-        try:
-            generated = self.provider.generate_answer(
-                question=message,
-                context_blocks=context_blocks,
-                history=history,
-                page_path=page_path,
-            )
-        except Exception as exc:
-            logger.exception(
-                'Assistant text generation failed using backend=%s model=%s: %s',
+        budget_scope = 'global'
+        if provider_budget_guard.consume_generation_budget(
+            scope=budget_scope,
+            daily_limit=self.settings.provider_daily_generation_cap,
+        ):
+            try:
+                generated = self.provider.generate_answer(
+                    question=message,
+                    context_blocks=context_blocks,
+                    history=history,
+                    page_path=page_path,
+                )
+            except Exception as exc:
+                logger.exception(
+                    'Assistant text generation failed using backend=%s model=%s: %s',
+                    self.settings.provider_backend,
+                    self.settings.provider_model,
+                    exc,
+                )
+                generated = None
+        else:
+            logger.warning(
+                'Assistant provider daily generation cap reached. backend=%s model=%s',
                 self.settings.provider_backend,
                 self.settings.provider_model,
-                exc,
             )
-            generated = None
 
         if generated:
             logger.info(

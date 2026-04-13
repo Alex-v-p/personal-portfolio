@@ -7,7 +7,13 @@ from app.core.config import get_settings
 
 def create_app() -> FastAPI:
     settings = get_settings()
-    app = FastAPI(title=settings.app_name, docs_url='/docs', openapi_url='/openapi.json', redoc_url=None)
+    docs_enabled = settings.app_env.strip().lower() != 'production'
+    app = FastAPI(
+        title=settings.app_name,
+        docs_url='/docs' if docs_enabled else None,
+        openapi_url='/openapi.json' if docs_enabled else None,
+        redoc_url=None,
+    )
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_allowed_origins_list,

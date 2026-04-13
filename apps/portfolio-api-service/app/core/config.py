@@ -28,6 +28,55 @@ class Settings(BaseSettings):
         default='http://localhost:9000',
         validation_alias=AliasChoices('MEDIA_PUBLIC_BASE_URL', 'PORTFOLIO_API_MEDIA_PUBLIC_BASE_URL'),
     )
+
+    contact_rate_limit_max_requests: int = Field(
+        default=5,
+        validation_alias=AliasChoices('CONTACT_RATE_LIMIT_MAX_REQUESTS', 'PORTFOLIO_API_CONTACT_RATE_LIMIT_MAX_REQUESTS'),
+    )
+    contact_rate_limit_window_seconds: int = Field(
+        default=600,
+        validation_alias=AliasChoices('CONTACT_RATE_LIMIT_WINDOW_SECONDS', 'PORTFOLIO_API_CONTACT_RATE_LIMIT_WINDOW_SECONDS'),
+    )
+    contact_max_request_bytes: int = Field(
+        default=16_384,
+        validation_alias=AliasChoices('CONTACT_MAX_REQUEST_BYTES', 'PORTFOLIO_API_CONTACT_MAX_REQUEST_BYTES'),
+    )
+    events_rate_limit_max_requests: int = Field(
+        default=60,
+        validation_alias=AliasChoices('EVENTS_RATE_LIMIT_MAX_REQUESTS', 'PORTFOLIO_API_EVENTS_RATE_LIMIT_MAX_REQUESTS'),
+    )
+    events_rate_limit_window_seconds: int = Field(
+        default=60,
+        validation_alias=AliasChoices('EVENTS_RATE_LIMIT_WINDOW_SECONDS', 'PORTFOLIO_API_EVENTS_RATE_LIMIT_WINDOW_SECONDS'),
+    )
+    events_max_request_bytes: int = Field(
+        default=65_536,
+        validation_alias=AliasChoices('EVENTS_MAX_REQUEST_BYTES', 'PORTFOLIO_API_EVENTS_MAX_REQUEST_BYTES'),
+    )
+    events_metadata_max_entries: int = Field(
+        default=25,
+        validation_alias=AliasChoices('EVENTS_METADATA_MAX_ENTRIES', 'PORTFOLIO_API_EVENTS_METADATA_MAX_ENTRIES'),
+    )
+    events_metadata_max_depth: int = Field(
+        default=3,
+        validation_alias=AliasChoices('EVENTS_METADATA_MAX_DEPTH', 'PORTFOLIO_API_EVENTS_METADATA_MAX_DEPTH'),
+    )
+    events_metadata_max_list_items: int = Field(
+        default=20,
+        validation_alias=AliasChoices('EVENTS_METADATA_MAX_LIST_ITEMS', 'PORTFOLIO_API_EVENTS_METADATA_MAX_LIST_ITEMS'),
+    )
+    events_metadata_max_string_length: int = Field(
+        default=500,
+        validation_alias=AliasChoices('EVENTS_METADATA_MAX_STRING_LENGTH', 'PORTFOLIO_API_EVENTS_METADATA_MAX_STRING_LENGTH'),
+    )
+    media_upload_rate_limit_max_requests: int = Field(
+        default=20,
+        validation_alias=AliasChoices('MEDIA_UPLOAD_RATE_LIMIT_MAX_REQUESTS', 'PORTFOLIO_API_MEDIA_UPLOAD_RATE_LIMIT_MAX_REQUESTS'),
+    )
+    media_upload_rate_limit_window_seconds: int = Field(
+        default=300,
+        validation_alias=AliasChoices('MEDIA_UPLOAD_RATE_LIMIT_WINDOW_SECONDS', 'PORTFOLIO_API_MEDIA_UPLOAD_RATE_LIMIT_WINDOW_SECONDS'),
+    )
     admin_access_token_expire_minutes: int = Field(
         default=480,
         validation_alias=AliasChoices('ADMIN_ACCESS_TOKEN_EXPIRE_MINUTES', 'PORTFOLIO_API_ADMIN_ACCESS_TOKEN_EXPIRE_MINUTES'),

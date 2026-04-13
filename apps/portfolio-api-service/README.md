@@ -17,7 +17,8 @@ The Compose bootstrap job uses the same SQLAlchemy models but its implementation
 
 Bootstrap environment flags:
 - `DB_BOOTSTRAP_AUTO_SEED=true` to seed starter data when the schema is empty
-- `DB_BOOTSTRAP_RECREATE_ON_DRIFT=true` to recreate the schema when incompatible drift is detected
+- `DB_BOOTSTRAP_RECREATE_ON_DRIFT=true` to recreate the schema when incompatible drift is detected in development-only flows
+- production mode rejects `DB_BOOTSTRAP_RECREATE_ON_DRIFT=true` so destructive drift repair cannot run by accident
 - `DB_BOOTSTRAP_MAX_RETRIES=30` to keep retrying while PostgreSQL starts
 - `DB_BOOTSTRAP_RETRY_DELAY_SECONDS=2` to control retry spacing
 

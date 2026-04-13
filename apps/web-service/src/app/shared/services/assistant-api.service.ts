@@ -9,18 +9,7 @@ import { SiteTrackingService } from './site-tracking.service';
 const ASSISTANT_STATE_STORAGE_KEY = 'portfolio.assistant.state';
 const ASSISTANT_SESSION_STORAGE_KEY = 'portfolio.assistant.session-id';
 
-const resolveAssistantApiBaseUrl = (): string => {
-  if (typeof window === 'undefined') {
-    return 'http://localhost:8012/api';
-  }
-
-  const { hostname, protocol } = window.location;
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return `${protocol}//${hostname}:8012/api`;
-  }
-
-  return '/ai';
-};
+const resolveAssistantApiBaseUrl = (): string => '/ai';
 
 @Injectable({ providedIn: 'root' })
 export class AssistantApiService {
@@ -81,7 +70,7 @@ export class AssistantApiService {
       error: (error) => {
         const fallbackMessage: AssistantChatMessage = {
           role: 'assistant',
-          text: error?.error?.detail || 'The assistant request failed. Check that the assistant service is running and try again.',
+          text: error?.error?.detail || 'The assistant request failed. Check that the assistant service or reverse proxy is running and try again.',
           createdAt: new Date().toISOString(),
           citations: [],
         };

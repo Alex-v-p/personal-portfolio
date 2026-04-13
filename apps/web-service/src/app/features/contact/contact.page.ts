@@ -46,7 +46,8 @@ export class ContactPageComponent implements OnInit {
     name: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
     subject: ['', [Validators.required, Validators.minLength(4)]],
-    message: ['', [Validators.required, Validators.minLength(20), Validators.maxLength(1200)]]
+    message: ['', [Validators.required, Validators.minLength(20), Validators.maxLength(1200)]],
+    website: ['']
   });
 
   protected hasAttemptedSubmit = false;
@@ -93,9 +94,9 @@ export class ContactPageComponent implements OnInit {
           this.contactForm.markAsUntouched();
           this.hasAttemptedSubmit = false;
         },
-        error: () => {
+        error: (error) => {
           this.submissionState = 'error';
-          this.errorMessage = 'The message could not be sent to the portfolio API. Make sure the portfolio-api-service is running on port 8011 and try again.';
+          this.errorMessage = error?.error?.detail || 'The message could not be sent to the portfolio API. Make sure the API or reverse proxy is running and try again.';
         }
       });
   }
@@ -195,7 +196,8 @@ export class ContactPageComponent implements OnInit {
       message: value.message.trim(),
       sourcePage: '/contact',
       visitorId: this.siteTracking.visitorId,
-      sessionId: this.siteTracking.sessionId
+      sessionId: this.siteTracking.sessionId,
+      website: value.website?.trim() || ''
     };
   }
 }

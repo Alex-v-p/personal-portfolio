@@ -6,13 +6,14 @@ from app.schemas.base import ApiSchema
 
 
 class ContactMessageIn(ApiSchema):
-    name: str = Field(min_length=2)
+    name: str = Field(min_length=2, max_length=120)
     email: EmailStr
     subject: str = Field(min_length=4, max_length=120)
     message: str = Field(min_length=20, max_length=1200)
-    source_page: str = '/contact'
-    visitor_id: str | None = None
-    session_id: str | None = None
+    source_page: str = Field(default='/contact', max_length=255)
+    visitor_id: str | None = Field(default=None, max_length=255)
+    session_id: str | None = Field(default=None, max_length=255)
+    website: str | None = Field(default=None, max_length=120)
 
 
 class ContactMessageOut(ApiSchema):
