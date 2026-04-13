@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
 from app.db.session import get_session
-from app.schemas.chat import ChatRequest, ChatResponse
+from app.domains.chat.schema import ChatRequest, ChatResponse
 from app.core.config import get_settings
-from app.services.chat_service import ChatService
+from app.domains.chat.service.service import ChatService
 from app.services.request_protection import derive_request_identifier, enforce_rate_limit_or_429, ensure_payload_size_within_limit
 
 router = APIRouter()

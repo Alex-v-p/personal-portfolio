@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.db.session import get_session
-from app.schemas.chat import ChatMessageOut, ConversationOut, ConversationsListOut
-from app.services.chat_service import ChatService
+from app.domains.chat.schema import ChatMessageOut, ConversationOut, ConversationsListOut
+from app.domains.chat.service.service import ChatService
 from app.services.security import get_current_admin_user
 
 router = APIRouter()

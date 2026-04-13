@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from app.services.retrieval.intent import infer_intent, source_multiplier
-from app.services.retrieval.models import QueryIntent
-from app.services.retrieval.text import excerpt, is_smalltalk, normalize_text, parse_vector, tokenize
+from app.domains.retrieval.service.intent import infer_intent, source_multiplier
+from app.domains.retrieval.service.models import QueryIntent
+from app.domains.retrieval.service.text import excerpt, is_smalltalk, normalize_text, parse_vector, tokenize
 
 
 def test_infer_intent_prefers_project_sources_for_project_queries() -> None:

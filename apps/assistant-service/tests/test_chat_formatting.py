@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from app.services.chat.formatting import build_context_blocks, build_fallback_answer, serialize_recent_history
-from app.services.retrieval.models import RetrievedChunk
+from app.domains.chat.service.formatting import build_context_blocks, build_fallback_answer, serialize_recent_history
+from app.domains.retrieval.service.models import RetrievedChunk
 
 
 def test_build_fallback_answer_limits_to_top_three_citations() -> None:

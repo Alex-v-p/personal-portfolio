@@ -5,14 +5,14 @@ from sqlalchemy.orm import Session
 
 from app.db.models import EventType
 from app.db.session import get_session
-from app.schemas.site_events import SiteEventCreateIn, SiteEventCreatedOut
+from app.domains.site_activity.schema import SiteEventCreateIn, SiteEventCreatedOut
 from app.services.request_protection import (
     derive_request_identifier,
     enforce_rate_limit_or_429,
     ensure_payload_size_within_limit,
     sanitize_event_metadata,
 )
-from app.services.site_event_service import SiteEventService
+from app.domains.site_activity.service import SiteEventService
 
 router = APIRouter()
 

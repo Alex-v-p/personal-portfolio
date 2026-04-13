@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
-from app.services.github_stats_sync import SyncedGithubContributionDay, SyncedGithubSnapshot
+from app.domains.github.sync import SyncedGithubContributionDay, SyncedGithubSnapshot
 
 
 ADMIN_EMAIL = 'admin@example.com'

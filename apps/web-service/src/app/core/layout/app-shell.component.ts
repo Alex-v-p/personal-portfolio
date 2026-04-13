@@ -3,12 +3,12 @@ import { ChangeDetectorRef, Component, HostListener, OnInit, inject } from '@ang
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, take } from 'rxjs/operators';
 
-import { Profile } from '../../shared/models/profile.model';
-import { SiteShellData } from '../../shared/models/site-shell.model';
-import { PublicPortfolioApiService } from '../../shared/services/public-portfolio-api.service';
-import { AssistantPanelComponent } from '../../shared/components/assistant-panel/assistant-panel.component';
-import { SiteTrackingService } from '../../shared/services/site-tracking.service';
-import { createEmptyProfile } from '../../shared/utils/profile-view.util';
+import { Profile } from '@domains/profile/model/profile.model';
+import { SiteShellData } from '@domains/profile/model/site-shell.model';
+import { PublicProfileApiService } from '@domains/profile/data/profile-api.service';
+import { AssistantPanelComponent } from '@domains/assistant/ui/assistant-panel.component';
+import { SiteTrackingService } from '@domains/site-activity/data/site-tracking.service';
+import { createEmptyProfile } from '@domains/profile/lib/profile-view.util';
 
 @Component({
   selector: 'app-shell',
@@ -17,7 +17,7 @@ import { createEmptyProfile } from '../../shared/utils/profile-view.util';
   templateUrl: './app-shell.component.html'
 })
 export class AppShellComponent implements OnInit {
-  private readonly portfolioApi = inject(PublicPortfolioApiService);
+  private readonly profileApi = inject(PublicProfileApiService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly router = inject(Router);
   private readonly siteTracking = inject(SiteTrackingService);
@@ -52,7 +52,7 @@ export class AppShellComponent implements OnInit {
       this.changeDetectorRef.detectChanges();
     });
 
-    this.portfolioApi.getSiteShell().pipe(take(1)).subscribe({
+    this.profileApi.getSiteShell().pipe(take(1)).subscribe({
       next: (shell) => {
         this.shellData = shell;
         this.profile = shell.profile;

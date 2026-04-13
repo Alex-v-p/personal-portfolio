@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.db.session import get_session
-from app.repositories.public_content_repository import PublicContentRepository
-from app.schemas.public import (
+from app.domains.public_site.repository import PublicContentRepository
+from app.domains.public_site.schema import (
     BlogPostDetailOut,
     BlogPostsListOut,
     ExperienceListOut,

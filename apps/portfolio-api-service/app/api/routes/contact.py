@@ -6,10 +6,10 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.db.models import EventType
 from app.db.session import get_session
-from app.repositories.contact_message_repository import ContactMessageRepository
-from app.schemas.contact import ContactMessageCreatedOut, ContactMessageIn
+from app.domains.contact.repository import ContactMessageRepository
+from app.domains.contact.schema import ContactMessageCreatedOut, ContactMessageIn
 from app.services.request_protection import derive_request_identifier, enforce_rate_limit_or_429, ensure_payload_size_within_limit
-from app.services.site_event_service import SiteEventService
+from app.domains.site_activity.service import SiteEventService
 
 router = APIRouter()
 

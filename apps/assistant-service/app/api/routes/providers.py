@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from app.core.config import get_settings
-from app.schemas.chat import ProviderStatusOut
+from app.domains.chat.schema import ProviderStatusOut
 from app.services.security import get_current_admin_user
 
 router = APIRouter()

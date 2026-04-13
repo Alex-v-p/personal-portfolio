@@ -107,7 +107,7 @@ def test_provider_daily_generation_cap_forces_fallback(tmp_path: Path, monkeypat
     from app.core.config import get_settings
     from app.db.models import Base
     from app.db.session import get_engine, get_session_factory
-    from app.services.provider_client import ProviderClient
+    from app.domains.providers.client import ProviderClient
     from app.services.rate_limit import reset_rate_limit_state
 
     get_settings.cache_clear()

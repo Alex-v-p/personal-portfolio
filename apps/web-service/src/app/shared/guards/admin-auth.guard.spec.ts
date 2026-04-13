@@ -3,7 +3,7 @@ import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree, provideRo
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { adminAuthGuard, adminGuestGuard } from './admin-auth.guard';
-import { AdminSessionService } from '../services/admin-session.service';
+import { AdminSessionService } from '@domains/admin/data/admin-session.service';
 
 
 const routeSnapshot = {} as ActivatedRouteSnapshot;
