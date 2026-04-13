@@ -95,7 +95,7 @@ export class ContactPageComponent implements OnInit {
         },
         error: () => {
           this.submissionState = 'error';
-          this.errorMessage = 'The message could not be sent to the portfolio API. Make sure the portfolio-api-service is running on port 8011 and try again.';
+          this.errorMessage = 'The message could not be sent to the portfolio API. Make sure the API or reverse proxy is running and try again.';
         }
       });
   }

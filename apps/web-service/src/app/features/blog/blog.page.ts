@@ -50,7 +50,7 @@ export class BlogPageComponent implements OnInit {
         },
         error: () => {
           this.posts = [];
-          this.errorMessage = 'Blog posts could not be loaded from the portfolio API. Make sure the portfolio-api-service is running on port 8011.';
+          this.errorMessage = 'Blog posts could not be loaded from the portfolio API. Make sure the API or reverse proxy is running.';
         }
       });
   }

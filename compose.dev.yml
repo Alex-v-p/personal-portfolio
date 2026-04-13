@@ -1,0 +1,41 @@
+services:
+  portfolio-db-init:
+    environment:
+      APP_ENV: development
+      DB_BOOTSTRAP_RECREATE_ON_DRIFT: ${DB_BOOTSTRAP_RECREATE_ON_DRIFT:-true}
+
+  web:
+    build:
+      context: ./apps/web-service
+      dockerfile: Dockerfile.dev
+    ports:
+      - "${WEB_PORT:-4200}:4200"
+    volumes:
+      - ./apps/web-service:/app
+      - /app/node_modules
+
+  portfolio-api:
+    environment:
+      APP_ENV: development
+    ports:
+      - "${PORTFOLIO_API_PORT:-8011}:8011"
+    volumes:
+      - ./apps/portfolio-api-service:/app
+    command: ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port 8011 --reload"]
+
+  assistant:
+    environment:
+      APP_ENV: development
+    ports:
+      - "${ASSISTANT_API_PORT:-8012}:8012"
+    volumes:
+      - ./apps/assistant-service:/app
+    command: ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port 8012 --reload"]
+
+  postgres:
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+
+  redis:
+    ports:
+      - "${REDIS_PORT:-6379}:6379"

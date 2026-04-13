@@ -16,6 +16,9 @@
     "start:portfolio-api": "nx serve portfolio-api-service",
     "start:assistant": "nx serve assistant-service",
     "build:web": "nx build web-service",
-    "test:web": "nx test web-service"
+    "test:web": "nx test web-service",
+    "docker:up": "docker compose up --build",
+    "docker:up:dev": "docker compose -f compose.yml -f compose.dev.yml up --build",
+    "docker:down": "docker compose down"
   }
 }

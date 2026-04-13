@@ -1,0 +1,4 @@
+services:
+  web:
+    ports:
+      - "${WEB_PORT:-4200}:80"
