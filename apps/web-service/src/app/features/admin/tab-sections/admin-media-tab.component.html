@@ -1,0 +1,111 @@
+    <section class="space-y-6">
+      <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-semibold text-stone-950">Media library</h2>
+            <p class="mt-1 max-w-3xl text-sm leading-6 text-stone-600">Browse every uploaded media file in one place, narrow the list with search and filters, and remove files you no longer need. Deleting a file can break inline markdown images or content that still points to its URL.</p>
+          </div>
+          <div class="flex flex-wrap gap-3 text-sm">
+            <span class="rounded-full bg-stone-100 px-4 py-2 font-semibold text-stone-700">{{ dashboard.mediaFiles }} total</span>
+            <span class="rounded-full bg-stone-100 px-4 py-2 font-semibold text-stone-700">{{ imageMediaCount }} images</span>
+            <span class="rounded-full bg-stone-100 px-4 py-2 font-semibold text-stone-700">{{ documentMediaCount }} documents</span>
+            <span class="rounded-full bg-amber-100 px-4 py-2 font-semibold text-amber-800">{{ filteredMediaCount }} shown</span>
+          </div>
+        </div>
+
+        <div class="mt-6 grid gap-3 xl:grid-cols-[minmax(0,1.5fr)_minmax(12rem,0.5fr)_minmax(12rem,0.5fr)_minmax(12rem,0.6fr)_auto]">
+          <input [ngModel]="mediaSearchTerm" (ngModelChange)="onMediaSearchTermChange($event)" name="mediaSearchTerm" placeholder="Search by title, alt text, filename, path, or folder" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+          <select [ngModel]="mediaKindFilter" (ngModelChange)="onMediaKindFilterChange($event)" name="mediaKindFilter" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm">
+            <option value="all">All file types</option>
+            <option value="image">Images</option>
+            <option value="document">Documents</option>
+            <option value="video">Video</option>
+            <option value="audio">Audio</option>
+            <option value="archive">Archives</option>
+            <option value="other">Other</option>
+          </select>
+          <select [ngModel]="mediaVisibilityFilter" (ngModelChange)="onMediaVisibilityFilterChange($event)" name="mediaVisibilityFilter" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm">
+            <option value="all">All visibility</option>
+            <option value="public">Public</option>
+            <option value="private">Private</option>
+            <option value="signed">Signed</option>
+          </select>
+          <select [ngModel]="mediaFolderFilter" (ngModelChange)="onMediaFolderFilterChange($event)" name="mediaFolderFilter" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm">
+            <option value="all">All folders</option>
+            <option value="root">root</option>
+            <option *ngFor="let folder of mediaFolderOptions" [value]="folder">{{ folder }}</option>
+          </select>
+          <button type="button" (click)="clearMediaFilters()" class="rounded-full border border-stone-300 px-4 py-3 text-sm font-semibold text-stone-700">Reset filters</button>
+        </div>
+      </article>
+
+      <div class="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_22rem]">
+        <section class="rounded-[2rem] border border-stone-300 bg-white p-5 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <h3 class="text-lg font-semibold text-stone-950">All files</h3>
+              <p class="text-sm text-stone-600">Newest uploads first. Click any file to inspect it and delete it if needed.</p>
+            </div>
+          </div>
+
+          <div *ngIf="filteredMediaFiles.length; else noFilteredMedia" class="mt-5 grid gap-3 max-h-[52rem] overflow-y-auto pr-1">
+            <button *ngFor="let media of filteredMediaFiles" type="button" (click)="selectMediaFile(media.id)" [ngClass]="media.id === selectedMediaFileId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50 hover:border-stone-300 hover:bg-stone-100'" class="rounded-[1.5rem] border p-4 text-left transition">
+              <div class="flex items-start gap-4">
+                <div class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-stone-200 bg-white">
+                  <img *ngIf="media.resolvedAsset?.url && isImageMedia(media)" [src]="media.resolvedAsset?.url" [alt]="media.altText || media.title || media.originalFilename" class="h-full w-full object-cover" />
+                  <span *ngIf="!(media.resolvedAsset?.url && isImageMedia(media))" class="px-2 text-center text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-400">{{ mediaKindLabel(media) }}</span>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <p class="truncate text-sm font-semibold text-stone-950">{{ media.title || media.originalFilename }}</p>
+                    <span class="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-600">{{ mediaKindLabel(media) }}</span>
+                    <span class="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-600">{{ media.visibility }}</span>
+                  </div>
+                  <p class="mt-1 truncate text-xs text-stone-500">{{ media.objectKey }}</p>
+                  <p class="mt-2 text-xs text-stone-600">Folder: {{ mediaFolder(media) }} · {{ media.createdAt | date:'medium' }}</p>
+                  <p *ngIf="media.altText" class="mt-1 truncate text-xs text-stone-500">Alt: {{ media.altText }}</p>
+                </div>
+              </div>
+            </button>
+          </div>
+        </section>
+
+        <aside class="rounded-[2rem] border border-stone-300 bg-white p-5 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
+          <ng-container *ngIf="selectedMediaFile as media; else noSelectedMedia">
+            <div class="space-y-4">
+              <div>
+                <h3 class="text-lg font-semibold text-stone-950">{{ media.title || media.originalFilename }}</h3>
+                <p class="mt-1 text-sm text-stone-600">Inspect the selected file before using or deleting it.</p>
+              </div>
+
+              <div class="overflow-hidden rounded-[1.5rem] border border-stone-200 bg-stone-50">
+                <img *ngIf="media.resolvedAsset?.url && isImageMedia(media)" [src]="media.resolvedAsset?.url" [alt]="media.altText || media.title || media.originalFilename" class="h-56 w-full object-cover" />
+                <div *ngIf="!(media.resolvedAsset?.url && isImageMedia(media))" class="flex h-56 items-center justify-center px-6 text-center">
+                  <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-400">{{ mediaKindLabel(media) }}</p>
+                    <p class="mt-2 text-sm text-stone-600">No image preview is available for this file type.</p>
+                  </div>
+                </div>
+              </div>
+
+              <dl class="grid gap-3 text-sm">
+                <div class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3"><dt class="text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">Filename</dt><dd class="mt-1 break-all text-stone-800">{{ media.originalFilename }}</dd></div>
+                <div class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3"><dt class="text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">Stored path</dt><dd class="mt-1 break-all text-stone-800">{{ media.objectKey }}</dd></div>
+                <div class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3"><dt class="text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">Folder</dt><dd class="mt-1 text-stone-800">{{ mediaFolder(media) }}</dd></div>
+                <div class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3"><dt class="text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">Type</dt><dd class="mt-1 text-stone-800">{{ mediaKindLabel(media) }}<span *ngIf="media.mimeType"> · {{ media.mimeType }}</span></dd></div>
+                <div class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3"><dt class="text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">Visibility</dt><dd class="mt-1 text-stone-800">{{ media.visibility }}</dd></div>
+                <div class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3"><dt class="text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">Alt text</dt><dd class="mt-1 text-stone-800">{{ media.altText || '—' }}</dd></div>
+                <div class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3"><dt class="text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">Created</dt><dd class="mt-1 text-stone-800">{{ media.createdAt | date:'medium' }}</dd></div>
+              </dl>
+
+              <a *ngIf="media.resolvedAsset?.url" [href]="media.resolvedAsset?.url" target="_blank" rel="noreferrer" class="inline-flex min-h-11 items-center justify-center rounded-full border border-stone-300 px-4 text-sm font-semibold text-stone-700 transition hover:border-stone-400 hover:bg-stone-50">Open file</a>
+              <button type="button" (click)="deleteSelectedMediaFile()" [disabled]="isDeletingMediaFile(media.id)" class="inline-flex min-h-11 items-center justify-center rounded-full border border-rose-300 px-4 text-sm font-semibold text-rose-700 disabled:cursor-not-allowed disabled:opacity-60">{{ isDeletingMediaFile(media.id) ? 'Deleting…' : 'Delete media file' }}</button>
+            </div>
+          </ng-container>
+        </aside>
+      </div>
+
+      <ng-template #noFilteredMedia><div class="mt-5 rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50 p-6 text-sm text-stone-600">No media files match the current search and filter settings.</div></ng-template>
+      <ng-template #noSelectedMedia><div class="flex h-full min-h-[20rem] items-center justify-center rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50 p-6 text-center text-sm text-stone-600">Select a media file from the list to preview its details and manage it.</div></ng-template>
+    </section>
+

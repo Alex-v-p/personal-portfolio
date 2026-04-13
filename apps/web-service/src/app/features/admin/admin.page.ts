@@ -1,4 +1,4 @@
-import { DatePipe, KeyValuePipe, NgClass, NgFor, NgIf } from '@angular/common';
+import { NgClass, NgFor, NgIf } from '@angular/common';
 import { ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
@@ -66,12 +66,51 @@ import {
   toSkillForm,
 } from './admin-page.forms';
 import { ADMIN_TABS, AdminTabId } from './admin-page.tabs';
+import {
+  categoryName,
+  contributionPreview,
+  formatSkillSummary,
+  formatTagSummary,
+  isImageMedia,
+  mediaFolder,
+  mediaKind,
+  mediaKindLabel,
+} from './admin-page.display.utils';
+import { AdminActivityTabComponent } from './tab-sections/admin-activity-tab.component';
+import { AdminAdminsTabComponent } from './tab-sections/admin-admins-tab.component';
+import { AdminAssistantTabComponent } from './tab-sections/admin-assistant-tab.component';
+import { AdminExperienceTabComponent } from './tab-sections/admin-experience-tab.component';
+import { AdminMediaTabComponent } from './tab-sections/admin-media-tab.component';
+import { AdminMessagesTabComponent } from './tab-sections/admin-messages-tab.component';
+import { AdminNavigationTabComponent } from './tab-sections/admin-navigation-tab.component';
+import { AdminOverviewTabComponent } from './tab-sections/admin-overview-tab.component';
+import { AdminProfileTabComponent } from './tab-sections/admin-profile-tab.component';
+import { AdminProjectsTabComponent } from './tab-sections/admin-projects-tab.component';
+import { AdminStatsTabComponent } from './tab-sections/admin-stats-tab.component';
+import { AdminTaxonomyTabComponent } from './tab-sections/admin-taxonomy-tab.component';
 import { matchesSearch, parseContributionDays, parseJsonObject, resolveSelection, slugify, toggleSelection } from './admin-page.utils';
 
 @Component({
   selector: 'app-admin-page',
   standalone: true,
-  imports: [NgIf, NgFor, NgClass, FormsModule, DatePipe, KeyValuePipe],
+  imports: [
+    NgIf,
+    NgFor,
+    NgClass,
+    FormsModule,
+    AdminOverviewTabComponent,
+    AdminMediaTabComponent,
+    AdminProjectsTabComponent,
+    AdminTaxonomyTabComponent,
+    AdminExperienceTabComponent,
+    AdminNavigationTabComponent,
+    AdminProfileTabComponent,
+    AdminStatsTabComponent,
+    AdminAssistantTabComponent,
+    AdminActivityTabComponent,
+    AdminAdminsTabComponent,
+    AdminMessagesTabComponent,
+  ],
   templateUrl: './admin.page.html'
 })
 export class AdminPageComponent implements OnInit {
@@ -500,61 +539,31 @@ export class AdminPageComponent implements OnInit {
   }
 
   protected mediaFolder(media: AdminMediaFile): string {
-    const parts = (media.objectKey || '').split('/').filter(Boolean);
-    if (parts.length <= 1) {
-      return 'root';
-    }
-    return parts.slice(0, -1).join('/');
+    return mediaFolder(media);
   }
 
   protected mediaKind(media: AdminMediaFile): 'image' | 'document' | 'video' | 'audio' | 'archive' | 'other' {
-    if (this.isImageMedia(media)) {
-      return 'image';
-    }
-
-    const mimeType = (media.mimeType || '').toLowerCase();
-    const fileName = (media.originalFilename || media.objectKey || '').toLowerCase();
-
-    if (mimeType.startsWith('video/') || /\.(mp4|mov|avi|m4v|webm)$/i.test(fileName)) {
-      return 'video';
-    }
-    if (mimeType.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|flac)$/i.test(fileName)) {
-      return 'audio';
-    }
-    if (
-      mimeType.includes('pdf')
-      || mimeType.includes('officedocument')
-      || mimeType.includes('msword')
-      || mimeType.startsWith('text/')
-      || /\.(pdf|docx?|xlsx?|pptx?|txt|md)$/i.test(fileName)
-    ) {
-      return 'document';
-    }
-    if (mimeType.includes('zip') || mimeType.includes('tar') || /\.(zip|rar|7z|tar|gz)$/i.test(fileName)) {
-      return 'archive';
-    }
-    return 'other';
+    return mediaKind(media);
   }
 
   protected mediaKindLabel(media: AdminMediaFile): string {
-    const kind = this.mediaKind(media);
-    return kind.charAt(0).toUpperCase() + kind.slice(1);
+    return mediaKindLabel(media);
   }
 
   protected categoryName(categoryId: string): string {
-    return this.referenceData.skillCategories.find((item) => item.id === categoryId)?.name ?? 'Unknown category';
+    return categoryName(this.referenceData.skillCategories, categoryId);
   }
 
   protected contributionPreview(snapshot: AdminGithubSnapshot): string {
-    return `${snapshot.contributionDays.length} day entries`;
+    return contributionPreview(snapshot);
   }
 
   protected formatTagSummary(post: AdminBlogPost): string {
-    return post.tagNames.join(', ') || 'No tags';
+    return formatTagSummary(post);
   }
 
   protected formatSkillSummary(experience: AdminExperience): string {
-    return experience.skills.map((skill) => skill.name).join(', ') || 'No skills';
+    return formatSkillSummary(experience);
   }
 
   protected selectProject(projectId: string): void {
@@ -1497,11 +1506,7 @@ export class AdminPageComponent implements OnInit {
   }
 
   isImageMedia(media: AdminMediaFile): boolean {
-    if (media.mimeType?.startsWith('image/')) {
-      return true;
-    }
-
-    return /\.(avif|gif|jpe?g|png|svg|webp)$/i.test(media.originalFilename || media.objectKey);
+    return isImageMedia(media);
   }
 
   private resolveMediaUrl(media: AdminMediaFile): string | null {
