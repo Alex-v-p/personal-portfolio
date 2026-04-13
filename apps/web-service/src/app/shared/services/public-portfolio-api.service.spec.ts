@@ -1,4 +1,4 @@
-import { HttpClient, provideHttpClient } from '@angular/common/http';
+import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -28,7 +28,7 @@ describe('PublicPortfolioApiService', () => {
     TestBed.resetTestingModule();
   });
 
-  it('normalizes the home payload into frontend-facing view models', () => {
+  it('normalizes the home payload into frontend-facing summary view models', () => {
     let received: unknown;
 
     service.getHome().subscribe((value: unknown) => {
@@ -75,7 +75,6 @@ describe('PublicPortfolioApiService', () => {
           title: 'Personal Portfolio',
           teaser: 'Portfolio teaser',
           summary: 'Portfolio summary',
-          descriptionMarkdown: '## Project body',
           coverImageFileId: 'cover-1',
           coverImage: { id: 'cover-1', url: 'http://media.example/cover.png', alt: 'Cover', fileName: 'cover.png', mimeType: 'image/png', width: 1200, height: 630 },
           githubUrl: 'https://github.com/shuzu/personal-portfolio',
@@ -94,7 +93,6 @@ describe('PublicPortfolioApiService', () => {
           createdAt: '2026-01-01T10:00:00Z',
           updatedAt: '2026-01-01T10:00:00Z',
           skills: [{ id: 'skill-1', categoryId: 'cat-1', name: 'Angular', yearsOfExperience: 2, iconKey: 'angular', sortOrder: 1, isHighlighted: true }],
-          images: [],
         },
       ],
       featuredBlogPosts: [
@@ -103,7 +101,6 @@ describe('PublicPortfolioApiService', () => {
           slug: 'portfolio-shell',
           title: 'Building a portfolio shell',
           excerpt: 'How the shell was built.',
-          contentMarkdown: '# Body',
           coverImageFileId: 'blog-cover-1',
           coverImageAlt: 'Blog cover',
           coverImage: { id: 'blog-cover-1', url: 'http://media.example/blog-cover.png', alt: 'Blog cover', fileName: 'blog-cover.png', mimeType: 'image/png', width: 1200, height: 630 },
@@ -111,8 +108,6 @@ describe('PublicPortfolioApiService', () => {
           status: 'published',
           isFeatured: true,
           publishedAt: '2026-02-01T10:00:00Z',
-          seoTitle: 'SEO title',
-          seoDescription: 'SEO description',
           createdAt: '2026-02-01T10:00:00Z',
           updatedAt: '2026-02-01T10:00:00Z',
           tags: [{ id: 'tag-1', name: 'Architecture', slug: 'architecture' }],
@@ -145,6 +140,44 @@ describe('PublicPortfolioApiService', () => {
       ],
       featuredBlogPosts: [{ slug: 'portfolio-shell', readTime: '6 min read', category: 'Architecture' }],
       contactPreview: [{ platform: 'email', href: 'mailto:hello@example.com' }],
+    });
+  });
+
+  it('normalizes the blog detail payload into a full article model', () => {
+    let received: unknown;
+
+    service.getBlogPostBySlug('portfolio-shell').subscribe((value: unknown) => {
+      received = value;
+    });
+
+    const request = httpMock.expectOne('/api/public/blog-posts/portfolio-shell');
+    expect(request.request.method).toBe('GET');
+    request.flush({
+      id: 'post-1',
+      slug: 'portfolio-shell',
+      title: 'Building a portfolio shell',
+      excerpt: 'How the shell was built.',
+      coverImageFileId: 'blog-cover-1',
+      coverImageAlt: 'Blog cover',
+      coverImage: { id: 'blog-cover-1', url: 'http://media.example/blog-cover.png', alt: 'Blog cover', fileName: 'blog-cover.png', mimeType: 'image/png', width: 1200, height: 630 },
+      readingTimeMinutes: 6,
+      status: 'published',
+      isFeatured: true,
+      publishedAt: '2026-02-01T10:00:00Z',
+      createdAt: '2026-02-01T10:00:00Z',
+      updatedAt: '2026-02-01T10:00:00Z',
+      tags: [{ id: 'tag-1', name: 'Architecture', slug: 'architecture' }],
+      contentMarkdown: '# Body',
+      seoTitle: 'SEO title',
+      seoDescription: 'SEO description',
+    });
+
+    expect(received).toMatchObject({
+      slug: 'portfolio-shell',
+      readTime: '6 min read',
+      category: 'Architecture',
+      contentMarkdown: '# Body',
+      seoTitle: 'SEO title',
     });
   });
 

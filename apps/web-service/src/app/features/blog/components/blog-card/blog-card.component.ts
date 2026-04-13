@@ -4,7 +4,7 @@ import { Component, Input } from '@angular/core';
 import { UiCardComponent } from '../../../../shared/components/card/ui-card.component';
 import { UiChipComponent } from '../../../../shared/components/chip/ui-chip.component';
 import { UiLinkButtonComponent } from '../../../../shared/components/link-button/ui-link-button.component';
-import { BlogPost } from '../../../../shared/models/blog-post.model';
+import { BlogPostSummary } from '../../../../shared/models/blog-post-summary.model';
 
 @Component({
   selector: 'app-blog-card',
@@ -13,7 +13,7 @@ import { BlogPost } from '../../../../shared/models/blog-post.model';
   templateUrl: './blog-card.component.html'
 })
 export class BlogCardComponent {
-  @Input({ required: true }) post!: BlogPost;
+  @Input({ required: true }) post!: BlogPostSummary;
   @Input() featured = false;
 
   protected get displayedTags(): string[] {

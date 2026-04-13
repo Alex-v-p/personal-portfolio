@@ -4,9 +4,9 @@ import { finalize, take } from 'rxjs/operators';
 
 import { ContactMethod } from '../../shared/models/contact-method.model';
 import { Experience } from '../../shared/models/experience.model';
-import { BlogPost } from '../../shared/models/blog-post.model';
+import { BlogPostSummary } from '../../shared/models/blog-post-summary.model';
 import { Profile, ExpertiseGroup } from '../../shared/models/profile.model';
-import { Project } from '../../shared/models/project.model';
+import { ProjectSummary } from '../../shared/models/project-summary.model';
 import { PublicPortfolioApiService } from '../../shared/services/public-portfolio-api.service';
 import { createEmptyProfile } from '../../shared/utils/profile-view.util';
 import { HomeContactPreviewSectionComponent } from './components/home-contact-preview/home-contact-preview.component';
@@ -33,10 +33,10 @@ export class HomePageComponent implements OnInit {
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   protected profile: Profile = createEmptyProfile();
-  protected featuredBlogPost: BlogPost = {
-    id: '', slug: '', title: '', excerpt: '', publishedAt: '', readTime: '', readingTimeMinutes: 0, category: '', tags: [], featured: false, isFeatured: false, coverAlt: '', coverImageAlt: '', coverImageFileId: null, status: 'draft', contentMarkdown: ''
+  protected featuredBlogPost: BlogPostSummary = {
+    id: '', slug: '', title: '', excerpt: '', publishedAt: '', readTime: '', readingTimeMinutes: 0, category: '', tags: [], featured: false, isFeatured: false, coverAlt: '', coverImageAlt: '', coverImageFileId: null, status: 'draft'
   };
-  protected primaryProject: Project = {
+  protected primaryProject: ProjectSummary = {
     id: '', slug: '', title: '', teaser: '', shortDescription: '', summary: '', organization: '', duration: '', durationLabel: '', status: '', state: 'published', category: '', tags: [], featured: false, isFeatured: false, imageAlt: '', coverImageAlt: '', coverImageFileId: null, highlight: '', sortOrder: 0, links: []
   };
   protected contactPreviewMethods: ContactMethod[] = [];

@@ -5,8 +5,8 @@ import { UiCardComponent } from '../../../../shared/components/card/ui-card.comp
 import { UiChipComponent } from '../../../../shared/components/chip/ui-chip.component';
 import { UiLinkButtonComponent } from '../../../../shared/components/link-button/ui-link-button.component';
 import { UiSectionTitleComponent } from '../../../../shared/components/section-title/ui-section-title.component';
-import { BlogPost } from '../../../../shared/models/blog-post.model';
-import { Project } from '../../../../shared/models/project.model';
+import { BlogPostSummary } from '../../../../shared/models/blog-post-summary.model';
+import { ProjectSummary } from '../../../../shared/models/project-summary.model';
 import { ProjectCardComponent } from '../../../projects/components/project-card/project-card.component';
 
 @Component({
@@ -16,6 +16,6 @@ import { ProjectCardComponent } from '../../../projects/components/project-card/
   templateUrl: './home-featured.component.html'
 })
 export class HomeFeaturedSectionComponent {
-  @Input({ required: true }) featuredBlogPost!: BlogPost;
-  @Input({ required: true }) primaryProject!: Project;
+  @Input({ required: true }) featuredBlogPost!: BlogPostSummary;
+  @Input({ required: true }) primaryProject!: ProjectSummary;
 }

@@ -109,13 +109,12 @@ class ProjectImageOut(ApiSchema):
     image: PublicMediaAssetOut | None = None
 
 
-class ProjectOut(ApiSchema):
+class ProjectSummaryOut(ApiSchema):
     id: str
     slug: str
     title: str
     teaser: str
     summary: str | None = None
-    description_markdown: str | None = None
     cover_image_file_id: str | None = None
     cover_image: PublicMediaAssetOut | None = None
     github_url: str | None = None
@@ -134,11 +133,15 @@ class ProjectOut(ApiSchema):
     created_at: str
     updated_at: str
     skills: list[SkillSummaryOut]
+
+
+class ProjectDetailOut(ProjectSummaryOut):
+    description_markdown: str | None = None
     images: list[ProjectImageOut]
 
 
 class ProjectsListOut(ApiSchema):
-    items: list[ProjectOut]
+    items: list[ProjectSummaryOut]
     total: int
 
 
@@ -148,12 +151,11 @@ class BlogTagOut(ApiSchema):
     slug: str
 
 
-class BlogPostOut(ApiSchema):
+class BlogPostSummaryOut(ApiSchema):
     id: str
     slug: str
     title: str
     excerpt: str
-    content_markdown: str
     cover_image_file_id: str | None = None
     cover_image_alt: str | None = None
     cover_image: PublicMediaAssetOut | None = None
@@ -161,15 +163,19 @@ class BlogPostOut(ApiSchema):
     status: Literal['draft', 'published', 'archived']
     is_featured: bool
     published_at: str | None = None
-    seo_title: str | None = None
-    seo_description: str | None = None
     created_at: str
     updated_at: str
     tags: list[BlogTagOut]
 
 
+class BlogPostDetailOut(BlogPostSummaryOut):
+    content_markdown: str
+    seo_title: str | None = None
+    seo_description: str | None = None
+
+
 class BlogPostsListOut(ApiSchema):
-    items: list[BlogPostOut]
+    items: list[BlogPostSummaryOut]
     total: int
 
 
@@ -206,8 +212,8 @@ class SiteShellOut(ApiSchema):
 
 class HomeOut(ApiSchema):
     hero: ProfileOut
-    featured_projects: list[ProjectOut]
-    featured_blog_posts: list[BlogPostOut]
+    featured_projects: list[ProjectSummaryOut]
+    featured_blog_posts: list[BlogPostSummaryOut]
     expertise_groups: list[ExpertiseGroupOut]
     experience_preview: list[ExperienceOut]
     contact_preview: list[ContactMethodOut]

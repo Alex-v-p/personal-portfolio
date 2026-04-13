@@ -8,7 +8,7 @@ import { UiButtonComponent } from '../../shared/components/button/ui-button.comp
 import { UiChipComponent } from '../../shared/components/chip/ui-chip.component';
 import { UiEmptyStateComponent } from '../../shared/components/empty-state/ui-empty-state.component';
 import { UiSectionTitleComponent } from '../../shared/components/section-title/ui-section-title.component';
-import { Project } from '../../shared/models/project.model';
+import { ProjectSummary } from '../../shared/models/project-summary.model';
 import { ProjectCardComponent } from './components/project-card/project-card.component';
 
 interface SkillFilterOption {
@@ -26,7 +26,7 @@ export class ProjectsPageComponent implements OnInit {
   private readonly portfolioApi = inject(PublicPortfolioApiService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
-  protected projects: Project[] = [];
+  protected projects: ProjectSummary[] = [];
   protected searchQuery = '';
   protected selectedSkillFilters: string[] = [];
   protected isSkillMenuOpen = false;
@@ -89,11 +89,11 @@ export class ProjectsPageComponent implements OnInit {
     return this.selectedSkillFilters.includes(filter);
   }
 
-  protected get featuredProject(): Project | null {
+  protected get featuredProject(): ProjectSummary | null {
     return this.projects.find((project) => project.isFeatured) ?? this.projects[0] ?? null;
   }
 
-  protected get browsableProjects(): Project[] {
+  protected get browsableProjects(): ProjectSummary[] {
     const featuredProjectId = this.featuredProject?.id;
     return this.projects.filter((project) => project.id !== featuredProjectId);
   }
@@ -135,7 +135,7 @@ export class ProjectsPageComponent implements OnInit {
     this.searchQuery = '';
   }
 
-  protected get filteredProjects(): Project[] {
+  protected get filteredProjects(): ProjectSummary[] {
     const normalizedQuery = this.searchQuery.trim().toLowerCase();
 
     return this.browsableProjects.filter((project) => {

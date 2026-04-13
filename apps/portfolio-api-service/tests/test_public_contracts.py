@@ -11,17 +11,18 @@ EXPECTED_PROFILE_KEYS = {
     'ctaPrimaryUrl', 'ctaSecondaryLabel', 'ctaSecondaryUrl', 'isPublic', 'socialLinks', 'footerDescription',
     'introParagraphs', 'availability', 'skills', 'expertiseGroups', 'createdAt', 'updatedAt'
 }
-EXPECTED_PROJECT_KEYS = {
-    'id', 'slug', 'title', 'teaser', 'summary', 'descriptionMarkdown', 'coverImageFileId', 'coverImage',
+EXPECTED_PROJECT_SUMMARY_KEYS = {
+    'id', 'slug', 'title', 'teaser', 'summary', 'coverImageFileId', 'coverImage',
     'githubUrl', 'githubRepoOwner', 'githubRepoName', 'demoUrl', 'companyName', 'startedOn', 'endedOn',
     'durationLabel', 'status', 'state', 'isFeatured', 'sortOrder', 'publishedAt', 'createdAt', 'updatedAt',
-    'skills', 'images'
+    'skills'
 }
-EXPECTED_BLOG_POST_KEYS = {
-    'id', 'slug', 'title', 'excerpt', 'contentMarkdown', 'coverImageFileId', 'coverImageAlt', 'coverImage',
-    'readingTimeMinutes', 'status', 'isFeatured', 'publishedAt', 'seoTitle', 'seoDescription', 'createdAt',
-    'updatedAt', 'tags'
+EXPECTED_PROJECT_DETAIL_KEYS = EXPECTED_PROJECT_SUMMARY_KEYS | {'descriptionMarkdown', 'images'}
+EXPECTED_BLOG_POST_SUMMARY_KEYS = {
+    'id', 'slug', 'title', 'excerpt', 'coverImageFileId', 'coverImageAlt', 'coverImage',
+    'readingTimeMinutes', 'status', 'isFeatured', 'publishedAt', 'createdAt', 'updatedAt', 'tags'
 }
+EXPECTED_BLOG_POST_DETAIL_KEYS = EXPECTED_BLOG_POST_SUMMARY_KEYS | {'contentMarkdown', 'seoTitle', 'seoDescription'}
 
 
 def test_site_shell_contract_matches_frontend_expectations(client: TestClient) -> None:
@@ -45,9 +46,11 @@ def test_home_contract_matches_frontend_expectations(client: TestClient) -> None
     assert {'hero', 'featuredProjects', 'featuredBlogPosts', 'expertiseGroups', 'experiencePreview', 'contactPreview'} <= set(body)
     assert EXPECTED_PROFILE_KEYS <= set(body['hero'])
     assert body['featuredProjects']
-    assert EXPECTED_PROJECT_KEYS <= set(body['featuredProjects'][0])
+    assert EXPECTED_PROJECT_SUMMARY_KEYS <= set(body['featuredProjects'][0])
+    assert 'descriptionMarkdown' not in body['featuredProjects'][0]
     assert body['featuredBlogPosts']
-    assert EXPECTED_BLOG_POST_KEYS <= set(body['featuredBlogPosts'][0])
+    assert EXPECTED_BLOG_POST_SUMMARY_KEYS <= set(body['featuredBlogPosts'][0])
+    assert 'contentMarkdown' not in body['featuredBlogPosts'][0]
 
 
 def test_project_detail_contract_matches_frontend_expectations(client: TestClient) -> None:
@@ -55,7 +58,7 @@ def test_project_detail_contract_matches_frontend_expectations(client: TestClien
     assert response.status_code == 200
     body = response.json()
 
-    assert EXPECTED_PROJECT_KEYS <= set(body)
+    assert EXPECTED_PROJECT_DETAIL_KEYS <= set(body)
     assert {'id', 'url', 'alt', 'fileName', 'mimeType', 'width', 'height'} <= set(body['coverImage'])
     assert {'id', 'name', 'sortOrder', 'isHighlighted'} <= set(body['skills'][0])
 
@@ -65,6 +68,6 @@ def test_blog_post_detail_contract_matches_frontend_expectations(client: TestCli
     assert response.status_code == 200
     body = response.json()
 
-    assert EXPECTED_BLOG_POST_KEYS <= set(body)
+    assert EXPECTED_BLOG_POST_DETAIL_KEYS <= set(body)
     assert {'id', 'url', 'alt', 'fileName', 'mimeType', 'width', 'height'} <= set(body['coverImage'])
     assert {'id', 'name', 'slug'} <= set(body['tags'][0])

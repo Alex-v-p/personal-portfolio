@@ -4,7 +4,7 @@ import { Component, Input } from '@angular/core';
 import { UiCardComponent } from '../../../../shared/components/card/ui-card.component';
 import { UiChipComponent } from '../../../../shared/components/chip/ui-chip.component';
 import { UiLinkButtonComponent } from '../../../../shared/components/link-button/ui-link-button.component';
-import { Project, ProjectLink } from '../../../../shared/models/project.model';
+import { ProjectLink, ProjectSummary } from '../../../../shared/models/project-summary.model';
 
 @Component({
   selector: 'app-project-card',
@@ -13,7 +13,7 @@ import { Project, ProjectLink } from '../../../../shared/models/project.model';
   templateUrl: './project-card.component.html'
 })
 export class ProjectCardComponent {
-  @Input({ required: true }) project!: Project;
+  @Input({ required: true }) project!: ProjectSummary;
   @Input() featured = false;
 
   protected get displayedTags(): string[] {

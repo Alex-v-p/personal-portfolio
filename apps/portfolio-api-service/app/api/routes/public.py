@@ -6,14 +6,14 @@ from sqlalchemy.orm import Session
 from app.db.session import get_session
 from app.repositories.public_content_repository import PublicContentRepository
 from app.schemas.public import (
-    BlogPostOut,
+    BlogPostDetailOut,
     BlogPostsListOut,
     ExperienceListOut,
     GithubSnapshotOut,
     HomeOut,
     NavigationListOut,
     ProfileOut,
-    ProjectOut,
+    ProjectDetailOut,
     ProjectsListOut,
     SiteShellOut,
     StatsOut,
@@ -63,8 +63,8 @@ def list_projects(session: Session = Depends(get_session)) -> ProjectsListOut:
     return ProjectsListOut(items=items, total=len(items))
 
 
-@router.get('/projects/{slug}', response_model=ProjectOut)
-def get_project(slug: str, session: Session = Depends(get_session)) -> ProjectOut:
+@router.get('/projects/{slug}', response_model=ProjectDetailOut)
+def get_project(slug: str, session: Session = Depends(get_session)) -> ProjectDetailOut:
     repository = PublicContentRepository(session)
     project = repository.get_project_by_slug(slug)
     if project is None:
@@ -79,8 +79,8 @@ def list_blog_posts(session: Session = Depends(get_session)) -> BlogPostsListOut
     return BlogPostsListOut(items=items, total=len(items))
 
 
-@router.get('/blog-posts/{slug}', response_model=BlogPostOut)
-def get_blog_post(slug: str, session: Session = Depends(get_session)) -> BlogPostOut:
+@router.get('/blog-posts/{slug}', response_model=BlogPostDetailOut)
+def get_blog_post(slug: str, session: Session = Depends(get_session)) -> BlogPostDetailOut:
     repository = PublicContentRepository(session)
     post = repository.get_blog_post_by_slug(slug)
     if post is None:

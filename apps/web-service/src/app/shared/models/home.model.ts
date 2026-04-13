@@ -1,13 +1,13 @@
-import { BlogPost } from './blog-post.model';
+import { BlogPostSummary } from './blog-post-summary.model';
 import { ContactMethod } from './contact-method.model';
 import { Experience } from './experience.model';
 import { ExpertiseGroup, Profile } from './profile.model';
-import { Project } from './project.model';
+import { ProjectSummary } from './project-summary.model';
 
 export interface HomePageData {
   hero: Profile;
-  featuredProjects: Project[];
-  featuredBlogPosts: BlogPost[];
+  featuredProjects: ProjectSummary[];
+  featuredBlogPosts: BlogPostSummary[];
   expertiseGroups: ExpertiseGroup[];
   experiencePreview: Experience[];
   contactPreview: ContactMethod[];

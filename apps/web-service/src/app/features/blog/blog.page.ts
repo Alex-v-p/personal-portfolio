@@ -6,7 +6,7 @@ import { finalize, take } from 'rxjs/operators';
 import { UiButtonComponent } from '../../shared/components/button/ui-button.component';
 import { UiEmptyStateComponent } from '../../shared/components/empty-state/ui-empty-state.component';
 import { PublicPortfolioApiService } from '../../shared/services/public-portfolio-api.service';
-import { BlogPost } from '../../shared/models/blog-post.model';
+import { BlogPostSummary } from '../../shared/models/blog-post-summary.model';
 import { BlogCardComponent } from './components/blog-card/blog-card.component';
 
 @Component({
@@ -21,7 +21,7 @@ export class BlogPageComponent implements OnInit {
 
   protected readonly pagerDots = [1, 2, 3];
 
-  protected posts: BlogPost[] = [];
+  protected posts: BlogPostSummary[] = [];
   protected searchQuery = '';
   protected selectedCategory = 'All topics';
   protected isLoading = true;
@@ -63,7 +63,7 @@ export class BlogPageComponent implements OnInit {
     return ['All topics', ...new Set(this.posts.map((post) => post.category))];
   }
 
-  protected get filteredPosts(): BlogPost[] {
+  protected get filteredPosts(): BlogPostSummary[] {
     const query = this.searchQuery.trim().toLowerCase();
 
     return this.posts.filter((post) => {
@@ -76,16 +76,16 @@ export class BlogPageComponent implements OnInit {
         return true;
       }
 
-      const haystack = [post.title, post.excerpt, post.category, post.contentMarkdown, ...(post.tags ?? [])].join(' ').toLowerCase();
+      const haystack = [post.title, post.excerpt, post.category, ...(post.tags ?? [])].join(' ').toLowerCase();
       return haystack.includes(query);
     });
   }
 
-  protected get featuredPosts(): BlogPost[] {
+  protected get featuredPosts(): BlogPostSummary[] {
     return this.filteredPosts.filter((post) => post.isFeatured).slice(0, 1);
   }
 
-  protected get browseablePosts(): BlogPost[] {
+  protected get browseablePosts(): BlogPostSummary[] {
     const featuredIds = new Set(this.featuredPosts.map((post) => post.id));
     return this.filteredPosts.filter((post) => !featuredIds.has(post.id));
   }

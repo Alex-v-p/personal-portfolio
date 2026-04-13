@@ -6,7 +6,7 @@ import { finalize, switchMap } from 'rxjs/operators';
 import { UiButtonComponent } from '../../shared/components/button/ui-button.component';
 import { UiChipComponent } from '../../shared/components/chip/ui-chip.component';
 import { UiEmptyStateComponent } from '../../shared/components/empty-state/ui-empty-state.component';
-import { BlogPost } from '../../shared/models/blog-post.model';
+import { BlogPostDetail } from '../../shared/models/blog-post-detail.model';
 import { PublicPortfolioApiService } from '../../shared/services/public-portfolio-api.service';
 import { renderMarkdownToHtml } from '../../shared/utils/markdown.util';
 
@@ -23,7 +23,7 @@ export class BlogPostPageComponent implements OnInit {
 
   protected readonly shareMarks = ['in', 'x'];
 
-  protected post: BlogPost | null = null;
+  protected post: BlogPostDetail | null = null;
   protected isLoading = true;
   protected errorMessage = '';
   protected currentSlug = '';
