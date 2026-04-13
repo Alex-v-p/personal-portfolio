@@ -9,7 +9,7 @@ services:
     environment:
       APP_ENV: ${APP_ENV:-production}
       DATABASE_URL: ${PORTFOLIO_API_DB_URL:-postgresql+psycopg://portfolio_user:portfolio_pass@postgres:5432/portfolio_platform}
-      DB_BOOTSTRAP_AUTO_SEED: ${DB_BOOTSTRAP_AUTO_SEED:-true}
+      DB_BOOTSTRAP_SEED_MODE: ${DB_BOOTSTRAP_SEED_MODE:-if-empty}
       DB_BOOTSTRAP_RECREATE_ON_DRIFT: ${DB_BOOTSTRAP_RECREATE_ON_DRIFT:-false}
       DB_BOOTSTRAP_MAX_RETRIES: ${DB_BOOTSTRAP_MAX_RETRIES:-30}
       DB_BOOTSTRAP_RETRY_DELAY_SECONDS: ${DB_BOOTSTRAP_RETRY_DELAY_SECONDS:-2}

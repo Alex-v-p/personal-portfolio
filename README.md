@@ -6,7 +6,7 @@ Monorepo base for a portfolio platform with:
 - **FastAPI** portfolio/content backend (`portfolio-api-service`)
 - **FastAPI** assistant backend (`assistant-service`)
 - **PostgreSQL** for application data
-- **One-shot database bootstrap container** for schema migration + seed loading
+- **One-shot database init container** for migration + optional seed loading
 - **Redis** for async/caching support
 - **MinIO** for public media/object storage
 - **Nginx** inside the frontend container for static asset serving and API reverse proxying
@@ -56,10 +56,10 @@ Backend responsible for:
 - social/contact info
 
 ### portfolio-db-init
-One-shot bootstrap job responsible for:
-- enabling required PostgreSQL extensions
+One-shot init job responsible for:
 - applying Alembic migrations up to `head`
-- seeding starter portfolio content when the database is empty
+- auto-stamping an existing compatible schema that predates Alembic
+- seeding starter portfolio content when the configured seed mode allows it
 
 Its implementation lives under `infra/postgres/bootstrap` so the API package stays focused on request handling and data access.
 
@@ -145,6 +145,7 @@ Schema changes are now tracked under `infra/postgres/migrations`.
 Common commands:
 
 ```bash
+python -m infra.postgres.migrations.cli status
 python -m infra.postgres.migrations.cli upgrade head
 python -m infra.postgres.migrations.cli check
 python -m infra.postgres.migrations.cli revision --autogenerate -m "add something"
