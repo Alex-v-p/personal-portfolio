@@ -1,5 +1,5 @@
 import { NgClass, NgFor, NgIf } from '@angular/common';
-import { ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { finalize, take } from 'rxjs/operators';
@@ -30,7 +30,6 @@ import {
 } from '../../shared/models/admin.model';
 import { AdminPortfolioApiService } from '../../shared/services/admin-portfolio-api.service';
 import { AdminSessionService } from '../../shared/services/admin-session.service';
-import { renderMarkdownToHtml } from '../../shared/utils/markdown.util';
 import {
   AdminBlogPostForm,
   AdminBlogTagForm,
@@ -70,13 +69,12 @@ import {
   categoryName,
   contributionPreview,
   formatSkillSummary,
-  formatTagSummary,
-  isImageMedia,
   mediaFolder,
   mediaKind,
   mediaKindLabel,
 } from './admin-page.display.utils';
 import { AdminActivityTabComponent } from './tab-sections/admin-activity-tab.component';
+import { AdminBlogTabComponent } from './tab-sections/admin-blog-tab.component';
 import { AdminAdminsTabComponent } from './tab-sections/admin-admins-tab.component';
 import { AdminAssistantTabComponent } from './tab-sections/admin-assistant-tab.component';
 import { AdminExperienceTabComponent } from './tab-sections/admin-experience-tab.component';
@@ -101,6 +99,7 @@ import { matchesSearch, parseContributionDays, parseJsonObject, resolveSelection
     AdminOverviewTabComponent,
     AdminMediaTabComponent,
     AdminProjectsTabComponent,
+    AdminBlogTabComponent,
     AdminTaxonomyTabComponent,
     AdminExperienceTabComponent,
     AdminNavigationTabComponent,
@@ -118,7 +117,7 @@ export class AdminPageComponent implements OnInit {
   private readonly adminSession = inject(AdminSessionService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
-  @ViewChild('blogMarkdownEditor') private blogMarkdownEditor?: ElementRef<HTMLTextAreaElement>;
+  @ViewChild(AdminBlogTabComponent) private blogTabComponent?: AdminBlogTabComponent;
 
   protected readonly tabs = ADMIN_TABS;
 
@@ -210,7 +209,6 @@ export class AdminPageComponent implements OnInit {
   protected profileHeroUploadForm: ScopedUploadForm = createEmptyScopedUploadForm();
   protected profileResumeUploadForm: ScopedUploadForm = createEmptyScopedUploadForm();
   protected uploadInProgressKey: string | null = null;
-  protected blogMediaSearchTerm = '';
   protected mediaSearchTerm = '';
   protected mediaVisibilityFilter: 'all' | 'public' | 'private' | 'signed' = 'all';
   protected mediaKindFilter: 'all' | 'image' | 'document' | 'video' | 'audio' | 'archive' | 'other' = 'all';
@@ -328,26 +326,6 @@ export class AdminPageComponent implements OnInit {
 
   protected get currentAdminId(): string | null {
     return this.adminSession.currentUser?.id ?? null;
-  }
-
-  protected get renderedBlogContentPreview(): string {
-    return renderMarkdownToHtml(this.blogPostForm.contentMarkdown || '');
-  }
-
-  protected get blogMarkdownWordCount(): number {
-    const matches = (this.blogPostForm.contentMarkdown || '').match(/\b[\p{L}\p{N}][\p{L}\p{N}'’-]*\b/gu);
-    return matches?.length ?? 0;
-  }
-
-  protected get suggestedBlogReadingTimeMinutes(): number {
-    return this.blogMarkdownWordCount > 0 ? Math.max(1, Math.ceil(this.blogMarkdownWordCount / 200)) : 0;
-  }
-
-  protected get filteredBlogImageMediaFiles(): AdminMediaFile[] {
-    return [...this.referenceData.mediaFiles]
-      .filter((media) => this.isImageMedia(media))
-      .filter((media) => matchesSearch([media.title, media.altText, media.originalFilename, media.objectKey], this.blogMediaSearchTerm))
-      .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
   }
 
   protected get mediaFolderOptions(): string[] {
@@ -558,9 +536,6 @@ export class AdminPageComponent implements OnInit {
     return contributionPreview(snapshot);
   }
 
-  protected formatTagSummary(post: AdminBlogPost): string {
-    return formatTagSummary(post);
-  }
 
   protected formatSkillSummary(experience: AdminExperience): string {
     return formatSkillSummary(experience);
@@ -648,7 +623,6 @@ export class AdminPageComponent implements OnInit {
       this.blogPostForm = toBlogPostForm(post);
       this.blogUploadForm = createEmptyScopedUploadForm();
       this.blogInlineImageUploadForm = createEmptyScopedUploadForm();
-      this.blogMediaSearchTerm = '';
       this.statusMessage = '';
     }
   }
@@ -658,122 +632,6 @@ export class AdminPageComponent implements OnInit {
     this.blogPostForm = createEmptyBlogPostForm();
     this.blogUploadForm = createEmptyScopedUploadForm();
     this.blogInlineImageUploadForm = createEmptyScopedUploadForm();
-    this.blogMediaSearchTerm = '';
-  }
-
-  protected applySuggestedBlogReadingTime(): void {
-    this.blogPostForm.readingTimeMinutes = this.suggestedBlogReadingTimeMinutes || null;
-  }
-
-  protected wrapBlogSelection(prefix: string, suffix = '', placeholder = 'text'): void {
-    this.updateBlogMarkdownSelection((content, selectionStart, selectionEnd) => {
-      const selectedText = content.slice(selectionStart, selectionEnd);
-      const replacement = `${prefix}${selectedText || placeholder}${suffix}`;
-      const value = `${content.slice(0, selectionStart)}${replacement}${content.slice(selectionEnd)}`;
-      const highlightStart = selectionStart + prefix.length;
-      const highlightEnd = highlightStart + (selectedText || placeholder).length;
-
-      return {
-        value,
-        selectionStart: highlightStart,
-        selectionEnd: highlightEnd,
-      };
-    });
-  }
-
-  protected toggleBlogLinePrefix(prefix: string): void {
-    this.updateBlogMarkdownSelection((content, selectionStart, selectionEnd) => {
-      const lineStart = content.lastIndexOf('\n', Math.max(0, selectionStart - 1)) + 1;
-      let lineEnd = content.indexOf('\n', selectionEnd);
-      if (lineEnd === -1) {
-        lineEnd = content.length;
-      }
-
-      const block = content.slice(lineStart, lineEnd);
-      const lines = block.split('\n');
-      const populatedLines = lines.filter((line) => line.trim().length > 0);
-      const allPrefixed = populatedLines.length > 0 && populatedLines.every((line) => line.startsWith(prefix));
-      const replacement = lines
-        .map((line) => {
-          if (!line.trim()) {
-            return line;
-          }
-
-          return allPrefixed ? line.slice(prefix.length) : `${prefix}${line}`;
-        })
-        .join('\n');
-
-      return {
-        value: `${content.slice(0, lineStart)}${replacement}${content.slice(lineEnd)}`,
-        selectionStart: lineStart,
-        selectionEnd: lineStart + replacement.length,
-      };
-    });
-  }
-
-  protected insertBlogMarkdownSnippet(snippet: string, selectLength = 0): void {
-    this.updateBlogMarkdownSelection((content, selectionStart, selectionEnd) => {
-      const value = `${content.slice(0, selectionStart)}${snippet}${content.slice(selectionEnd)}`;
-      const caretEnd = selectionStart + snippet.length;
-      const caretStart = selectLength > 0 ? caretEnd - selectLength : caretEnd;
-
-      return {
-        value,
-        selectionStart: caretStart,
-        selectionEnd: caretEnd,
-      };
-    });
-  }
-
-  protected insertBlogMarkdownLink(): void {
-    this.wrapBlogSelection('[', '](https://example.com)', 'Link text');
-  }
-
-  protected insertBlogMarkdownCodeBlock(): void {
-    this.updateBlogMarkdownSelection((content, selectionStart, selectionEnd) => {
-      const snippet = '\n```\nconst example = true;\n```\n';
-      const value = `${content.slice(0, selectionStart)}${snippet}${content.slice(selectionEnd)}`;
-      const codeStart = selectionStart + '\n```\n'.length;
-
-      return {
-        value,
-        selectionStart: codeStart,
-        selectionEnd: codeStart + 'const example = true;'.length,
-      };
-    });
-  }
-
-  protected insertBlogMarkdownDivider(): void {
-    this.insertBlogMarkdownSnippet('\n---\n');
-  }
-
-  protected insertBlogMarkdownImageTemplate(): void {
-    this.updateBlogMarkdownSelection((content, selectionStart, selectionEnd) => {
-      const snippet = '\n![Describe image](https://example.com/image.jpg)\n';
-      const value = `${content.slice(0, selectionStart)}${snippet}${content.slice(selectionEnd)}`;
-      const urlStart = selectionStart + '\n![Describe image]('.length;
-
-      return {
-        value,
-        selectionStart: urlStart,
-        selectionEnd: urlStart + 'https://example.com/image.jpg'.length,
-      };
-    });
-  }
-
-  protected insertBlogImageFromMedia(media: AdminMediaFile): void {
-    const url = this.resolveMediaUrl(media);
-    if (!url) {
-      this.statusMessage = 'That media file does not have a usable URL yet.';
-      return;
-    }
-
-    this.insertBlogMarkdownSnippet(`\n${this.buildBlogImageMarkdown(media, url)}\n`);
-    this.statusMessage = 'Image markdown inserted into the blog post.';
-  }
-
-  protected toggleBlogTag(tagId: string): void {
-    this.blogPostForm.tagIds = toggleSelection(this.blogPostForm.tagIds, tagId);
   }
 
   protected saveBlogPost(): void {
@@ -1372,7 +1230,7 @@ export class AdminPageComponent implements OnInit {
       'blog-inline-image',
       this.blogInlineImageUploadForm,
       this.buildBlogFolder(),
-      (media) => this.insertBlogImageFromMedia(media),
+      (media) => this.blogTabComponent?.insertImageFromMedia(media),
       (media) => `Image uploaded to ${this.buildBlogFolder()} and inserted into the article.`
     );
   }
@@ -1477,48 +1335,6 @@ export class AdminPageComponent implements OnInit {
     form.description = '';
     form.visibility = 'public';
     form.file = null;
-  }
-
-  private updateBlogMarkdownSelection(
-    updater: (content: string, selectionStart: number, selectionEnd: number) => {
-      value: string;
-      selectionStart: number;
-      selectionEnd: number;
-    }
-  ): void {
-    const textarea = this.blogMarkdownEditor?.nativeElement;
-    const content = this.blogPostForm.contentMarkdown || '';
-    const selectionStart = textarea?.selectionStart ?? content.length;
-    const selectionEnd = textarea?.selectionEnd ?? content.length;
-    const nextState = updater(content, selectionStart, selectionEnd);
-
-    this.blogPostForm.contentMarkdown = nextState.value;
-    this.changeDetectorRef.detectChanges();
-
-    if (!textarea) {
-      return;
-    }
-
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(nextState.selectionStart, nextState.selectionEnd);
-    });
-  }
-
-  isImageMedia(media: AdminMediaFile): boolean {
-    return isImageMedia(media);
-  }
-
-  private resolveMediaUrl(media: AdminMediaFile): string | null {
-    return media.resolvedAsset?.url ?? media.publicUrl ?? null;
-  }
-
-  private buildBlogImageMarkdown(media: AdminMediaFile, url: string): string {
-    const altText = (media.altText || media.title || media.originalFilename || 'Blog image')
-      .replace(/[\r\n]+/g, ' ')
-      .replace(/\]/g, '\\]')
-      .trim();
-    return `![${altText}](${url})`;
   }
 
 
