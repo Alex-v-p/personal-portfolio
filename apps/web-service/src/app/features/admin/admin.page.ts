@@ -66,13 +66,28 @@ import {
 } from './admin-page.forms';
 import { ADMIN_TABS, AdminTabId } from './admin-page.tabs';
 import {
-  categoryName,
-  contributionPreview,
-  formatSkillSummary,
-  mediaFolder,
-  mediaKind,
-  mediaKindLabel,
-} from './admin-page.display.utils';
+  ActivityTimelineEventFilter,
+  ActivityVisitorFocus,
+  ensureActivitySelections as ensureActivitySelectionsState,
+  filterActivityVisitors,
+  filterSelectedActivityEvents,
+  resolveSelectedActivityVisit,
+  resolveSelectedActivityVisitor,
+  selectedActivityConversations,
+  visitsForVisitor,
+} from './admin-page-activity-state';
+import { buildMessageSourceOptions, countUnreadMessages, filterMessages } from './admin-page-message-state';
+import {
+  buildBlogMediaFolder,
+  buildExperienceMediaFolder,
+  buildMediaFolderOptions,
+  buildProfileMediaFolder,
+  buildProjectMediaFolder,
+  countMediaByKind,
+  filterMediaFiles,
+  resetScopedUploadForm,
+  resolveSelectedMediaFile,
+} from './admin-page-media-state';
 import { AdminActivityTabComponent } from './tab-sections/admin-activity-tab.component';
 import { AdminBlogTabComponent } from './tab-sections/admin-blog-tab.component';
 import { AdminAdminsTabComponent } from './tab-sections/admin-admins-tab.component';
@@ -86,7 +101,7 @@ import { AdminProfileTabComponent } from './tab-sections/admin-profile-tab.compo
 import { AdminProjectsTabComponent } from './tab-sections/admin-projects-tab.component';
 import { AdminStatsTabComponent } from './tab-sections/admin-stats-tab.component';
 import { AdminTaxonomyTabComponent } from './tab-sections/admin-taxonomy-tab.component';
-import { matchesSearch, parseContributionDays, parseJsonObject, resolveSelection, slugify, toggleSelection } from './admin-page.utils';
+import { parseContributionDays, parseJsonObject, resolveSelection, toggleSelection } from './admin-page.utils';
 
 @Component({
   selector: 'app-admin-page',
@@ -170,8 +185,8 @@ export class AdminPageComponent implements OnInit {
   protected selectedActivityVisitorId: string | null = null;
   protected selectedActivityVisitSessionId: string | null = null;
   protected activityVisitorSearchTerm = '';
-  protected activityVisitorFocus: 'all' | 'withAssistant' | 'withContacts' | 'withPageViews' = 'all';
-  protected activityTimelineEventFilter: 'all' | 'page_view' | 'assistant_message' | 'contact_submit' = 'all';
+  protected activityVisitorFocus: ActivityVisitorFocus = 'all';
+  protected activityTimelineEventFilter: ActivityTimelineEventFilter = 'all';
   protected messageSearchTerm = '';
   protected messageStatusFilter: 'all' | 'unread' | 'read' = 'all';
   protected messageSourceFilter = 'all';
@@ -297,7 +312,18 @@ export class AdminPageComponent implements OnInit {
           this.selectedGithubSnapshotId = resolveSelection(currentSelections.github, this.githubSnapshots);
           this.selectedActivityVisitorId = currentSelections.activityVisitor;
           this.selectedActivityVisitSessionId = currentSelections.activityVisit;
-          this.ensureActivitySelections();
+          const activitySelections = ensureActivitySelectionsState(
+            this.siteActivity,
+            {
+              visitorSearchTerm: this.activityVisitorSearchTerm,
+              visitorFocus: this.activityVisitorFocus,
+              timelineEventFilter: this.activityTimelineEventFilter,
+            },
+            this.selectedActivityVisitorId,
+            this.selectedActivityVisitSessionId,
+          );
+          this.selectedActivityVisitorId = activitySelections.selectedVisitorId;
+          this.selectedActivityVisitSessionId = activitySelections.selectedVisitSessionId;
 
           this.projectForm = this.selectedProjectId ? toProjectForm(this.projects.find((item) => item.id === this.selectedProjectId)!) : createEmptyProjectForm();
           this.blogPostForm = this.selectedBlogPostId ? toBlogPostForm(this.blogPosts.find((item) => item.id === this.selectedBlogPostId)!) : createEmptyBlogPostForm();
@@ -329,22 +355,16 @@ export class AdminPageComponent implements OnInit {
   }
 
   protected get mediaFolderOptions(): string[] {
-    return Array.from(
-      new Set(
-        this.referenceData.mediaFiles
-          .map((media) => this.mediaFolder(media))
-          .filter((folder) => folder !== 'root')
-      )
-    ).sort((left, right) => left.localeCompare(right));
+    return buildMediaFolderOptions(this.referenceData.mediaFiles);
   }
 
   protected get filteredMediaFiles(): AdminMediaFile[] {
-    return [...this.referenceData.mediaFiles]
-      .filter((media) => this.mediaVisibilityFilter === 'all' || media.visibility === this.mediaVisibilityFilter)
-      .filter((media) => this.mediaKindFilter === 'all' || this.mediaKind(media) === this.mediaKindFilter)
-      .filter((media) => this.mediaFolderFilter === 'all' || this.mediaFolder(media) === this.mediaFolderFilter)
-      .filter((media) => matchesSearch([media.title, media.altText, media.originalFilename, media.objectKey, this.mediaFolder(media)], this.mediaSearchTerm))
-      .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+    return filterMediaFiles(this.referenceData.mediaFiles, {
+      searchTerm: this.mediaSearchTerm,
+      visibility: this.mediaVisibilityFilter,
+      kind: this.mediaKindFilter,
+      folder: this.mediaFolderFilter,
+    });
   }
 
   protected get filteredMediaCount(): number {
@@ -352,40 +372,27 @@ export class AdminPageComponent implements OnInit {
   }
 
   protected get imageMediaCount(): number {
-    return this.referenceData.mediaFiles.filter((media) => this.mediaKind(media) === 'image').length;
+    return countMediaByKind(this.referenceData.mediaFiles, 'image');
   }
 
   protected get documentMediaCount(): number {
-    return this.referenceData.mediaFiles.filter((media) => this.mediaKind(media) === 'document').length;
+    return countMediaByKind(this.referenceData.mediaFiles, 'document');
   }
 
   protected get selectedMediaFile(): AdminMediaFile | null {
-    return this.referenceData.mediaFiles.find((media) => media.id === this.selectedMediaFileId) ?? null;
+    return resolveSelectedMediaFile(this.referenceData.mediaFiles, this.selectedMediaFileId);
   }
 
   protected get messageSourceOptions(): string[] {
-    return Array.from(new Set(this.messages.map((message) => message.sourcePage).filter(Boolean))).sort((left, right) => left.localeCompare(right));
+    return buildMessageSourceOptions(this.messages);
   }
 
   protected get filteredMessages(): AdminContactMessage[] {
-    const searchNeedle = this.messageSearchTerm.trim().toLowerCase();
-    return [...this.messages]
-      .filter((message) => {
-        if (this.messageStatusFilter === 'read' && !message.isRead) {
-          return false;
-        }
-        if (this.messageStatusFilter === 'unread' && message.isRead) {
-          return false;
-        }
-        if (this.messageSourceFilter !== 'all' && message.sourcePage !== this.messageSourceFilter) {
-          return false;
-        }
-        if (!searchNeedle) {
-          return true;
-        }
-        return matchesSearch([message.name, message.email, message.subject, message.message, message.sourcePage], searchNeedle);
-      })
-      .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+    return filterMessages(this.messages, {
+      searchTerm: this.messageSearchTerm,
+      status: this.messageStatusFilter,
+      source: this.messageSourceFilter,
+    });
   }
 
   protected get filteredMessageCount(): number {
@@ -393,73 +400,40 @@ export class AdminPageComponent implements OnInit {
   }
 
   protected get unreadFilteredMessageCount(): number {
-    return this.filteredMessages.filter((message) => !message.isRead).length;
+    return countUnreadMessages(this.filteredMessages);
   }
 
   protected get filteredActivityVisitors(): AdminVisitorActivitySummary[] {
-    const searchNeedle = this.activityVisitorSearchTerm.trim().toLowerCase();
-    return this.siteActivity.visitors.filter((visitor) => {
-      if (this.activityVisitorFocus === 'withAssistant' && visitor.assistantMessages === 0) {
-        return false;
-      }
-      if (this.activityVisitorFocus === 'withContacts' && visitor.contactSubmissions === 0) {
-        return false;
-      }
-      if (this.activityVisitorFocus === 'withPageViews' && visitor.pageViews === 0) {
-        return false;
-      }
-      if (!searchNeedle) {
-        return true;
-      }
-      return matchesSearch([visitor.visitorId, visitor.latestPagePath, visitor.latestIpAddress], searchNeedle);
+    return filterActivityVisitors(this.siteActivity, {
+      visitorSearchTerm: this.activityVisitorSearchTerm,
+      visitorFocus: this.activityVisitorFocus,
+      timelineEventFilter: this.activityTimelineEventFilter,
     });
   }
 
   protected get selectedActivityVisitor(): AdminVisitorActivitySummary | null {
-    return this.filteredActivityVisitors.find((visitor) => visitor.visitorId === this.selectedActivityVisitorId) ?? null;
+    return resolveSelectedActivityVisitor(this.filteredActivityVisitors, this.selectedActivityVisitorId);
   }
 
   protected get selectedActivityVisits(): AdminVisitSessionSummary[] {
-    return this.visitsForVisitor(this.selectedActivityVisitorId);
+    return visitsForVisitor(this.siteActivity, this.selectedActivityVisitorId);
   }
 
   protected get selectedActivityVisit(): AdminVisitSessionSummary | null {
-    return this.selectedActivityVisits.find((visit) => visit.sessionId === this.selectedActivityVisitSessionId) ?? null;
+    return resolveSelectedActivityVisit(this.selectedActivityVisits, this.selectedActivityVisitSessionId);
   }
 
   protected get selectedActivityEvents(): AdminSiteEvent[] {
-    const visitorId = this.selectedActivityVisitorId;
-    if (!visitorId) {
-      return [];
-    }
-    return this.siteActivity.events.filter((event) => {
-      if (event.visitorId !== visitorId) {
-        return false;
-      }
-      if (this.selectedActivityVisitSessionId && event.sessionId !== this.selectedActivityVisitSessionId) {
-        return false;
-      }
-      if (this.activityTimelineEventFilter !== 'all' && event.eventType !== this.activityTimelineEventFilter) {
-        return false;
-      }
-      return true;
-    });
+    return filterSelectedActivityEvents(
+      this.siteActivity,
+      this.selectedActivityVisitorId,
+      this.selectedActivityVisitSessionId,
+      this.activityTimelineEventFilter,
+    );
   }
 
   protected get selectedActivityConversations(): AdminAssistantConversationSummary[] {
-    const visitorId = this.selectedActivityVisitorId;
-    if (!visitorId) {
-      return [];
-    }
-    return this.siteActivity.assistantConversations.filter((conversation) => {
-      if (conversation.visitorId !== visitorId) {
-        return false;
-      }
-      if (this.selectedActivityVisitSessionId && conversation.siteSessionId !== this.selectedActivityVisitSessionId) {
-        return false;
-      }
-      return true;
-    });
+    return selectedActivityConversations(this.siteActivity, this.selectedActivityVisitorId, this.selectedActivityVisitSessionId);
   }
 
   protected get selectedActivityEventCount(): number {
@@ -516,30 +490,6 @@ export class AdminPageComponent implements OnInit {
     });
   }
 
-  protected mediaFolder(media: AdminMediaFile): string {
-    return mediaFolder(media);
-  }
-
-  protected mediaKind(media: AdminMediaFile): 'image' | 'document' | 'video' | 'audio' | 'archive' | 'other' {
-    return mediaKind(media);
-  }
-
-  protected mediaKindLabel(media: AdminMediaFile): string {
-    return mediaKindLabel(media);
-  }
-
-  protected categoryName(categoryId: string): string {
-    return categoryName(this.referenceData.skillCategories, categoryId);
-  }
-
-  protected contributionPreview(snapshot: AdminGithubSnapshot): string {
-    return contributionPreview(snapshot);
-  }
-
-
-  protected formatSkillSummary(experience: AdminExperience): string {
-    return formatSkillSummary(experience);
-  }
 
   protected selectProject(projectId: string): void {
     this.selectedProjectId = projectId;
@@ -1163,7 +1113,7 @@ export class AdminPageComponent implements OnInit {
 
   protected selectActivityVisitor(visitorId: string): void {
     this.selectedActivityVisitorId = visitorId;
-    this.selectedActivityVisitSessionId = this.visitsForVisitor(visitorId)[0]?.sessionId ?? null;
+    this.selectedActivityVisitSessionId = visitsForVisitor(this.siteActivity, visitorId)[0]?.sessionId ?? null;
   }
 
   protected selectActivityVisit(sessionId: string | null): void {
@@ -1171,7 +1121,13 @@ export class AdminPageComponent implements OnInit {
   }
 
   protected onActivityFiltersChanged(): void {
-    this.ensureActivitySelections();
+    const activitySelections = ensureActivitySelectionsState(this.siteActivity, {
+      visitorSearchTerm: this.activityVisitorSearchTerm,
+      visitorFocus: this.activityVisitorFocus,
+      timelineEventFilter: this.activityTimelineEventFilter,
+    }, this.selectedActivityVisitorId, this.selectedActivityVisitSessionId);
+    this.selectedActivityVisitorId = activitySelections.selectedVisitorId;
+    this.selectedActivityVisitSessionId = activitySelections.selectedVisitSessionId;
   }
 
   protected isMessageUpdating(messageId: string): boolean {
@@ -1260,20 +1216,19 @@ export class AdminPageComponent implements OnInit {
   }
 
   protected buildProjectFolder(): string {
-    return `projects/${slugify(this.projectForm.slug || this.projectForm.title || 'untitled-project')}`;
+    return buildProjectMediaFolder(this.projectForm.slug || this.projectForm.title);
   }
 
   protected buildBlogFolder(): string {
-    return `blog/${slugify(this.blogPostForm.slug || this.blogPostForm.title || 'untitled-post')}`;
+    return buildBlogMediaFolder(this.blogPostForm.slug || this.blogPostForm.title);
   }
 
   protected buildProfileFolder(): string {
-    const profileSlug = slugify(`${this.profileForm.firstName || 'profile'}-${this.profileForm.lastName || 'owner'}`);
-    return `profiles/${profileSlug}`;
+    return buildProfileMediaFolder(this.profileForm.firstName, this.profileForm.lastName);
   }
 
   protected buildExperienceFolder(): string {
-    return `experience/${slugify(this.experienceForm.organizationName || this.experienceForm.roleTitle || 'experience')}`;
+    return buildExperienceMediaFolder(this.experienceForm.organizationName, this.experienceForm.roleTitle);
   }
 
   private uploadScopedMedia(
@@ -1320,7 +1275,7 @@ export class AdminPageComponent implements OnInit {
           mediaFiles: this.dashboard.mediaFiles + 1,
         };
         onSuccess(media);
-        this.resetScopedUploadForm(form);
+        resetScopedUploadForm(form);
         this.statusMessage = successMessageBuilder?.(media) ?? `Media uploaded to ${folder} and selected automatically.`;
       },
       error: (error) => {
@@ -1329,46 +1284,6 @@ export class AdminPageComponent implements OnInit {
     });
   }
 
-  private resetScopedUploadForm(form: ScopedUploadForm): void {
-    form.title = '';
-    form.altText = '';
-    form.description = '';
-    form.visibility = 'public';
-    form.file = null;
-  }
-
-
-  private visitsForVisitor(visitorId: string | null): AdminVisitSessionSummary[] {
-    if (!visitorId) {
-      return [];
-    }
-    return this.siteActivity.visits
-      .filter((visit) => visit.visitorId === visitorId)
-      .sort((left, right) => right.lastActivityAt.localeCompare(left.lastActivityAt));
-  }
-
-  private ensureActivitySelections(): void {
-    const visitors = this.filteredActivityVisitors;
-    if (!visitors.length) {
-      this.selectedActivityVisitorId = null;
-      this.selectedActivityVisitSessionId = null;
-      return;
-    }
-    if (!this.selectedActivityVisitorId || !visitors.some((visitor) => visitor.visitorId === this.selectedActivityVisitorId)) {
-      this.selectedActivityVisitorId = visitors[0].visitorId;
-    }
-    const visits = this.visitsForVisitor(this.selectedActivityVisitorId);
-    if (!visits.length) {
-      this.selectedActivityVisitSessionId = null;
-      return;
-    }
-    if (this.selectedActivityVisitSessionId === null) {
-      return;
-    }
-    if (!visits.some((visit) => visit.sessionId === this.selectedActivityVisitSessionId)) {
-      this.selectedActivityVisitSessionId = visits[0].sessionId;
-    }
-  }
 
 
 
