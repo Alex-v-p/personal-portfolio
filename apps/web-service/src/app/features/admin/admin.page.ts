@@ -31,145 +31,42 @@ import {
 import { AdminPortfolioApiService } from '../../shared/services/admin-portfolio-api.service';
 import { AdminSessionService } from '../../shared/services/admin-session.service';
 import { renderMarkdownToHtml } from '../../shared/utils/markdown.util';
-
-interface ScopedUploadForm {
-  title: string;
-  altText: string;
-  description: string;
-  visibility: 'public' | 'private' | 'signed';
-  file: File | null;
-}
-
-interface AdminProjectForm {
-  id?: string | null;
-  slug: string;
-  title: string;
-  teaser: string;
-  summary: string;
-  descriptionMarkdown: string;
-  coverImageFileId: string | null;
-  githubUrl: string;
-  githubRepoOwner: string;
-  githubRepoName: string;
-  demoUrl: string;
-  companyName: string;
-  startedOn: string;
-  endedOn: string;
-  durationLabel: string;
-  status: string;
-  state: 'published' | 'archived' | 'completed' | 'paused';
-  isFeatured: boolean;
-  sortOrder: number;
-  publishedAt: string;
-  skillIds: string[];
-}
-
-interface AdminBlogPostForm {
-  id?: string | null;
-  slug: string;
-  title: string;
-  excerpt: string;
-  contentMarkdown: string;
-  coverImageFileId: string | null;
-  coverImageAlt: string;
-  readingTimeMinutes: number | null;
-  status: 'draft' | 'published' | 'archived';
-  isFeatured: boolean;
-  publishedAt: string;
-  seoTitle: string;
-  seoDescription: string;
-  tagIds: string[];
-}
-
-interface AdminProfileForm {
-  id?: string;
-  firstName: string;
-  lastName: string;
-  headline: string;
-  shortIntro: string;
-  longBio: string;
-  location: string;
-  email: string;
-  phone: string;
-  avatarFileId: string | null;
-  heroImageFileId: string | null;
-  resumeFileId: string | null;
-  ctaPrimaryLabel: string;
-  ctaPrimaryUrl: string;
-  ctaSecondaryLabel: string;
-  ctaSecondaryUrl: string;
-  isPublic: boolean;
-  socialLinks: AdminSocialLink[];
-}
-
-interface AdminSkillCategoryForm {
-  id?: string | null;
-  name: string;
-  description: string;
-  sortOrder: number;
-}
-
-interface AdminSkillForm {
-  id?: string | null;
-  categoryId: string;
-  name: string;
-  yearsOfExperience: number | null;
-  iconKey: string;
-  sortOrder: number;
-  isHighlighted: boolean;
-}
-
-interface AdminBlogTagForm {
-  id?: string | null;
-  name: string;
-  slug: string;
-}
-
-interface AdminExperienceForm {
-  id?: string | null;
-  organizationName: string;
-  roleTitle: string;
-  location: string;
-  experienceType: string;
-  startDate: string;
-  endDate: string;
-  isCurrent: boolean;
-  summary: string;
-  descriptionMarkdown: string;
-  logoFileId: string | null;
-  sortOrder: number;
-  skillIds: string[];
-}
-
-interface AdminNavigationItemForm {
-  id?: string | null;
-  label: string;
-  routePath: string;
-  isExternal: boolean;
-  sortOrder: number;
-  isVisible: boolean;
-}
-
-interface AdminUserForm {
-  id?: string | null;
-  email: string;
-  displayName: string;
-  password: string;
-  isActive: boolean;
-}
-
-interface AdminGithubSnapshotForm {
-  id?: string | null;
-  snapshotDate: string;
-  username: string;
-  publicRepoCount: number;
-  followersCount: number | null;
-  followingCount: number | null;
-  totalStars: number | null;
-  totalCommits: number | null;
-  rawPayloadText: string;
-  contributionDaysText: string;
-}
+import {
+  AdminBlogPostForm,
+  AdminBlogTagForm,
+  AdminExperienceForm,
+  AdminGithubSnapshotForm,
+  AdminNavigationItemForm,
+  AdminProfileForm,
+  AdminProjectForm,
+  AdminSkillCategoryForm,
+  AdminSkillForm,
+  AdminUserForm,
+  ScopedUploadForm,
+  createEmptyAdminUserForm,
+  createEmptyBlogPostForm,
+  createEmptyBlogTagForm,
+  createEmptyExperienceForm,
+  createEmptyGithubSnapshotForm,
+  createEmptyNavigationItemForm,
+  createEmptyProfileForm,
+  createEmptyProjectForm,
+  createEmptyScopedUploadForm,
+  createEmptySkillCategoryForm,
+  createEmptySkillForm,
+  toAdminUserForm,
+  toBlogPostForm,
+  toBlogTagForm,
+  toExperienceForm,
+  toGithubSnapshotForm,
+  toNavigationItemForm,
+  toProfileForm,
+  toProjectForm,
+  toSkillCategoryForm,
+  toSkillForm,
+} from './admin-page.forms';
+import { ADMIN_TABS, AdminTabId } from './admin-page.tabs';
+import { matchesSearch, parseContributionDays, parseJsonObject, resolveSelection, slugify, toggleSelection } from './admin-page.utils';
 
 @Component({
   selector: 'app-admin-page',
@@ -184,23 +81,9 @@ export class AdminPageComponent implements OnInit {
 
   @ViewChild('blogMarkdownEditor') private blogMarkdownEditor?: ElementRef<HTMLTextAreaElement>;
 
-  protected readonly tabs = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'media', label: 'Media' },
-    { id: 'projects', label: 'Projects' },
-    { id: 'blog', label: 'Blog' },
-    { id: 'taxonomy', label: 'Taxonomy' },
-    { id: 'experience', label: 'Experience' },
-    { id: 'navigation', label: 'Navigation' },
-    { id: 'profile', label: 'Profile' },
-    { id: 'stats', label: 'GitHub / Stats' },
-    { id: 'assistant', label: 'Assistant' },
-    { id: 'activity', label: 'Activity' },
-    { id: 'admins', label: 'Admin users' },
-    { id: 'messages', label: 'Messages' },
-  ] as const;
+  protected readonly tabs = ADMIN_TABS;
 
-  protected activeTab: typeof this.tabs[number]['id'] = 'overview';
+  protected activeTab: AdminTabId = 'overview';
   protected isLoading = true;
   protected errorMessage = '';
   protected statusMessage = '';
@@ -267,26 +150,26 @@ export class AdminPageComponent implements OnInit {
   protected selectedAdminUserId: string | null = null;
   protected selectedGithubSnapshotId: string | null = null;
 
-  protected projectForm: AdminProjectForm = this.createEmptyProjectForm();
-  protected blogPostForm: AdminBlogPostForm = this.createEmptyBlogPostForm();
-  protected profileForm: AdminProfileForm = this.createEmptyProfileForm();
-  protected skillCategoryForm: AdminSkillCategoryForm = this.createEmptySkillCategoryForm();
-  protected skillForm: AdminSkillForm = this.createEmptySkillForm();
-  protected blogTagForm: AdminBlogTagForm = this.createEmptyBlogTagForm();
-  protected experienceForm: AdminExperienceForm = this.createEmptyExperienceForm();
-  protected navigationItemForm: AdminNavigationItemForm = this.createEmptyNavigationItemForm();
-  protected adminUserForm: AdminUserForm = this.createEmptyAdminUserForm();
-  protected githubSnapshotForm: AdminGithubSnapshotForm = this.createEmptyGithubSnapshotForm();
+  protected projectForm: AdminProjectForm = createEmptyProjectForm();
+  protected blogPostForm: AdminBlogPostForm = createEmptyBlogPostForm();
+  protected profileForm: AdminProfileForm = createEmptyProfileForm();
+  protected skillCategoryForm: AdminSkillCategoryForm = createEmptySkillCategoryForm();
+  protected skillForm: AdminSkillForm = createEmptySkillForm();
+  protected blogTagForm: AdminBlogTagForm = createEmptyBlogTagForm();
+  protected experienceForm: AdminExperienceForm = createEmptyExperienceForm();
+  protected navigationItemForm: AdminNavigationItemForm = createEmptyNavigationItemForm();
+  protected adminUserForm: AdminUserForm = createEmptyAdminUserForm();
+  protected githubSnapshotForm: AdminGithubSnapshotForm = createEmptyGithubSnapshotForm();
   protected isRefreshingGithub = false;
   protected isRebuildingAssistantKnowledge = false;
 
-  protected projectUploadForm: ScopedUploadForm = this.createEmptyScopedUploadForm();
-  protected blogUploadForm: ScopedUploadForm = this.createEmptyScopedUploadForm();
-  protected blogInlineImageUploadForm: ScopedUploadForm = this.createEmptyScopedUploadForm();
-  protected experienceUploadForm: ScopedUploadForm = this.createEmptyScopedUploadForm();
-  protected profileAvatarUploadForm: ScopedUploadForm = this.createEmptyScopedUploadForm();
-  protected profileHeroUploadForm: ScopedUploadForm = this.createEmptyScopedUploadForm();
-  protected profileResumeUploadForm: ScopedUploadForm = this.createEmptyScopedUploadForm();
+  protected projectUploadForm: ScopedUploadForm = createEmptyScopedUploadForm();
+  protected blogUploadForm: ScopedUploadForm = createEmptyScopedUploadForm();
+  protected blogInlineImageUploadForm: ScopedUploadForm = createEmptyScopedUploadForm();
+  protected experienceUploadForm: ScopedUploadForm = createEmptyScopedUploadForm();
+  protected profileAvatarUploadForm: ScopedUploadForm = createEmptyScopedUploadForm();
+  protected profileHeroUploadForm: ScopedUploadForm = createEmptyScopedUploadForm();
+  protected profileResumeUploadForm: ScopedUploadForm = createEmptyScopedUploadForm();
   protected uploadInProgressKey: string | null = null;
   protected blogMediaSearchTerm = '';
   protected mediaSearchTerm = '';
@@ -365,30 +248,30 @@ export class AdminPageComponent implements OnInit {
           this.assistantKnowledgeStatus = result.assistantKnowledgeStatus;
           this.siteActivity = result.siteActivity;
 
-          this.selectedMediaFileId = this.resolveSelection(currentSelections.mediaFile, this.referenceData.mediaFiles) ?? this.referenceData.mediaFiles[0]?.id ?? null;
-          this.selectedProjectId = this.resolveSelection(currentSelections.project, this.projects);
-          this.selectedBlogPostId = this.resolveSelection(currentSelections.blogPost, this.blogPosts);
-          this.selectedSkillCategoryId = this.resolveSelection(currentSelections.skillCategory, this.referenceData.skillCategories);
-          this.selectedSkillId = this.resolveSelection(currentSelections.skill, this.referenceData.skills);
-          this.selectedBlogTagId = this.resolveSelection(currentSelections.blogTag, this.referenceData.blogTags);
-          this.selectedExperienceId = this.resolveSelection(currentSelections.experience, this.experiences);
-          this.selectedNavigationItemId = this.resolveSelection(currentSelections.navigation, this.navigationItems);
-          this.selectedAdminUserId = this.resolveSelection(currentSelections.adminUser, this.adminUsers);
-          this.selectedGithubSnapshotId = this.resolveSelection(currentSelections.github, this.githubSnapshots);
+          this.selectedMediaFileId = resolveSelection(currentSelections.mediaFile, this.referenceData.mediaFiles) ?? this.referenceData.mediaFiles[0]?.id ?? null;
+          this.selectedProjectId = resolveSelection(currentSelections.project, this.projects);
+          this.selectedBlogPostId = resolveSelection(currentSelections.blogPost, this.blogPosts);
+          this.selectedSkillCategoryId = resolveSelection(currentSelections.skillCategory, this.referenceData.skillCategories);
+          this.selectedSkillId = resolveSelection(currentSelections.skill, this.referenceData.skills);
+          this.selectedBlogTagId = resolveSelection(currentSelections.blogTag, this.referenceData.blogTags);
+          this.selectedExperienceId = resolveSelection(currentSelections.experience, this.experiences);
+          this.selectedNavigationItemId = resolveSelection(currentSelections.navigation, this.navigationItems);
+          this.selectedAdminUserId = resolveSelection(currentSelections.adminUser, this.adminUsers);
+          this.selectedGithubSnapshotId = resolveSelection(currentSelections.github, this.githubSnapshots);
           this.selectedActivityVisitorId = currentSelections.activityVisitor;
           this.selectedActivityVisitSessionId = currentSelections.activityVisit;
           this.ensureActivitySelections();
 
-          this.projectForm = this.selectedProjectId ? this.toProjectForm(this.projects.find((item) => item.id === this.selectedProjectId)!) : this.createEmptyProjectForm();
-          this.blogPostForm = this.selectedBlogPostId ? this.toBlogPostForm(this.blogPosts.find((item) => item.id === this.selectedBlogPostId)!) : this.createEmptyBlogPostForm();
-          this.profileForm = this.profile ? this.toProfileForm(this.profile) : this.createEmptyProfileForm();
-          this.skillCategoryForm = this.selectedSkillCategoryId ? this.toSkillCategoryForm(this.referenceData.skillCategories.find((item) => item.id === this.selectedSkillCategoryId)!) : this.createEmptySkillCategoryForm();
-          this.skillForm = this.selectedSkillId ? this.toSkillForm(this.referenceData.skills.find((item) => item.id === this.selectedSkillId)!) : this.createEmptySkillForm();
-          this.blogTagForm = this.selectedBlogTagId ? this.toBlogTagForm(this.referenceData.blogTags.find((item) => item.id === this.selectedBlogTagId)!) : this.createEmptyBlogTagForm();
-          this.experienceForm = this.selectedExperienceId ? this.toExperienceForm(this.experiences.find((item) => item.id === this.selectedExperienceId)!) : this.createEmptyExperienceForm();
-          this.navigationItemForm = this.selectedNavigationItemId ? this.toNavigationItemForm(this.navigationItems.find((item) => item.id === this.selectedNavigationItemId)!) : this.createEmptyNavigationItemForm();
-          this.adminUserForm = this.selectedAdminUserId ? this.toAdminUserForm(this.adminUsers.find((item) => item.id === this.selectedAdminUserId)!) : this.createEmptyAdminUserForm();
-          this.githubSnapshotForm = this.selectedGithubSnapshotId ? this.toGithubSnapshotForm(this.githubSnapshots.find((item) => item.id === this.selectedGithubSnapshotId)!) : this.createEmptyGithubSnapshotForm();
+          this.projectForm = this.selectedProjectId ? toProjectForm(this.projects.find((item) => item.id === this.selectedProjectId)!) : createEmptyProjectForm();
+          this.blogPostForm = this.selectedBlogPostId ? toBlogPostForm(this.blogPosts.find((item) => item.id === this.selectedBlogPostId)!) : createEmptyBlogPostForm();
+          this.profileForm = this.profile ? toProfileForm(this.profile) : createEmptyProfileForm();
+          this.skillCategoryForm = this.selectedSkillCategoryId ? toSkillCategoryForm(this.referenceData.skillCategories.find((item) => item.id === this.selectedSkillCategoryId)!) : createEmptySkillCategoryForm();
+          this.skillForm = this.selectedSkillId ? toSkillForm(this.referenceData.skills.find((item) => item.id === this.selectedSkillId)!) : createEmptySkillForm();
+          this.blogTagForm = this.selectedBlogTagId ? toBlogTagForm(this.referenceData.blogTags.find((item) => item.id === this.selectedBlogTagId)!) : createEmptyBlogTagForm();
+          this.experienceForm = this.selectedExperienceId ? toExperienceForm(this.experiences.find((item) => item.id === this.selectedExperienceId)!) : createEmptyExperienceForm();
+          this.navigationItemForm = this.selectedNavigationItemId ? toNavigationItemForm(this.navigationItems.find((item) => item.id === this.selectedNavigationItemId)!) : createEmptyNavigationItemForm();
+          this.adminUserForm = this.selectedAdminUserId ? toAdminUserForm(this.adminUsers.find((item) => item.id === this.selectedAdminUserId)!) : createEmptyAdminUserForm();
+          this.githubSnapshotForm = this.selectedGithubSnapshotId ? toGithubSnapshotForm(this.githubSnapshots.find((item) => item.id === this.selectedGithubSnapshotId)!) : createEmptyGithubSnapshotForm();
         },
         error: (error) => {
           if (error?.status === 401) {
@@ -424,7 +307,7 @@ export class AdminPageComponent implements OnInit {
   protected get filteredBlogImageMediaFiles(): AdminMediaFile[] {
     return [...this.referenceData.mediaFiles]
       .filter((media) => this.isImageMedia(media))
-      .filter((media) => this.matchesSearch([media.title, media.altText, media.originalFilename, media.objectKey], this.blogMediaSearchTerm))
+      .filter((media) => matchesSearch([media.title, media.altText, media.originalFilename, media.objectKey], this.blogMediaSearchTerm))
       .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
   }
 
@@ -443,7 +326,7 @@ export class AdminPageComponent implements OnInit {
       .filter((media) => this.mediaVisibilityFilter === 'all' || media.visibility === this.mediaVisibilityFilter)
       .filter((media) => this.mediaKindFilter === 'all' || this.mediaKind(media) === this.mediaKindFilter)
       .filter((media) => this.mediaFolderFilter === 'all' || this.mediaFolder(media) === this.mediaFolderFilter)
-      .filter((media) => this.matchesSearch([media.title, media.altText, media.originalFilename, media.objectKey, this.mediaFolder(media)], this.mediaSearchTerm))
+      .filter((media) => matchesSearch([media.title, media.altText, media.originalFilename, media.objectKey, this.mediaFolder(media)], this.mediaSearchTerm))
       .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
   }
 
@@ -483,7 +366,7 @@ export class AdminPageComponent implements OnInit {
         if (!searchNeedle) {
           return true;
         }
-        return this.matchesSearch([message.name, message.email, message.subject, message.message, message.sourcePage], searchNeedle);
+        return matchesSearch([message.name, message.email, message.subject, message.message, message.sourcePage], searchNeedle);
       })
       .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
   }
@@ -511,7 +394,7 @@ export class AdminPageComponent implements OnInit {
       if (!searchNeedle) {
         return true;
       }
-      return this.matchesSearch([visitor.visitorId, visitor.latestPagePath, visitor.latestIpAddress], searchNeedle);
+      return matchesSearch([visitor.visitorId, visitor.latestPagePath, visitor.latestIpAddress], searchNeedle);
     });
   }
 
@@ -678,19 +561,19 @@ export class AdminPageComponent implements OnInit {
     this.selectedProjectId = projectId;
     const project = this.projects.find((item) => item.id === projectId);
     if (project) {
-      this.projectForm = this.toProjectForm(project);
+      this.projectForm = toProjectForm(project);
       this.statusMessage = '';
     }
   }
 
   protected startNewProject(): void {
     this.selectedProjectId = null;
-    this.projectForm = this.createEmptyProjectForm();
-    this.projectUploadForm = this.createEmptyScopedUploadForm();
+    this.projectForm = createEmptyProjectForm();
+    this.projectUploadForm = createEmptyScopedUploadForm();
   }
 
   protected toggleProjectSkill(skillId: string): void {
-    this.projectForm.skillIds = this.toggleSelection(this.projectForm.skillIds, skillId);
+    this.projectForm.skillIds = toggleSelection(this.projectForm.skillIds, skillId);
   }
 
   protected saveProject(): void {
@@ -753,9 +636,9 @@ export class AdminPageComponent implements OnInit {
     this.selectedBlogPostId = postId;
     const post = this.blogPosts.find((item) => item.id === postId);
     if (post) {
-      this.blogPostForm = this.toBlogPostForm(post);
-      this.blogUploadForm = this.createEmptyScopedUploadForm();
-      this.blogInlineImageUploadForm = this.createEmptyScopedUploadForm();
+      this.blogPostForm = toBlogPostForm(post);
+      this.blogUploadForm = createEmptyScopedUploadForm();
+      this.blogInlineImageUploadForm = createEmptyScopedUploadForm();
       this.blogMediaSearchTerm = '';
       this.statusMessage = '';
     }
@@ -763,9 +646,9 @@ export class AdminPageComponent implements OnInit {
 
   protected startNewBlogPost(): void {
     this.selectedBlogPostId = null;
-    this.blogPostForm = this.createEmptyBlogPostForm();
-    this.blogUploadForm = this.createEmptyScopedUploadForm();
-    this.blogInlineImageUploadForm = this.createEmptyScopedUploadForm();
+    this.blogPostForm = createEmptyBlogPostForm();
+    this.blogUploadForm = createEmptyScopedUploadForm();
+    this.blogInlineImageUploadForm = createEmptyScopedUploadForm();
     this.blogMediaSearchTerm = '';
   }
 
@@ -881,7 +764,7 @@ export class AdminPageComponent implements OnInit {
   }
 
   protected toggleBlogTag(tagId: string): void {
-    this.blogPostForm.tagIds = this.toggleSelection(this.blogPostForm.tagIds, tagId);
+    this.blogPostForm.tagIds = toggleSelection(this.blogPostForm.tagIds, tagId);
   }
 
   protected saveBlogPost(): void {
@@ -934,13 +817,13 @@ export class AdminPageComponent implements OnInit {
     this.selectedSkillCategoryId = categoryId;
     const category = this.referenceData.skillCategories.find((item) => item.id === categoryId);
     if (category) {
-      this.skillCategoryForm = this.toSkillCategoryForm(category);
+      this.skillCategoryForm = toSkillCategoryForm(category);
     }
   }
 
   protected startNewSkillCategory(): void {
     this.selectedSkillCategoryId = null;
-    this.skillCategoryForm = this.createEmptySkillCategoryForm();
+    this.skillCategoryForm = createEmptySkillCategoryForm();
   }
 
   protected saveSkillCategory(): void {
@@ -983,13 +866,13 @@ export class AdminPageComponent implements OnInit {
     this.selectedSkillId = skillId;
     const skill = this.referenceData.skills.find((item) => item.id === skillId);
     if (skill) {
-      this.skillForm = this.toSkillForm(skill);
+      this.skillForm = toSkillForm(skill);
     }
   }
 
   protected startNewSkill(): void {
     this.selectedSkillId = null;
-    this.skillForm = this.createEmptySkillForm();
+    this.skillForm = createEmptySkillForm();
     this.skillForm.categoryId = this.referenceData.skillCategories[0]?.id ?? '';
   }
 
@@ -1036,13 +919,13 @@ export class AdminPageComponent implements OnInit {
     this.selectedBlogTagId = tagId;
     const tag = this.referenceData.blogTags.find((item) => item.id === tagId);
     if (tag) {
-      this.blogTagForm = this.toBlogTagForm(tag);
+      this.blogTagForm = toBlogTagForm(tag);
     }
   }
 
   protected startNewBlogTag(): void {
     this.selectedBlogTagId = null;
-    this.blogTagForm = this.createEmptyBlogTagForm();
+    this.blogTagForm = createEmptyBlogTagForm();
   }
 
   protected saveBlogTag(): void {
@@ -1081,18 +964,18 @@ export class AdminPageComponent implements OnInit {
     this.selectedExperienceId = experienceId;
     const experience = this.experiences.find((item) => item.id === experienceId);
     if (experience) {
-      this.experienceForm = this.toExperienceForm(experience);
+      this.experienceForm = toExperienceForm(experience);
     }
   }
 
   protected startNewExperience(): void {
     this.selectedExperienceId = null;
-    this.experienceForm = this.createEmptyExperienceForm();
-    this.experienceUploadForm = this.createEmptyScopedUploadForm();
+    this.experienceForm = createEmptyExperienceForm();
+    this.experienceUploadForm = createEmptyScopedUploadForm();
   }
 
   protected toggleExperienceSkill(skillId: string): void {
-    this.experienceForm.skillIds = this.toggleSelection(this.experienceForm.skillIds, skillId);
+    this.experienceForm.skillIds = toggleSelection(this.experienceForm.skillIds, skillId);
   }
 
   protected saveExperience(): void {
@@ -1144,13 +1027,13 @@ export class AdminPageComponent implements OnInit {
     this.selectedNavigationItemId = itemId;
     const item = this.navigationItems.find((entry) => entry.id === itemId);
     if (item) {
-      this.navigationItemForm = this.toNavigationItemForm(item);
+      this.navigationItemForm = toNavigationItemForm(item);
     }
   }
 
   protected startNewNavigationItem(): void {
     this.selectedNavigationItemId = null;
-    this.navigationItemForm = this.createEmptyNavigationItemForm();
+    this.navigationItemForm = createEmptyNavigationItemForm();
   }
 
   protected saveNavigationItem(): void {
@@ -1237,13 +1120,13 @@ export class AdminPageComponent implements OnInit {
     this.selectedAdminUserId = adminUserId;
     const user = this.adminUsers.find((item) => item.id === adminUserId);
     if (user) {
-      this.adminUserForm = this.toAdminUserForm(user);
+      this.adminUserForm = toAdminUserForm(user);
     }
   }
 
   protected startNewAdminUser(): void {
     this.selectedAdminUserId = null;
-    this.adminUserForm = this.createEmptyAdminUserForm();
+    this.adminUserForm = createEmptyAdminUserForm();
   }
 
   protected saveAdminUser(): void {
@@ -1297,13 +1180,13 @@ export class AdminPageComponent implements OnInit {
     this.selectedGithubSnapshotId = snapshotId;
     const snapshot = this.githubSnapshots.find((item) => item.id === snapshotId);
     if (snapshot) {
-      this.githubSnapshotForm = this.toGithubSnapshotForm(snapshot);
+      this.githubSnapshotForm = toGithubSnapshotForm(snapshot);
     }
   }
 
   protected startNewGithubSnapshot(): void {
     this.selectedGithubSnapshotId = null;
-    this.githubSnapshotForm = this.createEmptyGithubSnapshotForm();
+    this.githubSnapshotForm = createEmptyGithubSnapshotForm();
   }
 
 
@@ -1348,7 +1231,7 @@ export class AdminPageComponent implements OnInit {
       next: (snapshot) => {
         this.isRefreshingGithub = false;
         this.selectedGithubSnapshotId = snapshot.id;
-        this.githubSnapshotForm = this.toGithubSnapshotForm(snapshot);
+        this.githubSnapshotForm = toGithubSnapshotForm(snapshot);
         this.statusMessage = 'GitHub stats refreshed from the latest public profile data.';
         this.loadCms();
       },
@@ -1363,8 +1246,8 @@ export class AdminPageComponent implements OnInit {
     let rawPayload: Record<string, unknown> | null = null;
     let contributionDays: AdminGithubContributionDay[] = [];
     try {
-      rawPayload = this.parseJsonObject(this.githubSnapshotForm.rawPayloadText);
-      contributionDays = this.parseContributionDays(this.githubSnapshotForm.contributionDaysText);
+      rawPayload = parseJsonObject(this.githubSnapshotForm.rawPayloadText);
+      contributionDays = parseContributionDays(this.githubSnapshotForm.contributionDaysText);
     } catch (error) {
       this.statusMessage = error instanceof Error ? error.message : 'GitHub snapshot JSON could not be parsed.';
       return;
@@ -1510,20 +1393,20 @@ export class AdminPageComponent implements OnInit {
   }
 
   protected buildProjectFolder(): string {
-    return `projects/${this.slugify(this.projectForm.slug || this.projectForm.title || 'untitled-project')}`;
+    return `projects/${slugify(this.projectForm.slug || this.projectForm.title || 'untitled-project')}`;
   }
 
   protected buildBlogFolder(): string {
-    return `blog/${this.slugify(this.blogPostForm.slug || this.blogPostForm.title || 'untitled-post')}`;
+    return `blog/${slugify(this.blogPostForm.slug || this.blogPostForm.title || 'untitled-post')}`;
   }
 
   protected buildProfileFolder(): string {
-    const profileSlug = this.slugify(`${this.profileForm.firstName || 'profile'}-${this.profileForm.lastName || 'owner'}`);
+    const profileSlug = slugify(`${this.profileForm.firstName || 'profile'}-${this.profileForm.lastName || 'owner'}`);
     return `profiles/${profileSlug}`;
   }
 
   protected buildExperienceFolder(): string {
-    return `experience/${this.slugify(this.experienceForm.organizationName || this.experienceForm.roleTitle || 'experience')}`;
+    return `experience/${slugify(this.experienceForm.organizationName || this.experienceForm.roleTitle || 'experience')}`;
   }
 
   private uploadScopedMedia(
@@ -1633,13 +1516,6 @@ export class AdminPageComponent implements OnInit {
     return `![${altText}](${url})`;
   }
 
-  private matchesSearch(values: Array<string | null | undefined>, needle: string): boolean {
-    const normalizedNeedle = needle.trim().toLowerCase();
-    if (!normalizedNeedle) {
-      return true;
-    }
-    return values.some((value) => (value ?? '').toLowerCase().includes(normalizedNeedle));
-  }
 
   private visitsForVisitor(visitorId: string | null): AdminVisitSessionSummary[] {
     if (!visitorId) {
@@ -1673,307 +1549,29 @@ export class AdminPageComponent implements OnInit {
     }
   }
 
-  private toggleSelection(items: string[], value: string): string[] {
-    return items.includes(value) ? items.filter((item) => item !== value) : [...items, value];
-  }
 
-  private resolveSelection<T extends { id: string }>(currentId: string | null, items: T[]): string | null {
-    if (currentId && items.some((item) => item.id === currentId)) {
-      return currentId;
-    }
-    return items[0]?.id ?? null;
-  }
 
-  private slugify(value: string): string {
-    return value
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '') || 'item';
-  }
 
-  private parseJsonObject(raw: string): Record<string, unknown> | null {
-    if (!raw.trim()) {
-      return null;
-    }
-    const parsed = JSON.parse(raw);
-    if (parsed === null) {
-      return null;
-    }
-    if (typeof parsed !== 'object' || Array.isArray(parsed)) {
-      throw new Error('Raw payload must be a JSON object.');
-    }
-    return parsed as Record<string, unknown>;
-  }
 
-  private parseContributionDays(raw: string): AdminGithubContributionDay[] {
-    if (!raw.trim()) {
-      return [];
-    }
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) {
-      throw new Error('Contribution days must be a JSON array.');
-    }
-    return parsed.map((item) => ({
-      date: String(item?.date ?? ''),
-      count: Number(item?.count ?? 0),
-      level: Number(item?.level ?? 0),
-    }));
-  }
 
-  private createEmptyScopedUploadForm(): ScopedUploadForm {
-    return { title: '', altText: '', description: '', visibility: 'public', file: null };
-  }
 
-  private createEmptyProjectForm(): AdminProjectForm {
-    return {
-      slug: '',
-      title: '',
-      teaser: '',
-      summary: '',
-      descriptionMarkdown: '',
-      coverImageFileId: null,
-      githubUrl: '',
-      githubRepoOwner: '',
-      githubRepoName: '',
-      demoUrl: '',
-      companyName: '',
-      startedOn: '',
-      endedOn: '',
-      durationLabel: '',
-      status: '',
-      state: 'published',
-      isFeatured: false,
-      sortOrder: 0,
-      publishedAt: '',
-      skillIds: []
-    };
-  }
 
-  private createEmptyBlogPostForm(): AdminBlogPostForm {
-    return {
-      slug: '',
-      title: '',
-      excerpt: '',
-      contentMarkdown: '',
-      coverImageFileId: null,
-      coverImageAlt: '',
-      readingTimeMinutes: null,
-      status: 'draft',
-      isFeatured: false,
-      publishedAt: '',
-      seoTitle: '',
-      seoDescription: '',
-      tagIds: []
-    };
-  }
 
-  private createEmptyProfileForm(): AdminProfileForm {
-    return {
-      firstName: '',
-      lastName: '',
-      headline: '',
-      shortIntro: '',
-      longBio: '',
-      location: '',
-      email: '',
-      phone: '',
-      avatarFileId: null,
-      heroImageFileId: null,
-      resumeFileId: null,
-      ctaPrimaryLabel: '',
-      ctaPrimaryUrl: '',
-      ctaSecondaryLabel: '',
-      ctaSecondaryUrl: '',
-      isPublic: true,
-      socialLinks: []
-    };
-  }
 
-  private createEmptySkillCategoryForm(): AdminSkillCategoryForm {
-    return { name: '', description: '', sortOrder: 0 };
-  }
 
-  private createEmptySkillForm(): AdminSkillForm {
-    return { categoryId: '', name: '', yearsOfExperience: null, iconKey: '', sortOrder: 0, isHighlighted: false };
-  }
 
-  private createEmptyBlogTagForm(): AdminBlogTagForm {
-    return { name: '', slug: '' };
-  }
 
-  private createEmptyExperienceForm(): AdminExperienceForm {
-    return {
-      organizationName: '',
-      roleTitle: '',
-      location: '',
-      experienceType: 'work',
-      startDate: '',
-      endDate: '',
-      isCurrent: false,
-      summary: '',
-      descriptionMarkdown: '',
-      logoFileId: null,
-      sortOrder: 0,
-      skillIds: []
-    };
-  }
 
-  private createEmptyNavigationItemForm(): AdminNavigationItemForm {
-    return { label: '', routePath: '', isExternal: false, sortOrder: 0, isVisible: true };
-  }
 
-  private createEmptyAdminUserForm(): AdminUserForm {
-    return { email: '', displayName: '', password: '', isActive: true };
-  }
 
-  private createEmptyGithubSnapshotForm(): AdminGithubSnapshotForm {
-    return {
-      snapshotDate: '',
-      username: 'Alex-v-p',
-      publicRepoCount: 0,
-      followersCount: null,
-      followingCount: null,
-      totalStars: null,
-      totalCommits: null,
-      rawPayloadText: '',
-      contributionDaysText: '[]'
-    };
-  }
 
-  private toProjectForm(project: AdminProject): AdminProjectForm {
-    return {
-      id: project.id,
-      slug: project.slug,
-      title: project.title,
-      teaser: project.teaser,
-      summary: project.summary ?? '',
-      descriptionMarkdown: project.descriptionMarkdown ?? '',
-      coverImageFileId: project.coverImageFileId ?? null,
-      githubUrl: project.githubUrl ?? '',
-      githubRepoOwner: project.githubRepoOwner ?? '',
-      githubRepoName: project.githubRepoName ?? '',
-      demoUrl: project.demoUrl ?? '',
-      companyName: project.companyName ?? '',
-      startedOn: project.startedOn ?? '',
-      endedOn: project.endedOn ?? '',
-      durationLabel: project.durationLabel,
-      status: project.status,
-      state: project.state,
-      isFeatured: project.isFeatured,
-      sortOrder: project.sortOrder,
-      publishedAt: project.publishedAt?.slice(0, 16) ?? '',
-      skillIds: [...project.skillIds],
-    };
-  }
 
-  private toBlogPostForm(post: AdminBlogPost): AdminBlogPostForm {
-    return {
-      id: post.id,
-      slug: post.slug,
-      title: post.title,
-      excerpt: post.excerpt,
-      contentMarkdown: post.contentMarkdown,
-      coverImageFileId: post.coverImageFileId ?? null,
-      coverImageAlt: post.coverImageAlt ?? '',
-      readingTimeMinutes: post.readingTimeMinutes ?? null,
-      status: post.status,
-      isFeatured: post.isFeatured,
-      publishedAt: post.publishedAt?.slice(0, 16) ?? '',
-      seoTitle: post.seoTitle ?? '',
-      seoDescription: post.seoDescription ?? '',
-      tagIds: [...post.tagIds],
-    };
-  }
 
-  private toProfileForm(profile: AdminProfile): AdminProfileForm {
-    return {
-      id: profile.id,
-      firstName: profile.firstName,
-      lastName: profile.lastName,
-      headline: profile.headline,
-      shortIntro: profile.shortIntro,
-      longBio: profile.longBio ?? '',
-      location: profile.location ?? '',
-      email: profile.email ?? '',
-      phone: profile.phone ?? '',
-      avatarFileId: profile.avatarFileId ?? null,
-      heroImageFileId: profile.heroImageFileId ?? null,
-      resumeFileId: profile.resumeFileId ?? null,
-      ctaPrimaryLabel: profile.ctaPrimaryLabel ?? '',
-      ctaPrimaryUrl: profile.ctaPrimaryUrl ?? '',
-      ctaSecondaryLabel: profile.ctaSecondaryLabel ?? '',
-      ctaSecondaryUrl: profile.ctaSecondaryUrl ?? '',
-      isPublic: profile.isPublic,
-      socialLinks: profile.socialLinks.map((link) => ({ ...link })),
-    };
-  }
 
-  private toSkillCategoryForm(category: AdminSkillCategory): AdminSkillCategoryForm {
-    return { id: category.id, name: category.name, description: category.description ?? '', sortOrder: category.sortOrder };
-  }
 
-  private toSkillForm(skill: AdminSkillOption): AdminSkillForm {
-    return {
-      id: skill.id,
-      categoryId: skill.categoryId,
-      name: skill.name,
-      yearsOfExperience: skill.yearsOfExperience ?? null,
-      iconKey: skill.iconKey ?? '',
-      sortOrder: skill.sortOrder,
-      isHighlighted: skill.isHighlighted,
-    };
-  }
 
-  private toBlogTagForm(tag: AdminBlogTag): AdminBlogTagForm {
-    return { id: tag.id, name: tag.name, slug: tag.slug };
-  }
 
-  private toExperienceForm(experience: AdminExperience): AdminExperienceForm {
-    return {
-      id: experience.id,
-      organizationName: experience.organizationName,
-      roleTitle: experience.roleTitle,
-      location: experience.location ?? '',
-      experienceType: experience.experienceType,
-      startDate: experience.startDate,
-      endDate: experience.endDate ?? '',
-      isCurrent: experience.isCurrent,
-      summary: experience.summary,
-      descriptionMarkdown: experience.descriptionMarkdown ?? '',
-      logoFileId: experience.logoFileId ?? null,
-      sortOrder: experience.sortOrder,
-      skillIds: [...experience.skillIds],
-    };
-  }
 
-  private toNavigationItemForm(item: AdminNavigationItem): AdminNavigationItemForm {
-    return {
-      id: item.id,
-      label: item.label,
-      routePath: item.routePath,
-      isExternal: item.isExternal,
-      sortOrder: item.sortOrder,
-      isVisible: item.isVisible,
-    };
-  }
 
-  private toAdminUserForm(user: AdminUser): AdminUserForm {
-    return { id: user.id, email: user.email, displayName: user.displayName, password: '', isActive: user.isActive };
-  }
 
-  private toGithubSnapshotForm(snapshot: AdminGithubSnapshot): AdminGithubSnapshotForm {
-    return {
-      id: snapshot.id,
-      snapshotDate: snapshot.snapshotDate,
-      username: snapshot.username,
-      publicRepoCount: snapshot.publicRepoCount,
-      followersCount: snapshot.followersCount ?? null,
-      followingCount: snapshot.followingCount ?? null,
-      totalStars: snapshot.totalStars ?? null,
-      totalCommits: snapshot.totalCommits ?? null,
-      rawPayloadText: snapshot.rawPayload ? JSON.stringify(snapshot.rawPayload, null, 2) : '',
-      contributionDaysText: JSON.stringify(snapshot.contributionDays, null, 2),
-    };
-  }
 }
