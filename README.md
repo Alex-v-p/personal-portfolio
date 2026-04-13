@@ -6,7 +6,7 @@ Monorepo base for a portfolio platform with:
 - **FastAPI** portfolio/content backend (`portfolio-api-service`)
 - **FastAPI** assistant backend (`assistant-service`)
 - **PostgreSQL** for application data
-- **One-shot database bootstrap container** for schema creation + seed loading
+- **One-shot database bootstrap container** for schema migration + seed loading
 - **Redis** for async/caching support
 - **MinIO** for public media/object storage
 - **Nginx** inside the frontend container for static asset serving and API reverse proxying
@@ -58,8 +58,8 @@ Backend responsible for:
 ### portfolio-db-init
 One-shot bootstrap job responsible for:
 - enabling required PostgreSQL extensions
-- creating the SQLAlchemy-backed schema
-- seeding starter portfolio content
+- applying Alembic migrations up to `head`
+- seeding starter portfolio content when the database is empty
 
 Its implementation lives under `infra/postgres/bootstrap` so the API package stays focused on request handling and data access.
 
@@ -126,7 +126,7 @@ Development-mode differences:
 
 - Public media is served from MinIO rather than the Angular app's `/assets` folder.
 - The frontend now uses relative `/api` and `/ai` paths so it works through either the production reverse proxy or the dev proxy config.
-- `portfolio-db-init` owns schema creation and seeding, so the API no longer mutates PostgreSQL on startup.
+- `portfolio-db-init` owns schema migration and seeding, so the API no longer mutates PostgreSQL on startup.
 - `minio-init` mirrors the seed media in `infra/minio/seed` into the configured public bucket on startup.
 - `DB_BOOTSTRAP_RECREATE_ON_DRIFT` should stay disabled in production.
 
@@ -136,3 +136,18 @@ Development-mode differences:
 - The seeded admin account is created by `portfolio-db-init` from `.env`
 - Default local credentials are `ADMIN_EMAIL=admin@example.com` and `ADMIN_PASSWORD=change-me-admin`
 - Change those values in `.env` before first bootstrap if you do not want the defaults
+
+
+## Database migrations
+
+Schema changes are now tracked under `infra/postgres/migrations`.
+
+Common commands:
+
+```bash
+python -m infra.postgres.migrations.cli upgrade head
+python -m infra.postgres.migrations.cli check
+python -m infra.postgres.migrations.cli revision --autogenerate -m "add something"
+```
+
+See `docs/database-migrations.md` for the short workflow.

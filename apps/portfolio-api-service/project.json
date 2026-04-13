@@ -24,7 +24,24 @@
         "cwd": "apps/portfolio-api-service",
         "command": "..\\..\\.venv\\Scripts\\python.exe -m ruff check ."
       }
+    },
+    "db-migrate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": ".",
+        "command": ".\\.venv\\Scripts\\python.exe -m infra.postgres.migrations.cli upgrade head"
+      }
+    },
+    "db-migration-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": ".",
+        "command": ".\\.venv\\Scripts\\python.exe -m infra.postgres.migrations.cli check"
+      }
     }
   },
-  "tags": ["scope:backend", "type:api"]
+  "tags": [
+    "scope:backend",
+    "type:api"
+  ]
 }

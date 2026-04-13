@@ -11,16 +11,24 @@ This service no longer bootstraps the database on startup. Its runtime responsib
 
 Schema creation and seed loading now run through the dedicated `portfolio-db-init` one-shot container in Docker Compose.
 
-## Database bootstrap job
+## Database migrations and bootstrap job
 
-The Compose bootstrap job uses the same SQLAlchemy models but its implementation and seed definitions now live under `infra/postgres/bootstrap`, outside the API package and outside the API process.
+The Compose bootstrap job now applies Alembic migrations from `infra/postgres/migrations` and only then seeds starter data.
 
 Bootstrap environment flags:
-- `DB_BOOTSTRAP_AUTO_SEED=true` to seed starter data when the schema is empty
-- `DB_BOOTSTRAP_RECREATE_ON_DRIFT=true` to recreate the schema when incompatible drift is detected in development-only flows
-- production mode rejects `DB_BOOTSTRAP_RECREATE_ON_DRIFT=true` so destructive drift repair cannot run by accident
+- `DB_BOOTSTRAP_AUTO_SEED=true` to seed starter data when the database is empty
+- `DB_BOOTSTRAP_RECREATE_ON_DRIFT` is deprecated and ignored
+- production mode still rejects `DB_BOOTSTRAP_RECREATE_ON_DRIFT=true` so destructive drift repair cannot be reintroduced by accident
 - `DB_BOOTSTRAP_MAX_RETRIES=30` to keep retrying while PostgreSQL starts
 - `DB_BOOTSTRAP_RETRY_DELAY_SECONDS=2` to control retry spacing
+
+Common migration commands:
+
+```bash
+python -m infra.postgres.migrations.cli upgrade head
+python -m infra.postgres.migrations.cli check
+python -m infra.postgres.migrations.cli revision --autogenerate -m "describe the change"
+```
 
 ## Public media resolution
 
