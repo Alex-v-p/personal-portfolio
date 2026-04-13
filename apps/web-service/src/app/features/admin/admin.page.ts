@@ -465,9 +465,13 @@ export class AdminPageComponent implements OnInit {
     if (!media) {
       return;
     }
+    if (!media.canDelete) {
+      this.statusMessage = 'This media file is still referenced by portfolio content. Remove those references before deleting it.';
+      return;
+    }
 
     const confirmed = window.confirm(
-      `Delete "${media.title || media.originalFilename}"? This removes the media record from the CMS and attempts to delete the stored file too. Existing blog markdown or content pointing at this file may break.`
+      `Delete "${media.title || media.originalFilename}"? This removes the media record from the CMS and attempts to delete the stored file too.`
     );
     if (!confirmed) {
       return;

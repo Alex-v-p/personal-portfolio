@@ -5,15 +5,17 @@ from uuid import UUID
 from sqlalchemy import select
 
 from app.db.models import MediaFile, MediaVisibility
-from app.schemas.admin import AdminMediaFileOut
+from app.schemas.admin import AdminMediaFileOut, AdminMediaUsageSummaryOut
 from app.repositories.admin.support import AdminRepositorySupport
-from app.services.media_storage import StoredMediaObject
+from app.services.media.models import MediaReferenceSummary, StoredMediaObject
+from app.services.media.references import AdminMediaReferenceService
 
 
 class AdminMediaRepository(AdminRepositorySupport):
     def list_media_files(self) -> list[AdminMediaFileOut]:
         media_files = self.session.scalars(select(MediaFile).order_by(MediaFile.created_at.desc())).all()
-        return [self._map_media_file(media_file) for media_file in media_files]
+        usage_map = AdminMediaReferenceService(self.session).build_usage_map([media_file.id for media_file in media_files])
+        return [self._map_media_file(media_file, self._map_usage_summary(usage_map.get(media_file.id))) for media_file in media_files]
 
     def create_media_file(
         self,
@@ -43,7 +45,7 @@ class AdminMediaRepository(AdminRepositorySupport):
         self.session.add(media_file)
         self.session.commit()
         self.session.refresh(media_file)
-        return self._map_media_file(media_file)
+        return self._map_media_file(media_file, AdminMediaUsageSummaryOut())
 
     def get_media_file(self, media_id: UUID) -> MediaFile | None:
         return self.session.get(MediaFile, media_id)
@@ -55,3 +57,17 @@ class AdminMediaRepository(AdminRepositorySupport):
         self.session.delete(media_file)
         self.session.commit()
         return True
+
+    def _map_usage_summary(self, usage: MediaReferenceSummary | None) -> AdminMediaUsageSummaryOut:
+        usage = usage or MediaReferenceSummary()
+        return AdminMediaUsageSummaryOut(
+            profile_avatar_count=usage.profile_avatar_count,
+            profile_hero_count=usage.profile_hero_count,
+            profile_resume_count=usage.profile_resume_count,
+            experience_logo_count=usage.experience_logo_count,
+            project_cover_count=usage.project_cover_count,
+            project_gallery_image_count=usage.project_gallery_image_count,
+            blog_cover_count=usage.blog_cover_count,
+            total_references=usage.total_references,
+            is_referenced=usage.is_referenced,
+        )

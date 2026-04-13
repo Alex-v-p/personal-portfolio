@@ -22,7 +22,7 @@ export function filterMediaFiles(mediaFiles: AdminMediaFile[], filters: AdminMed
     .filter((media) => filters.visibility === 'all' || media.visibility === filters.visibility)
     .filter((media) => filters.kind === 'all' || mediaKind(media) === filters.kind)
     .filter((media) => filters.folder === 'all' || mediaFolder(media) === filters.folder)
-    .filter((media) => matchesSearch([media.title, media.altText, media.originalFilename, media.objectKey, mediaFolder(media)], filters.searchTerm))
+    .filter((media) => matchesSearch([media.title, media.altText, media.description, media.originalFilename, media.objectKey, media.folder, mediaFolder(media)], filters.searchTerm))
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
 }
 

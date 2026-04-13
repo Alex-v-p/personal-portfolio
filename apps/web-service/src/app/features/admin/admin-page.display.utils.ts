@@ -17,6 +17,10 @@ export function isImageMedia(media: AdminMediaFile): boolean {
 }
 
 export function mediaFolder(media: AdminMediaFile): string {
+  if (media.folder) {
+    return media.folder;
+  }
+
   const parts = (media.objectKey || '').split('/').filter(Boolean);
   if (parts.length <= 1) {
     return 'root';

@@ -71,10 +71,38 @@ export class AdminMediaTabComponent {
   }
 
   mediaFolder(media: AdminMediaFile): string {
-    return mediaFolder(media);
+    return media.folder || mediaFolder(media);
   }
 
   mediaKindLabel(media: AdminMediaFile): string {
     return mediaKindLabel(media);
+  }
+
+  formatFileSize(bytes: number | null | undefined): string {
+    if (!bytes || bytes <= 0) {
+      return 'Unknown size';
+    }
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let value = bytes;
+    let unitIndex = 0;
+    while (value >= 1024 && unitIndex < units.length - 1) {
+      value /= 1024;
+      unitIndex += 1;
+    }
+    const rounded = value >= 10 || unitIndex === 0 ? Math.round(value) : Number(value.toFixed(1));
+    return `${rounded} ${units[unitIndex]}`;
+  }
+
+  usageItems(media: AdminMediaFile): Array<{ label: string; count: number }> {
+    const usage = media.usageSummary;
+    return [
+      { label: 'Profile avatar', count: usage.profileAvatarCount },
+      { label: 'Profile hero', count: usage.profileHeroCount },
+      { label: 'Profile resume', count: usage.profileResumeCount },
+      { label: 'Experience logos', count: usage.experienceLogoCount },
+      { label: 'Project covers', count: usage.projectCoverCount },
+      { label: 'Project gallery', count: usage.projectGalleryImageCount },
+      { label: 'Blog covers', count: usage.blogCoverCount },
+    ].filter((item) => item.count > 0);
   }
 }
