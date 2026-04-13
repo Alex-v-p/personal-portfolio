@@ -6,6 +6,7 @@ export interface ContactMessageDraft {
   sourcePage: string;
   visitorId?: string | null;
   sessionId?: string | null;
+  website?: string | null;
 }
 
 export interface ContactMessageRecord extends ContactMessageDraft {
