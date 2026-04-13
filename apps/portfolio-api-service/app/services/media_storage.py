@@ -4,11 +4,15 @@ from dataclasses import dataclass
 from hashlib import sha256
 from io import BytesIO
 from pathlib import PurePosixPath
+from typing import Any
 from uuid import uuid4
 
-from minio import Minio
-
 from app.core.config import get_settings
+
+try:  # pragma: no cover - exercised indirectly when optional dependency is installed
+    from minio import Minio as _MinioClient
+except ModuleNotFoundError:  # pragma: no cover - allows non-upload tests to import this module
+    _MinioClient = None
 
 
 @dataclass(slots=True)
@@ -26,11 +30,25 @@ class AdminMediaStorageService:
     def __init__(self) -> None:
         settings = get_settings()
         self.bucket_name = settings.media_public_bucket
-        self.client = Minio(
-            settings.media_storage_endpoint,
+        self.client = self._build_client(
+            endpoint=settings.media_storage_endpoint,
             access_key=settings.media_storage_access_key,
             secret_key=settings.media_storage_secret_key,
             secure=settings.media_storage_secure,
+        )
+
+    @staticmethod
+    def _build_client(*, endpoint: str, access_key: str, secret_key: str, secure: bool) -> Any:
+        if _MinioClient is None:
+            raise RuntimeError(
+                'The optional "minio" package is required for media upload and deletion operations. '
+                'Install portfolio-api-service requirements before using AdminMediaStorageService.'
+            )
+        return _MinioClient(
+            endpoint,
+            access_key=access_key,
+            secret_key=secret_key,
+            secure=secure,
         )
 
     def upload_bytes(self, *, file_bytes: bytes, original_filename: str, mime_type: str | None, folder: str | None = None) -> StoredMediaObject:
