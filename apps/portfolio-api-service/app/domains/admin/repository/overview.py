@@ -4,10 +4,11 @@ from sqlalchemy import func, select
 
 from app.db.models import AdminUser, BlogPost, BlogTag, ContactMessage, Experience, GithubSnapshot, MediaFile, NavigationItem, Project, ProjectState, PublicationStatus, Skill, SkillCategory
 from app.domains.admin.schema import AdminDashboardSummaryOut, AdminReferenceDataOut
-from app.domains.admin.repository.support import AdminRepositorySupport
+from app.domains.admin.repository.media import AdminMediaRepository
+from app.domains.admin.repository.taxonomy import AdminTaxonomyRepository
 
 
-class AdminOverviewRepository(AdminRepositorySupport):
+class AdminOverviewRepository(AdminTaxonomyRepository, AdminMediaRepository):
     def get_dashboard_summary(self) -> AdminDashboardSummaryOut:
         return AdminDashboardSummaryOut(
             projects=self.session.scalar(select(func.count(Project.id))) or 0,
