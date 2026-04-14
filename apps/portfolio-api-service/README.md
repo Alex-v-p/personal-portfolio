@@ -39,10 +39,30 @@ Public DTO media URLs are derived from:
 Example:
 
 ```text
-http://localhost:9000/portfolio/blog/building-a-portfolio-shell/cover.png
+http://localhost:19000/portfolio/blog/building-a-portfolio-shell/cover.png
 ```
 
 This keeps file metadata in the database while serving actual bytes from MinIO.
+
+
+## Background maintenance in the worker
+
+The `portfolio-api-worker` container now handles three operational jobs in addition to queued admin tasks:
+- deleting `site_events` older than the configured retention window
+- deleting stale `assistant_conversations` and `assistant_messages` based on `last_message_at`
+- refreshing the GitHub snapshot automatically once per day
+
+Relevant settings:
+- `SITE_EVENTS_RETENTION_DAYS` (default `90`)
+- `ASSISTANT_ACTIVITY_RETENTION_DAYS` (default `90`)
+- `RETENTION_CLEANUP_INTERVAL_SECONDS` (default `86400`)
+- `GITHUB_AUTO_REFRESH_ENABLED` (default `true`)
+- `GITHUB_AUTO_REFRESH_INTERVAL_SECONDS` (default `86400`)
+- `GITHUB_AUTO_REFRESH_RETRY_INTERVAL_SECONDS` (default `3600`)
+- `MAINTENANCE_CHECK_INTERVAL_SECONDS` (default `60`)
+- `MAINTENANCE_LOCK_TTL_SECONDS` (default `900`)
+
+The scheduler stores job state in Redis and uses a Redis lock so the same daily job is not executed multiple times if the worker is restarted or scaled.
 
 ## Admin endpoints
 

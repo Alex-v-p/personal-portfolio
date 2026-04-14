@@ -112,15 +112,15 @@ Development-mode differences:
 - Frontend + reverse proxy: `http://localhost:4200`
 - Portfolio API health: `http://localhost:4200/api/health`
 - Assistant API health: `http://localhost:4200/ai/health`
-- MinIO API: `http://localhost:9000`
-- MinIO Console: `http://localhost:9001`
+- MinIO API: `http://localhost:19000`
+- MinIO Console: `http://localhost:19001`
 
 ### Development override compose
 - Frontend dev server: `http://localhost:4200`
 - Portfolio API health: `http://localhost:8011/api/health`
 - Assistant API health: `http://localhost:8012/api/health`
-- MinIO API: `http://localhost:9000`
-- MinIO Console: `http://localhost:9001`
+- MinIO API: `http://localhost:19000`
+- MinIO Console: `http://localhost:19001`
 
 ## Notes
 

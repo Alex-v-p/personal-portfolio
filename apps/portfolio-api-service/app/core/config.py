@@ -118,6 +118,56 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices('GITHUB_STATS_LOOKBACK_DAYS', 'PORTFOLIO_API_GITHUB_STATS_LOOKBACK_DAYS'),
     )
 
+    site_events_retention_days: int = Field(
+        default=90,
+        ge=1,
+        validation_alias=AliasChoices('SITE_EVENTS_RETENTION_DAYS', 'PORTFOLIO_API_SITE_EVENTS_RETENTION_DAYS'),
+    )
+    assistant_activity_retention_days: int = Field(
+        default=90,
+        ge=1,
+        validation_alias=AliasChoices('ASSISTANT_ACTIVITY_RETENTION_DAYS', 'PORTFOLIO_API_ASSISTANT_ACTIVITY_RETENTION_DAYS'),
+    )
+    maintenance_check_interval_seconds: int = Field(
+        default=60,
+        ge=5,
+        validation_alias=AliasChoices('MAINTENANCE_CHECK_INTERVAL_SECONDS', 'PORTFOLIO_API_MAINTENANCE_CHECK_INTERVAL_SECONDS'),
+    )
+    maintenance_lock_ttl_seconds: int = Field(
+        default=900,
+        ge=30,
+        validation_alias=AliasChoices('MAINTENANCE_LOCK_TTL_SECONDS', 'PORTFOLIO_API_MAINTENANCE_LOCK_TTL_SECONDS'),
+    )
+    maintenance_state_ttl_seconds: int = Field(
+        default=60 * 60 * 24 * 30,
+        ge=300,
+        validation_alias=AliasChoices('MAINTENANCE_STATE_TTL_SECONDS', 'PORTFOLIO_API_MAINTENANCE_STATE_TTL_SECONDS'),
+    )
+    retention_cleanup_interval_seconds: int = Field(
+        default=60 * 60 * 24,
+        ge=60,
+        validation_alias=AliasChoices('RETENTION_CLEANUP_INTERVAL_SECONDS', 'PORTFOLIO_API_RETENTION_CLEANUP_INTERVAL_SECONDS'),
+    )
+    retention_cleanup_retry_interval_seconds: int = Field(
+        default=60 * 60,
+        ge=60,
+        validation_alias=AliasChoices('RETENTION_CLEANUP_RETRY_INTERVAL_SECONDS', 'PORTFOLIO_API_RETENTION_CLEANUP_RETRY_INTERVAL_SECONDS'),
+    )
+    github_auto_refresh_enabled: bool = Field(
+        default=True,
+        validation_alias=AliasChoices('GITHUB_AUTO_REFRESH_ENABLED', 'PORTFOLIO_API_GITHUB_AUTO_REFRESH_ENABLED'),
+    )
+    github_auto_refresh_interval_seconds: int = Field(
+        default=60 * 60 * 24,
+        ge=60,
+        validation_alias=AliasChoices('GITHUB_AUTO_REFRESH_INTERVAL_SECONDS', 'PORTFOLIO_API_GITHUB_AUTO_REFRESH_INTERVAL_SECONDS'),
+    )
+    github_auto_refresh_retry_interval_seconds: int = Field(
+        default=60 * 60,
+        ge=60,
+        validation_alias=AliasChoices('GITHUB_AUTO_REFRESH_RETRY_INTERVAL_SECONDS', 'PORTFOLIO_API_GITHUB_AUTO_REFRESH_RETRY_INTERVAL_SECONDS'),
+    )
+
     knowledge_embedding_backend: str = Field(
         default='ollama',
         validation_alias=AliasChoices('KNOWLEDGE_EMBEDDING_BACKEND', 'PORTFOLIO_API_KNOWLEDGE_EMBEDDING_BACKEND'),

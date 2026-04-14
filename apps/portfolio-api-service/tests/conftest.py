@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from app.core.config import get_settings
 from app.db.session import reset_database_caches
 from app.services.async_tasks import reset_admin_task_queue_cache
+from app.services.maintenance import reset_maintenance_runtime_cache
 from app.services.rate_limit import reset_rate_limit_state
 from infra.postgres.bootstrap.bootstrap_core import initialize_database
 
@@ -31,6 +32,7 @@ def client(tmp_path: Path) -> TestClient:
     reset_database_caches()
     reset_rate_limit_state()
     reset_admin_task_queue_cache()
+    reset_maintenance_runtime_cache()
 
     assert initialize_database(auto_seed=True, recreate_on_drift=True, raise_on_error=True) is True
 
@@ -44,3 +46,4 @@ def client(tmp_path: Path) -> TestClient:
     reset_database_caches()
     reset_rate_limit_state()
     reset_admin_task_queue_cache()
+    reset_maintenance_runtime_cache()
