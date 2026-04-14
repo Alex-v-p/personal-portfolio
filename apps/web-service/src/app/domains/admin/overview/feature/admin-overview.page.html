@@ -1,0 +1,13 @@
+<section *ngIf="isLoading" class="rounded-[2rem] border border-stone-300 bg-white p-6 text-sm text-stone-600 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">Loading admin overview…</section>
+
+<section *ngIf="errorMessage && !isLoading" class="rounded-[2rem] border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
+  {{ errorMessage }}
+</section>
+
+<app-admin-overview-tab
+  *ngIf="!isLoading && !errorMessage"
+  [dashboard]="dashboard"
+  [messages]="messages"
+  [mediaFiles]="mediaFiles"
+  (openTab)="openTab($event)">
+</app-admin-overview-tab>

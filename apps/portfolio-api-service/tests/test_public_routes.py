@@ -47,12 +47,14 @@ def test_get_home_returns_composed_public_sections(client: TestClient) -> None:
     body = response.json()
     assert body['hero']['headline'] == 'Software Engineer'
     assert body['featuredProjects']
+    assert 'descriptionMarkdown' not in body['featuredProjects'][0]
     assert body['featuredBlogPosts']
+    assert 'contentMarkdown' not in body['featuredBlogPosts'][0]
     assert body['experiencePreview']
     assert body['contactPreview']
 
 
-def test_list_projects_returns_embedded_media(client: TestClient) -> None:
+def test_list_projects_returns_project_summaries_with_embedded_media(client: TestClient) -> None:
     response = client.get('/api/public/projects')
     assert response.status_code == 200
     body = response.json()
@@ -61,6 +63,8 @@ def test_list_projects_returns_embedded_media(client: TestClient) -> None:
     UUID(project['id'])
     assert project['coverImage']['url'].startswith('http://media.example.test/portfolio/projects/')
     assert project['skills'][0]['name']
+    assert 'descriptionMarkdown' not in project
+    assert 'images' not in project
     assert 'tags' not in project
 
 
@@ -73,13 +77,15 @@ def test_get_project_by_slug_returns_project_detail(client: TestClient) -> None:
     assert body['coverImage']['url'].startswith('http://media.example.test/portfolio/projects/')
 
 
-def test_list_blog_posts_returns_embedded_cover_media(client: TestClient) -> None:
+def test_list_blog_posts_returns_blog_post_summaries_with_embedded_cover_media(client: TestClient) -> None:
     response = client.get('/api/public/blog-posts')
     assert response.status_code == 200
     body = response.json()
     assert body['total'] >= 4
     assert body['items'][0]['coverImage']['url'].startswith('http://media.example.test/portfolio/blog/')
     assert body['items'][0]['tags']
+    assert 'contentMarkdown' not in body['items'][0]
+    assert 'seoTitle' not in body['items'][0]
 
 
 def test_get_blog_post_by_slug_returns_single_article(client: TestClient) -> None:

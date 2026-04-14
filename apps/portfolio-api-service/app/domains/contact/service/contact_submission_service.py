@@ -1,0 +1,50 @@
+from __future__ import annotations
+
+from fastapi import HTTPException, Request, status
+from sqlalchemy.orm import Session
+
+from app.core.config import get_settings
+from app.db.models import EventType
+from app.domains.contact.repository import ContactMessageRepository
+from app.domains.contact.schema import ContactMessageCreatedOut, ContactMessageIn
+from app.domains.site_activity.service import SiteEventService
+from app.services.request_protection import derive_request_identifier, enforce_rate_limit_or_429, ensure_payload_size_within_limit
+
+
+class ContactSubmissionService:
+    def __init__(self, session: Session) -> None:
+        self.session = session
+        self.repository = ContactMessageRepository(session)
+        self.site_events = SiteEventService(session)
+
+    def submit(self, payload: ContactMessageIn, request: Request) -> ContactMessageCreatedOut:
+        settings = get_settings()
+        ensure_payload_size_within_limit(
+            payload,
+            max_bytes=settings.contact_max_request_bytes,
+            detail='Contact message payload is too large.',
+        )
+        if payload.website and payload.website.strip():
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Spam protection triggered.')
+        enforce_rate_limit_or_429(
+            scope='contact-submit',
+            identifier=derive_request_identifier(request, payload.visitor_id, payload.session_id),
+            limit=settings.contact_rate_limit_max_requests,
+            window_seconds=settings.contact_rate_limit_window_seconds,
+            detail='Too many contact form submissions. Please try again later.',
+        )
+
+        saved_item = self.repository.create(payload)
+        self.site_events.record_event(
+            event_type=EventType.CONTACT_SUBMIT,
+            page_path=payload.source_page,
+            visitor_id=payload.visitor_id,
+            session_id=payload.session_id,
+            request=request,
+            metadata={
+                'contact_message_id': saved_item.id,
+                'subject': saved_item.subject,
+            },
+        )
+        self.session.commit()
+        return ContactMessageCreatedOut(message='Contact message saved.', item=saved_item)

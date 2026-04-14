@@ -1,6 +1,10 @@
 from fastapi import APIRouter
 
-from app.api.routes import chat, conversations, health, knowledge, providers
+from app.api.routes import health
+from app.api.routes import chat
+from app.api.routes import conversations
+from app.api.routes import knowledge
+from app.api.routes import providers
 
 api_router = APIRouter(prefix='/api')
 api_router.include_router(health.router, tags=['health'])

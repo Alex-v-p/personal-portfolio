@@ -1,0 +1,57 @@
+    <section class="grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+      <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] sm:p-8">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Knowledge index</p>
+            <h2 class="mt-1 text-xl font-semibold text-stone-950">Assistant retrieval groundwork</h2>
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-stone-600">The assistant searches the indexed portfolio content stored in <code>knowledge_documents</code> and <code>knowledge_chunks</code>. Rebuild this index whenever profile, projects, blog posts, or experience content changes.</p>
+          </div>
+          <button type="button" (click)="rebuildAssistantKnowledge()" [disabled]="isRebuildingAssistantKnowledge" class="rounded-full bg-stone-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-60">{{ isRebuildingAssistantKnowledge ? 'Rebuilding…' : 'Rebuild knowledge index' }}</button>
+        </div>
+
+        <div class="mt-6 grid gap-4 sm:grid-cols-3">
+          <article class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5">
+            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Documents</p>
+            <p class="mt-3 text-3xl font-semibold text-stone-950">{{ assistantKnowledgeStatus.totalDocuments }}</p>
+            <p class="mt-2 text-sm text-stone-600">Source records synced into assistant documents.</p>
+          </article>
+          <article class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5">
+            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Chunks</p>
+            <p class="mt-3 text-3xl font-semibold text-stone-950">{{ assistantKnowledgeStatus.totalChunks }}</p>
+            <p class="mt-2 text-sm text-stone-600">Retrieval-sized content blocks the assistant can search.</p>
+          </article>
+          <article class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5">
+            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Last rebuild</p>
+            <p class="mt-3 text-lg font-semibold text-stone-950">{{ assistantKnowledgeStatus.latestUpdatedAt ? (assistantKnowledgeStatus.latestUpdatedAt | date:'medium') : 'Not indexed yet' }}</p>
+            <p class="mt-2 text-sm text-stone-600">Useful for checking whether the assistant is fresh after CMS edits.</p>
+          </article>
+        </div>
+      </article>
+
+      <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] sm:p-8">
+        <h2 class="text-xl font-semibold text-stone-950">Indexed source coverage</h2>
+        <p class="mt-2 text-sm leading-6 text-stone-600">These counts show how many portfolio records are searchable by source type.</p>
+
+        <div class="mt-6 grid gap-3" *ngIf="assistantKnowledgeStatus.totalDocuments; else noKnowledgeDocs">
+          <article *ngFor="let item of assistantKnowledgeStatus.documentsBySourceType | keyvalue" class="flex items-center justify-between rounded-[1.5rem] border border-stone-200 bg-stone-50 px-4 py-4">
+            <div>
+              <p class="text-sm font-semibold text-stone-950">{{ item.key }}</p>
+              <p class="text-xs uppercase tracking-[0.16em] text-stone-500">searchable source type</p>
+            </div>
+            <p class="text-2xl font-semibold text-stone-950">{{ item.value }}</p>
+          </article>
+        </div>
+
+        <ng-template #noKnowledgeDocs>
+          <div class="mt-6 rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50 p-5 text-sm leading-6 text-stone-600">No assistant knowledge documents have been indexed yet. Use the rebuild action to generate them from the current portfolio content.</div>
+        </ng-template>
+
+        <div class="mt-6 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5 text-sm leading-6 text-stone-700">
+          The current assistant backend uses retrieval over the shared portfolio database and is ready to be swapped from mock responses to a local Ollama or vLLM-style provider later without changing the CMS workflow.
+        </div>
+      </article>
+    </section>
+
+
+
+

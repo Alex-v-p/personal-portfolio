@@ -24,7 +24,17 @@
         "cwd": "apps/assistant-service",
         "command": "..\\..\\.venv\\Scripts\\python.exe -m ruff check ."
       }
+    },
+    "worker": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/assistant-service",
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m app.workers.chat_tasks"
+      }
     }
   },
-  "tags": ["scope:backend", "type:assistant"]
+  "tags": [
+    "scope:backend",
+    "type:assistant"
+  ]
 }

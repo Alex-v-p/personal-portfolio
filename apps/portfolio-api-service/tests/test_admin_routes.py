@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
-from app.services.github_stats_sync import SyncedGithubContributionDay, SyncedGithubSnapshot
+from app.domains.github.sync import SyncedGithubContributionDay, SyncedGithubSnapshot
 
 
 ADMIN_EMAIL = 'admin@example.com'
@@ -416,3 +416,58 @@ def test_admin_can_rebuild_assistant_knowledge_index(client: TestClient) -> None
     assert rebuilt['totalDocuments'] >= 1
     assert rebuilt['totalChunks'] >= rebuilt['totalDocuments']
     assert rebuilt['documentsBySourceType']
+
+
+
+def test_admin_refresh_returns_async_task_when_redis_queue_is_available(client: TestClient, monkeypatch) -> None:
+    from app.services.async_tasks import AdminTaskRecord
+
+    token = _admin_token(client)
+    headers = {'Authorization': f'Bearer {token}'}
+
+    class FakeQueue:
+        enabled = True
+        poll_after_ms = 1200
+
+        def enqueue(self, task_type: str, payload: dict[str, object]) -> AdminTaskRecord:
+            assert task_type == 'github-refresh'
+            assert payload['username'] == 'Alex-v-p'
+            return AdminTaskRecord(task_id='task-1', task_type=task_type, status='queued', submitted_at='2026-04-14T10:00:00+00:00')
+
+    monkeypatch.setattr('app.api.routes.admin.stats.get_admin_task_queue', lambda: FakeQueue())
+
+    response = client.post('/api/admin/github-snapshots/refresh', headers=headers, json={'username': 'Alex-v-p', 'pruneHistory': True})
+    assert response.status_code == 202
+    assert response.json() == {
+        'taskId': 'task-1',
+        'taskType': 'github-refresh',
+        'status': 'queued',
+        'pollAfterMs': 1200,
+    }
+
+
+def test_admin_can_fetch_async_task_status(client: TestClient, monkeypatch) -> None:
+    from app.services.async_tasks import AdminTaskRecord
+
+    token = _admin_token(client)
+    headers = {'Authorization': f'Bearer {token}'}
+
+    class FakeQueue:
+        def get(self, task_id: str) -> AdminTaskRecord | None:
+            assert task_id == 'task-1'
+            return AdminTaskRecord(
+                task_id='task-1',
+                task_type='assistant-knowledge-rebuild',
+                status='succeeded',
+                submitted_at='2026-04-14T10:00:00+00:00',
+                started_at='2026-04-14T10:00:01+00:00',
+                completed_at='2026-04-14T10:00:05+00:00',
+                result={'totalDocuments': 5, 'totalChunks': 12},
+            )
+
+    monkeypatch.setattr('app.api.routes.admin.tasks.get_admin_task_queue', lambda: FakeQueue())
+
+    response = client.get('/api/admin/tasks/task-1', headers=headers)
+    assert response.status_code == 200
+    assert response.json()['status'] == 'succeeded'
+    assert response.json()['result']['totalDocuments'] == 5

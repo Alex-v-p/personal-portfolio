@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.db.session import get_session
-from app.schemas.chat import KnowledgeStatusOut
-from app.services.retrieval_service import KnowledgeRetrievalService
+from app.domains.chat.schema import KnowledgeStatusOut
+from app.domains.retrieval.service.service import KnowledgeRetrievalService
 from app.services.security import get_current_admin_user
 
 router = APIRouter()

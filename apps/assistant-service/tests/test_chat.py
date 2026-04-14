@@ -107,7 +107,7 @@ def test_provider_daily_generation_cap_forces_fallback(tmp_path: Path, monkeypat
     from app.core.config import get_settings
     from app.db.models import Base
     from app.db.session import get_engine, get_session_factory
-    from app.services.provider_client import ProviderClient
+    from app.domains.providers.client import ProviderClient
     from app.services.rate_limit import reset_rate_limit_state
 
     get_settings.cache_clear()
@@ -130,3 +130,74 @@ def test_provider_daily_generation_cap_forces_fallback(tmp_path: Path, monkeypat
     assert first.json()['message'] == 'Generated portfolio answer.'
     assert second.status_code == 200
     assert "I couldn't find enough relevant indexed portfolio content" in second.json()['message']
+
+
+
+def test_chat_returns_async_task_when_redis_queue_is_available(tmp_path: Path, monkeypatch) -> None:
+    database_path = tmp_path / 'assistant-async.sqlite3'
+    os.environ['DATABASE_URL'] = f'sqlite:///{database_path}'
+    os.environ['ASSISTANT_PROVIDER_BACKEND'] = 'mock'
+
+    from app.core.config import get_settings
+    from app.db.models import Base
+    from app.db.session import get_engine, get_session_factory
+    from app.main import create_app
+    from app.services.async_tasks import ChatTaskRecord
+
+    get_settings.cache_clear()
+    get_engine.cache_clear()
+    get_session_factory.cache_clear()
+    Base.metadata.create_all(get_engine())
+
+    class FakeQueue:
+        enabled = True
+        poll_after_ms = 900
+
+        def enqueue(self, task_type: str, payload: dict[str, object]) -> ChatTaskRecord:
+            assert task_type == 'chat-response'
+            assert payload['message'] == 'Tell me about the backend.'
+            return ChatTaskRecord(task_id='chat-task-1', task_type=task_type, status='queued', submitted_at='2026-04-14T10:00:00+00:00')
+
+    monkeypatch.setattr('app.api.routes.chat.get_chat_task_queue', lambda: FakeQueue())
+
+    with TestClient(create_app()) as client:
+        response = client.post('/api/chat/respond', json={'message': 'Tell me about the backend.'})
+
+    assert response.status_code == 202
+    body = response.json()
+    assert body['taskId'] == 'chat-task-1'
+    assert body['status'] == 'queued'
+    assert body['pollAfterMs'] == 900
+    assert body['conversationId']
+
+
+def test_chat_task_status_returns_completed_payload(monkeypatch) -> None:
+    from app.main import create_app
+    from app.services.async_tasks import ChatTaskRecord
+
+    class FakeQueue:
+        def get(self, task_id: str) -> ChatTaskRecord | None:
+            assert task_id == 'chat-task-1'
+            return ChatTaskRecord(
+                task_id='chat-task-1',
+                task_type='chat-response',
+                status='succeeded',
+                submitted_at='2026-04-14T10:00:00+00:00',
+                started_at='2026-04-14T10:00:01+00:00',
+                completed_at='2026-04-14T10:00:05+00:00',
+                result={
+                    'conversationId': 'conversation-1',
+                    'message': 'The backend uses FastAPI.',
+                    'providerBackend': 'mock',
+                    'citations': [],
+                },
+            )
+
+    monkeypatch.setattr('app.api.routes.chat.get_chat_task_queue', lambda: FakeQueue())
+
+    with TestClient(create_app()) as client:
+        response = client.get('/api/chat/tasks/chat-task-1')
+
+    assert response.status_code == 200
+    assert response.json()['status'] == 'succeeded'
+    assert response.json()['message'] == 'The backend uses FastAPI.'
