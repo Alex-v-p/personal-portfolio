@@ -6,7 +6,9 @@ import { finalize, take } from 'rxjs/operators';
 import { UiButtonComponent } from '@shared/components/button/ui-button.component';
 import { UiCardComponent } from '@shared/components/card/ui-card.component';
 import { UiChipComponent } from '@shared/components/chip/ui-chip.component';
+import { UiEmptyStateComponent } from '@shared/components/empty-state/ui-empty-state.component';
 import { UiLinkButtonComponent } from '@shared/components/link-button/ui-link-button.component';
+import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.component';
 import { ContactMessageDraft } from '@domains/contact/model/contact-message.model';
 import { ContactMethod } from '@domains/profile/model/contact-method.model';
 import { Profile } from '@domains/profile/model/profile.model';
@@ -25,7 +27,7 @@ type SubmissionState = 'idle' | 'submitting' | 'success' | 'error';
 @Component({
   selector: 'app-contact-page',
   standalone: true,
-  imports: [NgFor, NgIf, ReactiveFormsModule, UiButtonComponent, UiCardComponent, UiChipComponent, UiLinkButtonComponent],
+  imports: [NgFor, NgIf, ReactiveFormsModule, UiButtonComponent, UiCardComponent, UiChipComponent, UiEmptyStateComponent, UiLinkButtonComponent, UiSkeletonComponent],
   templateUrl: './contact.page.html'
 })
 export class ContactPageComponent implements OnInit {
@@ -55,6 +57,7 @@ export class ContactPageComponent implements OnInit {
   protected hasAttemptedSubmit = false;
   protected submissionState: SubmissionState = 'idle';
   protected errorMessage = '';
+  protected profileErrorMessage = '';
   protected lastSubmittedMessage: ContactMessageDraft | null = null;
   protected isLoadingProfile = true;
 
@@ -134,6 +137,14 @@ export class ContactPageComponent implements OnInit {
     return this.contactForm.controls.message.value.length;
   }
 
+  protected get contactIntroText(): string {
+    return this.profile.shortBio || 'Use the form or the listed channels below to start a conversation about internships, freelance work, or collaboration.';
+  }
+
+  protected get hasContactDetails(): boolean {
+    return Boolean(this.contactMethods.length || this.profile.shortBio || this.profile.availability.length || this.profile.location);
+  }
+
   protected showError(controlName: 'name' | 'email' | 'subject' | 'message'): boolean {
     const control = this.contactForm.controls[controlName];
     return control.invalid && (control.touched || this.hasAttemptedSubmit);
@@ -179,13 +190,32 @@ export class ContactPageComponent implements OnInit {
     return this.submissionState === 'submitting';
   }
 
-  private loadProfile(): void {
-    this.profileApi.getProfile().pipe(take(1), finalize(() => { this.isLoadingProfile = false; this.changeDetectorRef.detectChanges(); })).subscribe({
-      next: (profile) => {
-        this.profile = profile;
-        this.contactMethods = buildContactMethodsFromProfile(this.profile);
-      }
-    });
+  protected loadProfile(): void {
+    this.isLoadingProfile = true;
+    this.profileErrorMessage = '';
+    this.profile = createEmptyProfile();
+    this.contactMethods = [];
+
+    this.profileApi
+      .getProfile()
+      .pipe(
+        take(1),
+        finalize(() => {
+          this.isLoadingProfile = false;
+          this.changeDetectorRef.detectChanges();
+        })
+      )
+      .subscribe({
+        next: (profile) => {
+          this.profile = profile;
+          this.contactMethods = buildContactMethodsFromProfile(this.profile);
+        },
+        error: () => {
+          this.profile = createEmptyProfile();
+          this.contactMethods = [];
+          this.profileErrorMessage = 'Contact details could not be loaded from the portfolio API. You can still use the form below.';
+        }
+      });
   }
 
   private buildDraft(): ContactMessageDraft {

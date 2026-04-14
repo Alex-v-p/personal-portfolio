@@ -8,6 +8,7 @@ import { UiButtonComponent } from '@shared/components/button/ui-button.component
 import { UiChipComponent } from '@shared/components/chip/ui-chip.component';
 import { UiEmptyStateComponent } from '@shared/components/empty-state/ui-empty-state.component';
 import { UiSectionTitleComponent } from '@shared/components/section-title/ui-section-title.component';
+import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.component';
 import { ProjectSummary } from '@domains/projects/model/project-summary.model';
 import { ProjectCardComponent } from '@domains/projects/ui/project-card.component';
 
@@ -19,7 +20,7 @@ interface SkillFilterOption {
 @Component({
   selector: 'app-projects-page',
   standalone: true,
-  imports: [NgFor, NgIf, FormsModule, UiButtonComponent, UiChipComponent, UiEmptyStateComponent, UiSectionTitleComponent, ProjectCardComponent],
+  imports: [NgFor, NgIf, FormsModule, UiButtonComponent, UiChipComponent, UiEmptyStateComponent, UiSectionTitleComponent, UiSkeletonComponent, ProjectCardComponent],
   templateUrl: './projects.page.html'
 })
 export class ProjectsPageComponent implements OnInit {
@@ -100,6 +101,10 @@ export class ProjectsPageComponent implements OnInit {
 
   protected get totalProjectCount(): number {
     return this.projects.length;
+  }
+
+  protected get hasProjects(): boolean {
+    return this.totalProjectCount > 0;
   }
 
   protected get availableSkillFilters(): SkillFilterOption[] {

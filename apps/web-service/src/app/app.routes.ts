@@ -86,6 +86,10 @@ export const routes: Routes = [
         title: 'Admin Users',
         data: { legacyTab: 'admins' },
       },
+      {
+        path: '**',
+        redirectTo: '/',
+      },
     ],
   },
   {

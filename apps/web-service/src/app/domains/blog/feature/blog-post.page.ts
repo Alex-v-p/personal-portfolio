@@ -6,6 +6,7 @@ import { finalize, switchMap } from 'rxjs/operators';
 import { UiButtonComponent } from '@shared/components/button/ui-button.component';
 import { UiChipComponent } from '@shared/components/chip/ui-chip.component';
 import { UiEmptyStateComponent } from '@shared/components/empty-state/ui-empty-state.component';
+import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.component';
 import { BlogPostDetail } from '@domains/blog/model/blog-post-detail.model';
 import { PublicBlogApiService } from '@domains/blog/data/blog-api.service';
 import { renderMarkdownToHtml } from '@shared/utils/markdown.util';
@@ -13,7 +14,7 @@ import { renderMarkdownToHtml } from '@shared/utils/markdown.util';
 @Component({
   selector: 'app-blog-post-page',
   standalone: true,
-  imports: [NgFor, NgIf, RouterLink, UiButtonComponent, UiChipComponent, UiEmptyStateComponent],
+  imports: [NgFor, NgIf, RouterLink, UiButtonComponent, UiChipComponent, UiEmptyStateComponent, UiSkeletonComponent],
   templateUrl: './blog-post.page.html'
 })
 export class BlogPostPageComponent implements OnInit {

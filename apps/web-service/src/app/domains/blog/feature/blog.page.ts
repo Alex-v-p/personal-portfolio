@@ -5,6 +5,7 @@ import { finalize, take } from 'rxjs/operators';
 
 import { UiButtonComponent } from '@shared/components/button/ui-button.component';
 import { UiEmptyStateComponent } from '@shared/components/empty-state/ui-empty-state.component';
+import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.component';
 import { PublicBlogApiService } from '@domains/blog/data/blog-api.service';
 import { BlogPostSummary } from '@domains/blog/model/blog-post-summary.model';
 import { BlogCardComponent } from '@domains/blog/ui/blog-card.component';
@@ -12,7 +13,7 @@ import { BlogCardComponent } from '@domains/blog/ui/blog-card.component';
 @Component({
   selector: 'app-blog-page',
   standalone: true,
-  imports: [NgFor, NgIf, FormsModule, UiButtonComponent, UiEmptyStateComponent, BlogCardComponent],
+  imports: [NgFor, NgIf, FormsModule, UiButtonComponent, UiEmptyStateComponent, UiSkeletonComponent, BlogCardComponent],
   templateUrl: './blog.page.html'
 })
 export class BlogPageComponent implements OnInit {
@@ -57,6 +58,10 @@ export class BlogPageComponent implements OnInit {
 
   protected get totalPostCount(): number {
     return this.posts.length;
+  }
+
+  protected get hasPosts(): boolean {
+    return this.totalPostCount > 0;
   }
 
   protected get categories(): string[] {

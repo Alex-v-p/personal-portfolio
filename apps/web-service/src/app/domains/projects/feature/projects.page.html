@@ -12,8 +12,27 @@
         <div class="mx-auto w-full max-w-2xl border-t border-stone-300"></div>
       </header>
 
-      <section *ngIf="isLoading" class="rounded-[1.75rem] border border-stone-300/80 bg-white/70 p-6">
-        <p class="text-sm text-stone-600">Loading projects from the API…</p>
+      <section *ngIf="isLoading" class="space-y-5" aria-label="Loading projects">
+        <div class="space-y-4 rounded-[1.75rem] border border-stone-300/80 bg-white/70 p-5 sm:p-6">
+          <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)] lg:items-start">
+            <div class="space-y-2">
+              <app-ui-skeleton className="h-3 w-16 rounded-full"></app-ui-skeleton>
+              <app-ui-skeleton className="h-12 w-full rounded-2xl"></app-ui-skeleton>
+            </div>
+            <div class="space-y-2">
+              <app-ui-skeleton className="h-3 w-32 rounded-full"></app-ui-skeleton>
+              <app-ui-skeleton className="h-12 w-full rounded-2xl"></app-ui-skeleton>
+            </div>
+          </div>
+        </div>
+
+        <app-ui-skeleton className="h-[24rem] w-full rounded-[2rem]"></app-ui-skeleton>
+
+        <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <app-ui-skeleton className="h-[20rem] w-full rounded-[2rem]"></app-ui-skeleton>
+          <app-ui-skeleton className="h-[20rem] w-full rounded-[2rem]"></app-ui-skeleton>
+          <app-ui-skeleton className="h-[20rem] w-full rounded-[2rem]"></app-ui-skeleton>
+        </div>
       </section>
 
       <app-ui-empty-state
@@ -21,13 +40,20 @@
         title="Could not load projects"
         [description]="errorMessage"
         [hasActions]="true"
+        tone="error"
       >
         <div actions>
           <app-ui-button appearance="secondary" type="button" (click)="loadProjects()">Retry</app-ui-button>
         </div>
       </app-ui-empty-state>
 
-      <ng-container *ngIf="!isLoading && !errorMessage">
+      <app-ui-empty-state
+        *ngIf="!isLoading && !errorMessage && !hasProjects"
+        title="No projects are published yet"
+        description="Publish a project in the CMS to populate this page and its featured spotlight card."
+      ></app-ui-empty-state>
+
+      <ng-container *ngIf="!isLoading && !errorMessage && hasProjects">
         <section class="space-y-4 rounded-[1.75rem] border border-stone-300/80 bg-white/70 p-5 sm:p-6">
           <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)] lg:items-start">
             <label class="block space-y-2">

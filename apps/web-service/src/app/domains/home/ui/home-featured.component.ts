@@ -18,4 +18,12 @@ import { ProjectCardComponent } from '@domains/projects/ui/project-card.componen
 export class HomeFeaturedSectionComponent {
   @Input({ required: true }) featuredBlogPost!: BlogPostSummary;
   @Input({ required: true }) primaryProject!: ProjectSummary;
+
+  protected get hasFeaturedBlogPost(): boolean {
+    return Boolean(this.featuredBlogPost?.title);
+  }
+
+  protected get hasPrimaryProject(): boolean {
+    return Boolean(this.primaryProject?.title);
+  }
 }
