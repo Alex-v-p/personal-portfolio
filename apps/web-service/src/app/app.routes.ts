@@ -62,21 +62,18 @@ export const routes: Routes = [
       },
       {
         path: 'profile',
-        loadComponent: () => import('@domains/admin/shell/feature/admin-legacy-tab.page').then((module) => module.AdminLegacyTabPageComponent),
+        loadComponent: () => import('@domains/admin/profile/feature/admin-profile.page').then((module) => module.AdminProfilePageComponent),
         title: 'Admin Profile',
-        data: { legacyTab: 'profile' },
       },
       {
         path: 'stats',
-        loadComponent: () => import('@domains/admin/shell/feature/admin-legacy-tab.page').then((module) => module.AdminLegacyTabPageComponent),
+        loadComponent: () => import('@domains/admin/stats/feature/admin-stats.page').then((module) => module.AdminStatsPageComponent),
         title: 'Admin GitHub / Stats',
-        data: { legacyTab: 'stats' },
       },
       {
         path: 'assistant',
-        loadComponent: () => import('@domains/admin/shell/feature/admin-legacy-tab.page').then((module) => module.AdminLegacyTabPageComponent),
+        loadComponent: () => import('@domains/admin/assistant/feature/admin-assistant.page').then((module) => module.AdminAssistantPageComponent),
         title: 'Admin Assistant',
-        data: { legacyTab: 'assistant' },
       },
       {
         path: 'activity',

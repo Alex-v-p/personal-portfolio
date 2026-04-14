@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { AdminGithubSnapshot } from '@domains/admin/model/admin.model';
 import { AdminGithubSnapshotForm } from '@domains/admin/model/forms/index';
-import { contributionPreview } from '@domains/admin/shell/state/admin-page.display.utils';
+import { contributionPreview } from '@domains/admin/stats/state/admin-stats.state';
 
 @Component({
   selector: 'app-admin-stats-tab',

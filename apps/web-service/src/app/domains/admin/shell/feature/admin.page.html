@@ -5,7 +5,7 @@
         <p class="text-xs font-semibold uppercase tracking-[0.22em] text-stone-500">Portfolio CMS</p>
         <h1 class="text-3xl font-semibold text-stone-950">Content management</h1>
         <p class="max-w-3xl text-sm leading-6 text-stone-600">
-          Manage the remaining legacy admin areas while the higher-friction domains move onto their own dedicated routes.
+          Manage the remaining legacy admin areas while more operational workspaces continue moving onto dedicated routes.
         </p>
       </div>
       <div class="flex flex-wrap items-center gap-3">
@@ -97,42 +97,8 @@
       (navigationItemDeleted)="deleteNavigationItem()">
     </app-admin-navigation-tab>
 
-    <app-admin-profile-tab
-      *ngIf="activeTab === 'profile'"
-      [profileForm]="profileForm"
-      [mediaFiles]="referenceData.mediaFiles"
-      [profileAvatarUploadForm]="profileAvatarUploadForm"
-      [profileHeroUploadForm]="profileHeroUploadForm"
-      [profileResumeUploadForm]="profileResumeUploadForm"
-      [uploadInProgressKey]="uploadInProgressKey"
-      (socialLinkAdded)="addSocialLink()"
-      (socialLinkRemoved)="removeSocialLink($event)"
-      (profileSaved)="saveProfile()"
-      (scopedFileSelected)="onScopedFileSelected($event.event, $event.form)"
-      (profileAvatarUploadRequested)="uploadProfileAvatar()"
-      (profileHeroUploadRequested)="uploadProfileHero()"
-      (profileResumeUploadRequested)="uploadProfileResume()">
-    </app-admin-profile-tab>
 
-    <app-admin-stats-tab
-      *ngIf="activeTab === 'stats'"
-      [githubSnapshots]="githubSnapshots"
-      [selectedGithubSnapshotId]="selectedGithubSnapshotId"
-      [githubSnapshotForm]="githubSnapshotForm"
-      [isRefreshingGithub]="isRefreshingGithub"
-      (githubSnapshotSelected)="selectGithubSnapshot($event)"
-      (newGithubSnapshotStarted)="startNewGithubSnapshot()"
-      (githubRefreshRequested)="refreshGithubSnapshot()"
-      (githubSnapshotSaved)="saveGithubSnapshot()"
-      (githubSnapshotDeleted)="deleteGithubSnapshot()">
-    </app-admin-stats-tab>
 
-    <app-admin-assistant-tab
-      *ngIf="activeTab === 'assistant'"
-      [assistantKnowledgeStatus]="assistantKnowledgeStatus"
-      [isRebuildingAssistantKnowledge]="isRebuildingAssistantKnowledge"
-      (rebuildRequested)="rebuildAssistantKnowledge()">
-    </app-admin-assistant-tab>
 
     <app-admin-admins-tab
       *ngIf="activeTab === 'admins'"

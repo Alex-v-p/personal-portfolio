@@ -117,19 +117,11 @@ import { parseContributionDays, parseJsonObject, resolveSelection, toggleSelecti
     NgFor,
     NgClass,
     FormsModule,
-    AdminOverviewTabComponent,
-    AdminMediaTabComponent,
     AdminProjectsTabComponent,
-    AdminBlogTabComponent,
     AdminTaxonomyTabComponent,
     AdminExperienceTabComponent,
     AdminNavigationTabComponent,
-    AdminProfileTabComponent,
-    AdminStatsTabComponent,
-    AdminAssistantTabComponent,
-    AdminActivityTabComponent,
     AdminAdminsTabComponent,
-    AdminMessagesTabComponent,
   ],
   templateUrl: './admin.page.html'
 })
@@ -268,16 +260,12 @@ export class AdminPageComponent implements OnInit, OnChanges {
     const currentSelections = {
       mediaFile: this.selectedMediaFileId,
       project: this.selectedProjectId,
-      blogPost: this.selectedBlogPostId,
       skillCategory: this.selectedSkillCategoryId,
       skill: this.selectedSkillId,
       blogTag: this.selectedBlogTagId,
       experience: this.selectedExperienceId,
       navigation: this.selectedNavigationItemId,
       adminUser: this.selectedAdminUserId,
-      github: this.selectedGithubSnapshotId,
-      activityVisitor: this.selectedActivityVisitorId,
-      activityVisit: this.selectedActivityVisitSessionId,
     };
 
     this.isLoading = true;
@@ -287,15 +275,9 @@ export class AdminPageComponent implements OnInit, OnChanges {
       dashboard: this.overviewApi.getDashboardSummary(),
       referenceData: this.overviewApi.getReferenceData(),
       projects: this.contentApi.getProjects(),
-      blogPosts: this.contentApi.getBlogPosts(),
       experiences: this.contentApi.getExperiences(),
       navigationItems: this.contentApi.getNavigationItems(),
       adminUsers: this.messagesApi.listAdminUsers(),
-      githubSnapshots: this.statsApi.getGithubSnapshots(),
-      profile: this.profileApi.getProfile(),
-      messages: this.messagesApi.getContactMessages(),
-      assistantKnowledgeStatus: this.overviewApi.getAssistantKnowledgeStatus(),
-      siteActivity: this.overviewApi.getSiteActivity(),
     })
       .pipe(
         take(1),
@@ -309,51 +291,26 @@ export class AdminPageComponent implements OnInit, OnChanges {
           this.dashboard = result.dashboard;
           this.referenceData = result.referenceData;
           this.projects = result.projects.items;
-          this.blogPosts = result.blogPosts.items;
           this.experiences = result.experiences.items;
           this.navigationItems = result.navigationItems.items;
           this.adminUsers = result.adminUsers;
-          this.githubSnapshots = result.githubSnapshots.items;
-          this.profile = result.profile;
-          this.messages = result.messages.items;
-          this.assistantKnowledgeStatus = result.assistantKnowledgeStatus;
-          this.siteActivity = result.siteActivity;
 
           this.selectedMediaFileId = resolveSelection(currentSelections.mediaFile, this.referenceData.mediaFiles) ?? this.referenceData.mediaFiles[0]?.id ?? null;
           this.selectedProjectId = resolveSelection(currentSelections.project, this.projects);
-          this.selectedBlogPostId = resolveSelection(currentSelections.blogPost, this.blogPosts);
           this.selectedSkillCategoryId = resolveSelection(currentSelections.skillCategory, this.referenceData.skillCategories);
           this.selectedSkillId = resolveSelection(currentSelections.skill, this.referenceData.skills);
           this.selectedBlogTagId = resolveSelection(currentSelections.blogTag, this.referenceData.blogTags);
           this.selectedExperienceId = resolveSelection(currentSelections.experience, this.experiences);
           this.selectedNavigationItemId = resolveSelection(currentSelections.navigation, this.navigationItems);
           this.selectedAdminUserId = resolveSelection(currentSelections.adminUser, this.adminUsers);
-          this.selectedGithubSnapshotId = resolveSelection(currentSelections.github, this.githubSnapshots);
-          this.selectedActivityVisitorId = currentSelections.activityVisitor;
-          this.selectedActivityVisitSessionId = currentSelections.activityVisit;
-          const activitySelections = ensureActivitySelectionsState(
-            this.siteActivity,
-            {
-              visitorSearchTerm: this.activityVisitorSearchTerm,
-              visitorFocus: this.activityVisitorFocus,
-              timelineEventFilter: this.activityTimelineEventFilter,
-            },
-            this.selectedActivityVisitorId,
-            this.selectedActivityVisitSessionId,
-          );
-          this.selectedActivityVisitorId = activitySelections.selectedVisitorId;
-          this.selectedActivityVisitSessionId = activitySelections.selectedVisitSessionId;
 
           this.projectForm = this.selectedProjectId ? toProjectForm(this.projects.find((item) => item.id === this.selectedProjectId)!) : createEmptyProjectForm();
-          this.blogPostForm = this.selectedBlogPostId ? toBlogPostForm(this.blogPosts.find((item) => item.id === this.selectedBlogPostId)!) : createEmptyBlogPostForm();
-          this.profileForm = this.profile ? toProfileForm(this.profile) : createEmptyProfileForm();
           this.skillCategoryForm = this.selectedSkillCategoryId ? toSkillCategoryForm(this.referenceData.skillCategories.find((item) => item.id === this.selectedSkillCategoryId)!) : createEmptySkillCategoryForm();
           this.skillForm = this.selectedSkillId ? toSkillForm(this.referenceData.skills.find((item) => item.id === this.selectedSkillId)!) : createEmptySkillForm();
           this.blogTagForm = this.selectedBlogTagId ? toBlogTagForm(this.referenceData.blogTags.find((item) => item.id === this.selectedBlogTagId)!) : createEmptyBlogTagForm();
           this.experienceForm = this.selectedExperienceId ? toExperienceForm(this.experiences.find((item) => item.id === this.selectedExperienceId)!) : createEmptyExperienceForm();
           this.navigationItemForm = this.selectedNavigationItemId ? toNavigationItemForm(this.navigationItems.find((item) => item.id === this.selectedNavigationItemId)!) : createEmptyNavigationItemForm();
           this.adminUserForm = this.selectedAdminUserId ? toAdminUserForm(this.adminUsers.find((item) => item.id === this.selectedAdminUserId)!) : createEmptyAdminUserForm();
-          this.githubSnapshotForm = this.selectedGithubSnapshotId ? toGithubSnapshotForm(this.githubSnapshots.find((item) => item.id === this.selectedGithubSnapshotId)!) : createEmptyGithubSnapshotForm();
         },
         error: (error) => {
           if (error?.status === 401) {

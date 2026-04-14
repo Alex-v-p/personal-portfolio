@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { AdminMediaFile } from '@domains/admin/model/admin.model';
 import { AdminProfileForm, ScopedUploadForm } from '@domains/admin/model/forms/index';
-import { slugify } from '@domains/admin/shell/state/admin-page.utils';
+import { buildProfileMediaFolder } from '@domains/admin/media/state/admin-media.filters';
 
 @Component({
   selector: 'app-admin-profile-tab',
@@ -57,7 +57,6 @@ export class AdminProfileTabComponent {
   }
 
   buildProfileFolder(): string {
-    const profileSlug = slugify(`${this.profileForm.firstName || 'profile'}-${this.profileForm.lastName || 'owner'}`);
-    return `profiles/${profileSlug}`;
+    return buildProfileMediaFolder(this.profileForm.firstName, this.profileForm.lastName);
   }
 }
