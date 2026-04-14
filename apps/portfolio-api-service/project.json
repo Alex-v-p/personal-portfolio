@@ -15,7 +15,7 @@
       "executor": "nx:run-commands",
       "options": {
         "cwd": "apps/portfolio-api-service",
-        "command": "..\\..\\.venv\\Scripts\\python.exe -m pytest"
+        "command": "..\\..\\.venv\\Scripts\\python.exe scripts\\ensure_requirements.py && ..\\..\\.venv\\Scripts\\python.exe -m pytest"
       }
     },
     "lint": {

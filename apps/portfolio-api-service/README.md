@@ -63,7 +63,9 @@ The API now exposes protected Stage 10 CMS endpoints under `/api/admin`, includi
 - `/api/admin/media-files`
 - `/api/admin/media-files/upload`
 
-Use the bearer token returned by `/api/admin/auth/login` for subsequent admin requests.
+Admin auth now uses an HttpOnly session cookie. The login and session restore responses return a CSRF token that the SPA must send in the configured CSRF header for mutating `/api/admin/*` requests.
+
+Admin MFA now uses TOTP compatible with Google Authenticator and similar apps. First sign-in on a non-enrolled admin account returns a partial session that can only complete MFA setup. Once enrolled, every future admin login requires a valid TOTP code or a one-time backup code before the rest of the CMS becomes accessible.
 
 ## Admin media uploads
 

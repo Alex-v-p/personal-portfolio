@@ -4,6 +4,9 @@ export interface AdminUser {
   displayName: string;
   isActive: boolean;
   createdAt: string;
+  mfaEnabled: boolean;
+  mfaEnrolledAt?: string | null;
+  mfaRecoveryCodesRemaining: number;
 }
 
 export interface AdminUserCreate {
@@ -20,9 +23,24 @@ export interface AdminUserUpdate {
   isActive: boolean;
 }
 
-export interface AdminAuthToken {
-  accessToken: string;
-  tokenType: string;
+export interface AdminAuthSession {
+  csrfToken: string;
   expiresInSeconds: number;
   user: AdminUser;
+  isMfaEnabled: boolean;
+  isMfaVerified: boolean;
+  mfaRequired: boolean;
+  mfaSetupRequired: boolean;
+}
+
+export interface AdminMfaSetupChallenge {
+  manualEntryKey: string;
+  otpauthUri: string;
+  qrCodeDataUrl: string;
+  issuer: string;
+}
+
+export interface AdminMfaSetupConfirmResult {
+  backupCodes: string[];
+  session: AdminAuthSession;
 }

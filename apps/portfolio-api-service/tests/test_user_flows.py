@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
+import pyotp
 from fastapi.testclient import TestClient
 
 
@@ -9,10 +10,27 @@ ADMIN_EMAIL = 'admin@example.com'
 ADMIN_PASSWORD = 'test-admin-pass'
 
 
-def _admin_headers(client: TestClient) -> dict[str, str]:
+def _login_admin(client: TestClient):
     response = client.post('/api/admin/auth/login', json={'email': ADMIN_EMAIL, 'password': ADMIN_PASSWORD})
     assert response.status_code == 200
-    return {'Authorization': f"Bearer {response.json()['accessToken']}"}
+    return response
+
+
+def _admin_headers(client: TestClient) -> dict[str, str]:
+    response = _login_admin(client)
+    body = response.json()
+    csrf_headers = {'X-Portfolio-CSRF': body['csrfToken']}
+
+    if body.get('mfaSetupRequired'):
+        setup = client.post('/api/admin/auth/mfa/setup', headers=csrf_headers)
+        assert setup.status_code == 200
+        setup_body = setup.json()
+        code = pyotp.TOTP(setup_body['manualEntryKey']).now()
+        confirm = client.post('/api/admin/auth/mfa/setup/confirm', headers=csrf_headers, json={'code': code})
+        assert confirm.status_code == 200
+        return {'X-Portfolio-CSRF': confirm.json()['session']['csrfToken']}
+
+    return {'X-Portfolio-CSRF': body['csrfToken']}
 
 
 def test_public_user_journey_can_browse_content_contact_and_track_activity(client: TestClient) -> None:

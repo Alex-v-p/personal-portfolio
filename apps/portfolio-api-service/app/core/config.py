@@ -77,9 +77,57 @@ class Settings(BaseSettings):
         default=300,
         validation_alias=AliasChoices('MEDIA_UPLOAD_RATE_LIMIT_WINDOW_SECONDS', 'PORTFOLIO_API_MEDIA_UPLOAD_RATE_LIMIT_WINDOW_SECONDS'),
     )
-    admin_access_token_expire_minutes: int = Field(
-        default=480,
-        validation_alias=AliasChoices('ADMIN_ACCESS_TOKEN_EXPIRE_MINUTES', 'PORTFOLIO_API_ADMIN_ACCESS_TOKEN_EXPIRE_MINUTES'),
+    admin_session_max_age_minutes: int = Field(
+        default=120,
+        ge=5,
+        validation_alias=AliasChoices('ADMIN_SESSION_MAX_AGE_MINUTES', 'PORTFOLIO_API_ADMIN_SESSION_MAX_AGE_MINUTES'),
+    )
+    admin_session_idle_timeout_minutes: int = Field(
+        default=30,
+        ge=5,
+        validation_alias=AliasChoices('ADMIN_SESSION_IDLE_TIMEOUT_MINUTES', 'PORTFOLIO_API_ADMIN_SESSION_IDLE_TIMEOUT_MINUTES'),
+    )
+    admin_login_rate_limit_max_attempts: int = Field(
+        default=5,
+        ge=1,
+        validation_alias=AliasChoices('ADMIN_LOGIN_RATE_LIMIT_MAX_ATTEMPTS', 'PORTFOLIO_API_ADMIN_LOGIN_RATE_LIMIT_MAX_ATTEMPTS'),
+    )
+    admin_login_rate_limit_window_seconds: int = Field(
+        default=900,
+        ge=60,
+        validation_alias=AliasChoices('ADMIN_LOGIN_RATE_LIMIT_WINDOW_SECONDS', 'PORTFOLIO_API_ADMIN_LOGIN_RATE_LIMIT_WINDOW_SECONDS'),
+    )
+    admin_session_cookie_name: str = Field(
+        default='portfolio_admin_session',
+        validation_alias=AliasChoices('ADMIN_SESSION_COOKIE_NAME', 'PORTFOLIO_API_ADMIN_SESSION_COOKIE_NAME'),
+    )
+    admin_csrf_header_name: str = Field(
+        default='X-Portfolio-CSRF',
+        validation_alias=AliasChoices('ADMIN_CSRF_HEADER_NAME', 'PORTFOLIO_API_ADMIN_CSRF_HEADER_NAME'),
+    )
+    admin_session_cookie_secure: bool = Field(
+        default=False,
+        validation_alias=AliasChoices('ADMIN_SESSION_COOKIE_SECURE', 'PORTFOLIO_API_ADMIN_SESSION_COOKIE_SECURE'),
+    )
+    admin_session_cookie_same_site: str = Field(
+        default='lax',
+        validation_alias=AliasChoices('ADMIN_SESSION_COOKIE_SAME_SITE', 'PORTFOLIO_API_ADMIN_SESSION_COOKIE_SAME_SITE'),
+    )
+    admin_mfa_totp_issuer: str = Field(
+        default='Personal Portfolio CMS',
+        validation_alias=AliasChoices('ADMIN_MFA_TOTP_ISSUER', 'PORTFOLIO_API_ADMIN_MFA_TOTP_ISSUER'),
+    )
+    admin_mfa_recovery_code_count: int = Field(
+        default=8,
+        ge=4,
+        le=16,
+        validation_alias=AliasChoices('ADMIN_MFA_RECOVERY_CODE_COUNT', 'PORTFOLIO_API_ADMIN_MFA_RECOVERY_CODE_COUNT'),
+    )
+    admin_mfa_pending_secret_ttl_minutes: int = Field(
+        default=15,
+        ge=5,
+        le=60,
+        validation_alias=AliasChoices('ADMIN_MFA_PENDING_SECRET_TTL_MINUTES', 'PORTFOLIO_API_ADMIN_MFA_PENDING_SECRET_TTL_MINUTES'),
     )
     media_storage_endpoint: str = Field(
         default='minio:9000',

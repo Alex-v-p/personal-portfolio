@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pyotp
 from fastapi.testclient import TestClient
 
 from app.domains.github.sync import SyncedGithubContributionDay, SyncedGithubSnapshot
@@ -9,18 +10,57 @@ ADMIN_EMAIL = 'admin@example.com'
 ADMIN_PASSWORD = 'test-admin-pass'
 
 
-def _admin_token(client: TestClient) -> str:
+def _login_admin(client: TestClient):
     response = client.post('/api/admin/auth/login', json={'email': ADMIN_EMAIL, 'password': ADMIN_PASSWORD})
     assert response.status_code == 200
-    return response.json()['accessToken']
+    return response
 
 
-def test_admin_login_returns_bearer_token(client: TestClient) -> None:
-    response = client.post('/api/admin/auth/login', json={'email': ADMIN_EMAIL, 'password': ADMIN_PASSWORD})
-    assert response.status_code == 200
+def _admin_headers(client: TestClient) -> dict[str, str]:
+    response = _login_admin(client)
     body = response.json()
-    assert body['tokenType'] == 'bearer'
+    csrf_headers = {'X-Portfolio-CSRF': body['csrfToken']}
+
+    if body.get('mfaSetupRequired'):
+        setup = client.post('/api/admin/auth/mfa/setup', headers=csrf_headers)
+        assert setup.status_code == 200
+        setup_body = setup.json()
+        code = pyotp.TOTP(setup_body['manualEntryKey']).now()
+        confirm = client.post('/api/admin/auth/mfa/setup/confirm', headers=csrf_headers, json={'code': code})
+        assert confirm.status_code == 200
+        return {'X-Portfolio-CSRF': confirm.json()['session']['csrfToken']}
+
+    return {'X-Portfolio-CSRF': body['csrfToken']}
+
+
+def test_admin_login_returns_cookie_session_payload(client: TestClient) -> None:
+    response = _login_admin(client)
+    body = response.json()
+    assert body['csrfToken']
+    assert 'portfolio_admin_session' in response.cookies
     assert body['user']['email'] == ADMIN_EMAIL
+    assert body['mfaSetupRequired'] is True
+    assert body['mfaRequired'] is False
+
+
+def test_admin_can_enroll_totp_mfa_and_receive_backup_codes(client: TestClient) -> None:
+    login_response = _login_admin(client)
+    login_body = login_response.json()
+    headers = {'X-Portfolio-CSRF': login_body['csrfToken']}
+
+    setup_response = client.post('/api/admin/auth/mfa/setup', headers=headers)
+    assert setup_response.status_code == 200
+    setup_body = setup_response.json()
+    assert setup_body['manualEntryKey']
+    assert setup_body['qrCodeDataUrl'].startswith('data:image/svg+xml;base64,')
+
+    code = pyotp.TOTP(setup_body['manualEntryKey']).now()
+    confirm_response = client.post('/api/admin/auth/mfa/setup/confirm', headers=headers, json={'code': code})
+    assert confirm_response.status_code == 200
+    confirm_body = confirm_response.json()
+    assert len(confirm_body['backupCodes']) >= 8
+    assert confirm_body['session']['isMfaVerified'] is True
+    assert confirm_body['session']['mfaSetupRequired'] is False
 
 
 def test_admin_endpoints_require_auth(client: TestClient) -> None:
@@ -28,9 +68,42 @@ def test_admin_endpoints_require_auth(client: TestClient) -> None:
     assert response.status_code == 401
 
 
+
+
+def test_admin_write_endpoints_require_csrf(client: TestClient) -> None:
+    response = client.post('/api/admin/auth/login', json={'email': ADMIN_EMAIL, 'password': ADMIN_PASSWORD})
+    assert response.status_code == 200
+
+    blocked = client.post('/api/admin/blog-tags', json={'name': 'No CSRF', 'slug': 'no-csrf'})
+    assert blocked.status_code == 403
+
+
+
+def test_admin_logout_revokes_the_current_session(client: TestClient) -> None:
+    headers = _admin_headers(client)
+
+    authenticated = client.get('/api/admin/reference-data', headers=headers)
+    assert authenticated.status_code == 200
+
+    logout_response = client.post('/api/admin/auth/logout', headers=headers)
+    assert logout_response.status_code == 204
+
+    after_logout = client.get('/api/admin/reference-data', headers=headers)
+    assert after_logout.status_code == 401
+
+
+
+def test_admin_login_is_rate_limited_after_repeated_failures(client: TestClient) -> None:
+    for _ in range(5):
+        response = client.post('/api/admin/auth/login', json={'email': ADMIN_EMAIL, 'password': 'wrong-password'})
+        assert response.status_code == 401
+
+    blocked = client.post('/api/admin/auth/login', json={'email': ADMIN_EMAIL, 'password': 'wrong-password'})
+    assert blocked.status_code == 429
+    assert blocked.headers.get('Retry-After')
+
 def test_admin_can_create_update_and_delete_project(client: TestClient) -> None:
-    token = _admin_token(client)
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = _admin_headers(client)
     reference = client.get('/api/admin/reference-data', headers=headers)
     assert reference.status_code == 200
     skill_id = reference.json()['skills'][0]['id']
@@ -101,8 +174,7 @@ def test_admin_can_create_update_and_delete_project(client: TestClient) -> None:
 
 
 def test_admin_can_manage_blog_posts(client: TestClient) -> None:
-    token = _admin_token(client)
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = _admin_headers(client)
 
     first_tag_response = client.post(
         '/api/admin/blog-tags',
@@ -179,8 +251,7 @@ def test_admin_can_manage_blog_posts(client: TestClient) -> None:
 
 
 def test_admin_can_manage_taxonomy_experience_navigation_and_stats(client: TestClient) -> None:
-    token = _admin_token(client)
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = _admin_headers(client)
 
     category_response = client.post(
         '/api/admin/skill-categories',
@@ -276,8 +347,7 @@ def test_admin_can_manage_taxonomy_experience_navigation_and_stats(client: TestC
 
 
 def test_admin_can_update_profile(client: TestClient) -> None:
-    token = _admin_token(client)
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = _admin_headers(client)
     current_profile = client.get('/api/admin/profile', headers=headers)
     assert current_profile.status_code == 200
     profile = current_profile.json()
@@ -341,8 +411,7 @@ def test_admin_can_read_and_mark_contact_messages(client: TestClient) -> None:
         },
     )
 
-    token = _admin_token(client)
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = _admin_headers(client)
     response = client.get('/api/admin/contact-messages', headers=headers)
     assert response.status_code == 200
     message = response.json()['items'][0]
@@ -358,8 +427,7 @@ def test_admin_can_read_and_mark_contact_messages(client: TestClient) -> None:
 
 
 def test_admin_can_refresh_github_snapshot_from_github(client: TestClient, monkeypatch) -> None:
-    token = _admin_token(client)
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = _admin_headers(client)
 
     call_count = {'value': 0}
 
@@ -401,8 +469,7 @@ def test_admin_can_refresh_github_snapshot_from_github(client: TestClient, monke
 
 
 def test_admin_can_rebuild_assistant_knowledge_index(client: TestClient) -> None:
-    token = _admin_token(client)
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = _admin_headers(client)
 
     status_response = client.get('/api/admin/assistant/knowledge', headers=headers)
     assert status_response.status_code == 200
@@ -422,8 +489,7 @@ def test_admin_can_rebuild_assistant_knowledge_index(client: TestClient) -> None
 def test_admin_refresh_returns_async_task_when_redis_queue_is_available(client: TestClient, monkeypatch) -> None:
     from app.services.async_tasks import AdminTaskRecord
 
-    token = _admin_token(client)
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = _admin_headers(client)
 
     class FakeQueue:
         enabled = True
@@ -449,8 +515,7 @@ def test_admin_refresh_returns_async_task_when_redis_queue_is_available(client: 
 def test_admin_can_fetch_async_task_status(client: TestClient, monkeypatch) -> None:
     from app.services.async_tasks import AdminTaskRecord
 
-    token = _admin_token(client)
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = _admin_headers(client)
 
     class FakeQueue:
         def get(self, task_id: str) -> AdminTaskRecord | None:
@@ -525,8 +590,7 @@ def test_admin_site_activity_includes_retention_countdowns(client: TestClient) -
         )
         session.commit()
 
-    token = _admin_token(client)
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = _admin_headers(client)
     response = client.get('/api/admin/site-activity', headers=headers)
     assert response.status_code == 200
 
@@ -557,8 +621,7 @@ def test_admin_github_snapshot_listing_includes_auto_refresh_countdown(client: T
 
     from app.services.maintenance import MaintenanceJobStatus
 
-    token = _admin_token(client)
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = _admin_headers(client)
 
     created_response = client.post(
         '/api/admin/github-snapshots',

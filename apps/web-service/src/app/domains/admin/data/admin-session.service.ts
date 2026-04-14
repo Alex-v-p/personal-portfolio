@@ -1,95 +1,128 @@
 import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { catchError, finalize, map, tap } from 'rxjs/operators';
 
-import { AdminAuthToken, AdminUser } from '@domains/admin/model/admin.model';
+import {
+  AdminAuthSession,
+  AdminMfaSetupChallenge,
+  AdminMfaSetupConfirmResult,
+  AdminUser,
+} from '@domains/admin/model/admin.model';
 import { AdminAuthApiService } from '@domains/admin/data/api/admin-auth-api.service';
 
-const TOKEN_STORAGE_KEY = 'portfolio.admin.access-token';
-const USER_STORAGE_KEY = 'portfolio.admin.user';
+const AUTH_SESSION_STORAGE_KEY = 'portfolio.admin.auth-session';
 
 @Injectable({ providedIn: 'root' })
 export class AdminSessionService {
   private readonly router = inject(Router);
   private readonly authApi = inject(AdminAuthApiService);
-  private readonly currentUserSubject = new BehaviorSubject<AdminUser | null>(this.readStoredUser());
+  private readonly sessionSubject = new BehaviorSubject<AdminAuthSession | null>(this.readStoredSession());
 
-  readonly currentUser$ = this.currentUserSubject.asObservable();
+  readonly authSession$ = this.sessionSubject.asObservable();
 
-  get currentUser(): AdminUser | null {
-    return this.currentUserSubject.value;
+  get currentSession(): AdminAuthSession | null {
+    return this.sessionSubject.value;
   }
 
-  get token(): string | null {
-    if (typeof localStorage === 'undefined') {
-      return null;
-    }
-    return localStorage.getItem(TOKEN_STORAGE_KEY);
+  get currentUser(): AdminUser | null {
+    return this.currentSession?.user ?? null;
+  }
+
+  get currentUser$(): Observable<AdminUser | null> {
+    return this.authSession$.pipe(map((session) => session?.user ?? null));
+  }
+
+  get csrfToken(): string | null {
+    return this.currentSession?.csrfToken ?? null;
   }
 
   get isAuthenticated(): boolean {
-    return !!this.token;
+    return !!this.currentUser;
   }
 
-  login(email: string, password: string): Observable<AdminUser> {
-    return this.authApi.login(email, password).pipe(
-      tap((auth) => this.storeAuth(auth)),
-      map((auth) => auth.user)
+  get isFullyAuthenticated(): boolean {
+    return !!this.currentSession && this.currentSession.isMfaVerified && !this.currentSession.mfaRequired && !this.currentSession.mfaSetupRequired;
+  }
+
+  get hasPendingMfaStep(): boolean {
+    return !!this.currentSession && (this.currentSession.mfaRequired || this.currentSession.mfaSetupRequired);
+  }
+
+  get requiresMfaSetup(): boolean {
+    return !!this.currentSession?.mfaSetupRequired;
+  }
+
+  get requiresMfaVerification(): boolean {
+    return !!this.currentSession?.mfaRequired;
+  }
+
+  login(email: string, password: string): Observable<AdminAuthSession> {
+    return this.authApi.login(email, password).pipe(tap((authSession) => this.storeSession(authSession)));
+  }
+
+  restoreSession(): Observable<AdminAuthSession | null> {
+    return this.authApi.getCurrentAdmin().pipe(
+      tap((authSession) => this.storeSession(authSession)),
+      catchError(() => {
+        this.clearSession(false);
+        return of(null);
+      }),
     );
   }
 
-  restoreSession(): Observable<AdminUser | null> {
-    if (!this.token) {
-      return of(null);
-    }
+  beginMfaSetup(): Observable<AdminMfaSetupChallenge> {
+    return this.authApi.beginMfaSetup();
+  }
 
-    return this.authApi.getCurrentAdmin().pipe(
-      tap((user) => this.storeUser(user)),
-      map((user) => user as AdminUser | null),
-      catchError((error) => {
-        this.logout(false);
-        return throwError(() => error);
-      })
+  confirmMfaSetup(code: string): Observable<AdminMfaSetupConfirmResult> {
+    return this.authApi.confirmMfaSetup(code).pipe(
+      tap((result) => this.storeSession(result.session)),
+    );
+  }
+
+  verifyMfa(code: string | null, recoveryCode: string | null): Observable<AdminAuthSession> {
+    return this.authApi.verifyMfa({ code, recoveryCode }).pipe(
+      tap((authSession) => this.storeSession(authSession)),
     );
   }
 
   logout(redirectToLogin = true): void {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem(TOKEN_STORAGE_KEY);
-      localStorage.removeItem(USER_STORAGE_KEY);
+    this.authApi.logout().pipe(
+      catchError(() => of(void 0)),
+      finalize(() => {
+        this.clearSession(redirectToLogin);
+      }),
+    ).subscribe();
+  }
+
+  private storeSession(authSession: AdminAuthSession): void {
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem(AUTH_SESSION_STORAGE_KEY, JSON.stringify(authSession));
     }
-    this.currentUserSubject.next(null);
+    this.sessionSubject.next(authSession);
+  }
+
+  private clearSession(redirectToLogin: boolean): void {
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem(AUTH_SESSION_STORAGE_KEY);
+    }
+    this.sessionSubject.next(null);
     if (redirectToLogin) {
       void this.router.navigate(['/admin/login']);
     }
   }
 
-  private storeAuth(auth: AdminAuthToken): void {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(TOKEN_STORAGE_KEY, auth.accessToken);
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(auth.user));
-    }
-    this.currentUserSubject.next(auth.user);
-  }
-
-  private storeUser(user: AdminUser): void {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
-    }
-    this.currentUserSubject.next(user);
-  }
-
-  private readStoredUser(): AdminUser | null {
-    if (typeof localStorage === 'undefined') {
+  private readStoredSession(): AdminAuthSession | null {
+    if (typeof sessionStorage === 'undefined') {
       return null;
     }
-    const raw = localStorage.getItem(USER_STORAGE_KEY);
+    const raw = sessionStorage.getItem(AUTH_SESSION_STORAGE_KEY);
     if (!raw) {
       return null;
     }
     try {
-      return JSON.parse(raw) as AdminUser;
+      return JSON.parse(raw) as AdminAuthSession;
     } catch {
       return null;
     }

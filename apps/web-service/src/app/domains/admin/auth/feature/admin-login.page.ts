@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { NgIf } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -31,11 +32,19 @@ export class AdminLoginPageComponent {
         this.isSubmitting = false;
       })
     ).subscribe({
-      next: async () => {
+      next: async (authSession) => {
+        if (authSession.mfaRequired || authSession.mfaSetupRequired) {
+          await this.router.navigate(['/admin/mfa']);
+          return;
+        }
         await this.router.navigate(['/admin']);
       },
-      error: () => {
-        this.errorMessage = 'Admin login failed. Check the seeded admin email/password in your environment and try again.';
+      error: (error: unknown) => {
+        if (error instanceof HttpErrorResponse && error.status === 429) {
+          this.errorMessage = 'Too many login attempts. Please wait a moment and try again.';
+          return;
+        }
+        this.errorMessage = 'Admin login failed. Check your credentials and try again.';
       }
     });
   }

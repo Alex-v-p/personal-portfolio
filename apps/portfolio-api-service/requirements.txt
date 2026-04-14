@@ -12,3 +12,5 @@ email-validator
 
 minio
 httpx
+pyotp
+qrcode

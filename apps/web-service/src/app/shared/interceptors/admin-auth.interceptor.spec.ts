@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
+import { AdminSessionService } from '@domains/admin/data/admin-session.service';
 import { API_BASE_URL } from '../../core/config/api.config';
 import { adminAuthInterceptor } from './admin-auth.interceptor';
 
@@ -11,10 +12,15 @@ describe('adminAuthInterceptor', () => {
   let httpMock: HttpTestingController;
 
   beforeEach(() => {
-    localStorage.clear();
     TestBed.configureTestingModule({
       providers: [
         { provide: API_BASE_URL, useValue: '/api' },
+        {
+          provide: AdminSessionService,
+          useValue: {
+            csrfToken: 'csrf-token-1',
+          },
+        },
         provideHttpClient(withInterceptors([adminAuthInterceptor])),
         provideHttpClientTesting(),
       ],
@@ -26,35 +32,33 @@ describe('adminAuthInterceptor', () => {
 
   afterEach(() => {
     httpMock.verify();
-    localStorage.clear();
     TestBed.resetTestingModule();
   });
 
-  it('adds the bearer token to admin API requests', () => {
-    localStorage.setItem('portfolio.admin.access-token', 'test-token');
+  it('adds credentials and csrf protection to mutating admin API requests', () => {
+    http.post('/api/admin/projects', { title: 'Test' }).subscribe();
 
+    const request = httpMock.expectOne('/api/admin/projects');
+    expect(request.request.withCredentials).toBe(true);
+    expect(request.request.headers.get('X-Portfolio-CSRF')).toBe('csrf-token-1');
+    request.flush({ id: 'project-1' });
+  });
+
+  it('adds credentials but not csrf headers to read-only admin API requests', () => {
     http.get('/api/admin/projects').subscribe();
 
     const request = httpMock.expectOne('/api/admin/projects');
-    expect(request.request.headers.get('Authorization')).toBe('Bearer test-token');
+    expect(request.request.withCredentials).toBe(true);
+    expect(request.request.headers.has('X-Portfolio-CSRF')).toBe(false);
     request.flush({ items: [], total: 0 });
   });
 
-  it('does not add the bearer token to public API requests', () => {
-    localStorage.setItem('portfolio.admin.access-token', 'test-token');
-
+  it('does not modify public API requests', () => {
     http.get('/api/public/home').subscribe();
 
     const request = httpMock.expectOne('/api/public/home');
-    expect(request.request.headers.has('Authorization')).toBe(false);
+    expect(request.request.withCredentials).toBe(false);
+    expect(request.request.headers.has('X-Portfolio-CSRF')).toBe(false);
     request.flush({ hero: {}, featuredProjects: [], featuredBlogPosts: [], expertiseGroups: [], experiencePreview: [], contactPreview: [] });
-  });
-
-  it('does not add the bearer token when no admin session exists', () => {
-    http.get('/api/admin/dashboard').subscribe();
-
-    const request = httpMock.expectOne('/api/admin/dashboard');
-    expect(request.request.headers.has('Authorization')).toBe(false);
-    request.flush({});
   });
 });
