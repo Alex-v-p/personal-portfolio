@@ -114,7 +114,6 @@ import { parseContributionDays, parseJsonObject, resolveSelection, toggleSelecti
     NgClass,
     FormsModule,
     AdminProjectsTabComponent,
-    AdminBlogTabComponent,
     AdminTaxonomyTabComponent,
     AdminExperienceTabComponent,
     AdminNavigationTabComponent,
@@ -184,7 +183,7 @@ export class AdminPageComponent implements OnInit, OnDestroy {
     latestUpdatedAt: null,
   };
   protected siteActivity: AdminSiteActivity = {
-    summary: { totalEvents: 0, uniqueVisitors: 0, pageViews: 0, assistantMessages: 0, contactSubmissions: 0 },
+    summary: { totalEvents: 0, uniqueVisitors: 0, pageViews: 0, assistantMessages: 0, contactSubmissions: 0, siteEventsRetentionDays: 0, assistantActivityRetentionDays: 0},
     visitors: [],
     visits: [],
     events: [],

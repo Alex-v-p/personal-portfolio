@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Subscription, timer } from 'rxjs';
 import { finalize, take } from 'rxjs/operators';
 
 import { AdminOverviewApiService } from '@domains/admin/data/api/admin-overview-api.service';
@@ -24,17 +25,28 @@ import {
   imports: [CommonModule, AdminActivityTabComponent],
   templateUrl: './admin-activity.page.html',
 })
-export class AdminActivityPageComponent implements OnInit {
+export class AdminActivityPageComponent implements OnInit, OnDestroy {
   private readonly overviewApi = inject(AdminOverviewApiService);
   private readonly adminSession = inject(AdminSessionService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
+  private countdownSubscription?: Subscription;
+
   protected isLoading = true;
   protected errorMessage = '';
   protected statusMessage = '';
+  protected currentTimeMs = Date.now();
 
   protected siteActivity: AdminSiteActivity = {
-    summary: { totalEvents: 0, uniqueVisitors: 0, pageViews: 0, assistantMessages: 0, contactSubmissions: 0 },
+    summary: {
+      totalEvents: 0,
+      uniqueVisitors: 0,
+      pageViews: 0,
+      assistantMessages: 0,
+      contactSubmissions: 0,
+      siteEventsRetentionDays: 0,
+      assistantActivityRetentionDays: 0,
+    },
     visitors: [],
     visits: [],
     events: [],
@@ -47,7 +59,15 @@ export class AdminActivityPageComponent implements OnInit {
   protected activityTimelineEventFilter: ActivityTimelineEventFilter = 'all';
 
   ngOnInit(): void {
+    this.countdownSubscription = timer(0, 60_000).subscribe(() => {
+      this.currentTimeMs = Date.now();
+      this.changeDetectorRef.detectChanges();
+    });
     this.loadActivityPage(false);
+  }
+
+  ngOnDestroy(): void {
+    this.countdownSubscription?.unsubscribe();
   }
 
   protected reload(): void {

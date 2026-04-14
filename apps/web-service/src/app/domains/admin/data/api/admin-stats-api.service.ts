@@ -1,15 +1,15 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { AdminAsyncTaskAccepted, AdminCollectionResponse, AdminGithubSnapshot, AdminGithubSnapshotRefreshRequest, AdminGithubSnapshotUpsert } from '@domains/admin/model/admin.model';
+import { AdminAsyncTaskAccepted, AdminGithubSnapshot, AdminGithubSnapshotRefreshRequest, AdminGithubSnapshotsResponse, AdminGithubSnapshotUpsert } from '@domains/admin/model/admin.model';
 import { AdminHttpService } from './admin-http.service';
 
 @Injectable({ providedIn: 'root' })
 export class AdminStatsApiService {
   private readonly adminHttp = inject(AdminHttpService);
 
-  getGithubSnapshots(): Observable<AdminCollectionResponse<AdminGithubSnapshot>> {
-    return this.adminHttp.http.get<AdminCollectionResponse<AdminGithubSnapshot>>(this.adminHttp.adminUrl('github-snapshots'));
+  getGithubSnapshots(): Observable<AdminGithubSnapshotsResponse> {
+    return this.adminHttp.http.get<AdminGithubSnapshotsResponse>(this.adminHttp.adminUrl('github-snapshots'));
   }
 
   createGithubSnapshot(payload: AdminGithubSnapshotUpsert): Observable<AdminGithubSnapshot> {

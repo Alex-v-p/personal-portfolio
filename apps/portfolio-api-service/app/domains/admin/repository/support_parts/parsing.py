@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
+import math
 import re
 from uuid import UUID
 
@@ -68,3 +69,20 @@ class AdminRepositoryParsingMixin:
 
     def _required_uuid(self, value: str) -> UUID:
         return UUID(value.strip())
+
+    def _ensure_utc_datetime(self, value: datetime) -> datetime:
+        if value.tzinfo is None:
+            return value.replace(tzinfo=UTC)
+        return value.astimezone(UTC)
+
+    def _serialize_datetime(self, value: datetime | None) -> str | None:
+        if value is None:
+            return None
+        return self._ensure_utc_datetime(value).isoformat()
+
+    def _future_deadline(self, anchor: datetime, *, seconds: int, now: datetime | None = None) -> tuple[str, int]:
+        effective_anchor = self._ensure_utc_datetime(anchor)
+        effective_now = self._ensure_utc_datetime(now or datetime.now(UTC))
+        deadline = effective_anchor + timedelta(seconds=seconds)
+        remaining_seconds = max(int(math.ceil((deadline - effective_now).total_seconds())), 0)
+        return deadline.isoformat(), remaining_seconds

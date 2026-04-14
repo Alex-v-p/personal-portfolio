@@ -15,7 +15,6 @@ from sqlalchemy.orm import Session, sessionmaker
 from app.core.config import Settings, get_settings
 from app.db.models import AssistantConversation, AssistantMessage, SiteEvent
 from app.db.session import get_session_factory
-from app.domains.admin.service.github_snapshot_service import AdminGithubSnapshotService
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +49,87 @@ class RetentionCleanupReport:
     site_events_deleted: int
     assistant_conversations_deleted: int
     assistant_messages_deleted: int
+
+
+@dataclass(slots=True)
+class MaintenanceJobStatus:
+    enabled: bool
+    status: str
+    next_run_at: datetime | None
+    seconds_until_next_run: int | None
+    last_attempt_at: datetime | None
+    last_success_at: datetime | None
+    last_failed_at: datetime | None
+    last_error: str | None
+
+
+class MaintenanceJobInspector:
+    def __init__(
+        self,
+        *,
+        settings: Settings | None = None,
+        redis_client: RedisStateClient | None = None,
+    ) -> None:
+        self.settings = settings or get_settings()
+        self.redis_client = redis_client or build_maintenance_redis_client(self.settings.redis_url)
+
+    def github_auto_refresh_status(self, *, now: datetime | None = None) -> MaintenanceJobStatus:
+        effective_now = ensure_utc_datetime(now)
+        if not self.settings.github_auto_refresh_enabled:
+            return MaintenanceJobStatus(
+                enabled=False,
+                status='disabled',
+                next_run_at=None,
+                seconds_until_next_run=None,
+                last_attempt_at=None,
+                last_success_at=None,
+                last_failed_at=None,
+                last_error=None,
+            )
+
+        state = self._job_state(GITHUB_AUTO_REFRESH_JOB)
+        last_attempt_at = parse_iso_datetime(state.get('last_attempt_at'))
+        last_success_at = parse_iso_datetime(state.get('last_success_at'))
+        last_failed_at = parse_iso_datetime(state.get('last_failed_at'))
+        last_error = (state.get('last_error') or '').strip() or None
+
+        base_due_at = effective_now
+        if last_success_at is not None:
+            base_due_at = max(
+                base_due_at,
+                last_success_at + timedelta(seconds=self.settings.github_auto_refresh_interval_seconds),
+            )
+        if last_attempt_at is not None:
+            base_due_at = max(
+                base_due_at,
+                last_attempt_at + timedelta(seconds=self.settings.github_auto_refresh_retry_interval_seconds),
+            )
+
+        if last_failed_at is not None and last_error:
+            status = 'retry_scheduled' if base_due_at > effective_now else 'due'
+        else:
+            status = 'scheduled' if base_due_at > effective_now else 'due'
+
+        seconds_until_next_run = max(int((base_due_at - effective_now).total_seconds()), 0)
+        return MaintenanceJobStatus(
+            enabled=True,
+            status=status,
+            next_run_at=base_due_at,
+            seconds_until_next_run=seconds_until_next_run,
+            last_attempt_at=last_attempt_at,
+            last_success_at=last_success_at,
+            last_failed_at=last_failed_at,
+            last_error=last_error,
+        )
+
+    def _job_state(self, job_name: str) -> dict[str, str]:
+        if self.redis_client is None:
+            return {}
+        try:
+            return self.redis_client.hgetall(MaintenanceCoordinator._state_key(job_name))
+        except RedisError:
+            logger.exception('Maintenance inspector could not read state for job %s.', job_name)
+            return {}
 
 
 class RetentionCleanupService:
@@ -215,6 +295,8 @@ class MaintenanceCoordinator:
         )
 
     def _execute_github_auto_refresh(self, username: str) -> None:
+        from app.domains.admin.service.github_snapshot_service import AdminGithubSnapshotService
+
         with self.session_factory() as session:
             snapshot = AdminGithubSnapshotService(session).refresh(username, prune_history=True)
         logger.info(

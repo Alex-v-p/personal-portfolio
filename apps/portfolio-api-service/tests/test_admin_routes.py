@@ -471,3 +471,137 @@ def test_admin_can_fetch_async_task_status(client: TestClient, monkeypatch) -> N
     assert response.status_code == 200
     assert response.json()['status'] == 'succeeded'
     assert response.json()['result']['totalDocuments'] == 5
+
+
+def test_admin_site_activity_includes_retention_countdowns(client: TestClient) -> None:
+    from datetime import UTC, datetime, timedelta
+
+    from sqlalchemy.orm import Session
+
+    from app.db.models import AssistantConversation, AssistantMessage, AssistantRole, EventType, SiteEvent
+    from app.db.session import get_engine
+
+    now = datetime.now(UTC)
+    event_created_at = now - timedelta(days=10)
+    conversation_last_message_at = now - timedelta(days=4)
+    conversation_id = ''
+
+    with Session(get_engine()) as session:
+        conversation = AssistantConversation(
+            session_id='assistant-session-1',
+            started_at=conversation_last_message_at - timedelta(minutes=5),
+            last_message_at=conversation_last_message_at,
+        )
+        session.add(
+            SiteEvent(
+                visitor_id='visitor-retention',
+                session_id='visit-retention',
+                page_path='/assistant',
+                event_type=EventType.ASSISTANT_MESSAGE,
+                metadata_json={'conversation_id': None},
+                created_at=event_created_at,
+            )
+        )
+        session.add(conversation)
+        session.flush()
+        conversation_id = str(conversation.id)
+        session.add(
+            AssistantMessage(
+                conversation_id=conversation.id,
+                role=AssistantRole.USER,
+                message_text='How long until this disappears?',
+                created_at=conversation_last_message_at,
+            )
+        )
+        session.add(
+            SiteEvent(
+                visitor_id='visitor-retention',
+                session_id='visit-retention',
+                page_path='/assistant',
+                event_type=EventType.ASSISTANT_MESSAGE,
+                metadata_json={'conversation_id': conversation_id, 'used_fallback': False},
+                created_at=conversation_last_message_at,
+            )
+        )
+        session.commit()
+
+    token = _admin_token(client)
+    headers = {'Authorization': f'Bearer {token}'}
+    response = client.get('/api/admin/site-activity', headers=headers)
+    assert response.status_code == 200
+
+    body = response.json()
+    assert body['summary']['siteEventsRetentionDays'] == 90
+    assert body['summary']['assistantActivityRetentionDays'] == 90
+
+    tracked_event = next(item for item in body['events'] if item['visitorId'] == 'visitor-retention' and item['createdAt'] == event_created_at.isoformat())
+    assert tracked_event['retentionEndsAt'] == (event_created_at + timedelta(days=90)).isoformat()
+    assert tracked_event['secondsUntilRetentionEnd'] > 0
+
+    tracked_visitor = next(item for item in body['visitors'] if item['visitorId'] == 'visitor-retention')
+    assert tracked_visitor['retentionEndsAt'] == (conversation_last_message_at + timedelta(days=90)).isoformat()
+    assert tracked_visitor['secondsUntilRetentionEnd'] > 0
+
+    tracked_visit = next(item for item in body['visits'] if item['sessionId'] == 'visit-retention')
+    assert tracked_visit['retentionEndsAt'] == (conversation_last_message_at + timedelta(days=90)).isoformat()
+    assert tracked_visit['secondsUntilRetentionEnd'] > 0
+
+    tracked_conversation = next(item for item in body['assistantConversations'] if item['id'] == conversation_id)
+    assert tracked_conversation['retentionEndsAt'] == (conversation_last_message_at + timedelta(days=90)).isoformat()
+    assert tracked_conversation['secondsUntilRetentionEnd'] > 0
+
+
+
+def test_admin_github_snapshot_listing_includes_auto_refresh_countdown(client: TestClient, monkeypatch) -> None:
+    from datetime import datetime, timezone
+
+    from app.services.maintenance import MaintenanceJobStatus
+
+    token = _admin_token(client)
+    headers = {'Authorization': f'Bearer {token}'}
+
+    created_response = client.post(
+        '/api/admin/github-snapshots',
+        headers=headers,
+        json={
+            'snapshotDate': '2026-04-11',
+            'username': 'Alex-v-p',
+            'publicRepoCount': 12,
+            'followersCount': 10,
+            'followingCount': 5,
+            'totalStars': 22,
+            'totalCommits': 100,
+            'rawPayload': {'source': 'test'},
+            'contributionDays': [],
+        },
+    )
+    assert created_response.status_code == 201
+
+    next_run_at = datetime(2026, 4, 15, 9, 0, tzinfo=timezone.utc)
+    monkeypatch.setattr(
+        'app.domains.admin.repository.stats.MaintenanceJobInspector.github_auto_refresh_status',
+        lambda self, now=None: MaintenanceJobStatus(
+            enabled=True,
+            status='scheduled',
+            next_run_at=next_run_at,
+            seconds_until_next_run=3600,
+            last_attempt_at=datetime(2026, 4, 14, 8, 0, tzinfo=timezone.utc),
+            last_success_at=datetime(2026, 4, 14, 8, 0, tzinfo=timezone.utc),
+            last_failed_at=None,
+            last_error=None,
+        ),
+    )
+
+    response = client.get('/api/admin/github-snapshots', headers=headers)
+    assert response.status_code == 200
+    body = response.json()
+    assert body['autoRefreshEnabled'] is True
+    assert body['autoRefreshStatus'] == 'scheduled'
+    assert body['nextAutoRefreshAt'] == next_run_at.isoformat()
+    assert body['secondsUntilAutoRefresh'] == 3600
+
+    snapshot = next(item for item in body['items'] if item['username'] == 'Alex-v-p')
+    assert snapshot['autoRefreshEnabled'] is True
+    assert snapshot['autoRefreshStatus'] == 'scheduled'
+    assert snapshot['nextAutoRefreshAt'] == next_run_at.isoformat()
+    assert snapshot['secondsUntilAutoRefresh'] == 3600

@@ -24,6 +24,8 @@ export interface AdminSiteEvent {
   ipAddress?: string | null;
   metadata?: Record<string, unknown> | null;
   createdAt: string;
+  retentionEndsAt: string;
+  secondsUntilRetentionEnd: number;
 }
 
 export interface AdminVisitSessionSummary {
@@ -38,6 +40,8 @@ export interface AdminVisitSessionSummary {
   entryPagePath?: string | null;
   lastPagePath?: string | null;
   ipAddress?: string | null;
+  retentionEndsAt: string;
+  secondsUntilRetentionEnd: number;
 }
 
 export interface AdminVisitorActivitySummary {
@@ -51,6 +55,8 @@ export interface AdminVisitorActivitySummary {
   contactSubmissions: number;
   latestPagePath?: string | null;
   latestIpAddress?: string | null;
+  retentionEndsAt: string;
+  secondsUntilRetentionEnd: number;
 }
 
 export interface AdminAssistantConversationSummary {
@@ -67,6 +73,8 @@ export interface AdminAssistantConversationSummary {
   usedFallback?: boolean | null;
   firstUserMessage?: string | null;
   latestAssistantMessage?: string | null;
+  retentionEndsAt: string;
+  secondsUntilRetentionEnd: number;
 }
 
 export interface AdminSiteActivitySummary {
@@ -75,6 +83,8 @@ export interface AdminSiteActivitySummary {
   pageViews: number;
   assistantMessages: number;
   contactSubmissions: number;
+  siteEventsRetentionDays: number;
+  assistantActivityRetentionDays: number;
 }
 
 export interface AdminSiteActivity {

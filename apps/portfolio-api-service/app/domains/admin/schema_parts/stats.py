@@ -44,11 +44,25 @@ class AdminGithubSnapshotOut(ApiSchema):
     contribution_days: list[AdminGithubContributionDayOut]
     created_at: str
     updated_at: str
+    auto_refresh_enabled: bool = False
+    auto_refresh_status: str = 'manual_only'
+    next_auto_refresh_at: str | None = None
+    seconds_until_auto_refresh: int | None = None
 
 
 class AdminGithubSnapshotsListOut(ApiSchema):
     items: list[AdminGithubSnapshotOut]
     total: int
+    auto_refresh_enabled: bool = False
+    auto_refresh_username: str | None = None
+    auto_refresh_interval_seconds: int | None = None
+    auto_refresh_retry_interval_seconds: int | None = None
+    auto_refresh_status: str = 'disabled'
+    next_auto_refresh_at: str | None = None
+    seconds_until_auto_refresh: int | None = None
+    last_auto_refresh_at: str | None = None
+    last_auto_refresh_failed_at: str | None = None
+    auto_refresh_error: str | None = None
 
 
 class AdminGithubSnapshotRefreshIn(ApiSchema):

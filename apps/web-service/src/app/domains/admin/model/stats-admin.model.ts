@@ -4,6 +4,8 @@ export interface AdminGithubContributionDay {
   level: number;
 }
 
+export type AdminGithubAutoRefreshStatus = 'scheduled' | 'retry_scheduled' | 'due' | 'disabled' | 'manual_only';
+
 export interface AdminGithubSnapshot {
   id: string;
   snapshotDate: string;
@@ -17,6 +19,25 @@ export interface AdminGithubSnapshot {
   contributionDays: AdminGithubContributionDay[];
   createdAt: string;
   updatedAt: string;
+  autoRefreshEnabled: boolean;
+  autoRefreshStatus: AdminGithubAutoRefreshStatus;
+  nextAutoRefreshAt?: string | null;
+  secondsUntilAutoRefresh?: number | null;
+}
+
+export interface AdminGithubSnapshotsResponse {
+  items: AdminGithubSnapshot[];
+  total: number;
+  autoRefreshEnabled: boolean;
+  autoRefreshUsername?: string | null;
+  autoRefreshIntervalSeconds?: number | null;
+  autoRefreshRetryIntervalSeconds?: number | null;
+  autoRefreshStatus: AdminGithubAutoRefreshStatus;
+  nextAutoRefreshAt?: string | null;
+  secondsUntilAutoRefresh?: number | null;
+  lastAutoRefreshAt?: string | null;
+  lastAutoRefreshFailedAt?: string | null;
+  autoRefreshError?: string | null;
 }
 
 export interface AdminGithubSnapshotUpsert {
