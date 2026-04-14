@@ -16,11 +16,11 @@ const adminUserFixture = {
 
 describe('AdminSessionService', () => {
   beforeEach(() => {
-    localStorage.clear();
+    sessionStorage.clear();
     TestBed.resetTestingModule();
   });
 
-  it('stores the token and current user after a successful login', () => {
+  it('stores the csrf token and current user after a successful login', () => {
     const navigate = vi.fn().mockResolvedValue(true);
 
     TestBed.configureTestingModule({
@@ -34,12 +34,16 @@ describe('AdminSessionService', () => {
           provide: AdminAuthApiService,
           useValue: {
             login: () => of({
-              accessToken: 'admin-token',
-              tokenType: 'bearer',
+              csrfToken: 'csrf-token-1',
               expiresInSeconds: 3600,
               user: adminUserFixture,
             }),
-            getCurrentAdmin: () => of(adminUserFixture),
+            getCurrentAdmin: () => of({
+              csrfToken: 'csrf-token-2',
+              expiresInSeconds: 3600,
+              user: adminUserFixture,
+            }),
+            logout: () => of(void 0),
           },
         },
       ],
@@ -55,17 +59,18 @@ describe('AdminSessionService', () => {
       currentUser = user;
     });
 
-    expect(service.token).toBe('admin-token');
+    expect(service.csrfToken).toBe('csrf-token-1');
     expect(service.isAuthenticated).toBe(true);
     expect(currentUser?.email).toBe('admin@example.com');
-    expect(JSON.parse(localStorage.getItem('portfolio.admin.user') ?? '{}')).toMatchObject({ email: 'admin@example.com' });
+    expect(JSON.parse(sessionStorage.getItem('portfolio.admin.user') ?? '{}')).toMatchObject({ email: 'admin@example.com' });
+    expect(sessionStorage.getItem('portfolio.admin.csrf-token')).toBe('csrf-token-1');
     expect(navigate).not.toHaveBeenCalled();
   });
 
   it('clears the stored session when restoreSession fails', () => {
     const navigate = vi.fn().mockResolvedValue(true);
-    localStorage.setItem('portfolio.admin.access-token', 'stale-token');
-    localStorage.setItem('portfolio.admin.user', JSON.stringify(adminUserFixture));
+    sessionStorage.setItem('portfolio.admin.csrf-token', 'stale-csrf');
+    sessionStorage.setItem('portfolio.admin.user', JSON.stringify(adminUserFixture));
 
     TestBed.configureTestingModule({
       providers: [
@@ -77,25 +82,24 @@ describe('AdminSessionService', () => {
         {
           provide: AdminAuthApiService,
           useValue: {
-            login: () => of({ accessToken: 'admin-token', tokenType: 'bearer', expiresInSeconds: 3600, user: adminUserFixture }),
+            login: () => of({ csrfToken: 'csrf-token-1', expiresInSeconds: 3600, user: adminUserFixture }),
             getCurrentAdmin: () => throwError(() => new Error('Unauthorized')),
+            logout: () => of(void 0),
           },
         },
       ],
     });
 
     const service = TestBed.inject(AdminSessionService);
-    let receivedError: unknown;
-    service.restoreSession().subscribe({
-      error: (error: unknown) => {
-        receivedError = error;
-      },
+    let restoredUser: typeof adminUserFixture | null = adminUserFixture;
+    service.restoreSession().subscribe((user: typeof adminUserFixture | null) => {
+      restoredUser = user;
     });
 
-    expect(receivedError).toBeInstanceOf(Error);
-    expect(service.token).toBeNull();
+    expect(restoredUser).toBeNull();
+    expect(service.csrfToken).toBeNull();
     expect(service.currentUser).toBeNull();
-    expect(localStorage.getItem('portfolio.admin.user')).toBeNull();
+    expect(sessionStorage.getItem('portfolio.admin.user')).toBeNull();
     expect(navigate).not.toHaveBeenCalled();
   });
 });

@@ -27,9 +27,8 @@ class AdminUserUpdateIn(ApiSchema):
     is_active: bool = True
 
 
-class AdminAuthTokenOut(ApiSchema):
-    access_token: str
-    token_type: str = 'bearer'
+class AdminAuthSessionOut(ApiSchema):
+    csrf_token: str
     expires_in_seconds: int
     user: AdminUserOut
 
@@ -40,7 +39,7 @@ class AdminLoginIn(ApiSchema):
 
 
 __all__ = [
-    'AdminAuthTokenOut',
+    'AdminAuthSessionOut',
     'AdminLoginIn',
     'AdminUserCreateIn',
     'AdminUserOut',

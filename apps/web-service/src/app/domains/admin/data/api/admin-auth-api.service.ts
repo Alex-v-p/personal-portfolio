@@ -1,18 +1,22 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { AdminAuthToken, AdminUser } from '@domains/admin/model/admin.model';
+import { AdminAuthSession } from '@domains/admin/model/admin.model';
 import { AdminHttpService } from './admin-http.service';
 
 @Injectable({ providedIn: 'root' })
 export class AdminAuthApiService {
   private readonly adminHttp = inject(AdminHttpService);
 
-  login(email: string, password: string): Observable<AdminAuthToken> {
-    return this.adminHttp.http.post<AdminAuthToken>(this.adminHttp.adminUrl('auth/login'), { email, password });
+  login(email: string, password: string): Observable<AdminAuthSession> {
+    return this.adminHttp.http.post<AdminAuthSession>(this.adminHttp.adminUrl('auth/login'), { email, password }, { withCredentials: true });
   }
 
-  getCurrentAdmin(): Observable<AdminUser> {
-    return this.adminHttp.http.get<AdminUser>(this.adminHttp.adminUrl('auth/me'));
+  getCurrentAdmin(): Observable<AdminAuthSession> {
+    return this.adminHttp.http.get<AdminAuthSession>(this.adminHttp.adminUrl('auth/me'), { withCredentials: true });
+  }
+
+  logout(): Observable<void> {
+    return this.adminHttp.http.post<void>(this.adminHttp.adminUrl('auth/logout'), {}, { withCredentials: true });
   }
 }

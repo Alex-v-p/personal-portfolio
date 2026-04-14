@@ -12,7 +12,7 @@ ADMIN_PASSWORD = 'test-admin-pass'
 def _admin_headers(client: TestClient) -> dict[str, str]:
     response = client.post('/api/admin/auth/login', json={'email': ADMIN_EMAIL, 'password': ADMIN_PASSWORD})
     assert response.status_code == 200
-    return {'Authorization': f"Bearer {response.json()['accessToken']}"}
+    return {'X-Portfolio-CSRF': response.json()['csrfToken']}
 
 
 def test_public_user_journey_can_browse_content_contact_and_track_activity(client: TestClient) -> None:

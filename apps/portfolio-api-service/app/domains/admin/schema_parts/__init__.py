@@ -21,7 +21,7 @@ from app.domains.admin.schema_parts.async_tasks import (
     AdminAsyncTaskTypeLiteral,
 )
 from app.domains.admin.schema_parts.auth import (
-    AdminAuthTokenOut,
+    AdminAuthSessionOut,
     AdminLoginIn,
     AdminUserCreateIn,
     AdminUserOut,
@@ -78,7 +78,7 @@ __all__ = [
     'AdminAsyncTaskStatusLiteral',
     'AdminAsyncTaskStatusOut',
     'AdminAsyncTaskTypeLiteral',
-    'AdminAuthTokenOut',
+    'AdminAuthSessionOut',
     'AdminBlogPostOut',
     'AdminBlogPostsListOut',
     'AdminBlogPostUpsertIn',

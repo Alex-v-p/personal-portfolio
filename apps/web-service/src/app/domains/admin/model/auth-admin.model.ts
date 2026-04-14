@@ -20,9 +20,8 @@ export interface AdminUserUpdate {
   isActive: boolean;
 }
 
-export interface AdminAuthToken {
-  accessToken: string;
-  tokenType: string;
+export interface AdminAuthSession {
+  csrfToken: string;
   expiresInSeconds: number;
   user: AdminUser;
 }

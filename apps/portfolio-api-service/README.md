@@ -63,7 +63,7 @@ The API now exposes protected Stage 10 CMS endpoints under `/api/admin`, includi
 - `/api/admin/media-files`
 - `/api/admin/media-files/upload`
 
-Use the bearer token returned by `/api/admin/auth/login` for subsequent admin requests.
+Admin auth now uses an HttpOnly session cookie. The login and session restore responses return a CSRF token that the SPA must send in the configured CSRF header for mutating `/api/admin/*` requests.
 
 ## Admin media uploads
 

@@ -1,13 +1,13 @@
 import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { catchError, finalize, map, tap } from 'rxjs/operators';
 
-import { AdminAuthToken, AdminUser } from '@domains/admin/model/admin.model';
+import { AdminAuthSession, AdminUser } from '@domains/admin/model/admin.model';
 import { AdminAuthApiService } from '@domains/admin/data/api/admin-auth-api.service';
 
-const TOKEN_STORAGE_KEY = 'portfolio.admin.access-token';
 const USER_STORAGE_KEY = 'portfolio.admin.user';
+const CSRF_STORAGE_KEY = 'portfolio.admin.csrf-token';
 
 @Injectable({ providedIn: 'root' })
 export class AdminSessionService {
@@ -21,43 +21,56 @@ export class AdminSessionService {
     return this.currentUserSubject.value;
   }
 
-  get token(): string | null {
-    if (typeof localStorage === 'undefined') {
+  get csrfToken(): string | null {
+    if (typeof sessionStorage === 'undefined') {
       return null;
     }
-    return localStorage.getItem(TOKEN_STORAGE_KEY);
+    return sessionStorage.getItem(CSRF_STORAGE_KEY);
   }
 
   get isAuthenticated(): boolean {
-    return !!this.token;
+    return !!this.currentUser;
   }
 
   login(email: string, password: string): Observable<AdminUser> {
     return this.authApi.login(email, password).pipe(
-      tap((auth) => this.storeAuth(auth)),
-      map((auth) => auth.user)
+      tap((authSession) => this.storeSession(authSession)),
+      map((authSession) => authSession.user)
     );
   }
 
   restoreSession(): Observable<AdminUser | null> {
-    if (!this.token) {
-      return of(null);
-    }
-
     return this.authApi.getCurrentAdmin().pipe(
-      tap((user) => this.storeUser(user)),
-      map((user) => user as AdminUser | null),
-      catchError((error) => {
-        this.logout(false);
-        return throwError(() => error);
+      tap((authSession) => this.storeSession(authSession)),
+      map((authSession) => authSession.user as AdminUser | null),
+      catchError(() => {
+        this.clearSession(false);
+        return of(null);
       })
     );
   }
 
   logout(redirectToLogin = true): void {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem(TOKEN_STORAGE_KEY);
-      localStorage.removeItem(USER_STORAGE_KEY);
+    this.authApi.logout().pipe(
+      catchError(() => of(void 0)),
+      finalize(() => {
+        this.clearSession(redirectToLogin);
+      })
+    ).subscribe();
+  }
+
+  private storeSession(authSession: AdminAuthSession): void {
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(authSession.user));
+      sessionStorage.setItem(CSRF_STORAGE_KEY, authSession.csrfToken);
+    }
+    this.currentUserSubject.next(authSession.user);
+  }
+
+  private clearSession(redirectToLogin: boolean): void {
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem(USER_STORAGE_KEY);
+      sessionStorage.removeItem(CSRF_STORAGE_KEY);
     }
     this.currentUserSubject.next(null);
     if (redirectToLogin) {
@@ -65,26 +78,11 @@ export class AdminSessionService {
     }
   }
 
-  private storeAuth(auth: AdminAuthToken): void {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(TOKEN_STORAGE_KEY, auth.accessToken);
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(auth.user));
-    }
-    this.currentUserSubject.next(auth.user);
-  }
-
-  private storeUser(user: AdminUser): void {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
-    }
-    this.currentUserSubject.next(user);
-  }
-
   private readStoredUser(): AdminUser | null {
-    if (typeof localStorage === 'undefined') {
+    if (typeof sessionStorage === 'undefined') {
       return null;
     }
-    const raw = localStorage.getItem(USER_STORAGE_KEY);
+    const raw = sessionStorage.getItem(USER_STORAGE_KEY);
     if (!raw) {
       return null;
     }
