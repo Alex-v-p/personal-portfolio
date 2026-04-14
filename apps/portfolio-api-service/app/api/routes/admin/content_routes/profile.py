@@ -1,25 +1,19 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
 from app.api.routes.admin.common import CurrentAdminDep, SessionDep
-from app.api.routes.admin.content_routes.common import repository
 from app.domains.admin.schema import AdminProfileOut, AdminProfileUpdateIn
+from app.domains.admin.service.admin_profile_service import AdminProfileService
 
 router = APIRouter()
 
 
 @router.get('/profile', response_model=AdminProfileOut)
 def get_profile(_: CurrentAdminDep, session: SessionDep) -> AdminProfileOut:
-    profile = repository(session).get_profile()
-    if profile is None:
-        raise HTTPException(status_code=404, detail='Profile not found.')
-    return profile
+    return AdminProfileService(session).get_profile()
 
 
 @router.put('/profile', response_model=AdminProfileOut)
 def update_profile(payload: AdminProfileUpdateIn, _: CurrentAdminDep, session: SessionDep) -> AdminProfileOut:
-    profile = repository(session).update_profile(payload)
-    if profile is None:
-        raise HTTPException(status_code=404, detail='Profile not found.')
-    return profile
+    return AdminProfileService(session).update_profile(payload)
