@@ -208,14 +208,30 @@ def record_admin_auth_event(
 
 
 
+def _ensure_utc_datetime(value: datetime | None) -> datetime | None:
+    if value is None:
+        return None
+    if value.tzinfo is None or value.tzinfo.utcoffset(value) is None:
+        return value.replace(tzinfo=UTC)
+    return value.astimezone(UTC)
+
+
+
 def _invalidate_session_if_needed(db: Session, record: AdminSession, *, now: datetime) -> None:
-    idle_cutoff = now - timedelta(seconds=admin_session_idle_timeout_seconds())
-    if record.revoked_at is not None:
+    normalized_now = _ensure_utc_datetime(now) or datetime.now(UTC)
+    idle_cutoff = normalized_now - timedelta(seconds=admin_session_idle_timeout_seconds())
+    revoked_at = _ensure_utc_datetime(record.revoked_at)
+    expires_at = _ensure_utc_datetime(record.expires_at)
+    last_seen_at = _ensure_utc_datetime(record.last_seen_at)
+    if revoked_at is not None:
         raise AdminTokenError('Admin session is no longer active.')
-    if record.expires_at <= now:
+    if expires_at is None or last_seen_at is None:
+        revoke_admin_session(db, record, reason='invalid-session-timestamps')
+        raise AdminTokenError('Admin session is invalid. Please sign in again.')
+    if expires_at <= normalized_now:
         revoke_admin_session(db, record, reason='expired')
         raise AdminTokenError('Admin session has expired. Please sign in again.')
-    if record.last_seen_at <= idle_cutoff:
+    if last_seen_at <= idle_cutoff:
         revoke_admin_session(db, record, reason='idle-timeout')
         raise AdminTokenError('Admin session timed out due to inactivity. Please sign in again.')
 
@@ -223,11 +239,13 @@ def _invalidate_session_if_needed(db: Session, record: AdminSession, *, now: dat
 
 def _touch_session(db: Session, record: AdminSession, *, request: Request | None, now: datetime) -> None:
     ip_address = _extract_request_ip(request)
-    should_touch = (now - record.last_seen_at).total_seconds() >= SESSION_TOUCH_INTERVAL_SECONDS
+    normalized_now = _ensure_utc_datetime(now) or datetime.now(UTC)
+    last_seen_at = _ensure_utc_datetime(record.last_seen_at) or normalized_now
+    should_touch = (normalized_now - last_seen_at).total_seconds() >= SESSION_TOUCH_INTERVAL_SECONDS
     if not should_touch and ip_address == record.last_seen_ip:
         return
-    record.last_seen_at = now
-    record.updated_at = now
+    record.last_seen_at = normalized_now
+    record.updated_at = normalized_now
     if ip_address:
         record.last_seen_ip = ip_address[:64]
     db.add(record)
