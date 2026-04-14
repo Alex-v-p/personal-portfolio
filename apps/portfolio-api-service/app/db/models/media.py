@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
 from sqlalchemy import CheckConstraint, Enum as SqlEnum, ForeignKey, Integer, String, Text, Uuid
@@ -7,6 +8,13 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin
 from app.db.models.enums import MediaVisibility
+
+if TYPE_CHECKING:
+    from app.db.models.admin import AdminUser
+    from app.db.models.blog import BlogPost
+    from app.db.models.experience import Experience
+    from app.db.models.profile import Profile
+    from app.db.models.projects import Project, ProjectImage
 
 
 class MediaFile(TimestampMixin, Base):
@@ -30,38 +38,38 @@ class MediaFile(TimestampMixin, Base):
     visibility: Mapped[MediaVisibility] = mapped_column(SqlEnum(MediaVisibility, native_enum=False), nullable=False, default=MediaVisibility.PRIVATE)
     uploaded_by_id: Mapped[UUID | None] = mapped_column(Uuid, ForeignKey('admin_users.id', ondelete='SET NULL'))
 
-    uploaded_by: Mapped['AdminUser | None'] = relationship(back_populates='uploaded_media_files')
-    profile_avatar_for: Mapped[list['Profile']] = relationship(
+    uploaded_by: Mapped[AdminUser | None] = relationship(back_populates='uploaded_media_files')
+    profile_avatar_for: Mapped[list[Profile]] = relationship(
         'Profile',
         foreign_keys='Profile.avatar_file_id',
         back_populates='avatar_file',
     )
-    profile_hero_for: Mapped[list['Profile']] = relationship(
+    profile_hero_for: Mapped[list[Profile]] = relationship(
         'Profile',
         foreign_keys='Profile.hero_image_file_id',
         back_populates='hero_image_file',
     )
-    profile_resume_for: Mapped[list['Profile']] = relationship(
+    profile_resume_for: Mapped[list[Profile]] = relationship(
         'Profile',
         foreign_keys='Profile.resume_file_id',
         back_populates='resume_file',
     )
-    experience_logo_for: Mapped[list['Experience']] = relationship(
+    experience_logo_for: Mapped[list[Experience]] = relationship(
         'Experience',
         foreign_keys='Experience.logo_file_id',
         back_populates='logo_file',
     )
-    project_cover_for: Mapped[list['Project']] = relationship(
+    project_cover_for: Mapped[list[Project]] = relationship(
         'Project',
         foreign_keys='Project.cover_image_file_id',
         back_populates='cover_image_file',
     )
-    project_images: Mapped[list['ProjectImage']] = relationship(
+    project_images: Mapped[list[ProjectImage]] = relationship(
         'ProjectImage',
         foreign_keys='ProjectImage.image_file_id',
         back_populates='image_file',
     )
-    blog_cover_for: Mapped[list['BlogPost']] = relationship(
+    blog_cover_for: Mapped[list[BlogPost]] = relationship(
         'BlogPost',
         foreign_keys='BlogPost.cover_image_file_id',
         back_populates='cover_image_file',

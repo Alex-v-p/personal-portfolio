@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
 from sqlalchemy import Boolean, DateTime, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin
+
+if TYPE_CHECKING:
+    from app.db.models.media import MediaFile
 
 
 class AdminUser(TimestampMixin, Base):
@@ -19,4 +23,4 @@ class AdminUser(TimestampMixin, Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
 
-    uploaded_media_files: Mapped[list['MediaFile']] = relationship(back_populates='uploaded_by')
+    uploaded_media_files: Mapped[list[MediaFile]] = relationship(back_populates='uploaded_by')

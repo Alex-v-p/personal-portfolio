@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime, timezone
+from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
 from sqlalchemy import Boolean, Date, DateTime, Enum as SqlEnum, ForeignKey, Integer, String, Text, UniqueConstraint, Uuid
@@ -8,6 +9,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin
 from app.db.models.enums import ProjectState
+
+if TYPE_CHECKING:
+    from app.db.models.media import MediaFile
+    from app.db.models.taxonomy import Skill
 
 
 class Project(TimestampMixin, Base):
@@ -35,13 +40,13 @@ class Project(TimestampMixin, Base):
     published_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
 
-    cover_image_file: Mapped['MediaFile | None'] = relationship(
+    cover_image_file: Mapped[MediaFile | None] = relationship(
         'MediaFile',
         foreign_keys='Project.cover_image_file_id',
         back_populates='project_cover_for',
     )
-    skill_links: Mapped[list['ProjectSkill']] = relationship(back_populates='project', cascade='all, delete-orphan')
-    images: Mapped[list['ProjectImage']] = relationship(
+    skill_links: Mapped[list[ProjectSkill]] = relationship(back_populates='project', cascade='all, delete-orphan')
+    images: Mapped[list[ProjectImage]] = relationship(
         back_populates='project', cascade='all, delete-orphan', order_by='ProjectImage.sort_order'
     )
 
@@ -57,7 +62,7 @@ class ProjectSkill(Base):
     )
 
     project: Mapped[Project] = relationship(back_populates='skill_links')
-    skill: Mapped['Skill'] = relationship(back_populates='project_links')
+    skill: Mapped[Skill] = relationship(back_populates='project_links')
 
 
 class ProjectImage(Base):
@@ -74,7 +79,7 @@ class ProjectImage(Base):
     is_cover: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     project: Mapped[Project] = relationship(back_populates='images')
-    image_file: Mapped['MediaFile | None'] = relationship(
+    image_file: Mapped[MediaFile | None] = relationship(
         'MediaFile',
         foreign_keys='ProjectImage.image_file_id',
         back_populates='project_images',

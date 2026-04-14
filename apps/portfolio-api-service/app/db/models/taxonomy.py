@@ -1,12 +1,17 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
 from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Integer, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
+if TYPE_CHECKING:
+    from app.db.models.experience import ExperienceSkill
+    from app.db.models.projects import ProjectSkill
 
 
 class SkillCategory(Base):
@@ -17,7 +22,7 @@ class SkillCategory(Base):
     description: Mapped[str | None] = mapped_column(Text)
     sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
-    skills: Mapped[list['Skill']] = relationship(back_populates='category')
+    skills: Mapped[list[Skill]] = relationship(back_populates='category')
 
 
 class Skill(Base):
@@ -36,5 +41,5 @@ class Skill(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
 
     category: Mapped[SkillCategory] = relationship(back_populates='skills')
-    project_links: Mapped[list['ProjectSkill']] = relationship(back_populates='skill', cascade='all, delete-orphan')
-    experience_links: Mapped[list['ExperienceSkill']] = relationship(back_populates='skill', cascade='all, delete-orphan')
+    project_links: Mapped[list[ProjectSkill]] = relationship(back_populates='skill', cascade='all, delete-orphan')
+    experience_links: Mapped[list[ExperienceSkill]] = relationship(back_populates='skill', cascade='all, delete-orphan')

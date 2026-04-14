@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
 from sqlalchemy import Boolean, ForeignKey, Integer, String, Text, UniqueConstraint, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin
+
+if TYPE_CHECKING:
+    from app.db.models.media import MediaFile
 
 
 class Profile(TimestampMixin, Base):
@@ -29,22 +33,22 @@ class Profile(TimestampMixin, Base):
     cta_secondary_url: Mapped[str | None] = mapped_column(String(500))
     is_public: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
-    avatar_file: Mapped['MediaFile | None'] = relationship(
+    avatar_file: Mapped[MediaFile | None] = relationship(
         'MediaFile',
         foreign_keys='Profile.avatar_file_id',
         back_populates='profile_avatar_for',
     )
-    hero_image_file: Mapped['MediaFile | None'] = relationship(
+    hero_image_file: Mapped[MediaFile | None] = relationship(
         'MediaFile',
         foreign_keys='Profile.hero_image_file_id',
         back_populates='profile_hero_for',
     )
-    resume_file: Mapped['MediaFile | None'] = relationship(
+    resume_file: Mapped[MediaFile | None] = relationship(
         'MediaFile',
         foreign_keys='Profile.resume_file_id',
         back_populates='profile_resume_for',
     )
-    social_links: Mapped[list['SocialLink']] = relationship(
+    social_links: Mapped[list[SocialLink]] = relationship(
         back_populates='profile', cascade='all, delete-orphan', order_by='SocialLink.sort_order'
     )
 
