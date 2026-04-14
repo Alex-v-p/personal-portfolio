@@ -14,6 +14,7 @@ from app.services.async_tasks import (
     TaskQueueUnavailable,
     get_admin_task_queue,
 )
+from app.services.maintenance import MaintenanceCoordinator
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(name)s %(message)s')
@@ -35,6 +36,7 @@ def _process_task(task_type: str, payload: dict[str, object]) -> dict[str, objec
 
 
 def main() -> None:
+    session_factory = get_session_factory()
     queue = get_admin_task_queue()
     if not queue.enabled:
         logger.error('Admin task worker requires Redis. REDIS_URL=%s', queue.redis_url)
@@ -47,11 +49,14 @@ def main() -> None:
     if restored:
         logger.info('Re-queued %s admin task(s) left in processing.', restored)
 
+    maintenance = MaintenanceCoordinator(session_factory=session_factory)
+
     logger.info('Admin task worker started.')
     while True:
         envelope = None
         raw_item = ''
         try:
+            maintenance.run_due_tasks()
             reserved = queue.reserve(timeout_seconds=5)
             if reserved is None:
                 continue

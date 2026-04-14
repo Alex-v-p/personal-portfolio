@@ -1,33 +1,61 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import UTC, date, datetime
 from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
 from app.db.models import GithubContributionDay, GithubSnapshot
-from app.domains.admin.schema import AdminGithubSnapshotOut, AdminGithubSnapshotUpsertIn
+from app.domains.admin.schema import AdminGithubSnapshotOut, AdminGithubSnapshotsListOut, AdminGithubSnapshotUpsertIn
 from app.domains.admin.repository.support import AdminRepositorySupport
 from app.domains.github.sync import SyncedGithubSnapshot
+from app.services.maintenance import MaintenanceJobInspector
 
 
 class AdminGithubRepository(AdminRepositorySupport):
-    def list_github_snapshots(self) -> list[AdminGithubSnapshotOut]:
+    def list_github_snapshots(self) -> AdminGithubSnapshotsListOut:
+        effective_now = datetime.now(UTC)
+        auto_refresh_username = self.settings.github_stats_username.strip() or None
+        github_auto_refresh = MaintenanceJobInspector(settings=self.settings).github_auto_refresh_status(now=effective_now)
+
         snapshots = self.session.scalars(
             select(GithubSnapshot)
             .options(selectinload(GithubSnapshot.contribution_days))
             .order_by(GithubSnapshot.snapshot_date.desc(), GithubSnapshot.created_at.desc())
         ).all()
-        return [self._map_github_snapshot(snapshot) for snapshot in snapshots]
+        items = [
+            self._map_github_snapshot(
+                snapshot,
+                auto_refresh_username=auto_refresh_username,
+                github_auto_refresh=github_auto_refresh,
+            )
+            for snapshot in snapshots
+        ]
+        return AdminGithubSnapshotsListOut(
+            items=items,
+            total=len(items),
+            auto_refresh_enabled=github_auto_refresh.enabled,
+            auto_refresh_username=auto_refresh_username,
+            auto_refresh_interval_seconds=self.settings.github_auto_refresh_interval_seconds,
+            auto_refresh_retry_interval_seconds=self.settings.github_auto_refresh_retry_interval_seconds,
+            auto_refresh_status=github_auto_refresh.status,
+            next_auto_refresh_at=self._serialize_datetime(github_auto_refresh.next_run_at),
+            seconds_until_auto_refresh=github_auto_refresh.seconds_until_next_run,
+            last_auto_refresh_at=self._serialize_datetime(github_auto_refresh.last_success_at),
+            last_auto_refresh_failed_at=self._serialize_datetime(github_auto_refresh.last_failed_at),
+            auto_refresh_error=github_auto_refresh.last_error,
+        )
 
     def get_github_snapshot(self, snapshot_id: UUID) -> AdminGithubSnapshotOut | None:
+        auto_refresh_username = self.settings.github_stats_username.strip() or None
+        github_auto_refresh = MaintenanceJobInspector(settings=self.settings).github_auto_refresh_status(now=datetime.now(UTC))
         snapshot = self.session.scalar(
             select(GithubSnapshot)
             .options(selectinload(GithubSnapshot.contribution_days))
             .where(GithubSnapshot.id == snapshot_id)
         )
-        return self._map_github_snapshot(snapshot) if snapshot else None
+        return self._map_github_snapshot(snapshot, auto_refresh_username=auto_refresh_username, github_auto_refresh=github_auto_refresh) if snapshot else None
 
     def create_github_snapshot(self, payload: AdminGithubSnapshotUpsertIn) -> AdminGithubSnapshotOut:
         snapshot = GithubSnapshot(

@@ -20,9 +20,11 @@
   <app-admin-stats-tab
     *ngIf="!isLoading && !errorMessage"
     [githubSnapshots]="githubSnapshots"
+    [githubAutoRefresh]="githubAutoRefresh"
     [selectedGithubSnapshotId]="selectedGithubSnapshotId"
     [githubSnapshotForm]="githubSnapshotForm"
     [isRefreshingGithub]="isRefreshingGithub"
+    [currentTimeMs]="currentTimeMs"
     (githubSnapshotSelected)="selectGithubSnapshot($event)"
     (newGithubSnapshotStarted)="startNewGithubSnapshot()"
     (githubRefreshRequested)="refreshGithubSnapshot()"

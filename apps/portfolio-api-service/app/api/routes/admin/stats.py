@@ -26,8 +26,7 @@ def repository(session: SessionDep) -> AdminGithubRepository:
 
 @router.get('/github-snapshots', response_model=AdminGithubSnapshotsListOut)
 def list_github_snapshots(_: CurrentAdminDep, session: SessionDep) -> AdminGithubSnapshotsListOut:
-    items = repository(session).list_github_snapshots()
-    return AdminGithubSnapshotsListOut(items=items, total=len(items))
+    return repository(session).list_github_snapshots()
 
 
 @router.get('/github-snapshots/{snapshot_id}', response_model=AdminGithubSnapshotOut)

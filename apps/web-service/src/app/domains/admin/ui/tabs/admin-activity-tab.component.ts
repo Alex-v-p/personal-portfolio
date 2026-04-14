@@ -9,6 +9,7 @@ import {
   AdminVisitSessionSummary,
   AdminVisitorActivitySummary,
 } from '@domains/admin/model/admin.model';
+import { retentionCountdownLabel, retentionCountdownTone } from '@domains/admin/shared/state/admin-maintenance-display.utils';
 
 @Component({
   selector: 'app-admin-activity-tab',
@@ -30,6 +31,7 @@ export class AdminActivityTabComponent {
   @Input({ required: true }) selectedActivityEvents: AdminSiteEvent[] = [];
   @Input({ required: true }) selectedActivityConversations: AdminAssistantConversationSummary[] = [];
   @Input() selectedActivityEventCount = 0;
+  @Input() currentTimeMs = Date.now();
 
   @Output() readonly refreshRequested = new EventEmitter<void>();
   @Output() readonly activityVisitorSearchTermChange = new EventEmitter<string>();
@@ -68,5 +70,13 @@ export class AdminActivityTabComponent {
 
   selectActivityVisit(sessionId: string | null): void {
     this.activityVisitSelected.emit(sessionId);
+  }
+
+  retentionLabel(targetIso: string): string {
+    return retentionCountdownLabel(targetIso, this.currentTimeMs);
+  }
+
+  retentionTone(targetIso: string): string {
+    return retentionCountdownTone(targetIso, this.currentTimeMs);
   }
 }

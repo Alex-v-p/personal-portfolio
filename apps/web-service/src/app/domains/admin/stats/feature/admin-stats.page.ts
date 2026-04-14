@@ -6,7 +6,7 @@ import { finalize, switchMap, take, takeWhile } from 'rxjs/operators';
 import { AdminStatsApiService } from '@domains/admin/data/api/admin-stats-api.service';
 import { AdminTasksApiService } from '@domains/admin/data/api/admin-tasks-api.service';
 import { AdminSessionService } from '@domains/admin/data/admin-session.service';
-import { AdminAsyncTaskAccepted, AdminAsyncTaskStatus, AdminGithubContributionDay, AdminGithubSnapshot } from '@domains/admin/model/admin.model';
+import { AdminAsyncTaskAccepted, AdminAsyncTaskStatus, AdminGithubContributionDay, AdminGithubSnapshot, AdminGithubSnapshotsResponse } from '@domains/admin/model/admin.model';
 import { AdminGithubSnapshotForm, createEmptyGithubSnapshotForm, toGithubSnapshotForm } from '@domains/admin/model/forms/index';
 import { AdminStatsTabComponent } from '@domains/admin/ui/tabs/admin-stats-tab.component';
 import { parseContributionDays, parseGithubRawPayload } from '@domains/admin/stats/state/admin-stats.state';
@@ -25,21 +25,29 @@ export class AdminStatsPageComponent implements OnInit, OnDestroy {
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   private githubRefreshTaskSubscription?: Subscription;
+  private countdownSubscription?: Subscription;
 
   protected isLoading = true;
   protected errorMessage = '';
   protected statusMessage = '';
   protected githubSnapshots: AdminGithubSnapshot[] = [];
+  protected githubAutoRefresh: AdminGithubSnapshotsResponse | null = null;
   protected selectedGithubSnapshotId: string | null = null;
   protected githubSnapshotForm: AdminGithubSnapshotForm = createEmptyGithubSnapshotForm();
   protected isRefreshingGithub = false;
+  protected currentTimeMs = Date.now();
 
   ngOnInit(): void {
+    this.countdownSubscription = timer(0, 60_000).subscribe(() => {
+      this.currentTimeMs = Date.now();
+      this.changeDetectorRef.detectChanges();
+    });
     this.loadStatsPage(false);
   }
 
   ngOnDestroy(): void {
     this.githubRefreshTaskSubscription?.unsubscribe();
+    this.countdownSubscription?.unsubscribe();
   }
 
   protected reload(): void {
@@ -92,7 +100,6 @@ export class AdminStatsPageComponent implements OnInit, OnDestroy {
       },
     });
   }
-
 
   private pollGithubRefreshTask(taskId: string, pollAfterMs: number): void {
     this.githubRefreshTaskSubscription?.unsubscribe();
@@ -233,6 +240,7 @@ export class AdminStatsPageComponent implements OnInit, OnDestroy {
       }),
     ).subscribe({
       next: (response) => {
+        this.githubAutoRefresh = response;
         this.githubSnapshots = response.items;
         this.selectedGithubSnapshotId = resolveSelection(currentSelection, this.githubSnapshots);
         this.githubSnapshotForm = this.selectedGithubSnapshotId

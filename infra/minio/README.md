@@ -6,9 +6,9 @@ This folder contains the seeded public media objects for the portfolio.
 - `init-public-bucket.sh` creates the public bucket and uploads the seed files
 
 Default local URLs:
-- S3 API: `http://localhost:9000`
-- Console: `http://localhost:9001`
-- Public objects: `http://localhost:9000/portfolio/<object_key>`
+- S3 API: `http://localhost:19000`
+- Console: `http://localhost:19001`
+- Public objects: `http://localhost:19000/portfolio/<object_key>`
 
 
 ## Init container

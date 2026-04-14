@@ -8,7 +8,11 @@ from app.domains.admin.schema import AdminAssistantConversationSummaryOut, Admin
 
 class AdminRepositoryActivityMixin:
     def _build_site_activity_rollups(
-        self, events: list[SiteEvent]
+        self,
+        events: list[SiteEvent],
+        *,
+        site_event_retention_seconds: int,
+        now=None,
     ) -> tuple[list[AdminVisitorActivitySummaryOut], list[AdminVisitSessionSummaryOut]]:
         visitor_rollups: dict[str, dict[str, Any]] = {}
         visit_rollups: dict[tuple[str, str], dict[str, Any]] = {}
@@ -19,7 +23,6 @@ class AdminRepositoryActivityMixin:
 
             visitor_entry = visitor_rollups.setdefault(
                 event.visitor_id,
-
                 {
                     'visitor_id': event.visitor_id,
                     'first_seen_at': event.created_at,
@@ -43,10 +46,8 @@ class AdminRepositoryActivityMixin:
 
             if event.event_type == EventType.PAGE_VIEW:
                 visitor_entry['page_views'] += 1
-
             elif event.event_type == EventType.ASSISTANT_MESSAGE:
                 visitor_entry['assistant_messages'] += 1
-
             elif event.event_type == EventType.CONTACT_SUBMIT:
                 visitor_entry['contact_submissions'] += 1
 
@@ -54,10 +55,7 @@ class AdminRepositoryActivityMixin:
                 visitor_entry['latest_page_path'] = event.page_path
                 visitor_entry['latest_ip_address'] = ip_address
 
-
-
             if event.session_id:
-
                 visit_key = (event.visitor_id, event.session_id)
                 visit_entry = visit_rollups.setdefault(
                     visit_key,
@@ -92,40 +90,54 @@ class AdminRepositoryActivityMixin:
                     if ip_address:
                         visit_entry['ip_address'] = ip_address
 
-
-
-        visitors = [
-            AdminVisitorActivitySummaryOut(
-                visitor_id=item['visitor_id'],
-                first_seen_at=item['first_seen_at'].isoformat(),
-                last_seen_at=item['last_seen_at'].isoformat(),
-                total_events=item['total_events'],
-                unique_sessions=len(item['session_ids']),
-                page_views=item['page_views'],
-                assistant_messages=item['assistant_messages'],
-                contact_submissions=item['contact_submissions'],
-                latest_page_path=item['latest_page_path'],
-                latest_ip_address=item['latest_ip_address'],
+        visitors = []
+        for item in sorted(visitor_rollups.values(), key=lambda value: value['last_seen_at'], reverse=True):
+            retention_ends_at, seconds_until_retention_end = self._future_deadline(
+                item['last_seen_at'],
+                seconds=site_event_retention_seconds,
+                now=now,
             )
-            for item in sorted(visitor_rollups.values(), key=lambda value: value['last_seen_at'], reverse=True)
-        ]
-
-        visits = [
-            AdminVisitSessionSummaryOut(
-                session_id=item['session_id'],
-                visitor_id=item['visitor_id'],
-                started_at=item['started_at'].isoformat(),
-                last_activity_at=item['last_activity_at'].isoformat(),
-                total_events=item['total_events'],
-                page_views=item['page_views'],
-                assistant_messages=item['assistant_messages'],
-                contact_submissions=item['contact_submissions'],
-                entry_page_path=item['entry_page_path'],
-                last_page_path=item['last_page_path'],
-                ip_address=item['ip_address'],
+            visitors.append(
+                AdminVisitorActivitySummaryOut(
+                    visitor_id=item['visitor_id'],
+                    first_seen_at=self._serialize_datetime(item['first_seen_at']),
+                    last_seen_at=self._serialize_datetime(item['last_seen_at']),
+                    total_events=item['total_events'],
+                    unique_sessions=len(item['session_ids']),
+                    page_views=item['page_views'],
+                    assistant_messages=item['assistant_messages'],
+                    contact_submissions=item['contact_submissions'],
+                    latest_page_path=item['latest_page_path'],
+                    latest_ip_address=item['latest_ip_address'],
+                    retention_ends_at=retention_ends_at,
+                    seconds_until_retention_end=seconds_until_retention_end,
+                )
             )
-            for item in sorted(visit_rollups.values(), key=lambda value: value['last_activity_at'], reverse=True)
-        ]
+
+        visits = []
+        for item in sorted(visit_rollups.values(), key=lambda value: value['last_activity_at'], reverse=True):
+            retention_ends_at, seconds_until_retention_end = self._future_deadline(
+                item['last_activity_at'],
+                seconds=site_event_retention_seconds,
+                now=now,
+            )
+            visits.append(
+                AdminVisitSessionSummaryOut(
+                    session_id=item['session_id'],
+                    visitor_id=item['visitor_id'],
+                    started_at=self._serialize_datetime(item['started_at']),
+                    last_activity_at=self._serialize_datetime(item['last_activity_at']),
+                    total_events=item['total_events'],
+                    page_views=item['page_views'],
+                    assistant_messages=item['assistant_messages'],
+                    contact_submissions=item['contact_submissions'],
+                    entry_page_path=item['entry_page_path'],
+                    last_page_path=item['last_page_path'],
+                    ip_address=item['ip_address'],
+                    retention_ends_at=retention_ends_at,
+                    seconds_until_retention_end=seconds_until_retention_end,
+                )
+            )
         return visitors, visits
 
     def _build_conversation_activity_links(self, events: list[SiteEvent]) -> dict[str, dict[str, Any]]:
@@ -151,12 +163,21 @@ class AdminRepositoryActivityMixin:
         return links
 
     def _map_assistant_conversation(
-        self, conversation: AssistantConversation, activity_link: dict[str, Any] | None = None
+        self,
+        conversation: AssistantConversation,
+        activity_link: dict[str, Any] | None = None,
+        *,
+        retention_seconds: int,
+        now=None,
     ) -> AdminAssistantConversationSummaryOut:
-
         ordered_messages = sorted(conversation.messages, key=lambda item: item.created_at)
         user_messages = [item for item in ordered_messages if item.role == AssistantRole.USER]
         assistant_messages = [item for item in ordered_messages if item.role == AssistantRole.ASSISTANT]
+        retention_ends_at, seconds_until_retention_end = self._future_deadline(
+            conversation.last_message_at,
+            seconds=retention_seconds,
+            now=now,
+        )
 
         return AdminAssistantConversationSummaryOut(
             id=str(conversation.id),
@@ -164,12 +185,14 @@ class AdminRepositoryActivityMixin:
             visitor_id=activity_link.get('visitor_id') if activity_link else None,
             site_session_id=activity_link.get('site_session_id') if activity_link else None,
             page_path=activity_link.get('page_path') if activity_link else None,
-            started_at=conversation.started_at.isoformat(),
-            last_message_at=conversation.last_message_at.isoformat(),
+            started_at=self._serialize_datetime(conversation.started_at),
+            last_message_at=self._serialize_datetime(conversation.last_message_at),
             total_messages=len(ordered_messages),
             user_message_count=len(user_messages),
             assistant_message_count=len(assistant_messages),
             used_fallback=activity_link.get('used_fallback') if activity_link else None,
             first_user_message=user_messages[0].message_text if user_messages else None,
             latest_assistant_message=assistant_messages[-1].message_text if assistant_messages else None,
+            retention_ends_at=retention_ends_at,
+            seconds_until_retention_end=seconds_until_retention_end,
         )

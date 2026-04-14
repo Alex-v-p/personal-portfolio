@@ -37,6 +37,8 @@ class AdminSiteEventOut(ApiSchema):
     ip_address: str | None = None
     metadata: dict[str, Any] | None = None
     created_at: str
+    retention_ends_at: str
+    seconds_until_retention_end: int
 
 
 class AdminVisitSessionSummaryOut(ApiSchema):
@@ -51,6 +53,8 @@ class AdminVisitSessionSummaryOut(ApiSchema):
     entry_page_path: str | None = None
     last_page_path: str | None = None
     ip_address: str | None = None
+    retention_ends_at: str
+    seconds_until_retention_end: int
 
 
 class AdminVisitorActivitySummaryOut(ApiSchema):
@@ -64,6 +68,8 @@ class AdminVisitorActivitySummaryOut(ApiSchema):
     contact_submissions: int
     latest_page_path: str | None = None
     latest_ip_address: str | None = None
+    retention_ends_at: str
+    seconds_until_retention_end: int
 
 
 class AdminAssistantConversationSummaryOut(ApiSchema):
@@ -80,6 +86,8 @@ class AdminAssistantConversationSummaryOut(ApiSchema):
     used_fallback: bool | None = None
     first_user_message: str | None = None
     latest_assistant_message: str | None = None
+    retention_ends_at: str
+    seconds_until_retention_end: int
 
 
 class AdminSiteActivitySummaryOut(ApiSchema):
@@ -88,6 +96,8 @@ class AdminSiteActivitySummaryOut(ApiSchema):
     page_views: int
     assistant_messages: int
     contact_submissions: int
+    site_events_retention_days: int
+    assistant_activity_retention_days: int
 
 
 class AdminSiteActivityOut(ApiSchema):
