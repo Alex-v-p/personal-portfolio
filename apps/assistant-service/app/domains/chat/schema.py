@@ -7,8 +7,15 @@ from app.schemas.base import ApiSchema
 
 class CitationOut(ApiSchema):
     title: str
-    source_type: str = Field(serialization_alias='sourceType')
-    canonical_url: str | None = Field(default=None, serialization_alias='canonicalUrl')
+    source_type: str = Field(
+        validation_alias=AliasChoices('source_type', 'sourceType'),
+        serialization_alias='sourceType',
+    )
+    canonical_url: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices('canonical_url', 'canonicalUrl'),
+        serialization_alias='canonicalUrl',
+    )
     excerpt: str
 
 
@@ -29,9 +36,29 @@ class ChatRequest(ApiSchema):
 
 
 class ChatResponse(ApiSchema):
-    conversation_id: str = Field(serialization_alias='conversationId')
+    conversation_id: str | None = Field(default=None, serialization_alias='conversationId')
     message: str
     provider_backend: str = Field(serialization_alias='providerBackend')
+    citations: list[CitationOut] = Field(default_factory=list)
+
+
+class ChatTaskAccepted(ApiSchema):
+    task_id: str = Field(serialization_alias='taskId')
+    conversation_id: str | None = Field(default=None, serialization_alias='conversationId')
+    status: str
+    poll_after_ms: int = Field(default=900, serialization_alias='pollAfterMs')
+
+
+class ChatTaskStatus(ApiSchema):
+    task_id: str = Field(serialization_alias='taskId')
+    conversation_id: str | None = Field(default=None, serialization_alias='conversationId')
+    status: str
+    submitted_at: str = Field(serialization_alias='submittedAt')
+    started_at: str | None = Field(default=None, serialization_alias='startedAt')
+    completed_at: str | None = Field(default=None, serialization_alias='completedAt')
+    error_message: str | None = Field(default=None, serialization_alias='errorMessage')
+    message: str | None = None
+    provider_backend: str | None = Field(default=None, serialization_alias='providerBackend')
     citations: list[CitationOut] = Field(default_factory=list)
 
 

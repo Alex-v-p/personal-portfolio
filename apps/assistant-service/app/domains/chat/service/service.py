@@ -26,6 +26,12 @@ class ChatService:
         self.retrieval = KnowledgeRetrievalService(session)
         self.provider = ProviderClient()
 
+    def ensure_conversation_identity(self, *, conversation_id: str | None = None, session_id: str | None = None) -> tuple[str, str]:
+        conversation = self._get_or_create_conversation(conversation_id=conversation_id, session_id=session_id)
+        self.session.add(conversation)
+        self.session.commit()
+        return str(conversation.id), conversation.session_id
+
     def respond(
         self,
         *,

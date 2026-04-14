@@ -1,13 +1,21 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subscription, timer } from 'rxjs';
+import { switchMap, takeWhile } from 'rxjs/operators';
 
-import { AssistantChatMessage, AssistantChatResponse, AssistantChatState } from '../model/assistant-chat.model';
+import {
+  AssistantChatMessage,
+  AssistantChatResponse,
+  AssistantChatState,
+  AssistantChatTaskAccepted,
+  AssistantChatTaskStatus,
+} from '../model/assistant-chat.model';
 import { SiteTrackingService } from '@domains/site-activity/data/site-tracking.service';
 
 const ASSISTANT_STATE_STORAGE_KEY = 'portfolio.assistant.state';
 const ASSISTANT_SESSION_STORAGE_KEY = 'portfolio.assistant.session-id';
+const ASSISTANT_MAX_TASK_POLLS = 90;
 
 const resolveAssistantApiBaseUrl = (): string => '/ai';
 
@@ -18,6 +26,8 @@ export class AssistantApiService {
   private readonly assistantApiBaseUrl = resolveAssistantApiBaseUrl();
   private readonly siteTracking = inject(SiteTrackingService);
   private readonly stateSubject = new BehaviorSubject<AssistantChatState>(this.restoreState());
+
+  private chatTaskSubscription?: Subscription;
 
   readonly state$ = this.stateSubject.asObservable();
 
@@ -44,7 +54,7 @@ export class AssistantApiService {
       messages: [...this.snapshot.messages, optimisticMessage],
     });
 
-    this.http.post<AssistantChatResponse>(`${this.assistantApiBaseUrl}/chat/respond`, {
+    this.http.post<AssistantChatResponse | AssistantChatTaskAccepted>(`${this.assistantApiBaseUrl}/chat/respond`, {
       message,
       conversation_id: this.snapshot.conversationId,
       session_id: this.getOrCreateAssistantSessionId(),
@@ -53,37 +63,25 @@ export class AssistantApiService {
       page_path: pagePath ?? this.router.url,
     }).subscribe({
       next: (response) => {
-        const normalizedResponse = response as AssistantChatResponse & { conversation_id?: string; provider_backend?: string };
-        const assistantMessage: AssistantChatMessage = {
-          role: 'assistant',
-          text: response.message,
-          createdAt: new Date().toISOString(),
-          citations: response.citations ?? [],
-        };
-        this.patchState({
-          conversationId: normalizedResponse.conversationId ?? normalizedResponse.conversation_id ?? null,
-          messages: [...this.snapshot.messages, assistantMessage],
-          isLoading: false,
-          errorMessage: null,
-        });
+        if (this.isTaskAccepted(response)) {
+          this.patchState({
+            conversationId: response.conversationId ?? this.snapshot.conversationId,
+            isLoading: true,
+            errorMessage: null,
+          });
+          this.pollChatTask(response.taskId, response.pollAfterMs);
+          return;
+        }
+        this.applyChatResponse(response);
       },
       error: (error) => {
-        const fallbackMessage: AssistantChatMessage = {
-          role: 'assistant',
-          text: error?.error?.detail || 'The assistant request failed. Check that the assistant service or reverse proxy is running and try again.',
-          createdAt: new Date().toISOString(),
-          citations: [],
-        };
-        this.patchState({
-          messages: [...this.snapshot.messages, fallbackMessage],
-          isLoading: false,
-          errorMessage: fallbackMessage.text,
-        });
+        this.applyFailureMessage(error?.error?.detail || 'The assistant request failed. Check that the assistant service or reverse proxy is running and try again.');
       }
     });
   }
 
   resetConversation(): void {
+    this.chatTaskSubscription?.unsubscribe();
     const emptyState: AssistantChatState = {
       conversationId: null,
       messages: [],
@@ -95,6 +93,72 @@ export class AssistantApiService {
     }
     this.stateSubject.next(emptyState);
     this.persistState(emptyState);
+  }
+
+  private pollChatTask(taskId: string, pollAfterMs: number): void {
+    this.chatTaskSubscription?.unsubscribe();
+    let pollCount = 0;
+    this.chatTaskSubscription = timer(pollAfterMs, pollAfterMs)
+      .pipe(
+        switchMap(() => this.http.get<AssistantChatTaskStatus>(`${this.assistantApiBaseUrl}/chat/tasks/${taskId}`)),
+        takeWhile((task) => {
+          pollCount += 1;
+          const stillPending = task.status === 'queued' || task.status === 'running';
+          return stillPending && pollCount < ASSISTANT_MAX_TASK_POLLS;
+        }, true),
+      )
+      .subscribe({
+        next: (task) => {
+          if (task.status === 'succeeded' && task.message) {
+            this.applyChatResponse({
+              conversationId: task.conversationId,
+              message: task.message,
+              providerBackend: task.providerBackend ?? 'unknown',
+              citations: task.citations ?? [],
+            });
+            return;
+          }
+          if (task.status === 'failed') {
+            this.applyFailureMessage(task.errorMessage || 'The assistant worker failed to generate a response.');
+            return;
+          }
+          if (pollCount >= ASSISTANT_MAX_TASK_POLLS) {
+            this.applyFailureMessage('The assistant worker is still processing your message. Please try again in a moment.');
+          }
+        },
+        error: (error) => {
+          this.applyFailureMessage(error?.error?.detail || 'Checking assistant message progress failed.');
+        }
+      });
+  }
+
+  private applyChatResponse(response: AssistantChatResponse): void {
+    const assistantMessage: AssistantChatMessage = {
+      role: 'assistant',
+      text: response.message,
+      createdAt: new Date().toISOString(),
+      citations: response.citations ?? [],
+    };
+    this.patchState({
+      conversationId: response.conversationId ?? this.snapshot.conversationId,
+      messages: [...this.snapshot.messages, assistantMessage],
+      isLoading: false,
+      errorMessage: null,
+    });
+  }
+
+  private applyFailureMessage(text: string): void {
+    const fallbackMessage: AssistantChatMessage = {
+      role: 'assistant',
+      text,
+      createdAt: new Date().toISOString(),
+      citations: [],
+    };
+    this.patchState({
+      messages: [...this.snapshot.messages, fallbackMessage],
+      isLoading: false,
+      errorMessage: fallbackMessage.text,
+    });
   }
 
   private patchState(partial: Partial<AssistantChatState>): void {
@@ -147,5 +211,9 @@ export class AssistantApiService {
     const sessionId = crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
     window.sessionStorage.setItem(ASSISTANT_SESSION_STORAGE_KEY, sessionId);
     return sessionId;
+  }
+
+  private isTaskAccepted(value: AssistantChatResponse | AssistantChatTaskAccepted): value is AssistantChatTaskAccepted {
+    return !!value && typeof value === 'object' && 'taskId' in value;
   }
 }

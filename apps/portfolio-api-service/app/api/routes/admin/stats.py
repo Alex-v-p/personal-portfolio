@@ -3,16 +3,19 @@ from __future__ import annotations
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, status
+from fastapi.responses import JSONResponse
 
 from app.api.routes.admin.common import CurrentAdminDep, SessionDep
 from app.domains.admin.repository.stats import AdminGithubRepository
 from app.domains.admin.schema import (
+    AdminAsyncTaskAcceptedOut,
     AdminGithubSnapshotOut,
     AdminGithubSnapshotRefreshIn,
     AdminGithubSnapshotsListOut,
     AdminGithubSnapshotUpsertIn,
 )
 from app.domains.admin.service.github_snapshot_service import AdminGithubSnapshotService
+from app.services.async_tasks import GITHUB_REFRESH_TASK, TaskQueueUnavailable, get_admin_task_queue
 
 router = APIRouter()
 
@@ -40,8 +43,31 @@ def create_github_snapshot(payload: AdminGithubSnapshotUpsertIn, _: CurrentAdmin
     return repository(session).create_github_snapshot(payload)
 
 
-@router.post('/github-snapshots/refresh', response_model=AdminGithubSnapshotOut)
-def refresh_github_snapshot(payload: AdminGithubSnapshotRefreshIn, _: CurrentAdminDep, session: SessionDep) -> AdminGithubSnapshotOut:
+@router.post('/github-snapshots/refresh', response_model=AdminGithubSnapshotOut | AdminAsyncTaskAcceptedOut)
+def refresh_github_snapshot(
+    payload: AdminGithubSnapshotRefreshIn,
+    _: CurrentAdminDep,
+    session: SessionDep,
+) -> AdminGithubSnapshotOut | JSONResponse:
+    task_queue = get_admin_task_queue()
+    if task_queue.enabled:
+        try:
+            task = task_queue.enqueue(
+                GITHUB_REFRESH_TASK,
+                {
+                    'username': payload.username,
+                    'prune_history': payload.prune_history,
+                },
+            )
+            accepted = AdminAsyncTaskAcceptedOut(
+                task_id=task.task_id,
+                task_type=GITHUB_REFRESH_TASK,
+                status=task.status,
+                poll_after_ms=task_queue.poll_after_ms,
+            )
+            return JSONResponse(status_code=status.HTTP_202_ACCEPTED, content=accepted.model_dump(mode='json', by_alias=True))
+        except TaskQueueUnavailable:
+            pass
     return AdminGithubSnapshotService(session).refresh(payload.username, prune_history=payload.prune_history)
 
 

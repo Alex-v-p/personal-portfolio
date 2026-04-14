@@ -87,6 +87,39 @@ services:
       minio-init:
         condition: service_completed_successfully
 
+
+  portfolio-api-worker:
+    build:
+      context: ./apps/portfolio-api-service
+      dockerfile: Dockerfile
+    container_name: portfolio_api_worker
+    env_file:
+      - .env
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      DATABASE_URL: ${PORTFOLIO_API_DB_URL:-postgresql+psycopg://portfolio_user:portfolio_pass@postgres:5432/portfolio_platform}
+      REDIS_URL: ${PORTFOLIO_API_REDIS_URL:-redis://redis:6379/0}
+      SECRET_KEY: ${PORTFOLIO_API_SECRET_KEY:-change-me}
+      MEDIA_PUBLIC_BASE_URL: ${MEDIA_PUBLIC_BASE_URL:-http://localhost:9000}
+      KNOWLEDGE_EMBEDDING_BACKEND: ${KNOWLEDGE_EMBEDDING_BACKEND:-ollama}
+      KNOWLEDGE_EMBEDDING_MODEL: ${KNOWLEDGE_EMBEDDING_MODEL:-nomic-embed-text}
+      KNOWLEDGE_EMBEDDING_BASE_URL: ${KNOWLEDGE_EMBEDDING_BASE_URL:-http://ollama:11434}
+      KNOWLEDGE_EMBEDDING_API_KEY: ${KNOWLEDGE_EMBEDDING_API_KEY:-}
+      KNOWLEDGE_EMBEDDING_TIMEOUT_SECONDS: ${KNOWLEDGE_EMBEDDING_TIMEOUT_SECONDS:-20}
+      GITHUB_API_TOKEN: ${GITHUB_API_TOKEN:-}
+      GITHUB_STATS_USERNAME: ${GITHUB_STATS_USERNAME:-Alex-v-p}
+      GITHUB_STATS_LOOKBACK_DAYS: ${GITHUB_STATS_LOOKBACK_DAYS:-365}
+    command: ["sh", "-c", "python -m app.workers.admin_tasks"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      portfolio-db-init:
+        condition: service_completed_successfully
+      ollama:
+        condition: service_started
+
   assistant:
     build:
       context: ./apps/assistant-service
@@ -119,6 +152,47 @@ services:
       ASSISTANT_RETRIEVAL_EMBEDDING_BASE_URL: ${ASSISTANT_RETRIEVAL_EMBEDDING_BASE_URL:-http://ollama:11434}
       ASSISTANT_RETRIEVAL_EMBEDDING_API_KEY: ${ASSISTANT_RETRIEVAL_EMBEDDING_API_KEY:-}
       ASSISTANT_RETRIEVAL_EMBEDDING_TIMEOUT_SECONDS: ${ASSISTANT_RETRIEVAL_EMBEDDING_TIMEOUT_SECONDS:-20}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      portfolio-db-init:
+        condition: service_completed_successfully
+      ollama:
+        condition: service_started
+
+
+  assistant-worker:
+    build:
+      context: ./apps/assistant-service
+      dockerfile: Dockerfile
+    container_name: assistant_worker
+    env_file:
+      - .env
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      DATABASE_URL: ${ASSISTANT_API_DB_URL:-postgresql+psycopg://portfolio_user:portfolio_pass@postgres:5432/portfolio_platform}
+      REDIS_URL: ${ASSISTANT_API_REDIS_URL:-redis://redis:6379/0}
+      SECRET_KEY: ${ASSISTANT_API_SECRET_KEY:-change-me-too}
+      ASSISTANT_PROVIDER_BACKEND: ${ASSISTANT_PROVIDER_BACKEND:-mock}
+      ASSISTANT_PROVIDER_MODEL: ${ASSISTANT_PROVIDER_MODEL:-qwen2.5:3b}
+      ASSISTANT_PROVIDER_BASE_URL: ${ASSISTANT_PROVIDER_BASE_URL:-http://ollama:11434}
+      ASSISTANT_PROVIDER_API_KEY: ${ASSISTANT_PROVIDER_API_KEY:-}
+      ASSISTANT_RETRIEVAL_CHUNK_LIMIT: ${ASSISTANT_RETRIEVAL_CHUNK_LIMIT:-5}
+      ASSISTANT_RETRIEVAL_CANDIDATE_LIMIT: ${ASSISTANT_RETRIEVAL_CANDIDATE_LIMIT:-18}
+      CHAT_RATE_LIMIT_MAX_REQUESTS: ${ASSISTANT_CHAT_RATE_LIMIT_MAX_REQUESTS:-12}
+      CHAT_RATE_LIMIT_WINDOW_SECONDS: ${ASSISTANT_CHAT_RATE_LIMIT_WINDOW_SECONDS:-60}
+      CHAT_MAX_REQUEST_BYTES: ${ASSISTANT_CHAT_MAX_REQUEST_BYTES:-16384}
+      PROVIDER_REQUEST_TIMEOUT_SECONDS: ${ASSISTANT_PROVIDER_REQUEST_TIMEOUT_SECONDS:-25}
+      PROVIDER_MAX_RETRIES: ${ASSISTANT_PROVIDER_MAX_RETRIES:-1}
+      PROVIDER_DAILY_GENERATION_CAP: ${ASSISTANT_PROVIDER_DAILY_GENERATION_CAP:-1000}
+      ASSISTANT_RETRIEVAL_EMBEDDING_BACKEND: ${ASSISTANT_RETRIEVAL_EMBEDDING_BACKEND:-ollama}
+      ASSISTANT_RETRIEVAL_EMBEDDING_MODEL: ${ASSISTANT_RETRIEVAL_EMBEDDING_MODEL:-nomic-embed-text}
+      ASSISTANT_RETRIEVAL_EMBEDDING_BASE_URL: ${ASSISTANT_RETRIEVAL_EMBEDDING_BASE_URL:-http://ollama:11434}
+      ASSISTANT_RETRIEVAL_EMBEDDING_API_KEY: ${ASSISTANT_RETRIEVAL_EMBEDDING_API_KEY:-}
+      ASSISTANT_RETRIEVAL_EMBEDDING_TIMEOUT_SECONDS: ${ASSISTANT_RETRIEVAL_EMBEDDING_TIMEOUT_SECONDS:-20}
+    command: ["sh", "-c", "python -m app.workers.chat_tasks"]
     depends_on:
       postgres:
         condition: service_healthy

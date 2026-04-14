@@ -2,7 +2,7 @@ import { HttpClient, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AssistantApiService } from './assistant-api.service';
 import { SiteTrackingService } from '@domains/site-activity/data/site-tracking.service';
@@ -100,6 +100,44 @@ describe('AssistantApiService', () => {
       role: 'assistant',
       text: 'Too many assistant messages were sent in a short period. Please wait a moment before trying again.',
     });
+  });
+
+  it('polls an accepted assistant task until the worker response is ready', async () => {
+    vi.useFakeTimers();
+    sessionStorage.setItem('portfolio.assistant.session-id', 'assistant-session-1');
+
+    service.sendMessage('Tell me about the backend.');
+
+    const submitRequest = httpMock.expectOne('/ai/chat/respond');
+    submitRequest.flush({
+      taskId: 'chat-task-1',
+      conversationId: 'conversation-1',
+      status: 'queued',
+      pollAfterMs: 10,
+    }, { status: 202, statusText: 'Accepted' });
+
+    await vi.advanceTimersByTimeAsync(10);
+
+    const pollRequest = httpMock.expectOne('/ai/chat/tasks/chat-task-1');
+    pollRequest.flush({
+      taskId: 'chat-task-1',
+      conversationId: 'conversation-1',
+      status: 'succeeded',
+      submittedAt: '2026-04-14T10:00:00Z',
+      completedAt: '2026-04-14T10:00:02Z',
+      message: 'The backend uses FastAPI.',
+      providerBackend: 'mock',
+      citations: [],
+    });
+
+    expect(service.snapshot.isLoading).toBe(false);
+    expect(service.snapshot.conversationId).toBe('conversation-1');
+    expect(service.snapshot.messages[service.snapshot.messages.length - 1]).toMatchObject({
+      role: 'assistant',
+      text: 'The backend uses FastAPI.',
+    });
+
+    vi.useRealTimers();
   });
 
   it('does not send an empty assistant message', () => {

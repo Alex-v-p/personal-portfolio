@@ -1,4 +1,5 @@
 from app.domains.admin.schema_parts.activity import *
+from app.domains.admin.schema_parts.async_tasks import *
 from app.domains.admin.schema_parts.assistant import *
 from app.domains.admin.schema_parts.auth import *
 from app.domains.admin.schema_parts.common import *

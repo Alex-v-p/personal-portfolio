@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { AdminAssistantKnowledgeStatus, AdminDashboardSummary, AdminReferenceData, AdminSiteActivity } from '@domains/admin/model/admin.model';
+import { AdminAssistantKnowledgeStatus, AdminAsyncTaskAccepted, AdminDashboardSummary, AdminReferenceData, AdminSiteActivity } from '@domains/admin/model/admin.model';
 import { AdminHttpService } from './admin-http.service';
 
 @Injectable({ providedIn: 'root' })
@@ -24,7 +24,7 @@ export class AdminOverviewApiService {
     return this.adminHttp.http.get<AdminSiteActivity>(this.adminHttp.adminUrl('site-activity'));
   }
 
-  rebuildAssistantKnowledge(): Observable<AdminAssistantKnowledgeStatus> {
-    return this.adminHttp.http.post<AdminAssistantKnowledgeStatus>(this.adminHttp.adminUrl('assistant/knowledge/rebuild'), {});
+  rebuildAssistantKnowledge(): Observable<AdminAssistantKnowledgeStatus | AdminAsyncTaskAccepted> {
+    return this.adminHttp.http.post<AdminAssistantKnowledgeStatus | AdminAsyncTaskAccepted>(this.adminHttp.adminUrl('assistant/knowledge/rebuild'), {});
   }
 }

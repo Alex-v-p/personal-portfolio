@@ -38,6 +38,13 @@
         "cwd": ".",
         "command": ".\\.venv\\Scripts\\python.exe -m infra.postgres.migrations.cli check"
       }
+    },
+    "worker": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/portfolio-api-service",
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m app.workers.admin_tasks"
+      }
     }
   },
   "tags": [

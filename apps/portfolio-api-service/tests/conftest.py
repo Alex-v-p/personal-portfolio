@@ -7,17 +7,15 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-
 from app.core.config import get_settings
 from app.db.session import reset_database_caches
+from app.services.async_tasks import reset_admin_task_queue_cache
 from app.services.rate_limit import reset_rate_limit_state
 from infra.postgres.bootstrap.bootstrap_core import initialize_database
-
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
-
 
 
 @pytest.fixture()
@@ -32,7 +30,7 @@ def client(tmp_path: Path) -> TestClient:
     get_settings.cache_clear()
     reset_database_caches()
     reset_rate_limit_state()
-    reset_rate_limit_state()
+    reset_admin_task_queue_cache()
 
     assert initialize_database(auto_seed=True, recreate_on_drift=True, raise_on_error=True) is True
 
@@ -45,3 +43,4 @@ def client(tmp_path: Path) -> TestClient:
     get_settings.cache_clear()
     reset_database_caches()
     reset_rate_limit_state()
+    reset_admin_task_queue_cache()

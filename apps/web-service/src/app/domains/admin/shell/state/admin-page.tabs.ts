@@ -6,4 +6,18 @@ export const ADMIN_TABS = [
   { id: 'admins', label: 'Admin users' },
 ] as const;
 
-export type AdminTabId = typeof ADMIN_TABS[number]['id'];
+export type AdminVisibleTabId = typeof ADMIN_TABS[number]['id'];
+export type AdminTabId =
+  | 'overview'
+  | 'projects'
+  | 'blog'
+  | 'media'
+  | 'messages'
+  | 'activity'
+  | 'assistant'
+  | 'profile'
+  | 'stats'
+  | 'taxonomy'
+  | 'experience'
+  | 'navigation'
+  | 'admins';

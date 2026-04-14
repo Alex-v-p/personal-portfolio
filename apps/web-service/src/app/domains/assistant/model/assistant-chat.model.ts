@@ -13,9 +13,31 @@ export interface AssistantChatMessage {
 }
 
 export interface AssistantChatResponse {
-  conversationId: string;
+  conversationId: string | null;
   message: string;
   providerBackend: string;
+  citations: AssistantCitation[];
+}
+
+export type AssistantChatTaskState = 'queued' | 'running' | 'succeeded' | 'failed';
+
+export interface AssistantChatTaskAccepted {
+  taskId: string;
+  conversationId: string | null;
+  status: AssistantChatTaskState;
+  pollAfterMs: number;
+}
+
+export interface AssistantChatTaskStatus {
+  taskId: string;
+  conversationId: string | null;
+  status: AssistantChatTaskState;
+  submittedAt: string;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  errorMessage?: string | null;
+  message?: string | null;
+  providerBackend?: string | null;
   citations: AssistantCitation[];
 }
 

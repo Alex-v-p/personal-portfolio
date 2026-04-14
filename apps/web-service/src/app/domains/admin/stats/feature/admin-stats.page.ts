@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
-import { finalize, take } from 'rxjs/operators';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Subscription, timer } from 'rxjs';
+import { finalize, switchMap, take, takeWhile } from 'rxjs/operators';
 
 import { AdminStatsApiService } from '@domains/admin/data/api/admin-stats-api.service';
+import { AdminTasksApiService } from '@domains/admin/data/api/admin-tasks-api.service';
 import { AdminSessionService } from '@domains/admin/data/admin-session.service';
-import { AdminGithubContributionDay, AdminGithubSnapshot } from '@domains/admin/model/admin.model';
+import { AdminAsyncTaskAccepted, AdminAsyncTaskStatus, AdminGithubContributionDay, AdminGithubSnapshot } from '@domains/admin/model/admin.model';
 import { AdminGithubSnapshotForm, createEmptyGithubSnapshotForm, toGithubSnapshotForm } from '@domains/admin/model/forms/index';
 import { AdminStatsTabComponent } from '@domains/admin/ui/tabs/admin-stats-tab.component';
 import { parseContributionDays, parseGithubRawPayload } from '@domains/admin/stats/state/admin-stats.state';
@@ -16,10 +18,13 @@ import { resolveSelection } from '@domains/admin/shell/state/admin-page.utils';
   imports: [CommonModule, AdminStatsTabComponent],
   templateUrl: './admin-stats.page.html',
 })
-export class AdminStatsPageComponent implements OnInit {
+export class AdminStatsPageComponent implements OnInit, OnDestroy {
   private readonly statsApi = inject(AdminStatsApiService);
+  private readonly tasksApi = inject(AdminTasksApiService);
   private readonly adminSession = inject(AdminSessionService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+
+  private githubRefreshTaskSubscription?: Subscription;
 
   protected isLoading = true;
   protected errorMessage = '';
@@ -31,6 +36,10 @@ export class AdminStatsPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadStatsPage(false);
+  }
+
+  ngOnDestroy(): void {
+    this.githubRefreshTaskSubscription?.unsubscribe();
   }
 
   protected reload(): void {
@@ -62,12 +71,14 @@ export class AdminStatsPageComponent implements OnInit {
       username: this.githubSnapshotForm.username.trim() || null,
       pruneHistory: true,
     }).pipe(take(1)).subscribe({
-      next: (snapshot) => {
-        this.isRefreshingGithub = false;
-        this.selectedGithubSnapshotId = snapshot.id;
-        this.githubSnapshotForm = toGithubSnapshotForm(snapshot);
-        this.statusMessage = 'GitHub stats refreshed from the latest public profile data.';
-        this.loadStatsPage(false);
+      next: (response) => {
+        if (this.isAsyncTaskAccepted(response)) {
+          this.statusMessage = 'GitHub refresh queued. Waiting for the Redis worker to fetch the latest profile data…';
+          this.pollGithubRefreshTask(response.taskId, response.pollAfterMs);
+          return;
+        }
+
+        this.applyRefreshedGithubSnapshot(response);
       },
       error: (error) => {
         if (error?.status === 401) {
@@ -80,6 +91,64 @@ export class AdminStatsPageComponent implements OnInit {
         this.changeDetectorRef.detectChanges();
       },
     });
+  }
+
+
+  private pollGithubRefreshTask(taskId: string, pollAfterMs: number): void {
+    this.githubRefreshTaskSubscription?.unsubscribe();
+    this.githubRefreshTaskSubscription = timer(pollAfterMs, pollAfterMs)
+      .pipe(
+        switchMap(() => this.tasksApi.getTask(taskId)),
+        takeWhile((task) => task.status === 'queued' || task.status === 'running', true),
+      )
+      .subscribe({
+        next: (task) => {
+          if (task.status === 'succeeded') {
+            this.finishGithubRefreshFromTask(task);
+            return;
+          }
+
+          if (task.status === 'failed') {
+            this.isRefreshingGithub = false;
+            this.statusMessage = task.errorMessage || 'Refreshing GitHub stats failed.';
+            this.changeDetectorRef.detectChanges();
+          }
+        },
+        error: (error) => {
+          if (error?.status === 401) {
+            this.adminSession.logout();
+            return;
+          }
+
+          this.isRefreshingGithub = false;
+          this.statusMessage = error?.error?.detail || 'Checking GitHub refresh progress failed.';
+          this.changeDetectorRef.detectChanges();
+        },
+      });
+  }
+
+  private finishGithubRefreshFromTask(task: AdminAsyncTaskStatus): void {
+    const result = task.result;
+    if (!result) {
+      this.isRefreshingGithub = false;
+      this.statusMessage = 'GitHub refresh finished, but the snapshot payload was missing.';
+      this.changeDetectorRef.detectChanges();
+      return;
+    }
+
+    this.applyRefreshedGithubSnapshot(result as unknown as AdminGithubSnapshot);
+  }
+
+  private applyRefreshedGithubSnapshot(snapshot: AdminGithubSnapshot): void {
+    this.isRefreshingGithub = false;
+    this.selectedGithubSnapshotId = snapshot.id;
+    this.githubSnapshotForm = toGithubSnapshotForm(snapshot);
+    this.statusMessage = 'GitHub stats refreshed from the latest public profile data.';
+    this.loadStatsPage(false);
+  }
+
+  private isAsyncTaskAccepted(value: AdminGithubSnapshot | AdminAsyncTaskAccepted): value is AdminAsyncTaskAccepted {
+    return !!value && typeof value === 'object' && 'taskId' in value;
   }
 
   protected saveGithubSnapshot(): void {

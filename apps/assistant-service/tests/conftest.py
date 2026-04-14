@@ -22,9 +22,11 @@ def _isolate_assistant_test_environment() -> None:
 
     _clear_runtime_caches()
 
+    from app.services.async_tasks import reset_chat_task_queue_cache
     from app.services.rate_limit import reset_rate_limit_state
 
     reset_rate_limit_state()
+    reset_chat_task_queue_cache()
     yield
     for key, previous_value in previous_values.items():
         if previous_value is None:
@@ -34,6 +36,7 @@ def _isolate_assistant_test_environment() -> None:
 
     _clear_runtime_caches()
     reset_rate_limit_state()
+    reset_chat_task_queue_cache()
 
 
 def _clear_runtime_caches() -> None:

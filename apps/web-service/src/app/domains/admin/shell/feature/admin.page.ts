@@ -1,12 +1,14 @@
 import { NgClass, NgFor, NgIf } from '@angular/common';
-import { ChangeDetectorRef, Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
-import { finalize, take } from 'rxjs/operators';
+import { Subscription, forkJoin, timer } from 'rxjs';
+import { finalize, switchMap, take, takeWhile } from 'rxjs/operators';
 
 import {
   AdminAssistantConversationSummary,
   AdminAssistantKnowledgeStatus,
+  AdminAsyncTaskAccepted,
+  AdminAsyncTaskStatus,
   AdminBlogPost,
   AdminBlogTag,
   AdminContactMessage,
@@ -36,6 +38,7 @@ import { AdminProfileApiService } from '@domains/admin/data/api/admin-profile-ap
 import { AdminStatsApiService } from '@domains/admin/data/api/admin-stats-api.service';
 import { AdminTaxonomyApiService } from '@domains/admin/data/api/admin-taxonomy-api.service';
 import { AdminSessionService } from '@domains/admin/data/admin-session.service';
+import { AdminTasksApiService } from '@domains/admin/data/api/admin-tasks-api.service';
 import {
   AdminBlogPostForm,
   AdminBlogTagForm,
@@ -94,18 +97,11 @@ import {
   resetScopedUploadForm,
   resolveSelectedMediaFile,
 } from '@domains/admin/media/state/admin-media.filters';
-import { AdminActivityTabComponent } from '@domains/admin/ui/tabs/admin-activity-tab.component';
 import { AdminBlogTabComponent } from '@domains/admin/ui/tabs/admin-blog-tab.component';
 import { AdminAdminsTabComponent } from '@domains/admin/ui/tabs/admin-admins-tab.component';
-import { AdminAssistantTabComponent } from '@domains/admin/ui/tabs/admin-assistant-tab.component';
 import { AdminExperienceTabComponent } from '@domains/admin/ui/tabs/admin-experience-tab.component';
-import { AdminMediaTabComponent } from '@domains/admin/ui/tabs/admin-media-tab.component';
-import { AdminMessagesTabComponent } from '@domains/admin/ui/tabs/admin-messages-tab.component';
 import { AdminNavigationTabComponent } from '@domains/admin/ui/tabs/admin-navigation-tab.component';
-import { AdminOverviewTabComponent } from '@domains/admin/ui/tabs/admin-overview-tab.component';
-import { AdminProfileTabComponent } from '@domains/admin/ui/tabs/admin-profile-tab.component';
 import { AdminProjectsTabComponent } from '@domains/admin/ui/tabs/admin-projects-tab.component';
-import { AdminStatsTabComponent } from '@domains/admin/ui/tabs/admin-stats-tab.component';
 import { AdminTaxonomyTabComponent } from '@domains/admin/ui/tabs/admin-taxonomy-tab.component';
 import { parseContributionDays, parseJsonObject, resolveSelection, toggleSelection } from '@domains/admin/shell/state/admin-page.utils';
 
@@ -118,6 +114,7 @@ import { parseContributionDays, parseJsonObject, resolveSelection, toggleSelecti
     NgClass,
     FormsModule,
     AdminProjectsTabComponent,
+    AdminBlogTabComponent,
     AdminTaxonomyTabComponent,
     AdminExperienceTabComponent,
     AdminNavigationTabComponent,
@@ -125,7 +122,7 @@ import { parseContributionDays, parseJsonObject, resolveSelection, toggleSelecti
   ],
   templateUrl: './admin.page.html'
 })
-export class AdminPageComponent implements OnInit, OnChanges {
+export class AdminPageComponent implements OnInit, OnDestroy {
   private readonly overviewApi = inject(AdminOverviewApiService);
   private readonly contentApi = inject(AdminContentApiService);
   private readonly mediaApi = inject(AdminMediaApiService);
@@ -133,10 +130,14 @@ export class AdminPageComponent implements OnInit, OnChanges {
   private readonly profileApi = inject(AdminProfileApiService);
   private readonly statsApi = inject(AdminStatsApiService);
   private readonly taxonomyApi = inject(AdminTaxonomyApiService);
+  private readonly tasksApi = inject(AdminTasksApiService);
   private readonly adminSession = inject(AdminSessionService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   @ViewChild(AdminBlogTabComponent) private blogTabComponent?: AdminBlogTabComponent;
+
+  private githubRefreshTaskSubscription?: Subscription;
+  private assistantRebuildTaskSubscription?: Subscription;
 
   @Input() initialTab: AdminTabId = 'projects';
   @Input() compactMode = false;
@@ -242,14 +243,16 @@ export class AdminPageComponent implements OnInit, OnChanges {
     this.loadCms();
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['initialTab'] && !changes['initialTab'].firstChange) {
-      this.setActiveTab(this.initialTab);
-    }
+  ngOnDestroy(): void {
+    this.githubRefreshTaskSubscription?.unsubscribe();
+    this.assistantRebuildTaskSubscription?.unsubscribe();
   }
 
   protected setActiveTab(tabId: typeof this.activeTab): void {
     this.activeTab = tabId;
+    if (tabId === 'media' && !this.selectedMediaFileId) {
+      this.selectedMediaFileId = this.filteredMediaFiles[0]?.id ?? this.referenceData.mediaFiles[0]?.id ?? null;
+    }
   }
 
   protected logout(): void {
@@ -260,12 +263,16 @@ export class AdminPageComponent implements OnInit, OnChanges {
     const currentSelections = {
       mediaFile: this.selectedMediaFileId,
       project: this.selectedProjectId,
+      blogPost: this.selectedBlogPostId,
       skillCategory: this.selectedSkillCategoryId,
       skill: this.selectedSkillId,
       blogTag: this.selectedBlogTagId,
       experience: this.selectedExperienceId,
       navigation: this.selectedNavigationItemId,
       adminUser: this.selectedAdminUserId,
+      github: this.selectedGithubSnapshotId,
+      activityVisitor: this.selectedActivityVisitorId,
+      activityVisit: this.selectedActivityVisitSessionId,
     };
 
     this.isLoading = true;
@@ -275,9 +282,15 @@ export class AdminPageComponent implements OnInit, OnChanges {
       dashboard: this.overviewApi.getDashboardSummary(),
       referenceData: this.overviewApi.getReferenceData(),
       projects: this.contentApi.getProjects(),
+      blogPosts: this.contentApi.getBlogPosts(),
       experiences: this.contentApi.getExperiences(),
       navigationItems: this.contentApi.getNavigationItems(),
       adminUsers: this.messagesApi.listAdminUsers(),
+      githubSnapshots: this.statsApi.getGithubSnapshots(),
+      profile: this.profileApi.getProfile(),
+      messages: this.messagesApi.getContactMessages(),
+      assistantKnowledgeStatus: this.overviewApi.getAssistantKnowledgeStatus(),
+      siteActivity: this.overviewApi.getSiteActivity(),
     })
       .pipe(
         take(1),
@@ -291,33 +304,58 @@ export class AdminPageComponent implements OnInit, OnChanges {
           this.dashboard = result.dashboard;
           this.referenceData = result.referenceData;
           this.projects = result.projects.items;
+          this.blogPosts = result.blogPosts.items;
           this.experiences = result.experiences.items;
           this.navigationItems = result.navigationItems.items;
           this.adminUsers = result.adminUsers;
+          this.githubSnapshots = result.githubSnapshots.items;
+          this.profile = result.profile;
+          this.messages = result.messages.items;
+          this.assistantKnowledgeStatus = result.assistantKnowledgeStatus;
+          this.siteActivity = result.siteActivity;
 
           this.selectedMediaFileId = resolveSelection(currentSelections.mediaFile, this.referenceData.mediaFiles) ?? this.referenceData.mediaFiles[0]?.id ?? null;
           this.selectedProjectId = resolveSelection(currentSelections.project, this.projects);
+          this.selectedBlogPostId = resolveSelection(currentSelections.blogPost, this.blogPosts);
           this.selectedSkillCategoryId = resolveSelection(currentSelections.skillCategory, this.referenceData.skillCategories);
           this.selectedSkillId = resolveSelection(currentSelections.skill, this.referenceData.skills);
           this.selectedBlogTagId = resolveSelection(currentSelections.blogTag, this.referenceData.blogTags);
           this.selectedExperienceId = resolveSelection(currentSelections.experience, this.experiences);
           this.selectedNavigationItemId = resolveSelection(currentSelections.navigation, this.navigationItems);
           this.selectedAdminUserId = resolveSelection(currentSelections.adminUser, this.adminUsers);
+          this.selectedGithubSnapshotId = resolveSelection(currentSelections.github, this.githubSnapshots);
+          this.selectedActivityVisitorId = currentSelections.activityVisitor;
+          this.selectedActivityVisitSessionId = currentSelections.activityVisit;
+          const activitySelections = ensureActivitySelectionsState(
+            this.siteActivity,
+            {
+              visitorSearchTerm: this.activityVisitorSearchTerm,
+              visitorFocus: this.activityVisitorFocus,
+              timelineEventFilter: this.activityTimelineEventFilter,
+            },
+            this.selectedActivityVisitorId,
+            this.selectedActivityVisitSessionId,
+          );
+          this.selectedActivityVisitorId = activitySelections.selectedVisitorId;
+          this.selectedActivityVisitSessionId = activitySelections.selectedVisitSessionId;
 
           this.projectForm = this.selectedProjectId ? toProjectForm(this.projects.find((item) => item.id === this.selectedProjectId)!) : createEmptyProjectForm();
+          this.blogPostForm = this.selectedBlogPostId ? toBlogPostForm(this.blogPosts.find((item) => item.id === this.selectedBlogPostId)!) : createEmptyBlogPostForm();
+          this.profileForm = this.profile ? toProfileForm(this.profile) : createEmptyProfileForm();
           this.skillCategoryForm = this.selectedSkillCategoryId ? toSkillCategoryForm(this.referenceData.skillCategories.find((item) => item.id === this.selectedSkillCategoryId)!) : createEmptySkillCategoryForm();
           this.skillForm = this.selectedSkillId ? toSkillForm(this.referenceData.skills.find((item) => item.id === this.selectedSkillId)!) : createEmptySkillForm();
           this.blogTagForm = this.selectedBlogTagId ? toBlogTagForm(this.referenceData.blogTags.find((item) => item.id === this.selectedBlogTagId)!) : createEmptyBlogTagForm();
           this.experienceForm = this.selectedExperienceId ? toExperienceForm(this.experiences.find((item) => item.id === this.selectedExperienceId)!) : createEmptyExperienceForm();
           this.navigationItemForm = this.selectedNavigationItemId ? toNavigationItemForm(this.navigationItems.find((item) => item.id === this.selectedNavigationItemId)!) : createEmptyNavigationItemForm();
           this.adminUserForm = this.selectedAdminUserId ? toAdminUserForm(this.adminUsers.find((item) => item.id === this.selectedAdminUserId)!) : createEmptyAdminUserForm();
+          this.githubSnapshotForm = this.selectedGithubSnapshotId ? toGithubSnapshotForm(this.githubSnapshots.find((item) => item.id === this.selectedGithubSnapshotId)!) : createEmptyGithubSnapshotForm();
         },
         error: (error) => {
           if (error?.status === 401) {
             this.adminSession.logout();
             return;
           }
-          this.errorMessage = 'The legacy admin workspace could not be loaded. Check that the API is running and that your admin token is still valid.';
+          this.errorMessage = 'The CMS data could not be loaded. Check that the API is running and that your admin token is still valid.';
         }
       });
   }
@@ -991,8 +1029,13 @@ export class AdminPageComponent implements OnInit, OnChanges {
     this.isRebuildingAssistantKnowledge = true;
     this.statusMessage = '';
     this.overviewApi.rebuildAssistantKnowledge().pipe(take(1)).subscribe({
-      next: (status) => {
-        this.assistantKnowledgeStatus = status;
+      next: (response) => {
+        if (this.isAsyncTaskAccepted(response)) {
+          this.statusMessage = 'Assistant knowledge rebuild queued. Waiting for the worker to finish indexing…';
+          this.pollAssistantRebuildTask(response.taskId, response.pollAfterMs);
+          return;
+        }
+        this.assistantKnowledgeStatus = response;
         this.statusMessage = 'Assistant knowledge index rebuilt from the latest portfolio content.';
         this.refreshAssistantKnowledgeStatus();
       },
@@ -1002,6 +1045,34 @@ export class AdminPageComponent implements OnInit, OnChanges {
         this.changeDetectorRef.detectChanges();
       }
     });
+  }
+
+  private pollAssistantRebuildTask(taskId: string, pollAfterMs: number): void {
+    this.assistantRebuildTaskSubscription?.unsubscribe();
+    this.assistantRebuildTaskSubscription = timer(pollAfterMs, pollAfterMs)
+      .pipe(
+        switchMap(() => this.tasksApi.getTask(taskId)),
+        takeWhile((task) => task.status === 'queued' || task.status === 'running', true),
+      )
+      .subscribe({
+        next: (task) => {
+          if (task.status === 'succeeded') {
+            this.statusMessage = 'Assistant knowledge index rebuilt from the latest portfolio content.';
+            this.refreshAssistantKnowledgeStatus();
+            return;
+          }
+          if (task.status === 'failed') {
+            this.isRebuildingAssistantKnowledge = false;
+            this.statusMessage = task.errorMessage || 'Rebuilding the assistant knowledge index failed.';
+            this.changeDetectorRef.detectChanges();
+          }
+        },
+        error: (error) => {
+          this.isRebuildingAssistantKnowledge = false;
+          this.statusMessage = error?.error?.detail || 'Checking assistant rebuild progress failed.';
+          this.changeDetectorRef.detectChanges();
+        }
+      });
   }
 
   private refreshAssistantKnowledgeStatus(): void {
@@ -1025,18 +1096,66 @@ export class AdminPageComponent implements OnInit, OnChanges {
       username: this.githubSnapshotForm.username.trim() || null,
       pruneHistory: true,
     }).pipe(take(1)).subscribe({
-      next: (snapshot) => {
-        this.isRefreshingGithub = false;
-        this.selectedGithubSnapshotId = snapshot.id;
-        this.githubSnapshotForm = toGithubSnapshotForm(snapshot);
-        this.statusMessage = 'GitHub stats refreshed from the latest public profile data.';
-        this.loadCms();
+      next: (response) => {
+        if (this.isAsyncTaskAccepted(response)) {
+          this.statusMessage = 'GitHub refresh queued. Waiting for the Redis worker to fetch the latest profile data…';
+          this.pollGithubRefreshTask(response.taskId, response.pollAfterMs);
+          return;
+        }
+        this.applyRefreshedGithubSnapshot(response);
       },
       error: (error) => {
         this.isRefreshingGithub = false;
         this.statusMessage = error?.error?.detail || 'Refreshing GitHub stats failed.';
       }
     });
+  }
+
+  private pollGithubRefreshTask(taskId: string, pollAfterMs: number): void {
+    this.githubRefreshTaskSubscription?.unsubscribe();
+    this.githubRefreshTaskSubscription = timer(pollAfterMs, pollAfterMs)
+      .pipe(
+        switchMap(() => this.tasksApi.getTask(taskId)),
+        takeWhile((task) => task.status === 'queued' || task.status === 'running', true),
+      )
+      .subscribe({
+        next: (task) => {
+          if (task.status === 'succeeded') {
+            this.finishGithubRefreshFromTask(task);
+            return;
+          }
+          if (task.status === 'failed') {
+            this.isRefreshingGithub = false;
+            this.statusMessage = task.errorMessage || 'Refreshing GitHub stats failed.';
+          }
+        },
+        error: (error) => {
+          this.isRefreshingGithub = false;
+          this.statusMessage = error?.error?.detail || 'Checking GitHub refresh progress failed.';
+        }
+      });
+  }
+
+  private finishGithubRefreshFromTask(task: AdminAsyncTaskStatus): void {
+    const result = task.result;
+    if (!result) {
+      this.isRefreshingGithub = false;
+      this.statusMessage = 'GitHub refresh finished, but the snapshot payload was missing.';
+      return;
+    }
+    this.applyRefreshedGithubSnapshot(result as unknown as AdminGithubSnapshot);
+  }
+
+  private applyRefreshedGithubSnapshot(snapshot: AdminGithubSnapshot): void {
+    this.isRefreshingGithub = false;
+    this.selectedGithubSnapshotId = snapshot.id;
+    this.githubSnapshotForm = toGithubSnapshotForm(snapshot);
+    this.statusMessage = 'GitHub stats refreshed from the latest public profile data.';
+    this.loadCms();
+  }
+
+  private isAsyncTaskAccepted(value: AdminGithubSnapshot | AdminAssistantKnowledgeStatus | AdminAsyncTaskAccepted): value is AdminAsyncTaskAccepted {
+    return !!value && typeof value === 'object' && 'taskId' in value;
   }
 
   protected saveGithubSnapshot(): void {
