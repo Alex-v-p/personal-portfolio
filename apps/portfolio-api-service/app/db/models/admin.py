@@ -21,6 +21,10 @@ class AdminUser(TimestampMixin, Base):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     display_name: Mapped[str] = mapped_column(String(120), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    mfa_totp_secret_encrypted: Mapped[str | None] = mapped_column(Text, nullable=True)
+    mfa_enrolled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    mfa_recovery_codes_hashes: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
 
     uploaded_media_files: Mapped[list[MediaFile]] = relationship(back_populates='uploaded_by')
@@ -42,6 +46,9 @@ class AdminSession(TimestampMixin, Base):
     created_ip: Mapped[str | None] = mapped_column(String(64), nullable=True)
     last_seen_ip: Mapped[str | None] = mapped_column(String(64), nullable=True)
     user_agent: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    mfa_completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    mfa_pending_secret_encrypted: Mapped[str | None] = mapped_column(Text, nullable=True)
+    mfa_pending_created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     admin_user: Mapped[AdminUser] = relationship(back_populates='sessions')
 

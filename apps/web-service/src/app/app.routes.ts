@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { adminAuthGuard, adminGuestGuard } from './shared/guards/admin-auth.guard';
+import { adminAuthGuard, adminGuestGuard, adminMfaGuard } from './shared/guards/admin-auth.guard';
 
 export const routes: Routes = [
   {
@@ -8,6 +8,12 @@ export const routes: Routes = [
     loadComponent: () => import('@domains/admin/auth/feature/admin-login.page').then((module) => module.AdminLoginPageComponent),
     title: 'Admin Login',
     canActivate: [adminGuestGuard],
+  },
+  {
+    path: 'admin/mfa',
+    loadComponent: () => import('@domains/admin/auth/feature/admin-mfa.page').then((module) => module.AdminMfaPageComponent),
+    title: 'Admin MFA',
+    canActivate: [adminMfaGuard],
   },
   {
     path: 'admin',

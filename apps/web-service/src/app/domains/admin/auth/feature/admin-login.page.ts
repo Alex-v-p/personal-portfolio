@@ -32,7 +32,11 @@ export class AdminLoginPageComponent {
         this.isSubmitting = false;
       })
     ).subscribe({
-      next: async () => {
+      next: async (authSession) => {
+        if (authSession.mfaRequired || authSession.mfaSetupRequired) {
+          await this.router.navigate(['/admin/mfa']);
+          return;
+        }
         await this.router.navigate(['/admin']);
       },
       error: (error: unknown) => {

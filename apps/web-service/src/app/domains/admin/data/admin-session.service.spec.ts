@@ -12,6 +12,19 @@ const adminUserFixture = {
   displayName: 'Admin User',
   isActive: true,
   createdAt: '2026-04-13T10:00:00Z',
+  mfaEnabled: true,
+  mfaEnrolledAt: '2026-04-13T10:00:00Z',
+  mfaRecoveryCodesRemaining: 8,
+};
+
+const fullSessionFixture = {
+  csrfToken: 'csrf-token-1',
+  expiresInSeconds: 3600,
+  user: adminUserFixture,
+  isMfaEnabled: true,
+  isMfaVerified: true,
+  mfaRequired: false,
+  mfaSetupRequired: false,
 };
 
 describe('AdminSessionService', () => {
@@ -20,7 +33,7 @@ describe('AdminSessionService', () => {
     TestBed.resetTestingModule();
   });
 
-  it('stores the csrf token and current user after a successful login', () => {
+  it('stores the current auth session after a successful login', () => {
     const navigate = vi.fn().mockResolvedValue(true);
 
     TestBed.configureTestingModule({
@@ -33,16 +46,11 @@ describe('AdminSessionService', () => {
         {
           provide: AdminAuthApiService,
           useValue: {
-            login: () => of({
-              csrfToken: 'csrf-token-1',
-              expiresInSeconds: 3600,
-              user: adminUserFixture,
-            }),
-            getCurrentAdmin: () => of({
-              csrfToken: 'csrf-token-2',
-              expiresInSeconds: 3600,
-              user: adminUserFixture,
-            }),
+            login: () => of(fullSessionFixture),
+            getCurrentAdmin: () => of(fullSessionFixture),
+            beginMfaSetup: () => of(null),
+            confirmMfaSetup: () => of(null),
+            verifyMfa: () => of(fullSessionFixture),
             logout: () => of(void 0),
           },
         },
@@ -55,22 +63,22 @@ describe('AdminSessionService', () => {
       currentUser = user as typeof adminUserFixture | null;
     });
 
-    service.login('admin@example.com', 'secret').subscribe((user: typeof adminUserFixture) => {
-      currentUser = user;
-    });
+    service.login('admin@example.com', 'secret').subscribe();
 
     expect(service.csrfToken).toBe('csrf-token-1');
     expect(service.isAuthenticated).toBe(true);
+    expect(service.isFullyAuthenticated).toBe(true);
     expect(currentUser?.email).toBe('admin@example.com');
-    expect(JSON.parse(sessionStorage.getItem('portfolio.admin.user') ?? '{}')).toMatchObject({ email: 'admin@example.com' });
-    expect(sessionStorage.getItem('portfolio.admin.csrf-token')).toBe('csrf-token-1');
+    expect(JSON.parse(sessionStorage.getItem('portfolio.admin.auth-session') ?? '{}')).toMatchObject({
+      user: { email: 'admin@example.com' },
+      csrfToken: 'csrf-token-1',
+    });
     expect(navigate).not.toHaveBeenCalled();
   });
 
   it('clears the stored session when restoreSession fails', () => {
     const navigate = vi.fn().mockResolvedValue(true);
-    sessionStorage.setItem('portfolio.admin.csrf-token', 'stale-csrf');
-    sessionStorage.setItem('portfolio.admin.user', JSON.stringify(adminUserFixture));
+    sessionStorage.setItem('portfolio.admin.auth-session', JSON.stringify(fullSessionFixture));
 
     TestBed.configureTestingModule({
       providers: [
@@ -82,8 +90,11 @@ describe('AdminSessionService', () => {
         {
           provide: AdminAuthApiService,
           useValue: {
-            login: () => of({ csrfToken: 'csrf-token-1', expiresInSeconds: 3600, user: adminUserFixture }),
+            login: () => of(fullSessionFixture),
             getCurrentAdmin: () => throwError(() => new Error('Unauthorized')),
+            beginMfaSetup: () => of(null),
+            confirmMfaSetup: () => of(null),
+            verifyMfa: () => of(fullSessionFixture),
             logout: () => of(void 0),
           },
         },
@@ -91,15 +102,15 @@ describe('AdminSessionService', () => {
     });
 
     const service = TestBed.inject(AdminSessionService);
-    let restoredUser: typeof adminUserFixture | null = adminUserFixture;
-    service.restoreSession().subscribe((user: typeof adminUserFixture | null) => {
-      restoredUser = user;
+    let restoredSession = fullSessionFixture as typeof fullSessionFixture | null;
+    service.restoreSession().subscribe((session) => {
+      restoredSession = session as typeof fullSessionFixture;
     });
 
-    expect(restoredUser).toBeNull();
+    expect(restoredSession).toBeNull();
     expect(service.csrfToken).toBeNull();
     expect(service.currentUser).toBeNull();
-    expect(sessionStorage.getItem('portfolio.admin.user')).toBeNull();
+    expect(sessionStorage.getItem('portfolio.admin.auth-session')).toBeNull();
     expect(navigate).not.toHaveBeenCalled();
   });
 });

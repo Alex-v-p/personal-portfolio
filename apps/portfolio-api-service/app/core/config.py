@@ -113,6 +113,22 @@ class Settings(BaseSettings):
         default='lax',
         validation_alias=AliasChoices('ADMIN_SESSION_COOKIE_SAME_SITE', 'PORTFOLIO_API_ADMIN_SESSION_COOKIE_SAME_SITE'),
     )
+    admin_mfa_totp_issuer: str = Field(
+        default='Personal Portfolio CMS',
+        validation_alias=AliasChoices('ADMIN_MFA_TOTP_ISSUER', 'PORTFOLIO_API_ADMIN_MFA_TOTP_ISSUER'),
+    )
+    admin_mfa_recovery_code_count: int = Field(
+        default=8,
+        ge=4,
+        le=16,
+        validation_alias=AliasChoices('ADMIN_MFA_RECOVERY_CODE_COUNT', 'PORTFOLIO_API_ADMIN_MFA_RECOVERY_CODE_COUNT'),
+    )
+    admin_mfa_pending_secret_ttl_minutes: int = Field(
+        default=15,
+        ge=5,
+        le=60,
+        validation_alias=AliasChoices('ADMIN_MFA_PENDING_SECRET_TTL_MINUTES', 'PORTFOLIO_API_ADMIN_MFA_PENDING_SECRET_TTL_MINUTES'),
+    )
     media_storage_endpoint: str = Field(
         default='minio:9000',
         validation_alias=AliasChoices('MEDIA_STORAGE_ENDPOINT', 'PORTFOLIO_API_MEDIA_STORAGE_ENDPOINT'),

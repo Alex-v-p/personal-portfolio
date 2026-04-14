@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pyotp
 from fastapi.testclient import TestClient
 
 from app.domains.github.sync import SyncedGithubContributionDay, SyncedGithubSnapshot
@@ -9,19 +10,57 @@ ADMIN_EMAIL = 'admin@example.com'
 ADMIN_PASSWORD = 'test-admin-pass'
 
 
-def _admin_headers(client: TestClient) -> dict[str, str]:
+def _login_admin(client: TestClient):
     response = client.post('/api/admin/auth/login', json={'email': ADMIN_EMAIL, 'password': ADMIN_PASSWORD})
     assert response.status_code == 200
-    return {'X-Portfolio-CSRF': response.json()['csrfToken']}
+    return response
+
+
+def _admin_headers(client: TestClient) -> dict[str, str]:
+    response = _login_admin(client)
+    body = response.json()
+    csrf_headers = {'X-Portfolio-CSRF': body['csrfToken']}
+
+    if body.get('mfaSetupRequired'):
+        setup = client.post('/api/admin/auth/mfa/setup', headers=csrf_headers)
+        assert setup.status_code == 200
+        setup_body = setup.json()
+        code = pyotp.TOTP(setup_body['manualEntryKey']).now()
+        confirm = client.post('/api/admin/auth/mfa/setup/confirm', headers=csrf_headers, json={'code': code})
+        assert confirm.status_code == 200
+        return {'X-Portfolio-CSRF': confirm.json()['session']['csrfToken']}
+
+    return {'X-Portfolio-CSRF': body['csrfToken']}
 
 
 def test_admin_login_returns_cookie_session_payload(client: TestClient) -> None:
-    response = client.post('/api/admin/auth/login', json={'email': ADMIN_EMAIL, 'password': ADMIN_PASSWORD})
-    assert response.status_code == 200
+    response = _login_admin(client)
     body = response.json()
     assert body['csrfToken']
     assert 'portfolio_admin_session' in response.cookies
     assert body['user']['email'] == ADMIN_EMAIL
+    assert body['mfaSetupRequired'] is True
+    assert body['mfaRequired'] is False
+
+
+def test_admin_can_enroll_totp_mfa_and_receive_backup_codes(client: TestClient) -> None:
+    login_response = _login_admin(client)
+    login_body = login_response.json()
+    headers = {'X-Portfolio-CSRF': login_body['csrfToken']}
+
+    setup_response = client.post('/api/admin/auth/mfa/setup', headers=headers)
+    assert setup_response.status_code == 200
+    setup_body = setup_response.json()
+    assert setup_body['manualEntryKey']
+    assert setup_body['qrCodeDataUrl'].startswith('data:image/svg+xml;base64,')
+
+    code = pyotp.TOTP(setup_body['manualEntryKey']).now()
+    confirm_response = client.post('/api/admin/auth/mfa/setup/confirm', headers=headers, json={'code': code})
+    assert confirm_response.status_code == 200
+    confirm_body = confirm_response.json()
+    assert len(confirm_body['backupCodes']) >= 8
+    assert confirm_body['session']['isMfaVerified'] is True
+    assert confirm_body['session']['mfaSetupRequired'] is False
 
 
 def test_admin_endpoints_require_auth(client: TestClient) -> None:

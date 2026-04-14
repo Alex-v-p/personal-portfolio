@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+import base64
 import hashlib
+import io
 import secrets
 from datetime import UTC, datetime, timedelta
 from typing import Annotated, Any
-from uuid import UUID
 
+import pyotp
+import qrcode
+from cryptography.fernet import Fernet
 from fastapi import Depends, HTTPException, Request, Response, status
+from qrcode.image.svg import SvgPathImage
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -26,30 +31,99 @@ class AdminTokenError(HTTPException):
         super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail)
 
 
-
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
-
 
 
 def verify_password(plain_password: str, password_hash: str) -> bool:
     return pwd_context.verify(plain_password, password_hash)
 
 
-
 def generate_admin_session_token() -> str:
     return secrets.token_urlsafe(48)
-
 
 
 def generate_admin_csrf_token() -> str:
     return secrets.token_urlsafe(32)
 
 
-
 def _hash_token(token: str) -> str:
     return hashlib.sha256(token.encode('utf-8')).hexdigest()
 
+
+def _encryption_fernet() -> Fernet:
+    digest = hashlib.sha256(get_settings().secret_key.encode('utf-8')).digest()
+    return Fernet(base64.urlsafe_b64encode(digest))
+
+
+def encrypt_admin_secret(value: str) -> str:
+    return _encryption_fernet().encrypt(value.encode('utf-8')).decode('utf-8')
+
+
+def decrypt_admin_secret(value: str | None) -> str | None:
+    if not value:
+        return None
+    return _encryption_fernet().decrypt(value.encode('utf-8')).decode('utf-8')
+
+
+def generate_admin_totp_secret() -> str:
+    return pyotp.random_base32()
+
+
+def build_admin_totp(secret: str) -> pyotp.TOTP:
+    return pyotp.TOTP(secret)
+
+
+def get_admin_totp_issuer() -> str:
+    settings = get_settings()
+    return settings.admin_mfa_totp_issuer.strip() or settings.app_name
+
+
+def build_admin_totp_uri(*, secret: str, email: str) -> str:
+    issuer = get_admin_totp_issuer()
+    return build_admin_totp(secret).provisioning_uri(name=email, issuer_name=issuer)
+
+
+def generate_admin_totp_qr_code_data_url(uri: str) -> str:
+    image = qrcode.make(uri, image_factory=SvgPathImage)
+    buffer = io.BytesIO()
+    image.save(buffer)
+    encoded = base64.b64encode(buffer.getvalue()).decode('ascii')
+    return f'data:image/svg+xml;base64,{encoded}'
+
+
+def normalize_admin_otp_code(value: str) -> str:
+    return ''.join(char for char in value if char.isalnum()).upper()
+
+
+def verify_admin_totp_code(secret: str, code: str) -> bool:
+    normalized = normalize_admin_otp_code(code)
+    return build_admin_totp(secret).verify(normalized, valid_window=1)
+
+
+def generate_admin_backup_codes() -> list[str]:
+    codes: list[str] = []
+    count = get_settings().admin_mfa_recovery_code_count
+    for _ in range(count):
+        left = secrets.token_hex(2).upper()
+        right = secrets.token_hex(2).upper()
+        codes.append(f'{left}-{right}')
+    return codes
+
+
+def hash_admin_backup_code(code: str) -> str:
+    return _hash_token(normalize_admin_otp_code(code))
+
+
+def consume_admin_backup_code(admin_user: AdminUser, code: str) -> bool:
+    hashed = hash_admin_backup_code(code)
+    existing = list(admin_user.mfa_recovery_codes_hashes or [])
+    for index, value in enumerate(existing):
+        if secrets.compare_digest(value, hashed):
+            del existing[index]
+            admin_user.mfa_recovery_codes_hashes = existing
+            return True
+    return False
 
 
 def admin_session_expires_at(*, now: datetime | None = None) -> datetime:
@@ -58,11 +132,9 @@ def admin_session_expires_at(*, now: datetime | None = None) -> datetime:
     return effective_now + timedelta(minutes=settings.admin_session_max_age_minutes)
 
 
-
 def admin_session_max_age_seconds() -> int:
     settings = get_settings()
     return settings.admin_session_max_age_minutes * 60
-
 
 
 def admin_session_idle_timeout_seconds() -> int:
@@ -70,10 +142,13 @@ def admin_session_idle_timeout_seconds() -> int:
     return settings.admin_session_idle_timeout_minutes * 60
 
 
+def admin_mfa_pending_secret_ttl_seconds() -> int:
+    settings = get_settings()
+    return settings.admin_mfa_pending_secret_ttl_minutes * 60
+
 
 def _admin_cookie_path() -> str:
     return '/api/admin'
-
 
 
 def _request_origin_allowed(request: Request) -> bool:
@@ -86,13 +161,11 @@ def _request_origin_allowed(request: Request) -> bool:
     return origin.rstrip('/') in allowed
 
 
-
 def _resolve_same_site_value() -> str:
     value = get_settings().admin_session_cookie_same_site.strip().lower() or 'lax'
     if value not in {'lax', 'strict', 'none'}:
         return 'lax'
     return value
-
 
 
 def set_admin_session_cookie(response: Response, session_token: str, *, max_age_seconds: int | None = None) -> None:
@@ -108,7 +181,6 @@ def set_admin_session_cookie(response: Response, session_token: str, *, max_age_
     )
 
 
-
 def clear_admin_session_cookie(response: Response) -> None:
     settings = get_settings()
     response.delete_cookie(
@@ -119,14 +191,12 @@ def clear_admin_session_cookie(response: Response) -> None:
     )
 
 
-
 def get_admin_session_cookie_value(request: Request) -> str | None:
     cookie_name = get_settings().admin_session_cookie_name
     cookie_value = request.cookies.get(cookie_name)
     if cookie_value and cookie_value.strip():
         return cookie_value.strip()
     return None
-
 
 
 def create_admin_session_record(
@@ -152,10 +222,47 @@ def create_admin_session_record(
         created_ip=ip_address[:64] if ip_address else None,
         last_seen_ip=ip_address[:64] if ip_address else None,
         user_agent=user_agent,
+        mfa_completed_at=None,
     )
     db.add(record)
     return record
 
+
+def mark_admin_session_mfa_complete(db: Session, record: AdminSession, *, now: datetime | None = None) -> None:
+    effective_now = _ensure_utc_datetime(now) or datetime.now(UTC)
+    record.mfa_completed_at = effective_now
+    record.updated_at = effective_now
+    db.add(record)
+    db.commit()
+    db.refresh(record)
+
+
+def set_admin_session_pending_mfa_secret(db: Session, record: AdminSession, *, secret: str, now: datetime | None = None) -> None:
+    effective_now = _ensure_utc_datetime(now) or datetime.now(UTC)
+    record.mfa_pending_secret_encrypted = encrypt_admin_secret(secret)
+    record.mfa_pending_created_at = effective_now
+    record.updated_at = effective_now
+    db.add(record)
+    db.commit()
+    db.refresh(record)
+
+
+def clear_admin_session_pending_mfa_secret(db: Session, record: AdminSession) -> None:
+    record.mfa_pending_secret_encrypted = None
+    record.mfa_pending_created_at = None
+    record.updated_at = datetime.now(UTC)
+    db.add(record)
+    db.commit()
+    db.refresh(record)
+
+
+def get_admin_session_pending_mfa_secret(record: AdminSession) -> str | None:
+    created_at = _ensure_utc_datetime(record.mfa_pending_created_at)
+    if created_at is None:
+        return None
+    if created_at + timedelta(seconds=admin_mfa_pending_secret_ttl_seconds()) <= datetime.now(UTC):
+        return None
+    return decrypt_admin_secret(record.mfa_pending_secret_encrypted)
 
 
 def rotate_admin_csrf_token(db: Session, record: AdminSession) -> str:
@@ -168,7 +275,6 @@ def rotate_admin_csrf_token(db: Session, record: AdminSession) -> str:
     return new_token
 
 
-
 def revoke_admin_session(db: Session, record: AdminSession, *, reason: str) -> None:
     if record.revoked_at is not None:
         return
@@ -176,7 +282,6 @@ def revoke_admin_session(db: Session, record: AdminSession, *, reason: str) -> N
     record.revoke_reason = reason[:120]
     db.add(record)
     db.commit()
-
 
 
 def record_admin_auth_event(
@@ -207,14 +312,12 @@ def record_admin_auth_event(
     db.commit()
 
 
-
 def _ensure_utc_datetime(value: datetime | None) -> datetime | None:
     if value is None:
         return None
     if value.tzinfo is None or value.tzinfo.utcoffset(value) is None:
         return value.replace(tzinfo=UTC)
     return value.astimezone(UTC)
-
 
 
 def _invalidate_session_if_needed(db: Session, record: AdminSession, *, now: datetime) -> None:
@@ -236,7 +339,6 @@ def _invalidate_session_if_needed(db: Session, record: AdminSession, *, now: dat
         raise AdminTokenError('Admin session timed out due to inactivity. Please sign in again.')
 
 
-
 def _touch_session(db: Session, record: AdminSession, *, request: Request | None, now: datetime) -> None:
     ip_address = _extract_request_ip(request)
     normalized_now = _ensure_utc_datetime(now) or datetime.now(UTC)
@@ -250,7 +352,6 @@ def _touch_session(db: Session, record: AdminSession, *, request: Request | None
         record.last_seen_ip = ip_address[:64]
     db.add(record)
     db.commit()
-
 
 
 def resolve_current_admin_session(db: Session, request: Request, *, touch: bool = True) -> AdminSession:
@@ -281,13 +382,11 @@ def resolve_current_admin_session(db: Session, request: Request, *, touch: bool 
     return record
 
 
-
 def get_current_admin_session(
     request: Request,
     session: Annotated[Session, Depends(get_session)],
 ) -> AdminSession:
     return resolve_current_admin_session(session, request, touch=True)
-
 
 
 def get_current_admin_user(
@@ -299,6 +398,18 @@ def get_current_admin_user(
     record = resolve_current_admin_session(session, request, touch=True)
     return record.admin_user
 
+
+def require_admin_mfa(
+    request: Request,
+    session: Annotated[Session, Depends(get_session)],
+) -> AdminUser:
+    record = resolve_current_admin_session(session, request, touch=True)
+    admin_user = record.admin_user
+    if not admin_user.mfa_enabled:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Admin MFA enrollment is required for this account.')
+    if _ensure_utc_datetime(record.mfa_completed_at) is None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Admin MFA verification is required for this session.')
+    return admin_user
 
 
 def require_admin_csrf(
@@ -332,20 +443,36 @@ def require_admin_csrf(
 
 __all__ = [
     'AdminTokenError',
+    'admin_mfa_pending_secret_ttl_seconds',
     'admin_session_idle_timeout_seconds',
     'admin_session_max_age_seconds',
+    'build_admin_totp_uri',
     'clear_admin_session_cookie',
+    'clear_admin_session_pending_mfa_secret',
+    'consume_admin_backup_code',
     'create_admin_session_record',
+    'decrypt_admin_secret',
+    'encrypt_admin_secret',
+    'generate_admin_backup_codes',
     'generate_admin_csrf_token',
     'generate_admin_session_token',
+    'generate_admin_totp_qr_code_data_url',
+    'generate_admin_totp_secret',
     'get_admin_session_cookie_value',
+    'get_admin_session_pending_mfa_secret',
+    'get_admin_totp_issuer',
     'get_current_admin_session',
     'get_current_admin_user',
+    'hash_admin_backup_code',
     'hash_password',
+    'mark_admin_session_mfa_complete',
     'record_admin_auth_event',
     'require_admin_csrf',
+    'require_admin_mfa',
     'revoke_admin_session',
     'rotate_admin_csrf_token',
     'set_admin_session_cookie',
+    'set_admin_session_pending_mfa_secret',
+    'verify_admin_totp_code',
     'verify_password',
 ]

@@ -5,7 +5,8 @@ from app.domains.github.sync import GithubStatsSyncService as GithubStatsSyncSer
 from app.services.security import require_admin_csrf
 
 router = APIRouter()
-for module in (auth, overview, media, taxonomy, content, stats, users, activity, assistant, tasks):
+router.include_router(auth.router, dependencies=[Depends(require_admin_csrf)])
+for module in (overview, media, taxonomy, content, stats, users, activity, assistant, tasks):
     router.include_router(module.router, dependencies=[Depends(require_admin_csrf)])
 
 __all__ = ['router', 'GithubStatsSyncService']

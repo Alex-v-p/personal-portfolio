@@ -65,6 +65,8 @@ The API now exposes protected Stage 10 CMS endpoints under `/api/admin`, includi
 
 Admin auth now uses an HttpOnly session cookie. The login and session restore responses return a CSRF token that the SPA must send in the configured CSRF header for mutating `/api/admin/*` requests.
 
+Admin MFA now uses TOTP compatible with Google Authenticator and similar apps. First sign-in on a non-enrolled admin account returns a partial session that can only complete MFA setup. Once enrolled, every future admin login requires a valid TOTP code or a one-time backup code before the rest of the CMS becomes accessible.
+
 ## Admin media uploads
 
 Authenticated admin uploads are accepted as multipart form data and written directly into MinIO.

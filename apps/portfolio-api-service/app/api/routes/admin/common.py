@@ -7,11 +7,12 @@ from sqlalchemy.orm import Session
 
 from app.db.models import AdminSession, AdminUser
 from app.db.session import get_session
-from app.services.security import get_current_admin_session, get_current_admin_user, require_admin_csrf
+from app.services.security import get_current_admin_session, get_current_admin_user, require_admin_csrf, require_admin_mfa
 
 SessionDep = Annotated[Session, Depends(get_session)]
-CurrentAdminDep = Annotated[AdminUser, Depends(get_current_admin_user)]
+CurrentAdminDep = Annotated[AdminUser, Depends(require_admin_mfa)]
 CurrentAdminSessionDep = Annotated[AdminSession, Depends(get_current_admin_session)]
+CurrentAuthenticatedAdminDep = Annotated[AdminUser, Depends(get_current_admin_user)]
 AdminWriteProtectionDep = Annotated[None, Depends(require_admin_csrf)]
 
 
