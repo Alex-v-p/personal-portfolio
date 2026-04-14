@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-stone-100 text-stone-900">
+<div class="flex min-h-screen flex-col bg-stone-100 text-stone-900">
   <header *ngIf="!isAdminRoute" [class]="headerClasses">
     <div class="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 rounded-full border border-stone-300 bg-stone-200/90 px-3 py-2 shadow-[0_10px_25px_rgba(40,31,20,0.08)] backdrop-blur">
       <nav class="flex flex-1 flex-wrap items-center gap-2">
@@ -27,9 +27,28 @@
     </div>
   </header>
 
-  <main class="px-4 py-10 sm:px-6 md:py-12 lg:px-8 lg:py-14">
+  <main class="flex-1 px-4 py-10 sm:px-6 md:py-12 lg:px-8 lg:py-14">
     <div class="mx-auto w-full max-w-6xl">
-      <router-outlet></router-outlet>
+      <section *ngIf="showRouteSkeleton" aria-label="Loading page content" class="grid min-h-[55vh] gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.8fr)]">
+        <div class="space-y-5 rounded-[2rem] border border-stone-200 bg-white/80 p-6 shadow-[0_10px_30px_rgba(40,31,20,0.05)]">
+          <app-ui-skeleton className="h-8 w-48 rounded-full"></app-ui-skeleton>
+          <app-ui-skeleton className="h-14 w-full rounded-[1.75rem]"></app-ui-skeleton>
+          <app-ui-skeleton className="h-5 w-4/5 rounded-full"></app-ui-skeleton>
+          <div class="grid gap-3 md:grid-cols-2">
+            <app-ui-skeleton className="h-40 w-full rounded-[1.75rem]"></app-ui-skeleton>
+            <app-ui-skeleton className="h-40 w-full rounded-[1.75rem]"></app-ui-skeleton>
+          </div>
+        </div>
+
+        <div class="space-y-4 rounded-[2rem] border border-stone-200 bg-white/70 p-6 shadow-[0_10px_30px_rgba(40,31,20,0.04)]">
+          <app-ui-skeleton className="h-6 w-32 rounded-full"></app-ui-skeleton>
+          <app-ui-skeleton className="h-24 w-full rounded-[1.5rem]"></app-ui-skeleton>
+          <app-ui-skeleton className="h-24 w-full rounded-[1.5rem]"></app-ui-skeleton>
+          <app-ui-skeleton className="h-12 w-40 rounded-full"></app-ui-skeleton>
+        </div>
+      </section>
+
+      <router-outlet (activate)="onRouteActivate()" (deactivate)="onRouteDeactivate()"></router-outlet>
     </div>
   </main>
 
