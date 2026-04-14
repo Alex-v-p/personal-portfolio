@@ -19,5 +19,5 @@ import { AdminTabId } from '@domains/admin/shell/state/admin-page.tabs';
 export class AdminLegacyTabPageComponent {
   private readonly route = inject(ActivatedRoute);
 
-  protected readonly initialTab = (this.route.snapshot.data['legacyTab'] as AdminTabId | undefined) ?? 'overview';
+  protected readonly initialTab = (this.route.snapshot.data['legacyTab'] as AdminTabId | undefined) ?? 'projects';
 }

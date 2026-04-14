@@ -1,7 +1,7 @@
 import { AdminMediaFile } from '@domains/admin/model/admin.model';
-import { AdminMediaKind, mediaFolder, mediaKind } from './admin-page.display.utils';
-import { ScopedUploadForm } from './admin-page.forms';
-import { matchesSearch, slugify } from './admin-page.utils';
+import { ScopedUploadForm } from '@domains/admin/model/forms/index';
+import { AdminMediaKind, mediaFolder, mediaKind } from '@domains/admin/shell/state/admin-page.display.utils';
+import { matchesSearch, slugify } from '@domains/admin/shell/state/admin-page.utils';
 
 export type MediaVisibilityFilter = 'all' | 'public' | 'private' | 'signed';
 export type MediaKindFilter = 'all' | AdminMediaKind;
@@ -14,7 +14,8 @@ export interface AdminMediaFilterState {
 }
 
 export function buildMediaFolderOptions(mediaFiles: AdminMediaFile[]): string[] {
-  return Array.from(new Set(mediaFiles.map((media) => mediaFolder(media)).filter((value) => value && value !== 'root'))).sort((left, right) => left.localeCompare(right));
+  return Array.from(new Set(mediaFiles.map((media) => mediaFolder(media)).filter((value) => value && value !== 'root')))
+    .sort((left, right) => left.localeCompare(right));
 }
 
 export function filterMediaFiles(mediaFiles: AdminMediaFile[], filters: AdminMediaFilterState): AdminMediaFile[] {

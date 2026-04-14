@@ -34,15 +34,13 @@ export const routes: Routes = [
       },
       {
         path: 'blog',
-        loadComponent: () => import('@domains/admin/shell/feature/admin-legacy-tab.page').then((module) => module.AdminLegacyTabPageComponent),
+        loadComponent: () => import('@domains/admin/blog/feature/admin-blog.page').then((module) => module.AdminBlogPageComponent),
         title: 'Admin Blog',
-        data: { legacyTab: 'blog' },
       },
       {
         path: 'media',
-        loadComponent: () => import('@domains/admin/shell/feature/admin-legacy-tab.page').then((module) => module.AdminLegacyTabPageComponent),
+        loadComponent: () => import('@domains/admin/media/feature/admin-media.page').then((module) => module.AdminMediaPageComponent),
         title: 'Admin Media',
-        data: { legacyTab: 'media' },
       },
       {
         path: 'taxonomy',
@@ -82,9 +80,8 @@ export const routes: Routes = [
       },
       {
         path: 'activity',
-        loadComponent: () => import('@domains/admin/shell/feature/admin-legacy-tab.page').then((module) => module.AdminLegacyTabPageComponent),
+        loadComponent: () => import('@domains/admin/activity/feature/admin-activity.page').then((module) => module.AdminActivityPageComponent),
         title: 'Admin Activity',
-        data: { legacyTab: 'activity' },
       },
       {
         path: 'admins',

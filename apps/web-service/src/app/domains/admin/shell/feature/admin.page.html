@@ -5,7 +5,7 @@
         <p class="text-xs font-semibold uppercase tracking-[0.22em] text-stone-500">Portfolio CMS</p>
         <h1 class="text-3xl font-semibold text-stone-950">Content management</h1>
         <p class="max-w-3xl text-sm leading-6 text-stone-600">
-          Manage projects, blog posts, taxonomy, experience, navigation, profile content, GitHub stats, admin users, and uploaded media.
+          Manage the remaining legacy admin areas while the higher-friction domains move onto their own dedicated routes.
         </p>
       </div>
       <div class="flex flex-wrap items-center gap-3">
@@ -28,38 +28,6 @@
       <button *ngFor="let tab of tabs" type="button" (click)="setActiveTab(tab.id)" [ngClass]="tab.id === activeTab ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'" class="inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold transition">{{ tab.label }}</button>
     </nav>
 
-    <app-admin-overview-tab
-      *ngIf="activeTab === 'overview'"
-      [dashboard]="dashboard"
-      [messages]="messages"
-      [mediaFiles]="referenceData.mediaFiles"
-      (openTab)="setActiveTab($event)">
-    </app-admin-overview-tab>
-
-    <app-admin-media-tab
-      *ngIf="activeTab === 'media'"
-      [dashboard]="dashboard"
-      [imageMediaCount]="imageMediaCount"
-      [documentMediaCount]="documentMediaCount"
-      [filteredMediaCount]="filteredMediaCount"
-      [mediaSearchTerm]="mediaSearchTerm"
-      [mediaKindFilter]="mediaKindFilter"
-      [mediaVisibilityFilter]="mediaVisibilityFilter"
-      [mediaFolderFilter]="mediaFolderFilter"
-      [mediaFolderOptions]="mediaFolderOptions"
-      [filteredMediaFiles]="filteredMediaFiles"
-      [selectedMediaFileId]="selectedMediaFileId"
-      [selectedMediaFile]="selectedMediaFile"
-      [deletingMediaFileIds]="deletingMediaFileIds"
-      (mediaSearchTermChange)="mediaSearchTerm = $event"
-      (mediaKindFilterChange)="mediaKindFilter = $event"
-      (mediaVisibilityFilterChange)="mediaVisibilityFilter = $event"
-      (mediaFolderFilterChange)="mediaFolderFilter = $event"
-      (resetFilters)="clearMediaFilters()"
-      (mediaSelected)="selectMediaFile($event)"
-      (deleteSelectedMedia)="deleteSelectedMediaFile()">
-    </app-admin-media-tab>
-
     <app-admin-projects-tab
       *ngIf="activeTab === 'projects'"
       [projects]="projects"
@@ -76,25 +44,6 @@
       (scopedFileSelected)="onScopedFileSelected($event.event, $event.form)"
       (projectCoverUploadRequested)="uploadProjectCover()">
     </app-admin-projects-tab>
-
-    <app-admin-blog-tab
-      *ngIf="activeTab === 'blog'"
-      [blogPosts]="blogPosts"
-      [selectedBlogPostId]="selectedBlogPostId"
-      [blogPostForm]="blogPostForm"
-      [blogUploadForm]="blogUploadForm"
-      [blogInlineImageUploadForm]="blogInlineImageUploadForm"
-      [referenceData]="referenceData"
-      [uploadInProgressKey]="uploadInProgressKey"
-      (blogPostSelected)="selectBlogPost($event)"
-      (newBlogPostStarted)="startNewBlogPost()"
-      (blogPostSaved)="saveBlogPost()"
-      (blogPostDeleted)="deleteBlogPost()"
-      (scopedFileSelected)="onScopedFileSelected($event.event, $event.form)"
-      (blogCoverUploadRequested)="uploadBlogCover()"
-      (blogInlineImageUploadRequested)="uploadBlogInlineImage()"
-      (statusMessageSet)="statusMessage = $event">
-    </app-admin-blog-tab>
 
     <app-admin-taxonomy-tab
       *ngIf="activeTab === 'taxonomy'"
@@ -185,30 +134,6 @@
       (rebuildRequested)="rebuildAssistantKnowledge()">
     </app-admin-assistant-tab>
 
-    <app-admin-activity-tab
-      *ngIf="activeTab === 'activity'"
-      [siteActivity]="siteActivity"
-      [activityVisitorSearchTerm]="activityVisitorSearchTerm"
-      [activityVisitorFocus]="activityVisitorFocus"
-      [activityTimelineEventFilter]="activityTimelineEventFilter"
-      [filteredActivityVisitors]="filteredActivityVisitors"
-      [selectedActivityVisitorId]="selectedActivityVisitorId"
-      [selectedActivityVisitor]="selectedActivityVisitor"
-      [selectedActivityVisits]="selectedActivityVisits"
-      [selectedActivityVisitSessionId]="selectedActivityVisitSessionId"
-      [selectedActivityVisit]="selectedActivityVisit"
-      [selectedActivityEvents]="selectedActivityEvents"
-      [selectedActivityConversations]="selectedActivityConversations"
-      [selectedActivityEventCount]="selectedActivityEventCount"
-      (refreshRequested)="loadCms()"
-      (activityVisitorSearchTermChange)="activityVisitorSearchTerm = $event"
-      (activityVisitorFocusChange)="activityVisitorFocus = $event"
-      (activityTimelineEventFilterChange)="activityTimelineEventFilter = $event"
-      (filtersChanged)="onActivityFiltersChanged()"
-      (activityVisitorSelected)="selectActivityVisitor($event)"
-      (activityVisitSelected)="selectActivityVisit($event)">
-    </app-admin-activity-tab>
-
     <app-admin-admins-tab
       *ngIf="activeTab === 'admins'"
       [adminUsers]="adminUsers"
@@ -220,21 +145,5 @@
       (adminUserSaved)="saveAdminUser()"
       (adminUserDeleted)="deleteAdminUser()">
     </app-admin-admins-tab>
-
-    <app-admin-messages-tab
-      *ngIf="activeTab === 'messages'"
-      [messageSearchTerm]="messageSearchTerm"
-      [messageStatusFilter]="messageStatusFilter"
-      [messageSourceFilter]="messageSourceFilter"
-      [messageSourceOptions]="messageSourceOptions"
-      [filteredMessages]="filteredMessages"
-      [filteredMessageCount]="filteredMessageCount"
-      [unreadFilteredMessageCount]="unreadFilteredMessageCount"
-      [updatingMessageIds]="updatingMessageIds"
-      (messageSearchTermChange)="messageSearchTerm = $event"
-      (messageStatusFilterChange)="messageStatusFilter = $event"
-      (messageSourceFilterChange)="messageSourceFilter = $event"
-      (messageReadToggleRequested)="toggleMessageRead($event)">
-    </app-admin-messages-tab>
   </ng-container>
 </div>

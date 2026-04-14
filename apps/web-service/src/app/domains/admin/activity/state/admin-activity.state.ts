@@ -1,5 +1,11 @@
-import { AdminAssistantConversationSummary, AdminSiteActivity, AdminSiteEvent, AdminVisitSessionSummary, AdminVisitorActivitySummary } from '@domains/admin/model/admin.model';
-import { matchesSearch } from './admin-page.utils';
+import {
+  AdminAssistantConversationSummary,
+  AdminSiteActivity,
+  AdminSiteEvent,
+  AdminVisitSessionSummary,
+  AdminVisitorActivitySummary,
+} from '@domains/admin/model/admin.model';
+import { matchesSearch } from '@domains/admin/shell/state/admin-page.utils';
 
 export type ActivityVisitorFocus = 'all' | 'withAssistant' | 'withContacts' | 'withPageViews';
 export type ActivityTimelineEventFilter = 'all' | 'page_view' | 'assistant_message' | 'contact_submit';
@@ -32,6 +38,7 @@ export function visitsForVisitor(siteActivity: AdminSiteActivity, visitorId: str
   if (!visitorId) {
     return [];
   }
+
   return siteActivity.visits
     .filter((visit) => visit.visitorId === visitorId)
     .sort((left, right) => right.lastActivityAt.localeCompare(left.lastActivityAt));
@@ -45,10 +52,16 @@ export function resolveSelectedActivityVisit(visits: AdminVisitSessionSummary[],
   return visits.find((visit) => visit.sessionId === selectedVisitSessionId) ?? null;
 }
 
-export function filterSelectedActivityEvents(siteActivity: AdminSiteActivity, selectedVisitorId: string | null, selectedVisitSessionId: string | null, timelineEventFilter: ActivityTimelineEventFilter): AdminSiteEvent[] {
+export function filterSelectedActivityEvents(
+  siteActivity: AdminSiteActivity,
+  selectedVisitorId: string | null,
+  selectedVisitSessionId: string | null,
+  timelineEventFilter: ActivityTimelineEventFilter,
+): AdminSiteEvent[] {
   if (!selectedVisitorId) {
     return [];
   }
+
   return siteActivity.events
     .filter((event) => event.visitorId === selectedVisitorId)
     .filter((event) => !selectedVisitSessionId || event.sessionId === selectedVisitSessionId)
@@ -56,17 +69,27 @@ export function filterSelectedActivityEvents(siteActivity: AdminSiteActivity, se
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
 }
 
-export function selectedActivityConversations(siteActivity: AdminSiteActivity, selectedVisitorId: string | null, selectedVisitSessionId: string | null): AdminAssistantConversationSummary[] {
+export function selectedActivityConversations(
+  siteActivity: AdminSiteActivity,
+  selectedVisitorId: string | null,
+  selectedVisitSessionId: string | null,
+): AdminAssistantConversationSummary[] {
   if (!selectedVisitorId) {
     return [];
   }
+
   return siteActivity.assistantConversations
     .filter((conversation) => conversation.visitorId === selectedVisitorId)
     .filter((conversation) => !selectedVisitSessionId || conversation.siteSessionId === selectedVisitSessionId)
     .sort((left, right) => right.lastMessageAt.localeCompare(left.lastMessageAt));
 }
 
-export function ensureActivitySelections(siteActivity: AdminSiteActivity, filters: AdminActivityFilterState, selectedVisitorId: string | null, selectedVisitSessionId: string | null): { selectedVisitorId: string | null; selectedVisitSessionId: string | null } {
+export function ensureActivitySelections(
+  siteActivity: AdminSiteActivity,
+  filters: AdminActivityFilterState,
+  selectedVisitorId: string | null,
+  selectedVisitSessionId: string | null,
+): { selectedVisitorId: string | null; selectedVisitSessionId: string | null } {
   const visitors = filterActivityVisitors(siteActivity, filters);
   if (!visitors.length) {
     return { selectedVisitorId: null, selectedVisitSessionId: null };

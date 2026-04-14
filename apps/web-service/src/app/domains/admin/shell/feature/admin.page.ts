@@ -81,7 +81,7 @@ import {
   resolveSelectedActivityVisitor,
   selectedActivityConversations,
   visitsForVisitor,
-} from '@domains/admin/shell/state/admin-page-activity-state';
+} from '@domains/admin/activity/state/admin-activity.state';
 import { buildMessageSourceOptions, countUnreadMessages, filterMessages } from '@domains/admin/messages/state/admin-messages.filters';
 import {
   buildBlogMediaFolder,
@@ -93,7 +93,7 @@ import {
   filterMediaFiles,
   resetScopedUploadForm,
   resolveSelectedMediaFile,
-} from '@domains/admin/shell/state/admin-page-media-state';
+} from '@domains/admin/media/state/admin-media.filters';
 import { AdminActivityTabComponent } from '@domains/admin/ui/tabs/admin-activity-tab.component';
 import { AdminBlogTabComponent } from '@domains/admin/ui/tabs/admin-blog-tab.component';
 import { AdminAdminsTabComponent } from '@domains/admin/ui/tabs/admin-admins-tab.component';
@@ -146,12 +146,12 @@ export class AdminPageComponent implements OnInit, OnChanges {
 
   @ViewChild(AdminBlogTabComponent) private blogTabComponent?: AdminBlogTabComponent;
 
-  @Input() initialTab: AdminTabId = 'overview';
+  @Input() initialTab: AdminTabId = 'projects';
   @Input() compactMode = false;
 
   protected readonly tabs = ADMIN_TABS;
 
-  protected activeTab: AdminTabId = 'overview';
+  protected activeTab: AdminTabId = 'projects';
   protected isLoading = true;
   protected errorMessage = '';
   protected statusMessage = '';
@@ -258,9 +258,6 @@ export class AdminPageComponent implements OnInit, OnChanges {
 
   protected setActiveTab(tabId: typeof this.activeTab): void {
     this.activeTab = tabId;
-    if (tabId === 'media' && !this.selectedMediaFileId) {
-      this.selectedMediaFileId = this.filteredMediaFiles[0]?.id ?? this.referenceData.mediaFiles[0]?.id ?? null;
-    }
   }
 
   protected logout(): void {
@@ -363,7 +360,7 @@ export class AdminPageComponent implements OnInit, OnChanges {
             this.adminSession.logout();
             return;
           }
-          this.errorMessage = 'The CMS data could not be loaded. Check that the API is running and that your admin token is still valid.';
+          this.errorMessage = 'The legacy admin workspace could not be loaded. Check that the API is running and that your admin token is still valid.';
         }
       });
   }
