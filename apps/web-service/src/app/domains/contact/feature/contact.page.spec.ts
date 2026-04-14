@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ContactPageComponent } from './contact.page';
 import { PublicProfileApiService } from '@domains/profile/data/profile-api.service';
+import { PublicContactApiService } from '@domains/contact/data/contact-api.service';
 import { SiteTrackingService } from '@domains/site-activity/data/site-tracking.service';
 import { Profile } from '@domains/profile/model/profile.model';
 
@@ -70,8 +71,11 @@ describe('ContactPageComponent', () => {
           provide: PublicProfileApiService,
           useValue: {
             getProfile: () => from(Promise.resolve(profileFixture)),
-            submitContactMessage,
           },
+        },
+        {
+          provide: PublicContactApiService,
+          useValue: { submitContactMessage },
         },
         {
           provide: SiteTrackingService,
@@ -124,6 +128,11 @@ describe('ContactPageComponent', () => {
           provide: PublicProfileApiService,
           useValue: {
             getProfile: () => from(Promise.resolve(profileFixture)),
+          },
+        },
+        {
+          provide: PublicContactApiService,
+          useValue: {
             submitContactMessage: () => throwError(() => ({ error: { detail: 'Too many messages were sent from this page recently.' } })),
           },
         },

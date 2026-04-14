@@ -51,7 +51,7 @@ describe('admin-blog-editor.utils', () => {
 
     expect(insertImageTemplate('', { start: 0, end: 0 })).toEqual({
       value: '\n![Describe image](https://example.com/image.jpg)\n',
-      selection: { start: 18, end: 47 },
+      selection: { start: 19, end: 48 },
     });
   });
 });
