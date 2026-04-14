@@ -4,8 +4,9 @@ import { map } from 'rxjs/operators';
 
 import { ProjectDetail } from '@domains/projects/model/project-detail.model';
 import { ProjectSummary } from '@domains/projects/model/project-summary.model';
-import { CollectionResponse, ProjectDetailApi, ProjectSummaryApi } from '@core/http/public-api/public-api.contracts';
-import { normalizeProjectDetail, normalizeProjectSummaries } from '@core/http/public-api/public-api.mappers';
+import { CollectionResponse } from '@core/http/public-api/common.contracts';
+import { ProjectDetailApi, ProjectSummaryApi } from '@core/http/public-api/projects.contracts';
+import { normalizeProjectDetail, normalizeProjectSummaries } from '@core/http/public-api/projects.mappers';
 import { PublicHttpService } from '@core/http/public-api/public-http.service';
 
 @Injectable({ providedIn: 'root' })

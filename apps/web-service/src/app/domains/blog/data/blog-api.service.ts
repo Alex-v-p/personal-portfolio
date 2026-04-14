@@ -4,8 +4,9 @@ import { map } from 'rxjs/operators';
 
 import { BlogPostDetail } from '@domains/blog/model/blog-post-detail.model';
 import { BlogPostSummary } from '@domains/blog/model/blog-post-summary.model';
-import { BlogPostDetailApi, BlogPostSummaryApi, CollectionResponse } from '@core/http/public-api/public-api.contracts';
-import { normalizeBlogPostDetail, normalizeBlogPostSummaries } from '@core/http/public-api/public-api.mappers';
+import { CollectionResponse } from '@core/http/public-api/common.contracts';
+import { BlogPostDetailApi, BlogPostSummaryApi } from '@core/http/public-api/blog.contracts';
+import { normalizeBlogPostDetail, normalizeBlogPostSummaries } from '@core/http/public-api/blog.mappers';
 import { PublicHttpService } from '@core/http/public-api/public-http.service';
 
 @Injectable({ providedIn: 'root' })

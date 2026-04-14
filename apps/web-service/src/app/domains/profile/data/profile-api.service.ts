@@ -5,8 +5,11 @@ import { map } from 'rxjs/operators';
 import { Profile } from '@domains/profile/model/profile.model';
 import { NavigationItem, SiteShellData } from '@domains/profile/model/site-shell.model';
 import { HomePageData } from '@domains/home/model/home.model';
-import { CollectionResponse, NavigationItemApi, ProfileApi, SiteShellApi, HomeApi } from '@core/http/public-api/public-api.contracts';
-import { normalizeHome, normalizeNavigationItem, normalizeProfile, normalizeSiteShell } from '@core/http/public-api/public-api.mappers';
+import { CollectionResponse } from '@core/http/public-api/common.contracts';
+import { HomeApi } from '@core/http/public-api/home.contracts';
+import { NavigationItemApi, ProfileApi, SiteShellApi } from '@core/http/public-api/profile.contracts';
+import { normalizeHome } from '@core/http/public-api/home.mappers';
+import { normalizeNavigationItem, normalizeProfile, normalizeSiteShell } from '@core/http/public-api/profile.mappers';
 import { PublicHttpService } from '@core/http/public-api/public-http.service';
 
 @Injectable({ providedIn: 'root' })

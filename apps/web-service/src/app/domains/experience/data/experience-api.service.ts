@@ -3,8 +3,9 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { Experience } from '@domains/experience/model/experience.model';
-import { CollectionResponse, ExperienceApi } from '@core/http/public-api/public-api.contracts';
-import { normalizeExperienceList } from '@core/http/public-api/public-api.mappers';
+import { CollectionResponse } from '@core/http/public-api/common.contracts';
+import { ExperienceApi } from '@core/http/public-api/experience.contracts';
+import { normalizeExperienceList } from '@core/http/public-api/experience.mappers';
 import { PublicHttpService } from '@core/http/public-api/public-http.service';
 
 @Injectable({ providedIn: 'root' })

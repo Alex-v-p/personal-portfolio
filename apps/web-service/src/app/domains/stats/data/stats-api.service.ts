@@ -4,8 +4,8 @@ import { map } from 'rxjs/operators';
 
 import { GithubSnapshot } from '@domains/stats/model/github-snapshot.model';
 import { StatsPageData } from '@domains/stats/model/stats-page.model';
-import { GithubSnapshotApi, StatsApi } from '@core/http/public-api/public-api.contracts';
-import { normalizeGithubSnapshot, normalizeStats } from '@core/http/public-api/public-api.mappers';
+import { GithubSnapshotApi, StatsApi } from '@core/http/public-api/stats.contracts';
+import { normalizeGithubSnapshot, normalizeStats } from '@core/http/public-api/stats.mappers';
 import { PublicHttpService } from '@core/http/public-api/public-http.service';
 
 @Injectable({ providedIn: 'root' })
