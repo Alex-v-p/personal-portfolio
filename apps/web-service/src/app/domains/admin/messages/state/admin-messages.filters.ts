@@ -1,5 +1,5 @@
 import { AdminContactMessage } from '@domains/admin/model/admin.model';
-import { matchesSearch } from './admin-page.utils';
+import { matchesSearch } from '@domains/admin/shell/state/admin-page.utils';
 
 export type AdminMessageStatusFilter = 'all' | 'unread' | 'read';
 

@@ -1,5 +1,5 @@
 import { NgClass, NgFor, NgIf } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit, ViewChild, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { finalize, take } from 'rxjs/operators';
@@ -82,7 +82,7 @@ import {
   selectedActivityConversations,
   visitsForVisitor,
 } from '@domains/admin/shell/state/admin-page-activity-state';
-import { buildMessageSourceOptions, countUnreadMessages, filterMessages } from '@domains/admin/shell/state/admin-page-message-state';
+import { buildMessageSourceOptions, countUnreadMessages, filterMessages } from '@domains/admin/messages/state/admin-messages.filters';
 import {
   buildBlogMediaFolder,
   buildExperienceMediaFolder,
@@ -133,7 +133,7 @@ import { parseContributionDays, parseJsonObject, resolveSelection, toggleSelecti
   ],
   templateUrl: './admin.page.html'
 })
-export class AdminPageComponent implements OnInit {
+export class AdminPageComponent implements OnInit, OnChanges {
   private readonly overviewApi = inject(AdminOverviewApiService);
   private readonly contentApi = inject(AdminContentApiService);
   private readonly mediaApi = inject(AdminMediaApiService);
@@ -145,6 +145,9 @@ export class AdminPageComponent implements OnInit {
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   @ViewChild(AdminBlogTabComponent) private blogTabComponent?: AdminBlogTabComponent;
+
+  @Input() initialTab: AdminTabId = 'overview';
+  @Input() compactMode = false;
 
   protected readonly tabs = ADMIN_TABS;
 
@@ -243,7 +246,14 @@ export class AdminPageComponent implements OnInit {
   protected deletingMediaFileIds: string[] = [];
 
   ngOnInit(): void {
+    this.activeTab = this.initialTab;
     this.loadCms();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['initialTab'] && !changes['initialTab'].firstChange) {
+      this.setActiveTab(this.initialTab);
+    }
   }
 
   protected setActiveTab(tabId: typeof this.activeTab): void {

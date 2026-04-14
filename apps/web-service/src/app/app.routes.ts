@@ -11,9 +11,88 @@ export const routes: Routes = [
   },
   {
     path: 'admin',
-    loadComponent: () => import('@domains/admin/shell/feature/admin.page').then((module) => module.AdminPageComponent),
+    loadComponent: () => import('@domains/admin/shell/layout/admin-shell.layout').then((module) => module.AdminShellLayoutComponent),
     title: 'Admin CMS',
     canActivate: [adminAuthGuard],
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'overview' },
+      {
+        path: 'overview',
+        loadComponent: () => import('@domains/admin/overview/feature/admin-overview.page').then((module) => module.AdminOverviewPageComponent),
+        title: 'Admin Overview',
+      },
+      {
+        path: 'messages',
+        loadComponent: () => import('@domains/admin/messages/feature/admin-messages.page').then((module) => module.AdminMessagesPageComponent),
+        title: 'Admin Messages',
+      },
+      {
+        path: 'projects',
+        loadComponent: () => import('@domains/admin/shell/feature/admin-legacy-tab.page').then((module) => module.AdminLegacyTabPageComponent),
+        title: 'Admin Projects',
+        data: { legacyTab: 'projects' },
+      },
+      {
+        path: 'blog',
+        loadComponent: () => import('@domains/admin/shell/feature/admin-legacy-tab.page').then((module) => module.AdminLegacyTabPageComponent),
+        title: 'Admin Blog',
+        data: { legacyTab: 'blog' },
+      },
+      {
+        path: 'media',
+        loadComponent: () => import('@domains/admin/shell/feature/admin-legacy-tab.page').then((module) => module.AdminLegacyTabPageComponent),
+        title: 'Admin Media',
+        data: { legacyTab: 'media' },
+      },
+      {
+        path: 'taxonomy',
+        loadComponent: () => import('@domains/admin/shell/feature/admin-legacy-tab.page').then((module) => module.AdminLegacyTabPageComponent),
+        title: 'Admin Taxonomy',
+        data: { legacyTab: 'taxonomy' },
+      },
+      {
+        path: 'experience',
+        loadComponent: () => import('@domains/admin/shell/feature/admin-legacy-tab.page').then((module) => module.AdminLegacyTabPageComponent),
+        title: 'Admin Experience',
+        data: { legacyTab: 'experience' },
+      },
+      {
+        path: 'navigation',
+        loadComponent: () => import('@domains/admin/shell/feature/admin-legacy-tab.page').then((module) => module.AdminLegacyTabPageComponent),
+        title: 'Admin Navigation',
+        data: { legacyTab: 'navigation' },
+      },
+      {
+        path: 'profile',
+        loadComponent: () => import('@domains/admin/shell/feature/admin-legacy-tab.page').then((module) => module.AdminLegacyTabPageComponent),
+        title: 'Admin Profile',
+        data: { legacyTab: 'profile' },
+      },
+      {
+        path: 'stats',
+        loadComponent: () => import('@domains/admin/shell/feature/admin-legacy-tab.page').then((module) => module.AdminLegacyTabPageComponent),
+        title: 'Admin GitHub / Stats',
+        data: { legacyTab: 'stats' },
+      },
+      {
+        path: 'assistant',
+        loadComponent: () => import('@domains/admin/shell/feature/admin-legacy-tab.page').then((module) => module.AdminLegacyTabPageComponent),
+        title: 'Admin Assistant',
+        data: { legacyTab: 'assistant' },
+      },
+      {
+        path: 'activity',
+        loadComponent: () => import('@domains/admin/shell/feature/admin-legacy-tab.page').then((module) => module.AdminLegacyTabPageComponent),
+        title: 'Admin Activity',
+        data: { legacyTab: 'activity' },
+      },
+      {
+        path: 'admins',
+        loadComponent: () => import('@domains/admin/shell/feature/admin-legacy-tab.page').then((module) => module.AdminLegacyTabPageComponent),
+        title: 'Admin Users',
+        data: { legacyTab: 'admins' },
+      },
+    ],
   },
   {
     path: '',
@@ -50,5 +129,5 @@ export const routes: Routes = [
     loadComponent: () => import('@domains/assistant/feature/assistant.page').then((module) => module.AssistantPageComponent),
     title: 'Assistant',
   },
-  { path: '**', redirectTo: '' }
+  { path: '**', redirectTo: '' },
 ];
