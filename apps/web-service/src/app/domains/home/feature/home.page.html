@@ -1,14 +1,64 @@
-<div *ngIf="isLoading" class="rounded-[2rem] border border-stone-200 bg-white/80 p-6 text-sm text-stone-600">Loading homepage content…</div>
+<section *ngIf="isLoading" class="space-y-10" aria-label="Loading homepage content">
+  <div class="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
+    <div class="space-y-4">
+      <app-ui-skeleton className="h-7 w-28 rounded-full"></app-ui-skeleton>
+      <app-ui-skeleton className="h-4 w-40 rounded-full"></app-ui-skeleton>
+      <app-ui-skeleton className="h-12 w-full max-w-2xl rounded-3xl"></app-ui-skeleton>
+      <app-ui-skeleton className="h-12 w-[92%] max-w-2xl rounded-3xl"></app-ui-skeleton>
+      <div class="flex flex-wrap gap-2 pt-2">
+        <app-ui-skeleton className="h-9 w-24 rounded-full"></app-ui-skeleton>
+        <app-ui-skeleton className="h-9 w-28 rounded-full"></app-ui-skeleton>
+        <app-ui-skeleton className="h-9 w-32 rounded-full"></app-ui-skeleton>
+      </div>
+      <div class="flex flex-wrap gap-3 pt-2">
+        <app-ui-skeleton className="h-12 w-36 rounded-full"></app-ui-skeleton>
+        <app-ui-skeleton className="h-12 w-32 rounded-full"></app-ui-skeleton>
+      </div>
+    </div>
 
-<div *ngIf="!isLoading" class="space-y-14 lg:space-y-16">
-  <app-home-hero-section [profile]="profile"></app-home-hero-section>
+    <div class="mx-auto w-full max-w-md">
+      <app-ui-skeleton className="aspect-[4/5] w-full rounded-[1.75rem]"></app-ui-skeleton>
+    </div>
+  </div>
 
-  <app-home-featured-section [featuredBlogPost]="featuredBlogPost" [primaryProject]="primaryProject"></app-home-featured-section>
+  <div class="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
+    <app-ui-skeleton className="h-[24rem] w-full rounded-[2rem]"></app-ui-skeleton>
+    <app-ui-skeleton className="h-[24rem] w-full rounded-[2rem]"></app-ui-skeleton>
+  </div>
 
-  <section class="grid items-start gap-10 xl:grid-cols-[0.92fr_1.08fr]">
-    <app-home-expertise-section [groups]="expertiseGroups"></app-home-expertise-section>
-    <app-home-experience-section [profile]="profile" [experiences]="experiencePreview"></app-home-experience-section>
+  <div class="grid gap-6 lg:grid-cols-2">
+    <app-ui-skeleton className="h-[18rem] w-full rounded-[2rem]"></app-ui-skeleton>
+    <app-ui-skeleton className="h-[18rem] w-full rounded-[2rem]"></app-ui-skeleton>
+  </div>
+</section>
+
+<app-ui-empty-state
+  *ngIf="!isLoading && errorMessage"
+  title="Could not load homepage content"
+  [description]="errorMessage"
+  [hasActions]="true"
+  tone="error"
+>
+  <div actions>
+    <app-ui-button appearance="secondary" type="button" (click)="loadHome()">Retry</app-ui-button>
+  </div>
+</app-ui-empty-state>
+
+<app-ui-empty-state
+  *ngIf="!isLoading && !errorMessage && !hasHomepageContent"
+  title="Homepage content is not ready yet"
+  description="Publish hero, featured, and profile content in the CMS to populate the public homepage."
+></app-ui-empty-state>
+
+<div *ngIf="!isLoading && !errorMessage && hasHomepageContent" class="space-y-14 lg:space-y-16">
+  <app-home-hero-section *ngIf="hasHeroContent" [profile]="profile"></app-home-hero-section>
+
+  <app-home-featured-section *ngIf="hasFeaturedContent" [featuredBlogPost]="featuredBlogPost" [primaryProject]="primaryProject"></app-home-featured-section>
+
+  <section *ngIf="hasExpertiseContent || hasExperienceContent" class="grid items-start gap-10 xl:grid-cols-[0.92fr_1.08fr]">
+    <app-home-expertise-section *ngIf="hasExpertiseContent" [groups]="expertiseGroups"></app-home-expertise-section>
+    <app-home-experience-section *ngIf="hasExperienceContent" [profile]="profile" [experiences]="experiencePreview"></app-home-experience-section>
   </section>
 
-  <app-home-contact-preview-section [methods]="contactPreviewMethods"></app-home-contact-preview-section>
+  <app-home-contact-preview-section *ngIf="hasContactPreviewContent" [methods]="contactPreviewMethods"></app-home-contact-preview-section>
 </div>

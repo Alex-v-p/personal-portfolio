@@ -10,7 +10,7 @@
     </div>
   </div>
 
-  <div class="space-y-6">
+  <div *ngIf="experiences.length" class="space-y-6">
     <app-ui-section-title title="Experience" description="A timeline preview of education, internships, and independent project work."></app-ui-section-title>
 
     <div class="relative space-y-4 pl-6 before:absolute before:bottom-2 before:left-[11px] before:top-2 before:w-px before:bg-stone-400/70">

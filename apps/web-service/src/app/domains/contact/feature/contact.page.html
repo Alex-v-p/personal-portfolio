@@ -1,5 +1,4 @@
 <div class="mx-auto max-w-5xl space-y-8">
-  <div *ngIf="isLoadingProfile" class="rounded-[2rem] border border-stone-200 bg-white/80 p-6 text-sm text-stone-600">Loading contact details…</div>
   <div class="space-y-3">
     <p class="text-sm text-stone-600">Home &gt; Contact</p>
     <h1 class="text-4xl font-semibold tracking-tight text-stone-950">Let’s work together</h1>
@@ -10,51 +9,102 @@
 
   <div class="grid gap-5 lg:grid-cols-[0.92fr_1.08fr] lg:items-start">
     <app-ui-card [featured]="true" padding="lg">
-      <div class="space-y-6">
+      <div *ngIf="isLoadingProfile" class="space-y-6" aria-label="Loading contact details">
         <div class="space-y-3">
-          <p class="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">Contact info</p>
-          <h2 class="text-3xl font-semibold tracking-tight text-stone-950">Start with the channel that feels easiest</h2>
-          <p class="text-sm leading-6 text-stone-600">{{ profile.shortBio }}</p>
+          <app-ui-skeleton className="h-4 w-28 rounded-full"></app-ui-skeleton>
+          <app-ui-skeleton className="h-10 w-full max-w-sm rounded-3xl"></app-ui-skeleton>
+          <app-ui-skeleton className="h-4 w-full rounded-full"></app-ui-skeleton>
+          <app-ui-skeleton className="h-4 w-[92%] rounded-full"></app-ui-skeleton>
         </div>
 
         <div class="flex flex-wrap gap-2">
-          <app-ui-chip *ngFor="let item of profile.availability">{{ item }}</app-ui-chip>
+          <app-ui-skeleton className="h-8 w-24 rounded-full"></app-ui-skeleton>
+          <app-ui-skeleton className="h-8 w-28 rounded-full"></app-ui-skeleton>
         </div>
 
         <div class="grid gap-4">
-          <div *ngFor="let method of contactMethods" class="rounded-2xl border border-stone-200 bg-stone-100/80 p-4">
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div class="space-y-1">
-                <p class="text-sm font-semibold text-stone-950">{{ method.label }}</p>
-                <p class="text-sm text-stone-600">{{ method.value }}</p>
-                <p *ngIf="method.description" class="text-xs leading-5 text-stone-500">{{ method.description }}</p>
-              </div>
+          <app-ui-skeleton className="h-28 w-full rounded-[1.5rem]"></app-ui-skeleton>
+          <app-ui-skeleton className="h-28 w-full rounded-[1.5rem]"></app-ui-skeleton>
+          <app-ui-skeleton className="h-28 w-full rounded-[1.5rem]"></app-ui-skeleton>
+        </div>
+      </div>
 
-              <app-ui-link-button
-                [href]="method.href"
-                [openInNewTab]="!method.href.startsWith('mailto:') && !method.href.startsWith('tel:')"
-                appearance="ghost"
-              >
-                {{ method.actionLabel }}
-              </app-ui-link-button>
+      <div *ngIf="!isLoadingProfile" class="space-y-6">
+        <div *ngIf="profileErrorMessage; else loadedContactDetails">
+          <app-ui-empty-state
+            title="Could not load contact details"
+            [description]="profileErrorMessage"
+            [hasActions]="true"
+            tone="error"
+          >
+            <div actions>
+              <app-ui-button appearance="secondary" type="button" (click)="loadProfile()">Retry</app-ui-button>
             </div>
-          </div>
+          </app-ui-empty-state>
         </div>
 
-        <div class="rounded-[1.5rem] border border-stone-200 bg-white/70 p-5">
-          <p class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Good starting topics</p>
-          <div class="mt-4 space-y-3">
-            <button
-              *ngFor="let topic of preferredTopics"
-              type="button"
-              (click)="useTopic(topic.label)"
-              class="w-full rounded-2xl border border-stone-200 bg-stone-50/80 px-4 py-3 text-left transition hover:border-stone-300 hover:bg-white"
-            >
-              <span class="block text-sm font-semibold text-stone-900">{{ topic.label }}</span>
-              <span class="mt-1 block text-xs leading-5 text-stone-500">{{ topic.hint }}</span>
-            </button>
-          </div>
-        </div>
+        <ng-template #loadedContactDetails>
+          <ng-container *ngIf="hasContactDetails; else emptyContactDetails">
+            <div class="space-y-3">
+              <p class="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">Contact info</p>
+              <h2 class="text-3xl font-semibold tracking-tight text-stone-950">Start with the channel that feels easiest</h2>
+              <p class="text-sm leading-6 text-stone-600">{{ contactIntroText }}</p>
+            </div>
+
+            <div *ngIf="profile.availability.length" class="flex flex-wrap gap-2">
+              <app-ui-chip *ngFor="let item of profile.availability">{{ item }}</app-ui-chip>
+            </div>
+
+            <div *ngIf="contactMethods.length; else emptyMethods" class="grid gap-4">
+              <div *ngFor="let method of contactMethods" class="rounded-2xl border border-stone-200 bg-stone-100/80 p-4">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div class="space-y-1">
+                    <p class="text-sm font-semibold text-stone-950">{{ method.label }}</p>
+                    <p class="text-sm text-stone-600">{{ method.value }}</p>
+                    <p *ngIf="method.description" class="text-xs leading-5 text-stone-500">{{ method.description }}</p>
+                  </div>
+
+                  <app-ui-link-button
+                    [href]="method.href"
+                    [openInNewTab]="!method.href.startsWith('mailto:') && !method.href.startsWith('tel:')"
+                    appearance="ghost"
+                  >
+                    {{ method.actionLabel }}
+                  </app-ui-link-button>
+                </div>
+              </div>
+            </div>
+
+            <ng-template #emptyMethods>
+              <app-ui-empty-state
+                title="No direct contact channels are published yet"
+                description="The form is still available, but email, phone, and social links have not been published to the public profile."
+              ></app-ui-empty-state>
+            </ng-template>
+
+            <div class="rounded-[1.5rem] border border-stone-200 bg-white/70 p-5">
+              <p class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Good starting topics</p>
+              <div class="mt-4 space-y-3">
+                <button
+                  *ngFor="let topic of preferredTopics"
+                  type="button"
+                  (click)="useTopic(topic.label)"
+                  class="w-full rounded-2xl border border-stone-200 bg-stone-50/80 px-4 py-3 text-left transition hover:border-stone-300 hover:bg-white"
+                >
+                  <span class="block text-sm font-semibold text-stone-900">{{ topic.label }}</span>
+                  <span class="mt-1 block text-xs leading-5 text-stone-500">{{ topic.hint }}</span>
+                </button>
+              </div>
+            </div>
+          </ng-container>
+        </ng-template>
+
+        <ng-template #emptyContactDetails>
+          <app-ui-empty-state
+            title="Contact details have not been published yet"
+            description="You can still use the form, but the profile does not currently expose any public contact information."
+          ></app-ui-empty-state>
+        </ng-template>
       </div>
     </app-ui-card>
 

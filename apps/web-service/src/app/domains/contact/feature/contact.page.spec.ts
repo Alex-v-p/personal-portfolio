@@ -120,6 +120,68 @@ describe('ContactPageComponent', () => {
     expect(component.contactForm.pristine).toBe(true);
   });
 
+
+  it('keeps the contact form available when profile details fail to load', async () => {
+    TestBed.configureTestingModule({
+      imports: [ContactPageComponent],
+      providers: [
+        {
+          provide: PublicProfileApiService,
+          useValue: {
+            getProfile: () => throwError(() => ({ error: { detail: 'Profile unavailable' } })),
+          },
+        },
+        {
+          provide: PublicContactApiService,
+          useValue: {
+            submitContactMessage: () => of({
+              message: 'Contact message created.',
+              item: {
+                id: 'message-2',
+                name: 'Alex',
+                email: 'alex@example.com',
+                subject: 'Collaboration',
+                message: 'I would like to collaborate on a project with you soon.',
+                sourcePage: '/contact',
+                isRead: false,
+                createdAt: '2026-04-13T10:00:00Z',
+                updatedAt: '2026-04-13T10:00:00Z',
+              },
+            }),
+          },
+        },
+        {
+          provide: SiteTrackingService,
+          useValue: {
+            visitorId: 'visitor-1',
+            sessionId: 'session-1',
+          },
+        },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(ContactPageComponent);
+    const component = fixture.componentInstance as any;
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.profileErrorMessage).toContain('Contact details could not be loaded');
+    expect(component.isLoadingProfile).toBe(false);
+
+    component.contactForm.setValue({
+      name: 'Alex',
+      email: 'alex@example.com',
+      subject: 'Collaboration',
+      message: 'I would like to collaborate on a project with you soon.',
+      website: '',
+    });
+
+    component.submit();
+
+    expect(component.submissionState).toBe('success');
+  });
+
   it('shows the API error detail when the submission fails', async () => {
     TestBed.configureTestingModule({
       imports: [ContactPageComponent],
