@@ -4,9 +4,9 @@ export interface AdminUser {
   displayName: string;
   isActive: boolean;
   createdAt: string;
-  mfaEnabled?: boolean;
+  mfaEnabled: boolean;
   mfaEnrolledAt?: string | null;
-  mfaRecoveryCodesRemaining?: number;
+  mfaRecoveryCodesRemaining: number;
 }
 
 export interface AdminUserCreate {

@@ -4,6 +4,7 @@ import { of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AdminAuthApiService } from '@domains/admin/data/api/admin-auth-api.service';
+import type { AdminUser } from '@domains/admin/model/auth-admin.model';
 import { AdminSessionService } from './admin-session.service';
 
 const adminUserFixture = {
@@ -58,9 +59,9 @@ describe('AdminSessionService', () => {
     });
 
     const service = TestBed.inject(AdminSessionService);
-    let currentUser = null as typeof adminUserFixture | null;
-    service.currentUser$.subscribe((user: typeof adminUserFixture | null) => {
-      currentUser = user as typeof adminUserFixture | null;
+    let currentUser: AdminUser | null = null;
+    service.currentUser$.subscribe((user) => {
+      currentUser = user;
     });
 
     service.login('admin@example.com', 'secret').subscribe();
@@ -68,7 +69,8 @@ describe('AdminSessionService', () => {
     expect(service.csrfToken).toBe('csrf-token-1');
     expect(service.isAuthenticated).toBe(true);
     expect(service.isFullyAuthenticated).toBe(true);
-    expect(currentUser?.email).toBe('admin@example.com');
+    expect(currentUser).not.toBeNull();
+    expect(currentUser!.email).toBe('admin@example.com');
     expect(JSON.parse(sessionStorage.getItem('portfolio.admin.auth-session') ?? '{}')).toMatchObject({
       user: { email: 'admin@example.com' },
       csrfToken: 'csrf-token-1',
