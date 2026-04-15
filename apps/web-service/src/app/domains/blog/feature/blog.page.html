@@ -1,19 +1,19 @@
 <div class="mx-auto max-w-6xl space-y-8">
-  <p class="text-sm text-stone-600">Home &gt; Blog</p>
+  <p class="text-sm ui-text-muted">Home &gt; Blog</p>
 
-  <section class="rounded-[2rem] border border-stone-200 bg-white/55 p-6 shadow-[0_18px_48px_rgba(40,31,20,0.05)] sm:p-8 lg:p-10">
+  <section class="ui-panel-soft p-6 sm:p-8 lg:p-10">
     <div class="space-y-8">
       <header class="space-y-4 text-center">
-        <h1 class="text-4xl font-semibold tracking-tight text-stone-950">Blog posts</h1>
-        <div class="mx-auto h-3 w-full max-w-lg rounded-full bg-stone-950"></div>
-        <p class="mx-auto max-w-2xl text-sm leading-6 text-stone-600">
+        <h1 class="ui-title-section text-4xl">Blog posts</h1>
+        <div class="mx-auto h-3 w-full max-w-lg rounded-full" style="background: var(--ui-primary);"></div>
+        <p class="mx-auto max-w-2xl text-sm leading-6 ui-text-muted">
           Notes on front-end structure, portfolio building, workflows, and the decisions behind the current platform.
           This page now loads from the public portfolio API instead of local mock article files.
         </p>
       </header>
 
       <section *ngIf="isLoading" class="space-y-5" aria-label="Loading blog posts">
-        <div class="grid gap-4 rounded-[1.75rem] border border-stone-200 bg-stone-50/80 p-4 md:grid-cols-[minmax(0,1fr)_16rem_auto] md:items-end md:p-5">
+        <div class="ui-card-soft grid gap-4 p-4 md:grid-cols-[minmax(0,1fr)_16rem_auto] md:items-end md:p-5">
           <div class="space-y-2">
             <app-ui-skeleton className="h-3 w-16 rounded-full"></app-ui-skeleton>
             <app-ui-skeleton className="h-12 w-full rounded-full"></app-ui-skeleton>
@@ -53,22 +53,22 @@
       ></app-ui-empty-state>
 
       <ng-container *ngIf="!isLoading && !errorMessage && hasPosts">
-        <section class="grid gap-4 rounded-[1.75rem] border border-stone-200 bg-stone-50/80 p-4 md:grid-cols-[minmax(0,1fr)_16rem_auto] md:items-end md:p-5">
+        <section class="ui-card-soft grid gap-4 p-4 md:grid-cols-[minmax(0,1fr)_16rem_auto] md:items-end md:p-5">
           <label class="block space-y-2">
-            <span class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Search</span>
+            <span class="ui-kicker">Search</span>
             <input
               [(ngModel)]="searchQuery"
               type="text"
               placeholder="Search titles, excerpts, tags, or markdown content"
-              class="w-full rounded-full border border-stone-300 bg-white px-4 py-3 text-sm text-stone-700 outline-none transition focus:border-stone-500"
+              class="ui-input rounded-full"
             />
           </label>
 
           <label class="block space-y-2">
-            <span class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Topic</span>
+            <span class="ui-kicker">Topic</span>
             <select
               [(ngModel)]="selectedCategory"
-              class="w-full rounded-full border border-stone-300 bg-white px-4 py-3 text-sm text-stone-700 outline-none transition focus:border-stone-500"
+              class="ui-input rounded-full"
             >
               <option *ngFor="let category of categories" [ngValue]="category">{{ category }}</option>
             </select>
@@ -79,20 +79,20 @@
               *ngIf="hasActiveFilters"
               type="button"
               (click)="resetFilters()"
-              class="inline-flex min-h-12 items-center justify-center rounded-full border border-transparent bg-transparent px-5 py-3 text-sm font-semibold text-stone-500 transition hover:-translate-y-0.5 hover:border-stone-300 hover:bg-white/70 hover:text-stone-900"
+              class="ui-btn ui-btn-ghost"
             >
               Reset
             </button>
           </div>
         </section>
 
-        <p class="text-center text-sm text-stone-600">Showing {{ filteredPosts.length }} of {{ totalPostCount }} articles</p>
+        <p class="text-center text-sm ui-text-muted">Showing {{ filteredPosts.length }} of {{ totalPostCount }} articles</p>
 
         <section *ngIf="filteredPosts.length; else emptyResults" class="space-y-8">
           <section *ngIf="featuredPosts.length" class="space-y-3">
             <div class="space-y-1">
-              <p class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Featured article</p>
-              <h2 class="text-2xl font-semibold tracking-tight text-stone-950">A highlighted post from the current collection</h2>
+              <p class="ui-kicker">Featured article</p>
+              <h2 class="ui-title-card text-2xl">A highlighted post from the current collection</h2>
             </div>
 
             <app-blog-card [post]="featuredPosts[0]" [featured]="true"></app-blog-card>
@@ -101,8 +101,8 @@
           <section *ngIf="browseablePosts.length" class="space-y-3">
             <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h2 class="text-2xl font-semibold tracking-tight text-stone-950">Browse all posts</h2>
-                <p class="text-sm leading-6 text-stone-600">Titles, dates, excerpts, tags, and markdown-backed article content are now driven by the API.</p>
+                <h2 class="ui-title-card text-2xl">Browse all posts</h2>
+                <p class="text-sm leading-6 ui-text-muted">Titles, dates, excerpts, tags, and markdown-backed article content are now driven by the API.</p>
               </div>
             </div>
 
@@ -119,10 +119,10 @@
           ></app-ui-empty-state>
         </ng-template>
 
-        <div class="flex items-center justify-center gap-3 text-sm text-stone-700">
+        <div class="flex items-center justify-center gap-3 text-sm ui-text-muted">
           <span>Previous</span>
           <div class="flex gap-2">
-            <span *ngFor="let dot of pagerDots" class="h-5 w-5 rounded-sm bg-stone-300"></span>
+            <span *ngFor="let dot of pagerDots" class="h-5 w-5 rounded-sm" style="background: var(--ui-border);"></span>
           </div>
           <span>Next</span>
         </div>

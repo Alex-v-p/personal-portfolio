@@ -1,6 +1,6 @@
 <header [class]="headerClasses">
-  <p *ngIf="eyebrow" class="m-0 text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">{{ eyebrow }}</p>
+  <p *ngIf="eyebrow" class="ui-kicker">{{ eyebrow }}</p>
   <h1 [class]="titleClasses">{{ title }}</h1>
-  <p *ngIf="description" class="m-0 max-w-[62ch] text-base leading-7 text-stone-600">{{ description }}</p>
+  <p *ngIf="description" class="m-0 max-w-[62ch] text-base leading-7 ui-text-muted">{{ description }}</p>
   <ng-content></ng-content>
 </header>

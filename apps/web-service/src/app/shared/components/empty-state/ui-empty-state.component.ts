@@ -15,22 +15,20 @@ export class UiEmptyStateComponent {
 
   protected get containerClasses(): string[] {
     return this.tone === 'error'
-      ? ['border-rose-200', 'bg-rose-50/90']
-      : ['border-stone-300', 'bg-stone-100/65'];
+      ? ['ui-alert', 'ui-alert-danger']
+      : ['ui-card-soft'];
   }
 
   protected get iconClasses(): string[] {
-    return this.tone === 'error'
-      ? ['border-rose-200', 'from-rose-100', 'to-rose-200']
-      : ['border-stone-300', 'from-stone-200', 'to-stone-300'];
+    return [this.tone === 'error' ? 'ui-empty-icon-error' : 'ui-empty-icon'];
   }
 
   protected get titleClasses(): string[] {
-    return this.tone === 'error' ? ['text-rose-950'] : ['text-stone-900'];
+    return ['ui-text-strong'];
   }
 
   protected get descriptionClasses(): string[] {
-    return this.tone === 'error' ? ['text-rose-900/80'] : ['text-stone-600'];
+    return this.tone === 'error' ? ['ui-text-strong'] : ['ui-text-muted'];
   }
 
   protected get role(): 'alert' | 'status' {

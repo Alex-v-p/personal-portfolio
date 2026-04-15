@@ -26,17 +26,17 @@ export class StatCardComponent {
 
   protected get valueClasses(): string {
     if (this.size === 'lg') {
-      return 'text-5xl font-semibold leading-none tracking-tight text-stone-950 sm:text-6xl';
+      return 'text-5xl font-semibold leading-none tracking-tight ui-text-strong sm:text-6xl';
     }
 
-    return 'text-4xl font-semibold leading-none tracking-tight text-stone-950';
+    return 'text-4xl font-semibold leading-none tracking-tight ui-text-strong';
   }
 
   protected get wrapperClasses(): string {
     const tones = {
       default: '',
-      muted: '[&_article]:border-stone-200 [&_article]:bg-stone-200/65 [&_article]:shadow-none',
-      highlight: '[&_article]:border-stone-300 [&_article]:bg-gradient-to-br [&_article]:from-stone-100 [&_article]:to-white [&_article]:shadow-[0_20px_60px_rgba(40,31,20,0.08)]'
+      muted: '[&_article]:border-transparent [&_article]:bg-[var(--ui-surface-muted)] [&_article]:shadow-none',
+      highlight: '[&_article]:border-[color:var(--ui-border)] [&_article]:bg-[linear-gradient(135deg,var(--ui-surface-muted),var(--ui-surface-strong))] [&_article]:shadow-[var(--ui-shadow-panel)]'
     } as const;
 
     return tones[this.tone];

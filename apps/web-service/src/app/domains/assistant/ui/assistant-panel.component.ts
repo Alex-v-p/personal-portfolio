@@ -65,34 +65,34 @@ export class AssistantPanelComponent {
 
   protected getAvailabilityDotClasses(mode: AssistantAvailabilityState['mode']): string {
     if (mode === 'ready') {
-      return 'bg-emerald-500';
+      return 'ui-status-dot-ready';
     }
     if (mode === 'fallback') {
-      return 'bg-amber-500';
+      return 'ui-status-dot-fallback';
     }
     if (mode === 'preview') {
-      return 'bg-sky-500';
+      return 'ui-status-dot-preview';
     }
     if (mode === 'offline') {
-      return 'bg-rose-500';
+      return 'ui-status-dot-offline';
     }
-    return 'bg-stone-400';
+    return 'ui-status-dot-default';
   }
 
   protected getStatusCardClasses(mode: AssistantAvailabilityState['mode']): string {
     if (mode === 'ready') {
-      return 'border-emerald-200 bg-emerald-50/80 text-emerald-900';
+      return 'ui-alert ui-alert-success';
     }
     if (mode === 'fallback') {
-      return 'border-amber-200 bg-amber-50/80 text-amber-950';
+      return 'ui-alert ui-alert-warning';
     }
     if (mode === 'preview') {
-      return 'border-sky-200 bg-sky-50/80 text-sky-950';
+      return 'ui-alert ui-alert-info';
     }
     if (mode === 'offline') {
-      return 'border-rose-200 bg-rose-50/80 text-rose-950';
+      return 'ui-alert ui-alert-danger';
     }
-    return 'border-stone-200 bg-stone-50 text-stone-700';
+    return 'ui-card-soft ui-text-muted';
   }
 
   protected getComposerHint(availability: AssistantAvailabilityState): string {

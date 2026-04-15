@@ -1,9 +1,9 @@
 <app-ui-card *ngIf="featured; else defaultCard" [featured]="true" padding="lg">
   <div class="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:gap-7">
-    <div class="relative min-h-80 overflow-hidden rounded-[1.5rem] border border-stone-300 bg-stone-300/80">
+    <div class="ui-media-frame relative min-h-80 overflow-hidden rounded-[1.5rem]">
       <img *ngIf="project.coverImageUrl; else featuredProjectFallback" [src]="project.coverImageUrl" [alt]="project.coverImageAlt" class="h-full w-full object-cover" />
       <ng-template #featuredProjectFallback>
-        <div class="flex h-full items-end p-5 text-xs font-semibold uppercase tracking-[0.16em] text-stone-600">
+        <div class="ui-media-placeholder ui-media-fallback flex h-full items-end p-5 text-xs font-semibold uppercase tracking-[0.16em]">
           <span class="max-w-[18ch]">{{ placeholderLabel }}</span>
         </div>
       </ng-template>
@@ -12,22 +12,22 @@
 
     <div class="flex h-full flex-col justify-between gap-5">
       <div class="space-y-5">
-        <div class="flex flex-wrap items-center gap-2 text-xs text-stone-500">
+        <div class="ui-meta-row flex flex-wrap items-center gap-2">
           <span>{{ project.organization }}</span>
           <span>{{ project.duration }}</span>
           <app-ui-chip>{{ project.status }}</app-ui-chip>
         </div>
 
         <div class="space-y-3">
-          <h2 class="text-3xl font-semibold tracking-tight text-stone-950">{{ project.title }}</h2>
-          <p class="text-sm leading-7 text-stone-600">{{ project.shortDescription }}</p>
+          <h2 class="ui-title-card text-3xl">{{ project.title }}</h2>
+          <p class="text-sm leading-7 ui-text-muted">{{ project.shortDescription }}</p>
         </div>
 
         <div class="flex flex-wrap gap-2">
           <app-ui-chip *ngFor="let tag of displayedTags">{{ tag }}</app-ui-chip>
         </div>
 
-        <p class="text-sm leading-7 text-stone-600">{{ project.highlight }}</p>
+        <p class="text-sm leading-7 ui-text-muted">{{ project.highlight }}</p>
       </div>
 
       <div class="flex flex-wrap gap-3">
@@ -57,24 +57,24 @@
 <ng-template #defaultCard>
   <app-ui-card>
     <div class="flex h-full flex-col gap-4">
-      <div class="relative overflow-hidden rounded-[1.35rem] border border-stone-300 bg-stone-300/80">
+      <div class="ui-media-frame relative overflow-hidden rounded-[1.35rem]">
         <img *ngIf="project.coverImageUrl; else defaultProjectFallback" [src]="project.coverImageUrl" [alt]="project.coverImageAlt" class="aspect-[16/11] w-full object-cover" />
         <ng-template #defaultProjectFallback>
-          <div class="relative flex aspect-[16/11] items-end p-4 text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-stone-600">
+          <div class="ui-media-placeholder ui-media-fallback relative flex aspect-[16/11] items-end p-4 text-[0.7rem] font-semibold uppercase tracking-[0.14em]">
             <span class="max-w-[16ch]">{{ placeholderLabel }}</span>
           </div>
         </ng-template>
         <app-ui-chip *ngIf="project.isFeatured" tone="accent" class="absolute left-3 top-3">Featured</app-ui-chip>
       </div>
 
-      <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-stone-500">
+      <div class="ui-meta-row flex flex-wrap gap-x-3 gap-y-1">
         <span>{{ project.organization }}</span>
         <span>{{ project.duration }}</span>
       </div>
 
       <div class="space-y-2">
-        <h3 class="text-2xl font-semibold tracking-tight text-stone-950">{{ project.title }}</h3>
-        <p class="text-sm leading-6 text-stone-600">{{ project.shortDescription }}</p>
+        <h3 class="ui-title-card text-2xl">{{ project.title }}</h3>
+        <p class="text-sm leading-6 ui-text-muted">{{ project.shortDescription }}</p>
       </div>
 
       <div class="flex flex-wrap gap-2">

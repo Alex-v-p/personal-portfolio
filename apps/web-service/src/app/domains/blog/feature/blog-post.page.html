@@ -1,7 +1,7 @@
 <div class="mx-auto max-w-4xl space-y-6">
-  <div class="space-y-2 text-sm text-stone-600">
+  <div class="space-y-2 text-sm ui-text-muted">
     <p>Home &gt; Blog <ng-container *ngIf="post">&gt; {{ post.title }}</ng-container></p>
-    <a routerLink="/blog" class="inline-flex items-center gap-2 transition hover:text-stone-950">← Back to Blog</a>
+    <a routerLink="/blog" class="inline-flex items-center gap-2 transition hover:[color:var(--ui-text)]">← Back to Blog</a>
   </div>
 
   <section *ngIf="isLoading" class="space-y-6" aria-label="Loading article">
@@ -17,7 +17,7 @@
 
     <app-ui-skeleton className="min-h-[21rem] w-full rounded-[1.5rem]"></app-ui-skeleton>
 
-    <div class="space-y-3 rounded-[1.5rem] border border-stone-300 bg-white p-6 shadow-[0_12px_30px_rgba(40,31,20,0.08)] sm:p-8">
+    <div class="ui-panel space-y-3 p-6 sm:p-8">
       <app-ui-skeleton className="h-4 w-full rounded-full"></app-ui-skeleton>
       <app-ui-skeleton className="h-4 w-[97%] rounded-full"></app-ui-skeleton>
       <app-ui-skeleton className="h-4 w-[94%] rounded-full"></app-ui-skeleton>
@@ -41,38 +41,38 @@
 
   <article *ngIf="!isLoading && post" class="space-y-6">
     <header class="space-y-4">
-      <div class="flex flex-wrap items-center gap-3 text-xs text-stone-500">
+      <div class="ui-meta-row flex flex-wrap items-center gap-3">
         <span>{{ post.category }}</span>
         <span>{{ post.publishedAt }}</span>
         <span>{{ post.readTime }}</span>
       </div>
 
       <div class="space-y-3">
-        <h1 class="text-4xl font-semibold tracking-tight text-stone-950 sm:text-5xl">{{ post.title }}</h1>
-        <p class="max-w-3xl text-sm leading-7 text-stone-600">{{ post.excerpt }}</p>
+        <h1 class="m-0 text-4xl font-semibold tracking-tight ui-text-strong sm:text-5xl">{{ post.title }}</h1>
+        <p class="max-w-3xl text-sm leading-7 ui-text-muted">{{ post.excerpt }}</p>
       </div>
 
       <div class="flex flex-wrap gap-2">
         <app-ui-chip *ngFor="let tag of post.tags">{{ tag }}</app-ui-chip>
       </div>
 
-      <div class="flex items-center gap-3 text-sm text-stone-600">
+      <div class="flex items-center gap-3 text-sm ui-text-muted">
         <span>Share:</span>
         <span
           *ngFor="let mark of shareMarks"
-          class="inline-flex h-8 w-8 items-center justify-center rounded-sm bg-stone-300 text-xs font-semibold uppercase text-stone-700"
+          class="ui-pill h-8 w-8 justify-center rounded-sm px-0 text-xs font-semibold uppercase"
         >
           {{ mark }}
         </span>
       </div>
     </header>
 
-    <div class="overflow-hidden rounded-[1.5rem] border border-stone-300 bg-white shadow-[0_12px_30px_rgba(40,31,20,0.08)]">
-      <div *ngIf="post.coverImageUrl; else postCoverFallback" class="overflow-hidden border-b border-stone-300">
+    <div class="ui-panel overflow-hidden rounded-[1.5rem]">
+      <div *ngIf="post.coverImageUrl; else postCoverFallback" class="overflow-hidden border-b" style="border-color: var(--ui-border);">
         <img [src]="post.coverImageUrl" [alt]="post.coverImageAlt" class="max-h-[32rem] w-full object-cover" />
       </div>
       <ng-template #postCoverFallback>
-        <div class="flex min-h-[21rem] items-end bg-stone-600/90 p-6 text-xs font-semibold uppercase tracking-[0.16em] text-stone-200 sm:p-8">
+        <div class="ui-media-placeholder flex min-h-[21rem] items-end p-6 text-xs font-semibold uppercase tracking-[0.16em] ui-text-muted sm:p-8">
           <span class="max-w-[18ch]">{{ post.coverImageAlt }}</span>
         </div>
       </ng-template>
