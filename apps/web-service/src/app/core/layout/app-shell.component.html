@@ -28,7 +28,7 @@
   </header>
 
   <main class="flex-1 px-4 py-10 sm:px-6 md:py-12 lg:px-8 lg:py-14">
-    <div class="mx-auto w-full max-w-6xl">
+    <div [class]="mainContentContainerClasses">
       <section *ngIf="showRouteSkeleton" aria-label="Loading page content" class="grid min-h-[55vh] gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.8fr)]">
         <div class="space-y-5 rounded-[2rem] border border-stone-200 bg-white/80 p-6 shadow-[0_10px_30px_rgba(40,31,20,0.05)]">
           <app-ui-skeleton className="h-8 w-48 rounded-full"></app-ui-skeleton>
@@ -57,10 +57,19 @@
       <app-assistant-panel mode="widget" (close)="closeAssistant()"></app-assistant-panel>
     </div>
 
-    <button type="button" (click)="toggleAssistant()" [attr.aria-expanded]="isAssistantOpen" aria-label="Toggle portfolio assistant" class="inline-flex items-center gap-3 rounded-[1.75rem] border border-stone-300 bg-white/95 px-4 py-3 shadow-[0_20px_40px_rgba(40,31,20,0.16)] backdrop-blur transition hover:-translate-y-0.5 hover:border-stone-400 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400">
-      <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-stone-900 text-sm font-semibold text-white">AI</span>
-      <span class="pr-1 text-sm font-semibold text-stone-900">{{ isAssistantOpen ? 'Close assistant' : 'Assistant' }}</span>
-    </button>
+    <ng-container *ngIf="assistantAvailability$ | async as availability">
+      <button type="button" (click)="toggleAssistant()" [attr.aria-expanded]="isAssistantOpen" aria-label="Toggle portfolio assistant" class="inline-flex items-center gap-3 rounded-[1.75rem] border border-stone-300 bg-white/95 px-4 py-3 shadow-[0_20px_40px_rgba(40,31,20,0.16)] backdrop-blur transition hover:-translate-y-0.5 hover:border-stone-400 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400">
+        <span class="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-stone-900 text-sm font-semibold text-white">
+          AI
+          <span class="absolute -right-0.5 -top-0.5 h-3.5 w-3.5 rounded-full border-2 border-white"
+                [ngClass]="availability.mode === 'ready' ? 'bg-emerald-500' : availability.mode === 'fallback' ? 'bg-amber-500' : availability.mode === 'preview' ? 'bg-sky-500' : availability.mode === 'offline' ? 'bg-rose-500' : 'bg-stone-400'"></span>
+        </span>
+        <span class="grid pr-1 text-left leading-tight">
+          <span class="text-sm font-semibold text-stone-900">{{ isAssistantOpen ? 'Close assistant' : 'Assistant' }}</span>
+          <span class="text-xs text-stone-500">{{ availability.label }}</span>
+        </span>
+      </button>
+    </ng-container>
   </div>
 
   <footer *ngIf="!isAdminRoute" class="mt-16 border-t border-stone-300 bg-stone-200/70 px-4 py-10 sm:px-6 lg:px-8">

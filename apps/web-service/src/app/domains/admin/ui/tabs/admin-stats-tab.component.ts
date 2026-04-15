@@ -31,6 +31,23 @@ export class AdminStatsTabComponent {
     return this.githubSnapshots.find((item) => item.id === this.selectedGithubSnapshotId) ?? null;
   }
 
+  get scheduledHours(): string {
+    return (((this.githubAutoRefresh?.autoRefreshIntervalSeconds ?? 0) || 0) / 3600).toFixed(0);
+  }
+
+  get totalContributionDays(): number {
+    return this.selectedSnapshot?.contributionDays.length ?? 0;
+  }
+
+  get statsKpis(): Array<{ label: string; value: string | number; hint: string }> {
+    return [
+      { label: 'Snapshots', value: this.githubSnapshots.length, hint: 'Saved GitHub records' },
+      { label: 'Selected days', value: this.totalContributionDays, hint: 'Contribution cells in the selected snapshot' },
+      { label: 'Refresh cadence', value: this.githubAutoRefresh?.autoRefreshIntervalSeconds ? `${this.scheduledHours}h` : 'Manual', hint: 'Automatic refresh schedule' },
+      { label: 'Refresh status', value: this.githubRefreshLabel(this.selectedSnapshot), hint: this.githubAutoRefresh?.autoRefreshUsername || 'No auto-refresh username' },
+    ];
+  }
+
   selectGithubSnapshot(snapshotId: string): void {
     this.githubSnapshotSelected.emit(snapshotId);
   }

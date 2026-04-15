@@ -1,46 +1,99 @@
-    <section class="grid gap-6 xl:grid-cols-[20rem_minmax(0,1fr)]">
-      <aside class="rounded-[2rem] border border-stone-300 bg-white p-5 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
-        <div class="flex items-start justify-between gap-4">
-          <div>
-            <h2 class="text-lg font-semibold text-stone-950">Navigation items</h2>
-            <p class="mt-1 text-sm text-stone-600">These rows power your visible shell navigation and footer-style link groups.</p>
-          </div>
-          <button type="button" (click)="startNewNavigationItem()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">New</button>
-        </div>
+<section class="grid gap-6 xl:grid-cols-[23rem_minmax(0,1fr)] 2xl:grid-cols-[25rem_minmax(0,1fr)] items-start">
+  <aside class="flex min-h-[40rem] flex-col rounded-[2rem] border border-stone-300 bg-white p-5 shadow-[0_20px_45px_rgba(40,31,20,0.08)] xl:sticky xl:top-6">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h2 class="text-lg font-semibold text-stone-950">Navigation items</h2>
+        <p class="mt-1 text-sm text-stone-600">Header and footer links managed in one list.</p>
+      </div>
+      <button type="button" (click)="startNewNavigationItem()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">New</button>
+    </div>
 
-        <div class="mt-4 grid gap-2 max-h-[42rem] overflow-y-auto">
-          <button *ngFor="let item of navigationItems" type="button" (click)="selectNavigationItem(item.id)" [ngClass]="item.id === selectedNavigationItemId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-2xl border px-4 py-3 text-left text-sm">
-            <div class="font-semibold">{{ item.label }}</div>
-            <div class="text-xs text-stone-500">{{ item.routePath }} · {{ item.isExternal ? 'External' : 'Internal' }}</div>
-          </button>
-        </div>
-      </aside>
-
-      <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] sm:p-8">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 class="text-xl font-semibold text-stone-950">{{ selectedNavigationItemId ? 'Edit navigation item' : 'Create navigation item' }}</h2>
-            <p class="text-sm text-stone-600">Use these fields to control the links shown in the site shell. Internal items usually point at Angular routes, while external items can open elsewhere.</p>
-          </div>
-          <button *ngIf="selectedNavigationItemId" type="button" (click)="deleteNavigationItem()" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700">Delete item</button>
-        </div>
-
-        <div class="mt-6 grid gap-5 lg:grid-cols-2">
-          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Label</span><p class="text-xs leading-5 text-stone-500">The readable link text shown to visitors in the header or footer.</p><input [(ngModel)]="navigationItemForm.label" name="navLabel" placeholder="Projects" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
-          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Route path or URL</span><p class="text-xs leading-5 text-stone-500">For internal links use values like <span class="font-medium text-stone-700">/projects</span>. For external links, use a full URL.</p><input [(ngModel)]="navigationItemForm.routePath" name="navRoutePath" placeholder="/projects or https://..." class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
-          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Sort order</span><p class="text-xs leading-5 text-stone-500">Lower numbers appear earlier in the rendered navigation list.</p><input [(ngModel)]="navigationItemForm.sortOrder" name="navSortOrder" type="number" placeholder="10" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
-          <div class="grid gap-4 lg:col-span-2 lg:grid-cols-2">
-            <label class="flex items-start gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-800"><input [(ngModel)]="navigationItemForm.isExternal" name="navExternal" type="checkbox" class="mt-1 h-4 w-4" /><span><span class="font-semibold text-stone-900">External link</span><span class="mt-1 block text-xs leading-5 text-stone-500">Enable this when the route path is a full external URL and the frontend should treat it as such.</span></span></label>
-            <label class="flex items-start gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-800"><input [(ngModel)]="navigationItemForm.isVisible" name="navVisible" type="checkbox" class="mt-1 h-4 w-4" /><span><span class="font-semibold text-stone-900">Visible in shell</span><span class="mt-1 block text-xs leading-5 text-stone-500">Turn this off to keep the item in the CMS without showing it publicly.</span></span></label>
-          </div>
-        </div>
-
-        <div class="mt-6 flex flex-wrap items-center justify-end gap-3">
-          <button type="button" (click)="startNewNavigationItem()" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700">Reset form</button>
-          <button type="button" (click)="saveNavigationItem()" class="rounded-full bg-stone-900 px-5 py-2 text-sm font-semibold text-white">Save navigation item</button>
-        </div>
+    <div class="mt-4 grid grid-cols-3 gap-3">
+      <article class="rounded-[1.25rem] border border-stone-200 bg-stone-50 px-3 py-3 text-center">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Total</p>
+        <p class="mt-2 text-2xl font-semibold text-stone-950">{{ navigationItems.length }}</p>
       </article>
-    </section>
+      <article class="rounded-[1.25rem] border border-stone-200 bg-stone-50 px-3 py-3 text-center">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Visible</p>
+        <p class="mt-2 text-2xl font-semibold text-stone-950">{{ visibleCount }}</p>
+      </article>
+      <article class="rounded-[1.25rem] border border-stone-200 bg-stone-50 px-3 py-3 text-center">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">External</p>
+        <p class="mt-2 text-2xl font-semibold text-stone-950">{{ externalCount }}</p>
+      </article>
+    </div>
 
+    <div class="mt-5 grid flex-1 gap-2 overflow-y-auto pr-1" *ngIf="navigationItems.length; else noNavigationItems">
+      <button *ngFor="let item of navigationItems" type="button" (click)="selectNavigationItem(item.id)" [ngClass]="item.id === selectedNavigationItemId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-2xl border px-4 py-3 text-left text-sm">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <div class="font-semibold text-stone-950">{{ item.label }}</div>
+            <div class="truncate text-xs text-stone-500">{{ item.routePath }}</div>
+          </div>
+          <div class="flex flex-col items-end gap-1">
+            <span class="rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-stone-700">{{ item.isExternal ? 'External' : 'Internal' }}</span>
+            <span class="rounded-full px-3 py-1 text-[11px] font-semibold" [ngClass]="item.isVisible ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-700'">{{ item.isVisible ? 'Visible' : 'Hidden' }}</span>
+          </div>
+        </div>
+      </button>
+    </div>
+    <ng-template #noNavigationItems>
+      <div class="mt-5 flex flex-1 items-center justify-center rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50 p-6 text-sm text-stone-600">
+        No navigation items yet.
+      </div>
+    </ng-template>
+  </aside>
 
+  <article class="flex min-h-[40rem] flex-col rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] sm:p-8">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <h2 class="text-xl font-semibold text-stone-950">{{ selectedNavigationItemId ? 'Edit navigation item' : 'Create navigation item' }}</h2>
+        <p class="mt-1 text-sm text-stone-600">Set the label, path, ordering, and visibility for each public link.</p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <span class="rounded-full border px-3 py-1 text-xs font-semibold" [ngClass]="navigationItemForm.isExternal ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-stone-200 bg-stone-50 text-stone-700'">{{ navigationItemForm.isExternal ? 'External link' : 'Internal link' }}</span>
+        <span class="rounded-full border px-3 py-1 text-xs font-semibold" [ngClass]="navigationItemForm.isVisible ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-stone-200 bg-stone-50 text-stone-700'">{{ navigationItemForm.isVisible ? 'Visible in shell' : 'Hidden from shell' }}</span>
+      </div>
+    </div>
 
+    <div class="mt-6 grid gap-5 lg:grid-cols-2">
+      <label class="space-y-2">
+        <span class="text-sm font-semibold text-stone-800">Label</span>
+        <input [(ngModel)]="navigationItemForm.label" name="navLabel" placeholder="Projects" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+      </label>
+
+      <label class="space-y-2">
+        <span class="text-sm font-semibold text-stone-800">Route path or URL</span>
+        <input [(ngModel)]="navigationItemForm.routePath" name="navRoutePath" placeholder="/projects or https://..." class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+      </label>
+
+      <label class="space-y-2 lg:max-w-xs">
+        <span class="text-sm font-semibold text-stone-800">Sort order</span>
+        <input [(ngModel)]="navigationItemForm.sortOrder" name="navSortOrder" type="number" placeholder="10" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+      </label>
+
+      <div class="grid gap-4 lg:col-span-2 lg:grid-cols-2">
+        <label class="flex items-start gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-800">
+          <input [(ngModel)]="navigationItemForm.isExternal" name="navExternal" type="checkbox" class="mt-1 h-4 w-4" />
+          <span>
+            <span class="font-semibold text-stone-900">External link</span>
+            <span class="mt-1 block text-xs leading-5 text-stone-500">Treat the path as a full external URL.</span>
+          </span>
+        </label>
+        <label class="flex items-start gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-800">
+          <input [(ngModel)]="navigationItemForm.isVisible" name="navVisible" type="checkbox" class="mt-1 h-4 w-4" />
+          <span>
+            <span class="font-semibold text-stone-900">Visible in shell</span>
+            <span class="mt-1 block text-xs leading-5 text-stone-500">Turn this off to keep the item stored but hidden publicly.</span>
+          </span>
+        </label>
+      </div>
+    </div>
+
+    <div class="mt-auto flex flex-wrap items-center justify-end gap-3 pt-6">
+      <button type="button" (click)="startNewNavigationItem()" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700">Reset form</button>
+      <button *ngIf="selectedNavigationItemId" type="button" (click)="deleteNavigationItem()" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700">Delete item</button>
+      <button type="button" (click)="saveNavigationItem()" class="rounded-full bg-stone-900 px-5 py-2 text-sm font-semibold text-white">Save navigation item</button>
+    </div>
+  </article>
+</section>

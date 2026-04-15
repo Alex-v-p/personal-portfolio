@@ -16,6 +16,31 @@ export class AdminOverviewTabComponent {
 
   @Output() readonly openTab = new EventEmitter<'media' | 'messages'>();
 
+  get primaryKpis(): Array<{ label: string; value: number; hint: string }> {
+    return [
+      { label: 'Projects', value: this.dashboard.projects, hint: 'Published and in-progress work' },
+      { label: 'Blog posts', value: this.dashboard.blogPosts, hint: 'Entries currently in the CMS' },
+      { label: 'Unread messages', value: this.dashboard.unreadMessages, hint: 'Inbox items waiting on review' },
+      { label: 'Media files', value: this.dashboard.mediaFiles, hint: 'Assets ready for reuse' },
+      { label: 'GitHub snapshots', value: this.dashboard.githubSnapshots, hint: 'Saved public stats snapshots' },
+    ];
+  }
+
+  get secondaryKpis(): Array<{ label: string; value: number }> {
+    return [
+      { label: 'Skills', value: this.dashboard.skills },
+      { label: 'Skill categories', value: this.dashboard.skillCategories },
+      { label: 'Experience', value: this.dashboard.experiences },
+      { label: 'Navigation items', value: this.dashboard.navigationItems },
+      { label: 'Blog tags', value: this.dashboard.blogTags },
+      { label: 'Admin users', value: this.dashboard.adminUsers },
+    ];
+  }
+
+  get unreadPreviewCount(): number {
+    return this.messages.filter((message) => !message.isRead).length;
+  }
+
   setActiveTab(tabId: 'media' | 'messages'): void {
     this.openTab.emit(tabId);
   }

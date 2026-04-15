@@ -124,6 +124,66 @@ class ProviderClient:
         )
         return messages
 
+
+    def check_health(self) -> tuple[bool, str]:
+        backend = self.settings.provider_backend.strip().lower()
+        if backend == 'mock':
+            return True, 'Preview mode is enabled. Responses use the local fallback formatter instead of a live model.'
+        if backend == 'ollama':
+            return self._check_ollama_health()
+        if backend in {'openai-compatible', 'openai_compatible', 'vllm'}:
+            return self._check_openai_compatible_health()
+        return False, f'Unknown assistant provider backend: {self.settings.provider_backend}.'
+
+    def _check_ollama_health(self) -> tuple[bool, str]:
+        timeout_seconds = min(max(self.settings.provider_request_timeout_seconds, 1.0), 3.0)
+        try:
+            with httpx.Client(timeout=timeout_seconds) as client:
+                response = client.get(f"{self.settings.provider_base_url.rstrip('/')}/api/tags")
+                response.raise_for_status()
+                payload = response.json()
+            models = payload.get('models') if isinstance(payload, dict) else []
+            if isinstance(models, list):
+                available_models = [
+                    item.get('name')
+                    for item in models
+                    if isinstance(item, dict) and isinstance(item.get('name'), str)
+                ]
+                if self.settings.provider_model in available_models:
+                    return True, f'Ollama is online and model {self.settings.provider_model} is available.'
+                if available_models:
+                    return True, f'Ollama is online. Using configured model {self.settings.provider_model} if it is pulled locally.'
+            return True, 'Ollama is online.'
+        except httpx.TimeoutException:
+            return False, 'Timed out while checking the Ollama instance.'
+        except httpx.NetworkError:
+            return False, 'Could not reach the Ollama instance.'
+        except httpx.HTTPStatusError as exc:
+            return False, f'Ollama returned HTTP {exc.response.status_code} during the availability check.'
+        except Exception:
+            logger.exception('Assistant provider health check failed for Ollama.')
+            return False, 'The Ollama availability check failed unexpectedly.'
+
+    def _check_openai_compatible_health(self) -> tuple[bool, str]:
+        timeout_seconds = min(max(self.settings.provider_request_timeout_seconds, 1.0), 3.0)
+        headers = {'Content-Type': 'application/json'}
+        if self.settings.provider_api_key.strip():
+            headers['Authorization'] = f"Bearer {self.settings.provider_api_key.strip()}"
+        try:
+            with httpx.Client(timeout=timeout_seconds) as client:
+                response = client.get(f"{self.settings.provider_base_url.rstrip('/')}/v1/models", headers=headers)
+                response.raise_for_status()
+            return True, 'The configured assistant model endpoint is reachable.'
+        except httpx.TimeoutException:
+            return False, 'Timed out while checking the configured model endpoint.'
+        except httpx.NetworkError:
+            return False, 'Could not reach the configured model endpoint.'
+        except httpx.HTTPStatusError as exc:
+            return False, f'The configured model endpoint returned HTTP {exc.response.status_code}.'
+        except Exception:
+            logger.exception('Assistant provider health check failed for OpenAI-compatible backend.')
+            return False, 'The configured model endpoint health check failed unexpectedly.'
+
     def _post_json_with_retries(self, url: str, **kwargs) -> dict:
         max_attempts = max(self.settings.provider_max_retries, 0) + 1
         last_error: Exception | None = None

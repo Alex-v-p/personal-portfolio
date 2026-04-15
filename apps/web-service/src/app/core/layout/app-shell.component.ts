@@ -1,4 +1,4 @@
-import { NgFor, NgIf } from '@angular/common';
+import { AsyncPipe, NgClass, NgFor, NgIf } from '@angular/common';
 import { ChangeDetectorRef, Component, DestroyRef, HostListener, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
@@ -8,6 +8,7 @@ import { Profile } from '@domains/profile/model/profile.model';
 import { SiteShellData } from '@domains/profile/model/site-shell.model';
 import { PublicProfileApiService } from '@domains/profile/data/profile-api.service';
 import { AssistantPanelComponent } from '@domains/assistant/ui/assistant-panel.component';
+import { AssistantApiService } from '@domains/assistant/data/assistant-api.service';
 import { SiteTrackingService } from '@domains/site-activity/data/site-tracking.service';
 import { createEmptyProfile } from '@domains/profile/lib/profile-view.util';
 import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.component';
@@ -15,7 +16,7 @@ import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.com
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [NgFor, NgIf, RouterOutlet, RouterLink, RouterLinkActive, AssistantPanelComponent, UiSkeletonComponent],
+  imports: [AsyncPipe, NgClass, NgFor, NgIf, RouterOutlet, RouterLink, RouterLinkActive, AssistantPanelComponent, UiSkeletonComponent],
   templateUrl: './app-shell.component.html'
 })
 export class AppShellComponent implements OnInit {
@@ -23,6 +24,7 @@ export class AppShellComponent implements OnInit {
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly router = inject(Router);
   private readonly siteTracking = inject(SiteTrackingService);
+  private readonly assistant = inject(AssistantApiService);
   private readonly destroyRef = inject(DestroyRef);
 
   protected profile: Profile = createEmptyProfile();
@@ -33,6 +35,7 @@ export class AppShellComponent implements OnInit {
   protected isAssistantOpen = false;
   protected isRouteLoading = true;
   protected hasActiveRouteComponent = false;
+  protected readonly assistantAvailability$ = this.assistant.availability$;
 
   protected readonly shellChrome = {
     headerVisible: true,
@@ -110,6 +113,12 @@ export class AppShellComponent implements OnInit {
     this.hasActiveRouteComponent = false;
     this.isRouteLoading = !this.isAdminRoute;
     this.changeDetectorRef.detectChanges();
+  }
+
+  protected get mainContentContainerClasses(): string {
+    return this.isAdminRoute
+      ? 'mx-auto w-full max-w-[100rem] 2xl:max-w-[112rem]'
+      : 'mx-auto w-full max-w-6xl';
   }
 
   protected get resources(): Array<{ label: string; href: string }> {

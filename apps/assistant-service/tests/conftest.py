@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 import pytest
+from fastapi.testclient import TestClient
 
 _ASSISTANT_TEST_ENV_DEFAULTS = {
     'REDIS_URL': 'memory://',
@@ -37,6 +39,32 @@ def _isolate_assistant_test_environment() -> None:
     _clear_runtime_caches()
     reset_rate_limit_state()
     reset_chat_task_queue_cache()
+
+
+@pytest.fixture()
+def client(tmp_path: Path) -> TestClient:
+    database_path = tmp_path / 'assistant-health-test.sqlite3'
+    os.environ['DATABASE_URL'] = f'sqlite:///{database_path}'
+
+    from app.core.config import get_settings
+    from app.db.models import Base
+    from app.db.session import get_engine, get_session_factory
+
+    get_settings.cache_clear()
+    get_engine.cache_clear()
+    get_session_factory.cache_clear()
+
+    engine = get_engine()
+    Base.metadata.create_all(engine)
+
+    from app.main import create_app
+
+    with TestClient(create_app()) as test_client:
+        yield test_client
+
+    get_settings.cache_clear()
+    get_engine.cache_clear()
+    get_session_factory.cache_clear()
 
 
 def _clear_runtime_caches() -> None:

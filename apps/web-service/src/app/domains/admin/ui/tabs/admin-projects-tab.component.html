@@ -1,14 +1,14 @@
-    <section class="grid gap-6 xl:grid-cols-[20rem_minmax(0,1fr)]">
-      <aside class="rounded-[2rem] border border-stone-300 bg-white p-5 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
+    <section class="grid gap-6 xl:grid-cols-[22rem_minmax(0,1fr)] 2xl:grid-cols-[24rem_minmax(0,1fr)] items-start">
+      <aside class="rounded-[2rem] border border-stone-300 bg-white p-5 shadow-[0_20px_45px_rgba(40,31,20,0.08)] xl:sticky xl:top-6">
         <div class="flex items-center justify-between gap-4"><h2 class="text-lg font-semibold text-stone-950">Projects</h2><button type="button" (click)="startNewProject()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">New</button></div>
-        <div class="mt-5 grid gap-3 max-h-[42rem] overflow-y-auto pr-1">
+        <div class="mt-5 grid gap-3 min-h-[18rem] max-h-[calc(100vh-17rem)] overflow-y-auto pr-1">
           <button *ngFor="let project of projects" type="button" (click)="selectProject(project.id)" [ngClass]="project.id === selectedProjectId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-[1.5rem] border p-4 text-left transition">
             <p class="text-sm font-semibold text-stone-950">{{ project.title }}</p><p class="mt-1 text-sm text-stone-600">{{ project.state }} · {{ project.status }}</p><p class="mt-2 text-xs text-stone-500">{{ project.slug }}</p>
           </button>
         </div>
       </aside>
-      <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
-        <div class="flex items-center justify-between gap-3"><h2 class="text-xl font-semibold text-stone-950">{{ selectedProjectId ? 'Edit project' : 'Create project' }}</h2><button *ngIf="selectedProjectId" type="button" (click)="deleteProject()" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700">Delete</button></div>
+      <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] lg:p-7 2xl:p-8">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><h2 class="text-xl font-semibold text-stone-950">{{ selectedProjectId ? 'Edit project' : 'Create project' }}</h2><button *ngIf="selectedProjectId" type="button" (click)="deleteProject()" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700">Delete</button></div>
         <div class="mt-6 grid gap-4 lg:grid-cols-2">
           <label class="space-y-2"><span class="text-sm font-semibold">Title</span><input [(ngModel)]="projectForm.title" name="projectTitle" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
           <label class="space-y-2"><span class="text-sm font-semibold">Slug</span><input [(ngModel)]="projectForm.slug" name="projectSlug" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>

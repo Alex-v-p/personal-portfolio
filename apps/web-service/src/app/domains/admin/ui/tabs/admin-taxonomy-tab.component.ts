@@ -34,6 +34,10 @@ export class AdminTaxonomyTabComponent {
   @Output() readonly blogTagSaved = new EventEmitter<void>();
   @Output() readonly blogTagDeleted = new EventEmitter<void>();
 
+  get highlightedSkillCount(): number {
+    return this.referenceData.skills.filter((skill) => skill.isHighlighted).length;
+  }
+
   categoryName(categoryId: string): string {
     return categoryName(this.referenceData.skillCategories, categoryId);
   }
