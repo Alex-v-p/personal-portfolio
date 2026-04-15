@@ -24,11 +24,12 @@ class GithubHttpClient:
         headers = {
             'Accept': accept,
             'User-Agent': 'portfolio-api-service',
-            'X-GitHub-Api-Version': self.api_version,
         }
-        token = self.settings.github_api_token.strip()
-        if token and 'api.github.com' in url:
-            headers['Authorization'] = f'Bearer {token}'
+        if 'api.github.com' in url:
+            headers['X-GitHub-Api-Version'] = self.api_version
+            token = self.settings.github_api_token.strip()
+            if token:
+                headers['Authorization'] = f'Bearer {token}'
         req = request.Request(url, headers=headers)
         try:
             with request.urlopen(req, timeout=20) as response:

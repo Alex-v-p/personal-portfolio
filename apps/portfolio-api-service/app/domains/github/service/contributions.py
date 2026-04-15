@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 import json
 import re
 from typing import Any, Callable
@@ -63,14 +63,26 @@ def level_from_count(count: int) -> int:
     return 4
 
 
-def parse_tooltip_contribution_days(html: str, *, to_date: str) -> list[SyncedGithubContributionDay]:
-    target_year = int(to_date[:4])
+def parse_tooltip_contribution_days(html: str, *, from_date: str, to_date: str) -> list[SyncedGithubContributionDay]:
+    window_start = date.fromisoformat(from_date)
+    window_end = date.fromisoformat(to_date)
+    target_year = window_end.year
     parsed: list[SyncedGithubContributionDay] = []
     for match in _TOOLTIP_DAY_PATTERN.finditer(html):
         month_number = _MONTHS.get(match.group('month'))
         if month_number is None:
             continue
-        contribution_date = date(target_year, month_number, int(match.group('day')))
+
+        candidate_year = target_year - 1 if month_number > window_end.month else target_year
+
+        try:
+            contribution_date = date(candidate_year, month_number, int(match.group('day')))
+        except ValueError:
+            continue
+
+        if contribution_date < window_start or contribution_date > window_end:
+            continue
+
         count = max(int(match.group('count')), 0)
         parsed.append(
             SyncedGithubContributionDay(
@@ -79,8 +91,50 @@ def parse_tooltip_contribution_days(html: str, *, to_date: str) -> list[SyncedGi
                 level=level_from_count(count),
             )
         )
+
     parsed.sort(key=lambda item: item.date)
     return parsed
+
+
+def normalize_contribution_day_window(
+    days: list[SyncedGithubContributionDay],
+    *,
+    from_date: str,
+    to_date: str,
+) -> list[SyncedGithubContributionDay]:
+    window_start = date.fromisoformat(from_date)
+    window_end = date.fromisoformat(to_date)
+    deduped: dict[str, SyncedGithubContributionDay] = {}
+    for day in days:
+        try:
+            contribution_date = date.fromisoformat(day.date)
+        except ValueError:
+            continue
+        if contribution_date < window_start or contribution_date > window_end:
+            continue
+        deduped[contribution_date.isoformat()] = SyncedGithubContributionDay(
+            date=contribution_date.isoformat(),
+            count=max(int(day.count), 0),
+            level=max(int(day.level), 0),
+        )
+
+    normalized: list[SyncedGithubContributionDay] = []
+    cursor = window_start
+    while cursor <= window_end:
+        key = cursor.isoformat()
+        normalized.append(
+            deduped.get(
+                key,
+                SyncedGithubContributionDay(
+                    date=key,
+                    count=0,
+                    level=0,
+                ),
+            )
+        )
+        cursor += timedelta(days=1)
+
+    return normalized
 
 
 class GithubContributionSyncClient:
@@ -169,17 +223,44 @@ class GithubContributionSyncClient:
             'totalContributions': max(int(calendar.get('totalContributions') or 0), 0),
         }
 
-    def fetch_public(self, *, username: str, from_date: str, to_date: str, html_fetcher: Callable[[str], str]) -> tuple[list[SyncedGithubContributionDay], dict[str, Any]]:
+    def fetch_public(
+        self,
+        *,
+        username: str,
+        from_date: str,
+        to_date: str,
+        svg_fetcher: Callable[[str], str],
+        html_fetcher: Callable[[str], str] | None = None,
+    ) -> tuple[list[SyncedGithubContributionDay], dict[str, Any]]:
         query = parse.urlencode({'from': from_date, 'to': to_date})
-        html = html_fetcher(f'https://github.com/users/{parse.quote(username)}/contributions?{query}')
-        days = parse_svg_contribution_days(html)
-        if not days:
-            days = parse_tooltip_contribution_days(html, to_date=to_date)
+        url = f'https://github.com/users/{parse.quote(username)}/contributions?{query}'
+
+        svg = svg_fetcher(url)
+        days = parse_svg_contribution_days(svg)
+        if days:
+            normalized_days = normalize_contribution_day_window(days, from_date=from_date, to_date=to_date)
+            return normalized_days, {
+                'source': 'public-profile-svg',
+                'from': from_date,
+                'to': to_date,
+                'totalContributions': sum(day.count for day in normalized_days),
+            }
+
+        fallback_fetcher = html_fetcher or svg_fetcher
+        html = fallback_fetcher(url)
+        days = parse_tooltip_contribution_days(html, from_date=from_date, to_date=to_date)
         if not days:
             raise GithubStatsSyncError('GitHub contribution graph could not be parsed from the public profile response.')
-        return days, {
-            'source': 'public-profile',
+
+        if len(days) < 84:
+            raise GithubStatsSyncError(
+                'GitHub only exposed a weekly contribution summary during public scraping. Configure GITHUB_API_TOKEN so the CMS refresh can use the GraphQL contribution calendar and import the full daily board.'
+            )
+
+        normalized_days = normalize_contribution_day_window(days, from_date=from_date, to_date=to_date)
+        return normalized_days, {
+            'source': 'public-profile-html',
             'from': from_date,
             'to': to_date,
-            'totalContributions': sum(day.count for day in days),
+            'totalContributions': sum(day.count for day in normalized_days),
         }
