@@ -14,14 +14,18 @@ export class PublicProjectsApiService {
   private readonly publicHttp = inject(PublicHttpService);
 
   getProjects(): Observable<ProjectSummary[]> {
-    return this.publicHttp.http
-      .get<CollectionResponse<ProjectSummaryApi>>(`${this.publicHttp.apiBaseUrl}/public/projects`)
-      .pipe(map((response) => normalizeProjectSummaries(response.items)));
+    return this.publicHttp.cacheRequest('public:projects', () =>
+      this.publicHttp.http
+        .get<CollectionResponse<ProjectSummaryApi>>(`${this.publicHttp.apiBaseUrl}/public/projects`)
+        .pipe(map((response) => normalizeProjectSummaries(response.items)))
+    );
   }
 
   getProjectBySlug(slug: string): Observable<ProjectDetail> {
-    return this.publicHttp.http
-      .get<ProjectDetailApi>(`${this.publicHttp.apiBaseUrl}/public/projects/${slug}`)
-      .pipe(map((project) => normalizeProjectDetail(project)));
+    return this.publicHttp.cacheRequest(`public:projects:${slug}`, () =>
+      this.publicHttp.http
+        .get<ProjectDetailApi>(`${this.publicHttp.apiBaseUrl}/public/projects/${slug}`)
+        .pipe(map((project) => normalizeProjectDetail(project)))
+    );
   }
 }

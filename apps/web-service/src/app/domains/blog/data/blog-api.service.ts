@@ -14,14 +14,18 @@ export class PublicBlogApiService {
   private readonly publicHttp = inject(PublicHttpService);
 
   getBlogPosts(): Observable<BlogPostSummary[]> {
-    return this.publicHttp.http
-      .get<CollectionResponse<BlogPostSummaryApi>>(`${this.publicHttp.apiBaseUrl}/public/blog-posts`)
-      .pipe(map((response) => normalizeBlogPostSummaries(response.items)));
+    return this.publicHttp.cacheRequest('public:blog-posts', () =>
+      this.publicHttp.http
+        .get<CollectionResponse<BlogPostSummaryApi>>(`${this.publicHttp.apiBaseUrl}/public/blog-posts`)
+        .pipe(map((response) => normalizeBlogPostSummaries(response.items)))
+    );
   }
 
   getBlogPostBySlug(slug: string): Observable<BlogPostDetail> {
-    return this.publicHttp.http
-      .get<BlogPostDetailApi>(`${this.publicHttp.apiBaseUrl}/public/blog-posts/${slug}`)
-      .pipe(map((post) => normalizeBlogPostDetail(post)));
+    return this.publicHttp.cacheRequest(`public:blog-posts:${slug}`, () =>
+      this.publicHttp.http
+        .get<BlogPostDetailApi>(`${this.publicHttp.apiBaseUrl}/public/blog-posts/${slug}`)
+        .pipe(map((post) => normalizeBlogPostDetail(post)))
+    );
   }
 }
