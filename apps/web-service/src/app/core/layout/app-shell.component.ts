@@ -112,6 +112,12 @@ export class AppShellComponent implements OnInit {
     this.changeDetectorRef.detectChanges();
   }
 
+  protected get mainContentContainerClasses(): string {
+    return this.isAdminRoute
+      ? 'mx-auto w-full max-w-[100rem] 2xl:max-w-[112rem]'
+      : 'mx-auto w-full max-w-6xl';
+  }
+
   protected get resources(): Array<{ label: string; href: string }> {
     const items: Array<{ label: string; href: string }> = [];
 

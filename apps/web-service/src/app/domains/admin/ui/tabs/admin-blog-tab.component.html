@@ -1,14 +1,14 @@
-<section class="grid gap-6 xl:grid-cols-[20rem_minmax(0,1fr)]">
-  <aside class="rounded-[2rem] border border-stone-300 bg-white p-5 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
+<section class="grid gap-6 xl:grid-cols-[22rem_minmax(0,1fr)] 2xl:grid-cols-[24rem_minmax(0,1fr)] items-start">
+  <aside class="rounded-[2rem] border border-stone-300 bg-white p-5 shadow-[0_20px_45px_rgba(40,31,20,0.08)] xl:sticky xl:top-6">
     <div class="flex items-center justify-between gap-4"><h2 class="text-lg font-semibold text-stone-950">Blog posts</h2><button type="button" (click)="startNewBlogPost()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">New</button></div>
-    <div class="mt-5 grid gap-3 max-h-[42rem] overflow-y-auto pr-1">
+    <div class="mt-5 grid gap-3 min-h-[18rem] max-h-[calc(100vh-17rem)] overflow-y-auto pr-1">
       <button *ngFor="let post of blogPosts" type="button" (click)="selectBlogPost(post.id)" [ngClass]="post.id === selectedBlogPostId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-[1.5rem] border p-4 text-left transition">
         <p class="text-sm font-semibold text-stone-950">{{ post.title }}</p><p class="mt-1 text-sm text-stone-600">{{ post.status }} · {{ formatTagSummary(post) }}</p><p class="mt-2 text-xs text-stone-500">{{ post.slug }}</p>
       </button>
     </div>
   </aside>
-  <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
-    <div class="flex items-center justify-between gap-3"><h2 class="text-xl font-semibold text-stone-950">{{ selectedBlogPostId ? 'Edit blog post' : 'Create blog post' }}</h2><button *ngIf="selectedBlogPostId" type="button" (click)="deleteBlogPost()" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700">Delete</button></div>
+  <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] lg:p-7 2xl:p-8">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><h2 class="text-xl font-semibold text-stone-950">{{ selectedBlogPostId ? 'Edit blog post' : 'Create blog post' }}</h2><button *ngIf="selectedBlogPostId" type="button" (click)="deleteBlogPost()" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700">Delete</button></div>
     <div class="mt-6 grid gap-4 lg:grid-cols-2">
       <label class="space-y-2"><span class="text-sm font-semibold">Title</span><input [(ngModel)]="blogPostForm.title" name="blogTitle" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
       <label class="space-y-2"><span class="text-sm font-semibold">Slug</span><input [(ngModel)]="blogPostForm.slug" name="blogSlug" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
@@ -41,7 +41,7 @@
           <button type="button" (click)="insertBlogMarkdownDivider()" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Divider</button>
         </div>
 
-        <div class="grid gap-4 xl:grid-cols-[minmax(0,1.25fr)_minmax(20rem,0.9fr)]">
+        <div class="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.85fr)] 2xl:grid-cols-[minmax(0,1.45fr)_minmax(24rem,0.8fr)]">
           <label class="space-y-2">
             <span class="text-sm font-semibold">Content markdown</span>
             <textarea #blogMarkdownEditor [(ngModel)]="blogPostForm.contentMarkdown" name="blogMarkdown" rows="18" class="min-h-[26rem] w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm font-mono"></textarea>
@@ -57,7 +57,7 @@
           </div>
         </div>
 
-        <div class="grid gap-4 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <div class="grid gap-4 xl:grid-cols-[minmax(22rem,0.9fr)_minmax(0,1.1fr)] 2xl:grid-cols-[minmax(24rem,0.85fr)_minmax(0,1.15fr)]">
           <div class="space-y-3 rounded-[1.25rem] border border-stone-200 bg-white p-4">
             <div>
               <p class="text-sm font-semibold text-stone-950">Upload inline image</p>

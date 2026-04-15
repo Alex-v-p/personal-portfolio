@@ -28,7 +28,7 @@
   </header>
 
   <main class="flex-1 px-4 py-10 sm:px-6 md:py-12 lg:px-8 lg:py-14">
-    <div class="mx-auto w-full max-w-6xl">
+    <div [class]="mainContentContainerClasses">
       <section *ngIf="showRouteSkeleton" aria-label="Loading page content" class="grid min-h-[55vh] gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.8fr)]">
         <div class="space-y-5 rounded-[2rem] border border-stone-200 bg-white/80 p-6 shadow-[0_10px_30px_rgba(40,31,20,0.05)]">
           <app-ui-skeleton className="h-8 w-48 rounded-full"></app-ui-skeleton>
