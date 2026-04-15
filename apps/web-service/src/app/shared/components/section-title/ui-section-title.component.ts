@@ -20,8 +20,6 @@ export class UiSectionTitleComponent {
   }
 
   protected get titleClasses(): string {
-    return this.size === 'display'
-      ? 'm-0 max-w-[18ch] text-4xl font-semibold tracking-tight text-stone-900 sm:text-5xl lg:text-[3.4rem] lg:leading-[1.02]'
-      : 'm-0 text-2xl font-semibold tracking-tight text-stone-950 sm:text-3xl';
+    return this.size === 'display' ? 'ui-title-display' : 'ui-title-section';
   }
 }

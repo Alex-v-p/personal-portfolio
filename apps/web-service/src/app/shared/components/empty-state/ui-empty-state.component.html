@@ -3,7 +3,7 @@
   [ngClass]="containerClasses"
   [attr.role]="role"
 >
-  <div class="h-12 w-12 rounded-2xl border bg-gradient-to-br" [ngClass]="iconClasses" aria-hidden="true"></div>
+  <div class="h-12 w-12 rounded-2xl border" [ngClass]="iconClasses" aria-hidden="true"></div>
   <h2 class="m-0 text-xl font-semibold" [ngClass]="titleClasses">{{ title }}</h2>
   <p class="m-0 max-w-[48ch] text-base leading-7" [ngClass]="descriptionClasses">{{ description }}</p>
   <div *ngIf="hasActions" class="flex flex-wrap gap-3">

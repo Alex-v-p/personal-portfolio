@@ -1,150 +1,150 @@
 <div class="mx-auto flex min-h-[70vh] max-w-5xl items-center justify-center px-4 py-10">
-  <section class="w-full max-w-2xl rounded-[2rem] border border-stone-300 bg-white p-8 shadow-[0_24px_60px_rgba(40,31,20,0.12)]">
+  <section class="ui-panel w-full max-w-2xl p-8">
     <div class="space-y-3 text-center">
-      <p class="text-xs font-semibold uppercase tracking-[0.22em] text-stone-500">Admin security</p>
-      <h1 class="text-3xl font-semibold text-stone-950">Multi-factor authentication</h1>
-      <p class="text-sm leading-6 text-stone-600" *ngIf="requiresSetup">
+      <p class="ui-kicker">Admin security</p>
+      <h1 class="ui-title-section">Multi-factor authentication</h1>
+      <p class="text-sm leading-6 ui-text-muted" *ngIf="requiresSetup">
         Finish setting up an authenticator app before accessing the CMS.
       </p>
-      <p class="text-sm leading-6 text-stone-600" *ngIf="requiresVerification && !backupCodes.length">
+      <p class="text-sm leading-6 ui-text-muted" *ngIf="requiresVerification && !backupCodes.length">
         Enter the code from your authenticator app to finish signing in.
       </p>
     </div>
 
-    <div *ngIf="errorMessage" class="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+    <div *ngIf="errorMessage" class="mt-6 ui-alert ui-alert-danger">
       {{ errorMessage }}
     </div>
 
     <div *ngIf="backupCodes.length" class="mt-8 space-y-6">
-      <div class="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-6">
-        <h2 class="text-lg font-semibold text-emerald-900">Save your backup codes now</h2>
-        <p class="mt-2 text-sm leading-6 text-emerald-800">
+      <div class="ui-alert ui-alert-success p-6">
+        <h2 class="ui-title-block">Save your backup codes now</h2>
+        <p class="mt-2 text-sm leading-6">
           These one-time recovery codes let you back into the CMS if you lose access to your authenticator app. Store them somewhere safe.
         </p>
       </div>
       <div class="grid gap-3 sm:grid-cols-2">
-        <div *ngFor="let code of backupCodes" class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-center font-mono text-sm font-semibold tracking-[0.18em] text-stone-900">
+        <div *ngFor="let code of backupCodes" class="ui-card-soft rounded-2xl px-4 py-3 text-center font-mono text-sm font-semibold tracking-[0.18em] ui-text-strong">
           {{ code }}
         </div>
       </div>
       <button
         type="button"
         (click)="continueToCms()"
-        class="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-stone-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-700"
+        class="ui-btn ui-btn-primary w-full"
       >
         Continue to the CMS
       </button>
     </div>
 
     <div *ngIf="requiresSetup && !backupCodes.length" class="mt-8 grid gap-6 lg:grid-cols-[1.2fr,0.8fr]">
-      <div class="space-y-5 rounded-[1.75rem] border border-stone-200 bg-stone-50 p-6">
+      <div class="ui-card-soft space-y-5 p-6">
         <div *ngIf="isLoadingSetup" class="space-y-3">
-          <div class="h-6 w-48 animate-pulse rounded-full bg-stone-200"></div>
-          <div class="h-64 w-full animate-pulse rounded-[1.5rem] bg-stone-200"></div>
-          <div class="h-5 w-full animate-pulse rounded-full bg-stone-200"></div>
+          <div class="ui-skeleton h-6 w-48 animate-pulse rounded-full"></div>
+          <div class="ui-skeleton h-64 w-full animate-pulse rounded-[1.5rem]"></div>
+          <div class="ui-skeleton h-5 w-full animate-pulse rounded-full"></div>
         </div>
 
         <div *ngIf="setupChallenge as challenge" class="space-y-5">
           <div>
-            <h2 class="text-lg font-semibold text-stone-900">Scan the QR code</h2>
-            <p class="mt-2 text-sm leading-6 text-stone-600">
+            <h2 class="ui-title-block">Scan the QR code</h2>
+            <p class="mt-2 text-sm leading-6 ui-text-muted">
               Use Google Authenticator or any compatible TOTP app, then enter the current 6-digit code to confirm setup.
             </p>
           </div>
 
-          <div class="rounded-[1.5rem] border border-stone-200 bg-white p-4">
+          <div class="ui-card-surface rounded-[1.5rem] p-4">
             <img [src]="challenge.qrCodeDataUrl" alt="Authenticator QR code" class="mx-auto h-64 w-64 max-w-full" />
           </div>
 
-          <div class="rounded-2xl border border-stone-200 bg-white px-4 py-3">
-            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Manual entry key</p>
-            <p class="mt-2 break-all font-mono text-sm font-semibold tracking-[0.16em] text-stone-900">{{ challenge.manualEntryKey }}</p>
+          <div class="ui-card-surface rounded-2xl px-4 py-3">
+            <p class="ui-kicker">Manual entry key</p>
+            <p class="mt-2 break-all font-mono text-sm font-semibold tracking-[0.16em] ui-text-strong">{{ challenge.manualEntryKey }}</p>
           </div>
         </div>
       </div>
 
-      <form class="space-y-5 rounded-[1.75rem] border border-stone-200 bg-white p-6" (ngSubmit)="confirmSetup()">
+      <form class="ui-card-surface space-y-5 p-6" (ngSubmit)="confirmSetup()">
         <div>
-          <h2 class="text-lg font-semibold text-stone-900">Confirm setup</h2>
-          <p class="mt-2 text-sm leading-6 text-stone-600">
+          <h2 class="ui-title-block">Confirm setup</h2>
+          <p class="mt-2 text-sm leading-6 ui-text-muted">
             Enter the code currently shown by your authenticator app to turn on MFA for this admin account.
           </p>
         </div>
 
         <label class="block space-y-2">
-          <span class="text-sm font-semibold text-stone-800">Authenticator code</span>
+          <span class="ui-field-label">Authenticator code</span>
           <input
             [(ngModel)]="setupCode"
             name="setupCode"
             inputmode="numeric"
             autocomplete="one-time-code"
             placeholder="123456"
-            class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm text-stone-800 outline-none transition focus:border-stone-500"
+            class="ui-input"
           />
         </label>
 
         <button
           type="submit"
           [disabled]="isBusy || isLoadingSetup"
-          class="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-stone-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:bg-stone-400"
+          class="ui-btn ui-btn-primary w-full"
         >
           {{ isBusy ? 'Verifying…' : 'Enable MFA' }}
         </button>
 
-        <button type="button" (click)="loadSetupChallenge(true)" class="w-full text-sm font-semibold text-stone-600 underline decoration-stone-300 underline-offset-4">
+        <button type="button" (click)="loadSetupChallenge(true)" class="ui-link-subtle w-full text-sm font-semibold">
           Generate a fresh QR code
         </button>
       </form>
     </div>
 
     <form *ngIf="requiresVerification && !backupCodes.length" class="mt-8 space-y-5" (ngSubmit)="verifyMfa()">
-      <div class="rounded-[1.75rem] border border-stone-200 bg-stone-50 p-6">
+      <div class="ui-card-soft p-6">
         <div class="flex items-center justify-between gap-4">
           <div>
-            <h2 class="text-lg font-semibold text-stone-900">Verify your sign-in</h2>
-            <p class="mt-2 text-sm leading-6 text-stone-600">
+            <h2 class="ui-title-block">Verify your sign-in</h2>
+            <p class="mt-2 text-sm leading-6 ui-text-muted">
               Use your authenticator app for the current 6-digit code, or switch to a backup code if your phone is unavailable.
             </p>
           </div>
-          <button type="button" (click)="useRecoveryCode = !useRecoveryCode" class="shrink-0 rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-stone-500 hover:text-stone-900">
+          <button type="button" (click)="useRecoveryCode = !useRecoveryCode" class="ui-btn ui-btn-secondary shrink-0 min-h-10 px-4 py-2 text-sm">
             {{ useRecoveryCode ? 'Use app code instead' : 'Use backup code' }}
           </button>
         </div>
       </div>
 
       <label *ngIf="!useRecoveryCode" class="block space-y-2">
-        <span class="text-sm font-semibold text-stone-800">Authenticator code</span>
+        <span class="ui-field-label">Authenticator code</span>
         <input
           [(ngModel)]="loginCode"
           name="loginCode"
           inputmode="numeric"
           autocomplete="one-time-code"
           placeholder="123456"
-          class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm text-stone-800 outline-none transition focus:border-stone-500"
+          class="ui-input"
         />
       </label>
 
       <label *ngIf="useRecoveryCode" class="block space-y-2">
-        <span class="text-sm font-semibold text-stone-800">Recovery code</span>
+        <span class="ui-field-label">Recovery code</span>
         <input
           [(ngModel)]="recoveryCode"
           name="recoveryCode"
           autocomplete="one-time-code"
           placeholder="ABCD-1234"
-          class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm text-stone-800 outline-none transition focus:border-stone-500"
+          class="ui-input"
         />
       </label>
 
       <button
         type="submit"
         [disabled]="isBusy"
-        class="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-stone-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:bg-stone-400"
+        class="ui-btn ui-btn-primary w-full"
       >
         {{ isBusy ? 'Checking…' : 'Finish sign-in' }}
       </button>
     </form>
 
-    <button type="button" (click)="signOut()" class="mt-8 w-full text-sm font-semibold text-stone-500 underline decoration-stone-300 underline-offset-4">
+    <button type="button" (click)="signOut()" class="ui-link-subtle mt-8 w-full text-sm font-semibold">
       Sign out
     </button>
   </section>

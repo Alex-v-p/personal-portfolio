@@ -2,14 +2,14 @@
   <app-ui-card [featured]="tone !== 'muted'" [padding]="size === 'lg' ? 'lg' : 'md'">
     <div [class]="contentClasses">
       <div class="space-y-2">
-        <p class="text-sm font-semibold tracking-tight text-stone-900">{{ item.label }}</p>
-        <p class="text-sm leading-6 text-stone-600" *ngIf="item.description">{{ item.description }}</p>
+        <p class="text-sm font-semibold tracking-tight ui-text-strong">{{ item.label }}</p>
+        <p class="text-sm leading-6 ui-text-muted" *ngIf="item.description">{{ item.description }}</p>
       </div>
 
       <div class="space-y-3">
         <strong [class]="valueClasses">{{ item.value }}</strong>
-        <p *ngIf="item.meta" class="text-xs uppercase tracking-[0.2em] text-stone-500">{{ item.meta }}</p>
-        <p *ngIf="item.footnote" class="text-xs leading-5 text-stone-500">{{ item.footnote }}</p>
+        <p *ngIf="item.meta" class="text-xs uppercase tracking-[0.2em] ui-text-soft">{{ item.meta }}</p>
+        <p *ngIf="item.footnote" class="text-xs leading-5 ui-text-soft">{{ item.footnote }}</p>
       </div>
 
       <div *ngIf="item.actionLabel" class="pt-2">
