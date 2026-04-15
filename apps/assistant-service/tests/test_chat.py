@@ -6,7 +6,6 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-
 def test_chat_responds_with_retrieved_portfolio_content(tmp_path: Path) -> None:
     database_path = tmp_path / 'assistant-test.sqlite3'
     os.environ['DATABASE_URL'] = f'sqlite:///{database_path}'
