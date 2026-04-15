@@ -41,6 +41,27 @@ export class AdminActivityTabComponent {
   @Output() readonly activityVisitorSelected = new EventEmitter<string>();
   @Output() readonly activityVisitSelected = new EventEmitter<string | null>();
 
+  get averageEventsPerVisitor(): string {
+    const uniqueVisitors = this.siteActivity.summary.uniqueVisitors || 1;
+    return (this.siteActivity.summary.totalEvents / uniqueVisitors).toFixed(1);
+  }
+
+  get averageVisitsPerVisitor(): string {
+    const uniqueVisitors = this.siteActivity.summary.uniqueVisitors || 1;
+    return (this.siteActivity.visits.length / uniqueVisitors).toFixed(1);
+  }
+
+  get activityKpis(): Array<{ label: string; value: number | string; hint: string }> {
+    return [
+      { label: 'Total events', value: this.siteActivity.summary.totalEvents, hint: `${this.siteActivity.summary.siteEventsRetentionDays} day retention` },
+      { label: 'Unique visitors', value: this.siteActivity.summary.uniqueVisitors, hint: `${this.filteredActivityVisitors.length} in current results` },
+      { label: 'Tracked visits', value: this.siteActivity.visits.length, hint: `${this.averageVisitsPerVisitor} visits / visitor` },
+      { label: 'Page views', value: this.siteActivity.summary.pageViews, hint: `${this.averageEventsPerVisitor} events / visitor` },
+      { label: 'Assistant messages', value: this.siteActivity.summary.assistantMessages, hint: `${this.siteActivity.summary.assistantActivityRetentionDays} day chat retention` },
+      { label: 'Contact submits', value: this.siteActivity.summary.contactSubmissions, hint: 'Recorded from contact forms' },
+    ];
+  }
+
   loadCms(): void {
     this.refreshRequested.emit();
   }

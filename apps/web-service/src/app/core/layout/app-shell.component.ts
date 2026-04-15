@@ -114,7 +114,7 @@ export class AppShellComponent implements OnInit {
 
   protected get mainContentContainerClasses(): string {
     return this.isAdminRoute
-      ? 'mx-auto w-full max-w-[100rem] 2xl:max-w-[112rem]'
+      ? 'mx-auto w-full max-w-[108rem] 2xl:max-w-[124rem]'
       : 'mx-auto w-full max-w-6xl';
   }
 

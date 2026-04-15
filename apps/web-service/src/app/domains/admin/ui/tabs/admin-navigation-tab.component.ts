@@ -21,6 +21,18 @@ export class AdminNavigationTabComponent {
   @Output() readonly navigationItemSaved = new EventEmitter<void>();
   @Output() readonly navigationItemDeleted = new EventEmitter<void>();
 
+  get visibleCount(): number {
+    return this.navigationItems.filter((item) => item.isVisible).length;
+  }
+
+  get externalCount(): number {
+    return this.navigationItems.filter((item) => item.isExternal).length;
+  }
+
+  get hiddenCount(): number {
+    return this.navigationItems.filter((item) => !item.isVisible).length;
+  }
+
   selectNavigationItem(itemId: string): void {
     this.navigationItemSelected.emit(itemId);
   }
