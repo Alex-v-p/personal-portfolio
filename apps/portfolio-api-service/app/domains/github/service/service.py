@@ -90,7 +90,8 @@ class GithubStatsSyncService:
             username=username,
             from_date=from_date,
             to_date=to_date,
-            html_fetcher=lambda url: self.http.get_text(url, accept='image/svg+xml,text/html'),
+            svg_fetcher=lambda url: self.http.get_text(url, accept='image/svg+xml'),
+            html_fetcher=lambda url: self.http.get_text(url, accept='text/html,application/xhtml+xml'),
         )
 
     @staticmethod

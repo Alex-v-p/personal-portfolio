@@ -5,7 +5,7 @@ from uuid import UUID
 
 from fastapi.testclient import TestClient
 
-from app.db.models import BlogPost, MediaFile, MediaVisibility, Project, ProjectState, PublicationStatus
+from app.db.models import BlogPost, EventType, MediaFile, MediaVisibility, Project, ProjectState, PublicationStatus, SiteEvent
 from app.db.session import get_session_factory
 from infra.postgres.bootstrap.seed_ids import seed_uuid
 
@@ -115,13 +115,28 @@ def test_get_github_snapshot_returns_latest_snapshot(client: TestClient) -> None
 
 
 def test_get_stats_returns_api_backed_stats_payload(client: TestClient) -> None:
+    session_factory = get_session_factory()
+    with session_factory() as session:
+        session.add_all(
+            [
+                SiteEvent(visitor_id='visitor-a', session_id='session-a', page_path='/', event_type=EventType.PAGE_VIEW),
+                SiteEvent(visitor_id='visitor-b', session_id='session-b', page_path='/projects', event_type=EventType.PAGE_VIEW),
+                SiteEvent(visitor_id='visitor-a', session_id='session-a', page_path='/stats', event_type=EventType.PORTFOLIO_LIKE),
+            ]
+        )
+        session.commit()
+
     response = client.get('/api/public/stats')
     assert response.status_code == 200
     body = response.json()
-    assert body['githubSummary']['label'] == 'GitHub activity'
+    assert body['githubSummary']['label'] == 'Public repos'
     assert body['latestGithubSnapshot']['username'] == 'shuzu'
-    assert body['portfolioStats']
-    assert body['contributionWeeks']
+    assert body['portfolioHighlights'][0]['label'] == 'Total views'
+    assert body['portfolioHighlights'][0]['value'] == '2'
+    assert body['portfolioHighlights'][1]['label'] == 'Like counter'
+    assert body['portfolioHighlights'][1]['value'] == '1'
+    assert len(body['contributionWeeks']) >= 52
+    assert len(body['monthLabels']) == len(body['contributionWeeks'])
 
 
 def test_public_projects_exclude_archived_or_scheduled_records(client: TestClient) -> None:
