@@ -34,6 +34,17 @@ describe('AssistantApiService', () => {
     httpMock = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router);
     Object.defineProperty(router, 'url', { configurable: true, get: () => '/projects' });
+
+    flushAssistantHealth({
+      status: 'ok',
+      mode: 'ready',
+      providerBackend: 'ollama',
+      providerModel: 'qwen2.5:3b',
+      providerAvailable: true,
+      configured: true,
+      detail: 'Ollama is online and model qwen2.5:3b is available.',
+      checkedAt: '2026-04-15T08:00:00Z',
+    });
   });
 
   afterEach(() => {
@@ -98,6 +109,7 @@ describe('AssistantApiService', () => {
     const lastMessage = service.snapshot.messages[service.snapshot.messages.length - 1];
     expect(lastMessage).toMatchObject({
       role: 'assistant',
+      tone: 'error',
       text: 'Too many assistant messages were sent in a short period. Please wait a moment before trying again.',
     });
   });
@@ -140,10 +152,26 @@ describe('AssistantApiService', () => {
     vi.useRealTimers();
   });
 
+  it('marks availability as offline when the status endpoint fails', () => {
+    service.refreshAvailability();
+
+    const request = httpMock.expectOne('/ai/health/status');
+    request.flush({}, { status: 503, statusText: 'Service Unavailable' });
+
+    expect(service.availabilitySnapshot.mode).toBe('offline');
+    expect(service.availabilitySnapshot.label).toBe('Offline');
+  });
+
   it('does not send an empty assistant message', () => {
     service.sendMessage('   ');
 
     httpMock.expectNone('/ai/chat/respond');
     expect(service.snapshot.messages).toEqual([]);
   });
+
+  function flushAssistantHealth(payload: object): void {
+    const requests = httpMock.match('/ai/health/status');
+    expect(requests.length).toBeGreaterThan(0);
+    requests[0].flush(payload);
+  }
 });

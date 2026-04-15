@@ -87,3 +87,14 @@ class KnowledgeStatusOut(ApiSchema):
     total_chunks: int = Field(serialization_alias='totalChunks')
     documents_by_source_type: dict[str, int] = Field(default_factory=dict, serialization_alias='documentsBySourceType')
     latest_updated_at: str | None = Field(default=None, serialization_alias='latestUpdatedAt')
+
+class AssistantHealthOut(ApiSchema):
+    status: str
+    mode: str
+    provider_backend: str = Field(serialization_alias='providerBackend')
+    provider_model: str = Field(serialization_alias='providerModel')
+    provider_available: bool = Field(serialization_alias='providerAvailable')
+    configured: bool
+    detail: str
+    checked_at: str = Field(serialization_alias='checkedAt')
+
