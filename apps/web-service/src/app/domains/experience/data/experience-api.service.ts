@@ -13,8 +13,10 @@ export class PublicExperienceApiService {
   private readonly publicHttp = inject(PublicHttpService);
 
   getExperience(): Observable<Experience[]> {
-    return this.publicHttp.http
-      .get<CollectionResponse<ExperienceApi>>(`${this.publicHttp.apiBaseUrl}/public/experience`)
-      .pipe(map((response) => normalizeExperienceList(response.items)));
+    return this.publicHttp.cacheRequest('public:experience', () =>
+      this.publicHttp.http
+        .get<CollectionResponse<ExperienceApi>>(`${this.publicHttp.apiBaseUrl}/public/experience`)
+        .pipe(map((response) => normalizeExperienceList(response.items)))
+    );
   }
 }

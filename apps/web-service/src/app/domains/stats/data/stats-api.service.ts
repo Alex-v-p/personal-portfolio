@@ -13,14 +13,18 @@ export class PublicStatsApiService {
   private readonly publicHttp = inject(PublicHttpService);
 
   getGithubSnapshot(): Observable<GithubSnapshot> {
-    return this.publicHttp.http
-      .get<GithubSnapshotApi>(`${this.publicHttp.apiBaseUrl}/public/github`)
-      .pipe(map((snapshot) => normalizeGithubSnapshot(snapshot)));
+    return this.publicHttp.cacheRequest('public:github-snapshot', () =>
+      this.publicHttp.http
+        .get<GithubSnapshotApi>(`${this.publicHttp.apiBaseUrl}/public/github`)
+        .pipe(map((snapshot) => normalizeGithubSnapshot(snapshot)))
+    );
   }
 
   getStats(): Observable<StatsPageData> {
-    return this.publicHttp.http
-      .get<StatsApi>(`${this.publicHttp.apiBaseUrl}/public/stats`)
-      .pipe(map((stats) => normalizeStats(stats)));
+    return this.publicHttp.cacheRequest('public:stats', () =>
+      this.publicHttp.http
+        .get<StatsApi>(`${this.publicHttp.apiBaseUrl}/public/stats`)
+        .pipe(map((stats) => normalizeStats(stats)))
+    );
   }
 }
