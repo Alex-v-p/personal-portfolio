@@ -1,4 +1,15 @@
 <section class="space-y-6">
+  <div *ngIf="profile.introParagraphs.length" class="space-y-4 xl:hidden">
+    <p *ngFor="let paragraph of profile.introParagraphs" class="text-sm leading-7 text-stone-600">
+      {{ paragraph }}
+    </p>
+
+    <div class="flex flex-wrap gap-3 pt-1">
+      <app-ui-link-button routerLink="/contact">Contact Me</app-ui-link-button>
+      <app-ui-link-button routerLink="/projects" appearance="ghost">View Projects</app-ui-link-button>
+    </div>
+  </div>
+
   <app-ui-section-title title="Expertise" description=""></app-ui-section-title>
 
   <div class="pt-4 space-y-3">

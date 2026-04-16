@@ -15,6 +15,7 @@ import { HomeExpertiseSectionComponent } from '@domains/home/ui/home-expertise.c
 import { HomeFeaturedSectionComponent } from '@domains/home/ui/home-featured.component';
 import { HomeHeroSectionComponent } from '@domains/home/ui/home-hero.component';
 import { UiButtonComponent } from '@shared/components/button/ui-button.component';
+import { UiLinkButtonComponent } from '@shared/components/link-button/ui-link-button.component';
 import { UiEmptyStateComponent } from '@shared/components/empty-state/ui-empty-state.component';
 import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.component';
 
@@ -29,6 +30,7 @@ import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.com
     HomeExperienceSectionComponent,
     HomeContactPreviewSectionComponent,
     UiButtonComponent,
+    UiLinkButtonComponent,
     UiEmptyStateComponent,
     UiSkeletonComponent,
   ],

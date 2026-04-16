@@ -1,15 +1,15 @@
 <div class="flex min-h-screen flex-col" [attr.data-skin]="isAdminRoute ? 'admin' : 'public'">
   <header *ngIf="!isAdminRoute" [class]="headerClasses">
   <div class="mx-auto flex justify-center px-3 py-2">
-    <div class="ui-nav-shell inline-flex w-fit items-center gap-2 px-5 py-2">
-      <nav class="flex flex-wrap items-center gap-2">
+    <div class="ui-nav-shell w-full max-w-[22rem] px-3 py-3 sm:inline-flex sm:w-fit sm:max-w-none sm:items-center sm:gap-2 sm:px-5 sm:py-2">
+      <nav class="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-center">
         <ng-container *ngFor="let item of quickLinks">
           <a
             *ngIf="!item.isExternal; else externalHeaderLink"
             [routerLink]="item.path"
             routerLinkActive="ui-nav-link-active"
             [routerLinkActiveOptions]="{ exact: item.path === '/' }"
-            class="ui-nav-link"
+            class="ui-nav-link w-full justify-center px-3 text-center sm:w-auto sm:px-8"
           >
             {{ item.label }}
           </a>
@@ -19,7 +19,7 @@
               [href]="item.path"
               target="_blank"
               rel="noreferrer noopener"
-              class="ui-nav-link"
+              class="ui-nav-link w-full justify-center px-3 text-center sm:w-auto sm:px-8"
             >
               {{ item.label }}
             </a>

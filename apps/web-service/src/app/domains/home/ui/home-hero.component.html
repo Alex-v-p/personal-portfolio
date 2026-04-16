@@ -64,17 +64,6 @@
       </app-ui-link-button>
     </div>
 
-
-    <div *ngIf="socialButtons.length" class="flex flex-wrap gap-2 lg:hidden">
-      <app-ui-link-button
-        *ngFor="let link of socialButtons"
-        appearance="ghost"
-        [href]="link.href"
-        [openInNewTab]="link.openInNewTab"
-      >
-        {{ link.label }}
-      </app-ui-link-button>
-    </div>
   </div>
 
   <!-- Right side -->
