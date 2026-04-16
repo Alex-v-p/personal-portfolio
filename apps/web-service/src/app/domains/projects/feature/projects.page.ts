@@ -7,7 +7,6 @@ import { PublicProjectsApiService } from '@domains/projects/data/projects-api.se
 import { UiButtonComponent } from '@shared/components/button/ui-button.component';
 import { UiChipComponent } from '@shared/components/chip/ui-chip.component';
 import { UiEmptyStateComponent } from '@shared/components/empty-state/ui-empty-state.component';
-import { UiSectionTitleComponent } from '@shared/components/section-title/ui-section-title.component';
 import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.component';
 import { ProjectSummary } from '@domains/projects/model/project-summary.model';
 import { ProjectCardComponent } from '@domains/projects/ui/project-card.component';
@@ -20,7 +19,7 @@ interface SkillFilterOption {
 @Component({
   selector: 'app-projects-page',
   standalone: true,
-  imports: [NgFor, NgIf, FormsModule, UiButtonComponent, UiChipComponent, UiEmptyStateComponent, UiSectionTitleComponent, UiSkeletonComponent, ProjectCardComponent],
+  imports: [NgFor, NgIf, FormsModule, UiButtonComponent, UiChipComponent, UiEmptyStateComponent, UiSkeletonComponent, ProjectCardComponent],
   templateUrl: './projects.page.html'
 })
 export class ProjectsPageComponent implements OnInit {

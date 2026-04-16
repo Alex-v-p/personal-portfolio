@@ -1,6 +1,6 @@
-<app-ui-card *ngIf="featured" [featured]="true" padding="none">
-  <div class="grid h-full items-stretch gap-0 lg:grid-cols-[minmax(220px,0.78fr)_minmax(0,1.22fr)]">
-    <div class="relative overflow-hidden  lg:min-h-[24rem]">
+<app-ui-card *ngIf="featured; else defaultCard" [featured]="true" padding="none">
+  <div class="grid h-full gap-0 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+    <div class="relative overflow-hidden lg:min-h-[24rem]">
       <img
         *ngIf="project.coverImageUrl; else featuredProjectFallback"
         [src]="project.coverImageUrl"
@@ -17,10 +17,10 @@
       <app-ui-chip tone="accent" class="absolute left-4 top-4">Featured</app-ui-chip>
     </div>
 
-    <div class="flex h-full flex-col justify-between gap-4 px-6 py-6">
-      <div class="space-y-4">
-        <div class="ui-meta-row flex flex-wrap items-center gap-2 text-xs">
-          <div class="flex flex-wrap items-center gap-2">
+    <div class="flex h-full flex-col justify-between gap-5 px-6 py-6 lg:px-7 lg:py-7">
+      <div class="space-y-5">
+        <div class="ui-meta-row flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span>{{ project.organization }}</span>
             <span>{{ project.duration }}</span>
           </div>
@@ -29,22 +29,15 @@
         </div>
 
         <div class="space-y-3">
-          <h2 class="ui-title-card text-[2.15rem] leading-[1.05]">
-            {{ project.title }}
-          </h2>
-
-          <p class="lg:max-w-[34ch] text-sm leading-7 ui-text-muted">
-            {{ project.shortDescription }}
-          </p>
+          <h2 class="ui-title-card text-3xl leading-[1.08]">{{ project.title }}</h2>
+          <p class="max-w-[42ch] text-sm leading-7 ui-text-muted">{{ project.shortDescription }}</p>
         </div>
 
         <div class="flex flex-wrap gap-2">
           <app-ui-chip *ngFor="let tag of displayedTags">{{ tag }}</app-ui-chip>
         </div>
 
-        <p class="lg:max-w-[40ch] text-sm leading-7 ui-text-muted">
-          {{ project.highlight }}
-        </p>
+        <p class="max-w-[42ch] text-sm leading-7 ui-text-muted">{{ project.highlight }}</p>
       </div>
 
       <div class="flex flex-wrap gap-3 pt-1">
@@ -53,7 +46,6 @@
           [routerLink]="readMoreAction.routerLink ?? '/projects'"
           [href]="readMoreAction.href ?? null"
           [openInNewTab]="!!readMoreAction.href"
-          appearance="ghost"
         >
           Read more
         </app-ui-link-button>
@@ -63,42 +55,44 @@
 </app-ui-card>
 
 <ng-template #defaultCard>
-  <app-ui-card>
-    <div class="flex h-full flex-col gap-4">
-      <div class="ui-media-frame relative overflow-hidden rounded-md">
-        <img *ngIf="project.coverImageUrl; else defaultProjectFallback" [src]="project.coverImageUrl" [alt]="project.coverImageAlt" class="aspect-[16/11] w-full object-cover" />
+  <app-ui-card padding="none">
+    <div class="flex h-full flex-col">
+      <div class="relative overflow-hidden">
+        <img *ngIf="project.coverImageUrl; else defaultProjectFallback" [src]="project.coverImageUrl" [alt]="project.coverImageAlt" class="aspect-[16/10] w-full object-cover" />
         <ng-template #defaultProjectFallback>
-          <div class="ui-media-placeholder ui-media-fallback relative flex aspect-[16/11] items-end p-4 text-[0.7rem] font-semibold uppercase tracking-[0.14em]">
+          <div class="ui-media-placeholder ui-media-fallback relative flex aspect-[16/10] items-end p-4 text-[0.7rem] font-semibold uppercase tracking-[0.14em]">
             <span class="max-w-[16ch]">{{ placeholderLabel }}</span>
           </div>
         </ng-template>
         <app-ui-chip *ngIf="project.isFeatured" tone="accent" class="absolute left-3 top-3">Featured</app-ui-chip>
       </div>
 
-      <div class="ui-meta-row flex flex-wrap gap-x-3 gap-y-1">
-        <span>{{ project.organization }}</span>
-        <span>{{ project.duration }}</span>
-      </div>
+      <div class="flex h-full flex-col gap-4 px-6 pb-6 pt-5">
+        <div class="ui-meta-row flex flex-wrap gap-x-3 gap-y-1">
+          <span>{{ project.organization }}</span>
+          <span>{{ project.duration }}</span>
+        </div>
 
-      <div class="space-y-2">
-        <h3 class="ui-title-card text-2xl">{{ project.title }}</h3>
-        <p class="text-sm leading-6 ui-text-muted">{{ project.shortDescription }}</p>
-      </div>
+        <div class="space-y-2">
+          <h3 class="ui-title-card text-2xl leading-[1.12]">{{ project.title }}</h3>
+          <p class="text-sm leading-6 ui-text-muted">{{ project.shortDescription }}</p>
+        </div>
 
-      <div class="flex flex-wrap gap-2">
-        <app-ui-chip *ngFor="let tag of displayedTags">{{ tag }}</app-ui-chip>
-      </div>
+        <div class="flex flex-wrap gap-2">
+          <app-ui-chip *ngFor="let tag of displayedTags">{{ tag }}</app-ui-chip>
+        </div>
 
-      <div class="mt-auto flex flex-wrap gap-3 pt-1">
-        <app-ui-link-button
-          *ngIf="readMoreAction"
-          [routerLink]="readMoreAction.routerLink ?? '/projects'"
-          [href]="readMoreAction.href ?? null"
-          [openInNewTab]="!!readMoreAction.href"
-          appearance="ghost"
-        >
-          Read more
-        </app-ui-link-button>
+        <div class="mt-auto flex flex-wrap gap-3 pt-1">
+          <app-ui-link-button
+            *ngIf="readMoreAction"
+            [routerLink]="readMoreAction.routerLink ?? '/projects'"
+            [href]="readMoreAction.href ?? null"
+            [openInNewTab]="!!readMoreAction.href"
+            appearance="ghost"
+          >
+            Read more
+          </app-ui-link-button>
+        </div>
       </div>
     </div>
   </app-ui-card>

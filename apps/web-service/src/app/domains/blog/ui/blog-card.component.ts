@@ -15,6 +15,7 @@ import { BlogPostSummary } from '@domains/blog/model/blog-post-summary.model';
 export class BlogCardComponent {
   @Input({ required: true }) post!: BlogPostSummary;
   @Input() featured = false;
+  @Input() showSecondaryAction = true;
 
   protected get displayedTags(): string[] {
     return this.post.tags.slice(0, this.featured ? 4 : 3);

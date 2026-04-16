@@ -35,7 +35,7 @@
 
       <div class="flex flex-wrap gap-3 pt-1">
         <app-ui-link-button [routerLink]="['/blog', post.slug]">Read article</app-ui-link-button>
-        <app-ui-link-button routerLink="/blog" appearance="ghost">All posts</app-ui-link-button>
+        <app-ui-link-button *ngIf="showSecondaryAction" routerLink="/blog" appearance="ghost">All posts</app-ui-link-button>
       </div>
     </div>
   </div>
