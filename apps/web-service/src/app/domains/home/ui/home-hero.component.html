@@ -4,13 +4,31 @@
   <!-- Left side -->
   <div class="order-1 lg:order-1 max-w-xl self-center space-y-8">
     <div class="space-y-4">
-      <span class="ui-pill inline-flex px-3 py-1 text-xs">
-        {{ profile.location }}
-      </span>
+      <div class="flex items-start gap-1">
+        <div class="mt-1 flex-shrink-0">
+          <img
+            *ngIf="profile.avatarUrl; else heroIdentityFallback"
+            [src]="profile.avatarUrl"
+            [alt]="profile.name || 'Profile avatar'"
+            class="h-14 w-14 rounded-full border border-stone-300 object-cover shadow-sm"
+          />
+          <ng-template #heroIdentityFallback>
+            <span class="inline-flex h-14 w-14 items-center justify-center rounded-full border border-stone-300 bg-stone-200 text-sm font-semibold text-stone-700 shadow-sm">
+              {{ avatarInitials }}
+            </span>
+          </ng-template>
+        </div>
 
-      <p class="text-sm font-medium ui-text-soft">
-        {{ profile.greeting }}
-      </p>
+        <div class="space-y-3 pt-1">
+          <span class="ui-pill inline-flex px-3 py-1 text-xs">
+            {{ profile.location }}
+          </span>
+
+          <p class="text-md font-medium ui-text-soft">
+            {{ profile.greeting }}
+          </p>
+        </div>
+      </div>
 
       <h1 class="ui-title-display max-w-xl leading-[1.08]">
         {{ profile.heroTitle }}

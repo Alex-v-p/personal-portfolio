@@ -15,6 +15,12 @@ import { SocialLink } from '@domains/profile/model/social-link.model';
 export class HomeHeroSectionComponent {
   @Input({ required: true }) profile!: Profile;
 
+  protected get avatarInitials(): string {
+    const first = (this.profile.firstName || '').trim().charAt(0);
+    const last = (this.profile.lastName || '').trim().charAt(0);
+    return `${first}${last}`.toUpperCase() || 'AV';
+  }
+
   protected get socialButtons(): Array<{ label: string; mark: string; href: string; openInNewTab: boolean }> {
     return (this.profile.socialLinks ?? [])
       .filter((link) => link.isVisible)
