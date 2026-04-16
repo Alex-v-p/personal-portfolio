@@ -45,6 +45,18 @@
         {{ action.label }}
       </app-ui-link-button>
     </div>
+
+
+    <div *ngIf="socialButtons.length" class="flex flex-wrap gap-2 lg:hidden">
+      <app-ui-link-button
+        *ngFor="let link of socialButtons"
+        appearance="ghost"
+        [href]="link.href"
+        [openInNewTab]="link.openInNewTab"
+      >
+        {{ link.label }}
+      </app-ui-link-button>
+    </div>
   </div>
 
   <!-- Right side -->
@@ -84,17 +96,30 @@
       </div>
     </div>
 
-    <div class="hidden md:flex items-center">
+    <div class="hidden md:flex flex-col items-center gap-3 self-center">
       <a
         *ngIf="profile.resumeUrl"
         [href]="profile.resumeUrl"
         target="_blank"
         rel="noreferrer noopener"
         class="ui-pill flex h-11 min-w-11 items-center justify-center rounded-md px-3 text-xs"
+        aria-label="Open CV"
+        title="CV"
       >
         CV
       </a>
-      <!-- <span class="ui-pill h-10 w-10 justify-center rounded-md text-xs">UX</span> -->
+
+      <a
+        *ngFor="let link of socialButtons"
+        [href]="link.href"
+        [attr.target]="link.openInNewTab ? '_blank' : null"
+        [attr.rel]="link.openInNewTab ? 'noreferrer noopener' : null"
+        class="ui-pill flex h-11 min-w-11 items-center justify-center rounded-md px-3 text-xs"
+        [attr.aria-label]="link.label"
+        [attr.title]="link.label"
+      >
+        {{ link.mark }}
+      </a>
     </div>
   </div>
 </section> 

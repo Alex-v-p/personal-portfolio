@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { finalize, switchMap } from 'rxjs/operators';
 
 import { UiButtonComponent } from '@shared/components/button/ui-button.component';
-import { UiChipComponent } from '@shared/components/chip/ui-chip.component';
+import { HighlightChipComponent } from '@shared/components/highlight-chip/highlight-chip.component';
 import { UiEmptyStateComponent } from '@shared/components/empty-state/ui-empty-state.component';
 import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.component';
 import { BlogPostDetail } from '@domains/blog/model/blog-post-detail.model';
@@ -14,7 +14,7 @@ import { renderMarkdownToHtml } from '@shared/utils/markdown.util';
 @Component({
   selector: 'app-blog-post-page',
   standalone: true,
-  imports: [NgFor, NgIf, RouterLink, UiButtonComponent, UiChipComponent, UiEmptyStateComponent, UiSkeletonComponent],
+  imports: [NgFor, NgIf, RouterLink, UiButtonComponent, HighlightChipComponent, UiEmptyStateComponent, UiSkeletonComponent],
   templateUrl: './blog-post.page.html'
 })
 export class BlogPostPageComponent implements OnInit {

@@ -34,7 +34,7 @@
         </div>
 
         <div class="flex flex-wrap gap-2">
-          <app-ui-chip *ngFor="let tag of displayedTags">{{ tag }}</app-ui-chip>
+          <app-highlight-chip *ngFor="let tag of displayedTags" [label]="tag"></app-highlight-chip>
         </div>
 
         <p class="max-w-[42ch] text-sm leading-7 ui-text-muted">{{ project.highlight }}</p>
@@ -79,7 +79,7 @@
         </div>
 
         <div class="flex flex-wrap gap-2">
-          <app-ui-chip *ngFor="let tag of displayedTags">{{ tag }}</app-ui-chip>
+          <app-highlight-chip *ngFor="let tag of displayedTags" [label]="tag"></app-highlight-chip>
         </div>
 
         <div class="mt-auto flex flex-wrap gap-3 pt-1">

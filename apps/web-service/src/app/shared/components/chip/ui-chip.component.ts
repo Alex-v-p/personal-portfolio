@@ -6,10 +6,19 @@ import { Component, Input } from '@angular/core';
   templateUrl: './ui-chip.component.html'
 })
 export class UiChipComponent {
-  @Input() tone: 'default' | 'accent' = 'default';
+  @Input() tone: 'default' | 'accent' | 'highlight' = 'default';
 
   protected get chipClasses(): string {
     const base = 'ui-chip';
-    return this.tone === 'accent' ? `${base} ui-chip-accent` : base;
+
+    if (this.tone === 'accent') {
+      return `${base} ui-chip-accent`;
+    }
+
+    if (this.tone === 'highlight') {
+      return `${base} ui-chip-highlight`;
+    }
+
+    return base;
   }
 }

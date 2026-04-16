@@ -11,7 +11,7 @@
         <div class="space-y-3">
           <h3 class="text-xl font-semibold text-stone-950">{{ group.title }}</h3>
           <div class="flex flex-wrap gap-2">
-            <app-ui-chip *ngFor="let tag of group.tags">{{ tag }}</app-ui-chip>
+            <app-highlight-chip *ngFor="let tag of group.tags" [label]="tag"></app-highlight-chip>
           </div>
         </div>
       </div>

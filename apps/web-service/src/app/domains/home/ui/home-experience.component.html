@@ -101,7 +101,7 @@
 
                   <div class="experience-skills-shell" [class.is-open]="isExpanded(item.id)">
                     <div *ngIf="item.skillNames.length" class="flex flex-wrap gap-2 pt-3">
-                      <app-ui-chip *ngFor="let skill of item.skillNames">{{ skill }}</app-ui-chip>
+                      <app-highlight-chip *ngFor="let skill of item.skillNames" [label]="skill"></app-highlight-chip>
                     </div>
                   </div>
                 </div>
