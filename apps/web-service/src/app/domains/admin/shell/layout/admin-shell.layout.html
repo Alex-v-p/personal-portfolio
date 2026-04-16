@@ -1,24 +1,30 @@
 <div class="space-y-5 2xl:space-y-6">
-  <header class="ui-panel p-6 sm:p-8 lg:px-10 lg:py-8">
-    <div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start">
-      <div class="space-y-3">
-        <p class="ui-kicker">Portfolio CMS</p>
-        <h1 class="ui-title-section">Content management</h1>
-        <p class="max-w-3xl text-sm leading-6 ui-text-muted">
-          Manage portfolio content, supporting data, and operational tools from one workspace.
-        </p>
+  <section class="ui-panel p-6 sm:p-8 lg:px-10 lg:py-8">
+    <div class="space-y-6">
+      <div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start">
+        <div class="space-y-3">
+          <!-- <p class="ui-kicker">Portfolio CMS</p> -->
+          <h1 class="ui-title-section">Content management</h1>
+          <p class="max-w-3xl text-sm leading-6 ui-text-muted">
+            Manage portfolio content, supporting data, and operational tools from one workspace.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 xl:justify-end">
+          <div class="ui-pill px-4 py-2 text-sm">
+            Signed in as <span class="font-semibold ui-text-strong">{{ adminDisplayName }}</span>
+          </div>
+          <button type="button" (click)="logout()" class="ui-btn ui-btn-primary min-h-11 px-5">
+            Sign out
+          </button>
+        </div>
       </div>
 
-      <div class="flex flex-wrap items-center gap-3 xl:justify-end">
-        <div class="ui-pill px-4 py-2 text-sm">
-          Signed in as <span class="font-semibold ui-text-strong">{{ adminDisplayName }}</span>
-        </div>
-        <button type="button" (click)="logout()" class="ui-btn ui-btn-primary min-h-11 px-5">Sign out</button>
+      <div>
+        <app-admin-shell-nav></app-admin-shell-nav>
       </div>
     </div>
-  </header>
-
-  <app-admin-shell-nav></app-admin-shell-nav>
+  </section>
 
   <router-outlet></router-outlet>
 </div>

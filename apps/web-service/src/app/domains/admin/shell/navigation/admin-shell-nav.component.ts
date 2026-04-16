@@ -9,7 +9,7 @@ import { ADMIN_SHELL_NAV_ITEMS } from './admin-shell.navigation';
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive],
   template: `
-    <nav class="ui-panel p-4 sm:p-5 lg:px-6">
+    <nav class="p-0">
       <div class="grid gap-4 xl:grid-cols-[18rem_minmax(0,1fr)] xl:items-start">
         <div class="space-y-1.5">
           <p class="ui-kicker">CMS workspaces</p>
