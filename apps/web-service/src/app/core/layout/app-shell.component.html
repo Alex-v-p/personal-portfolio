@@ -55,13 +55,13 @@
     </div>
   </main>
 
-  <div *ngIf="!isAdminRoute" [class]="assistantButtonClasses">
-    <div *ngIf="isAssistantOpen" class="mb-4 w-[min(36rem,calc(100vw-1.5rem))] sm:w-[32rem] lg:w-[34rem]">
+  <div *ngIf="!isAdminRoute" [class]="assistantButtonClasses" class="flex flex-col items-end">
+    <div [class]="assistantPanelClasses">
       <app-assistant-panel mode="widget" (close)="closeAssistant()"></app-assistant-panel>
     </div>
 
     <ng-container *ngIf="assistantAvailability$ | async as availability">
-      <button type="button" (click)="toggleAssistant()" [attr.aria-expanded]="isAssistantOpen" aria-label="Toggle portfolio assistant" class="ui-fab inline-flex items-center gap-3 rounded-[1.75rem] px-4 py-3 ui-btn-secondary">
+      <button type="button" (click)="toggleAssistant()" [attr.aria-expanded]="isAssistantOpen" aria-label="Toggle portfolio assistant" [class]="assistantFabClasses">
         <span class="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ui-btn-primary">
           AI
           <span
