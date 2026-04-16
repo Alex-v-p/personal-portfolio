@@ -1,3 +1,6 @@
-<article [class]="cardClasses">
+<article
+  class="ui-card rounded-md"
+  [ngClass]="[featured ? 'ui-card-featured' : '',padding === 'none' ? 'p-0' :padding === 'sm' ? 'p-4' :padding === 'lg' ? 'p-8' :'p-6']"
+>
   <ng-content></ng-content>
 </article>

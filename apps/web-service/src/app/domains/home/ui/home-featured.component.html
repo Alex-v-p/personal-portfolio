@@ -1,9 +1,8 @@
-<section class="space-y-8">
+<section class="space-y-8 py-5">
   <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
     <app-ui-section-title
-      eyebrow="Featured"
-      title="Selected work"
-      description="A featured article and project pulled from the current portfolio API responses."
+      title="Featured"
+      description="A selection of my latest work that I'm proud to share!"
     ></app-ui-section-title>
 
     <div class="flex flex-wrap gap-3 md:justify-end">
@@ -12,40 +11,68 @@
     </div>
   </div>
 
-  <div class="grid items-stretch gap-6" [class.xl:grid-cols-2]="hasFeaturedBlogPost && hasPrimaryProject">
-    <app-ui-card *ngIf="hasFeaturedBlogPost">
-      <div class="space-y-5">
-        <div class="flex items-center justify-between gap-3">
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] items-stretch">
+    <app-ui-card *ngIf="hasFeaturedBlogPost" padding="none" [featured]="true">
+      <div class="flex h-full flex-col">
+
+        <div
+          *ngIf="featuredBlogPost.coverImageUrl; else featuredFallback"
+          class=" overflow-hidden rounded-md"
+        >
+          <img
+            [src]="featuredBlogPost.coverImageUrl"
+            [alt]="featuredBlogPost.coverImageAlt"
+            class="aspect-[16/8.5] w-full object-cover"
+          />
+        </div>
+
+        <ng-template #featuredFallback>
+          <div
+            class="flex aspect-[16/8.5] items-end rounded-md bg-stone-300/80 p-4 text-xs font-semibold uppercase tracking-[0.16em] text-stone-600"
+          >
+            {{ featuredBlogPost.coverImageAlt }}
+          </div>
+        </ng-template>
+
+        <div class="grid grid-cols-[auto_1fr_auto_auto] items-center gap-x-4 gap-y-2 px-6 pt-6">
           <app-ui-chip tone="accent">Featured</app-ui-chip>
-          <div class="flex flex-wrap gap-3 text-xs text-stone-500">
-            <span>{{ featuredBlogPost.publishedAt }}</span>
-            <span>{{ featuredBlogPost.readTime }}</span>
-          </div>
+          <span></span>
+          <span class="text-xs whitespace-nowrap text-stone-500 justify-self-end">
+            {{ featuredBlogPost.publishedAt }}
+          </span>
+          <span class="text-xs whitespace-nowrap text-stone-500 justify-self-end">
+            {{ featuredBlogPost.readTime }}
+          </span>
         </div>
 
-        <div class="space-y-4">
-          <div *ngIf="featuredBlogPost.coverImageUrl; else featuredFallback" class="overflow-hidden rounded-[1.4rem] border border-stone-300">
-            <img [src]="featuredBlogPost.coverImageUrl" [alt]="featuredBlogPost.coverImageAlt" class="aspect-[16/10] w-full object-cover" />
-          </div>
-          <ng-template #featuredFallback>
-            <div class="flex aspect-[16/10] items-end rounded-[1.4rem] border border-stone-300 bg-stone-300/80 p-4 text-xs font-semibold uppercase tracking-[0.16em] text-stone-600">
-              {{ featuredBlogPost.coverImageAlt }}
-            </div>
-          </ng-template>
+        <div class="space-y-4 px-6 pb-6 pt-5">
           <div class="space-y-3">
-            <h3 class="text-2xl font-semibold tracking-tight text-stone-950">{{ featuredBlogPost.title }}</h3>
-            <p class="text-sm leading-6 text-stone-600">{{ featuredBlogPost.excerpt }}</p>
+            <h3 class="text-[2rem] font-semibold leading-[1.08] tracking-tight text-stone-950">
+              {{ featuredBlogPost.title }}
+            </h3>
+
+            <p class="max-w-[46ch] text-sm leading-6 text-stone-600">
+              {{ featuredBlogPost.excerpt }}
+            </p>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <app-ui-chip *ngFor="let tag of featuredBlogPost.tags">{{ tag }}</app-ui-chip>
+          </div>
+
+          <div class="pt-2">
+            <app-ui-link-button [routerLink]="['/blog', featuredBlogPost.slug]" appearance="ghost">
+              Read article →
+            </app-ui-link-button>
           </div>
         </div>
-
-        <div class="flex flex-wrap gap-2">
-          <app-ui-chip *ngFor="let tag of featuredBlogPost.tags">{{ tag }}</app-ui-chip>
-        </div>
-
-        <app-ui-link-button [routerLink]="['/blog', featuredBlogPost.slug]" appearance="ghost">Read article →</app-ui-link-button>
       </div>
     </app-ui-card>
 
-    <app-project-card *ngIf="hasPrimaryProject" [project]="primaryProject" [featured]="true"></app-project-card>
+    <app-project-card
+      *ngIf="hasPrimaryProject"
+      [project]="primaryProject"
+      [featured]="true"
+    ></app-project-card>
   </div>
 </section>

@@ -1,12 +1,14 @@
 import { Component, Input } from '@angular/core';
+import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'app-ui-card',
   standalone: true,
+  imports: [NgClass],
   templateUrl: './ui-card.component.html'
 })
 export class UiCardComponent {
-  @Input() padding: 'md' | 'lg' = 'md';
+  @Input() padding: 'none' | 'sm' | 'md' | 'lg' = 'md';
   @Input() featured = false;
 
   protected get cardClasses(): string {
