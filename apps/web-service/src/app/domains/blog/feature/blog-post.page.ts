@@ -10,6 +10,7 @@ import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.com
 import { BlogPostDetail } from '@domains/blog/model/blog-post-detail.model';
 import { PublicBlogApiService } from '@domains/blog/data/blog-api.service';
 import { renderMarkdownToHtml } from '@shared/utils/markdown.util';
+import { SeoService } from '@shared/services/seo.service';
 
 @Component({
   selector: 'app-blog-post-page',
@@ -21,6 +22,7 @@ export class BlogPostPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly blogApi = inject(PublicBlogApiService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private readonly seo = inject(SeoService);
 
   protected readonly shareMarks = ['in', 'x'];
 
@@ -46,6 +48,7 @@ export class BlogPostPageComponent implements OnInit {
         next: (post) => {
           this.post = post;
           this.isLoading = false;
+          this.updateSeo(post);
         },
         error: () => {
           this.post = null;
@@ -53,6 +56,18 @@ export class BlogPostPageComponent implements OnInit {
           this.errorMessage = 'This blog post could not be loaded from the portfolio API.';
         }
       });
+  }
+
+
+  private updateSeo(post: BlogPostDetail): void {
+    this.seo.updatePage({
+      title: post.seoTitle?.trim() || post.title,
+      description: post.seoDescription?.trim() || post.excerpt,
+      keywords: [post.category, ...(post.tags ?? []), post.title],
+      image: post.coverImageUrl,
+      type: 'article',
+      path: `/blog/${post.slug}`,
+    });
   }
 
   protected retry(): void {
@@ -67,6 +82,7 @@ export class BlogPostPageComponent implements OnInit {
       next: (post) => {
         this.post = post;
         this.isLoading = false;
+        this.updateSeo(post);
       },
       error: () => {
         this.post = null;
