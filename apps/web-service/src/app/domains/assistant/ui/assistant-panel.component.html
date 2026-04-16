@@ -1,19 +1,15 @@
-<section [ngClass]="mode === 'page' ? 'ui-panel min-h-[76vh] p-6 sm:p-8' : 'ui-panel flex h-[42rem] max-h-[calc(100vh-7rem)] w-full flex-col rounded-[1.75rem]'">
+<section [ngClass]="mode === 'page' ? 'ui-panel min-h-[76vh] p-6 sm:p-8' : 'ui-panel flex h-[38rem] max-h-[calc(100vh-7rem)] w-full flex-col rounded-[1.75rem]'">
   <header class="flex items-start justify-between gap-4 border-b px-5 py-4" [ngClass]="mode === 'page' ? 'mb-6 rounded-[1.75rem] ui-card-soft' : ''" style="border-color: var(--ui-border-soft);">
     <div class="grid gap-2">
-      <div>
+      <div class="flex items-center gap-2">
         <p class="ui-kicker">Portfolio assistant</p>
-        <h2 class="mt-1 ui-title-block">Ask about projects, posts, and experience</h2>
+        <ng-container *ngIf="availability$ | async as availability">
+          <span class="ui-status-dot h-2.5 w-2.5 shadow-sm" [ngClass]="getAvailabilityDotClasses(availability.mode)" [attr.aria-label]="availability.label"></span>
+        </ng-container>
       </div>
-      <ng-container *ngIf="availability$ | async as availability">
-        <div class="ui-pill inline-flex w-fit items-center gap-2 shadow-sm">
-          <span class="ui-status-dot h-2.5 w-2.5" [ngClass]="getAvailabilityDotClasses(availability.mode)"></span>
-          <span>{{ availability.label }}</span>
-          <span class="ui-text-soft">•</span>
-          <span class="font-medium ui-text-soft">{{ availability.providerBackend || 'assistant' }}</span>
-        </div>
-        <p class="m-0 max-w-[65ch] text-sm leading-6 ui-text-muted">{{ availability.detail }}</p>
-      </ng-container>
+      <div>
+        <h2 class="ui-title-block">Have any questions? Ask away!</h2>
+      </div>
     </div>
     <div class="flex items-center gap-2">
       <button *ngIf="(availability$ | async)?.mode !== 'ready'" type="button" (click)="refreshAvailability()" class="ui-btn ui-btn-secondary min-h-10 px-3 py-2 text-xs">Retry connection</button>
@@ -33,7 +29,8 @@
         </div>
 
         <div *ngIf="!state.messages.length" class="grid gap-4 rounded-[1.5rem] border border-dashed p-5 text-sm ui-card-soft ui-text-muted" style="border-color: var(--ui-border);">
-          <p class="m-0 leading-6">A few good prompts to start with:</p>
+          <p class="m-0 leading-6">Hi there! This is my own private LLM running locally on my homeLab server. It might not be as smart as the latest gpt or claude... But it can definitly answer some simple questions about my work and interests!</p>
+          <p class="m-0 leading-6">Here are a few prompts you could start with:</p>
           <div class="flex flex-wrap gap-2">
             <button *ngFor="let prompt of starterPrompts" type="button" (click)="submitStarter(prompt)" [disabled]="availability.mode === 'offline'" class="ui-btn ui-btn-secondary min-h-10 px-4 py-2 text-left text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50">
               {{ prompt }}
@@ -66,7 +63,7 @@
 
       <footer class="border-t px-5 py-4" style="border-color: var(--ui-border-soft);">
         <label class="sr-only" for="assistantComposer">Assistant message</label>
-        <textarea id="assistantComposer" [(ngModel)]="draft" (keydown)="handleComposerKeydown($event)" rows="4" [disabled]="isComposerDisabled(state, availability)" [placeholder]="availability.mode === 'offline' ? 'Assistant unavailable right now…' : 'Ask about projects, architecture, blog posts, or experience…'" class="ui-input w-full resize-none rounded-[1.5rem]"></textarea>
+        <textarea id="assistantComposer" [(ngModel)]="draft" (keydown)="handleComposerKeydown($event)" [rows]="getComposerRows()" [disabled]="isComposerDisabled(state, availability)" [placeholder]="availability.mode === 'offline' ? 'Assistant unavailable right now…' : 'Have a question about projects, posts, or experience?'" class="ui-input w-full resize-none rounded-[1.5rem] min-h-[3.5rem] max-h-28 !py-3"></textarea>
         <div class="mt-3 flex items-center justify-between gap-3">
           <p class="text-xs ui-text-soft">{{ getComposerHint(availability) }}</p>
           <button type="button" (click)="sendMessage()" [disabled]="isComposerDisabled(state, availability) || !draft.trim()" class="ui-btn ui-btn-primary px-5 py-2 disabled:cursor-not-allowed disabled:opacity-60">Send</button>

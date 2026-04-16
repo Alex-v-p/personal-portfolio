@@ -1,28 +1,26 @@
-<div class="mx-auto max-w-5xl space-y-8">
+<div class="mx-auto max-w-6xl space-y-8">
   <p class="text-sm ui-text-muted">Home &gt; Projects</p>
 
   <section class="ui-panel-soft p-6 sm:p-8 lg:p-10">
     <div class="space-y-8">
-      <header class="space-y-5 text-center">
-        <app-ui-section-title
-          align="center"
-          title="Projects"
-          description="Browse the current project collection with search and technology filters. This page now loads from the portfolio API instead of local mock files."
-        ></app-ui-section-title>
-        <div class="mx-auto w-full max-w-2xl border-t" style="border-color: var(--ui-border);"></div>
+      <header class="space-y-4 text-center">
+        <h1 class="ui-title-section text-4xl">Projects</h1>
+        <div class="mx-auto h-3 w-full max-w-lg rounded-full" style="background: var(--ui-primary);"></div>
+        <!-- <p class="mx-auto max-w-2xl text-sm leading-6 ui-text-muted">
+          Browse the current project collection with search and technology filters.
+          This page now loads from the portfolio API instead of local mock files.
+        </p> -->
       </header>
 
       <section *ngIf="isLoading" class="space-y-5" aria-label="Loading projects">
-        <div class="ui-card-soft space-y-4 p-5 sm:p-6">
-          <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)] lg:items-start">
-            <div class="space-y-2">
-              <app-ui-skeleton className="h-3 w-16 rounded-full"></app-ui-skeleton>
-              <app-ui-skeleton className="h-12 w-full rounded-2xl"></app-ui-skeleton>
-            </div>
-            <div class="space-y-2">
-              <app-ui-skeleton className="h-3 w-32 rounded-full"></app-ui-skeleton>
-              <app-ui-skeleton className="h-12 w-full rounded-2xl"></app-ui-skeleton>
-            </div>
+        <div class="ui-card-soft grid gap-4 p-4 md:grid-cols-[minmax(0,1fr)_20rem] md:items-end md:p-5">
+          <div class="space-y-2">
+            <app-ui-skeleton className="h-3 w-16 rounded-full"></app-ui-skeleton>
+            <app-ui-skeleton className="h-12 w-full rounded-full"></app-ui-skeleton>
+          </div>
+          <div class="space-y-2">
+            <app-ui-skeleton className="h-3 w-32 rounded-full"></app-ui-skeleton>
+            <app-ui-skeleton className="h-12 w-full rounded-full"></app-ui-skeleton>
           </div>
         </div>
 
@@ -54,116 +52,92 @@
       ></app-ui-empty-state>
 
       <ng-container *ngIf="!isLoading && !errorMessage && hasProjects">
-        <section class="ui-card-soft space-y-4 p-5 sm:p-6">
-          <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)] lg:items-start">
-            <label class="block space-y-2">
-              <span class="ui-kicker">Search</span>
-              <input
-                [(ngModel)]="searchQuery"
-                type="text"
-                placeholder="Search projects, descriptions, or tools"
-                class="ui-input"
-              />
-            </label>
+        <section class="ui-card-soft grid gap-4 p-4 md:grid-cols-[minmax(0,1fr)_20rem] md:items-start md:p-5">
+          <label class="block space-y-2">
+            <span class="ui-kicker">Search</span>
+            <input
+              [(ngModel)]="searchQuery"
+              type="text"
+              placeholder="Search projects, descriptions, or tools"
+              class="ui-input rounded-full"
+            />
+          </label>
 
-            <div class="relative space-y-2">
-              <span class="block ui-kicker">Technology filters</span>
-              <button
-                type="button"
-                (click)="toggleSkillMenu()"
-                class="ui-btn ui-btn-secondary flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl px-4 py-3 text-left text-sm"
-                [attr.aria-expanded]="isSkillMenuOpen"
-              >
-                <span class="truncate">{{ skillFilterLabel }}</span>
-                <span class="text-lg leading-none ui-text-soft">{{ isSkillMenuOpen ? '−' : '+' }}</span>
-              </button>
+          <div class="relative space-y-2">
+            <span class="block ui-kicker">Technology filters</span>
+            <button
+              type="button"
+              (click)="toggleSkillMenu()"
+              class="ui-btn ui-btn-secondary flex min-h-12 w-full items-center justify-between gap-3 rounded-full px-4 py-3 text-left text-sm"
+              [attr.aria-expanded]="isSkillMenuOpen"
+            >
+              <span class="pr-3">{{ skillFilterLabel }}</span>
+              <span class="text-lg leading-none ui-text-soft">{{ isSkillMenuOpen ? '−' : '+' }}</span>
+            </button>
 
-              <div
-                *ngIf="isSkillMenuOpen"
-                class="ui-panel absolute right-0 z-10 w-full rounded-[1.5rem] p-4"
-              >
-                <div class="mb-4 flex items-center justify-between gap-3">
-                  <p class="text-sm font-semibold ui-text-strong">Select technologies</p>
-                  <button
-                    type="button"
-                    (click)="closeSkillMenu()"
-                    class="text-sm font-medium ui-text-soft transition hover:[color:var(--ui-text)]"
-                  >
-                    Done
-                  </button>
-                </div>
+            <div
+              *ngIf="isSkillMenuOpen"
+              class="ui-panel absolute right-0 z-10 mt-2 w-full rounded-[1.5rem] p-4"
+            >
+              <div class="mb-4 flex items-center justify-between gap-3">
+                <p class="text-sm font-semibold ui-text-strong">Select technologies</p>
+                <button
+                  type="button"
+                  (click)="closeSkillMenu()"
+                  class="text-sm font-medium ui-text-soft transition hover:[color:var(--ui-text)]"
+                >
+                  Done
+                </button>
+              </div>
 
-                <div class="grid max-h-72 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
-                  <label
-                    *ngFor="let filter of availableSkillFilters"
-                    class="ui-card-soft flex cursor-pointer items-center justify-between gap-3 rounded-2xl px-3 py-3 transition hover:[border-color:var(--ui-border)] hover:[background:var(--ui-surface-soft)]"
-                  >
-                    <span class="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        [checked]="isSkillSelected(filter.name)"
-                        (change)="toggleSkillFilter(filter.name)"
-                        class="h-4 w-4 rounded"
-                        style="accent-color: var(--ui-primary);"
-                      />
-                      <span class="text-sm font-medium ui-text-muted">{{ filter.name }}</span>
-                    </span>
-                    <span class="text-xs font-semibold ui-text-soft">{{ filter.projectCount }}</span>
-                  </label>
-                </div>
+              <div class="grid gap-2 sm:grid-cols-2">
+                <label
+                  *ngFor="let filter of availableSkillFilters"
+                  class="ui-card-soft flex cursor-pointer items-center justify-between gap-3 rounded-2xl px-3 py-3 transition hover:[border-color:var(--ui-border)] hover:[background:var(--ui-surface-soft)]"
+                >
+                  <span class="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      [checked]="isSkillSelected(filter.name)"
+                      (change)="toggleSkillFilter(filter.name)"
+                      class="h-4 w-4 rounded"
+                      style="accent-color: var(--ui-primary);"
+                    />
+                    <span class="text-sm font-medium ui-text-muted">{{ filter.name }}</span>
+                  </span>
+                  <span class="text-xs font-semibold ui-text-soft">{{ filter.projectCount }}</span>
+                </label>
+              </div>
 
-                <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-4" style="border-color: var(--ui-border-soft);">
-                  <p class="text-xs ui-text-soft">Choose one or more technologies to narrow the project list.</p>
-                  <button
-                    type="button"
-                    (click)="clearSkillFilters()"
-                    class="text-sm font-semibold ui-text-muted transition hover:[color:var(--ui-text)]"
-                  >
-                    Clear technologies
-                  </button>
-                </div>
+              <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-4" style="border-color: var(--ui-border-soft);">
+                <p class="text-xs ui-text-soft">Choose one or more technologies to narrow the project list.</p>
+                <button
+                  type="button"
+                  (click)="clearSkillFilters()"
+                  class="text-sm font-semibold ui-text-muted transition hover:[color:var(--ui-text)]"
+                >
+                  Clear technologies
+                </button>
               </div>
             </div>
           </div>
-
-          <div *ngIf="hasActiveFilters" class="flex flex-wrap items-center gap-2">
-            <app-ui-chip *ngIf="searchQuery.trim()" tone="accent">
-              Search: {{ searchQuery.trim() }}
-              <button type="button" class="ml-1 ui-text-soft transition hover:[color:var(--ui-text)]" (click)="clearSearch()">×</button>
-            </app-ui-chip>
-
-            <app-ui-chip *ngFor="let filter of selectedSkillFilters" tone="accent">
-              {{ filter }}
-              <button type="button" class="ml-1 ui-text-soft transition hover:[color:var(--ui-text)]" (click)="toggleSkillFilter(filter)">×</button>
-            </app-ui-chip>
-          </div>
-
-          <div class="flex flex-col gap-3 text-sm ui-text-muted sm:flex-row sm:items-center sm:justify-between">
-            <p class="m-0">Showing {{ filteredProjects.length }} of {{ browsableProjects.length }} browseable projects</p>
-
-            <app-ui-button *ngIf="hasActiveFilters" appearance="secondary" type="button" (click)="resetFilters()">
-              Reset filters
-            </app-ui-button>
-          </div>
         </section>
 
-        <section *ngIf="featuredProject as spotlightProject" class="space-y-4">
-          <div class="flex items-center justify-between gap-4">
-            <div>
-              <p class="text-sm font-semibold ui-text-strong">Featured project</p>
-              <p class="text-sm ui-text-muted">A larger spotlight card that sets the visual direction for the rest of the projects page.</p>
-            </div>
+        <p class="text-center text-sm ui-text-muted">Showing {{ filteredProjects.length }} of {{ totalProjectCount }} projects</p>
+
+        <section *ngIf="featuredProject as spotlightProject" class="space-y-3">
+          <div class="space-y-1">
+            <p class="ui-kicker">Featured project</p>
+            <h2 class="ui-title-card text-2xl">A highlighted project from the current collection</h2>
           </div>
 
           <app-project-card [project]="spotlightProject" [featured]="true"></app-project-card>
         </section>
 
-        <section class="space-y-4">
-          <div class="flex items-center justify-between gap-4">
-            <div>
-              <p class="text-sm font-semibold ui-text-strong">Browse all projects</p>
-              <p class="text-sm ui-text-muted">Filter by technology or search across the project descriptions to find specific work quickly.</p>
-            </div>
+        <section class="space-y-3">
+          <div>
+            <h2 class="ui-title-card text-2xl">Browse all projects</h2>
+            <!-- <p class="text-sm leading-6 ui-text-muted"></p> -->
           </div>
 
           <div *ngIf="filteredProjects.length; else emptyResults" class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">

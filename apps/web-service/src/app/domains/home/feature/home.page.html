@@ -55,8 +55,8 @@
 
   <app-home-featured-section *ngIf="hasFeaturedContent" [featuredBlogPost]="featuredBlogPost" [primaryProject]="primaryProject"></app-home-featured-section>
 
-  <section *ngIf="hasExpertiseContent || hasExperienceContent" class="grid items-start gap-10 xl:grid-cols-[0.92fr_1.08fr]">
-    <app-home-expertise-section *ngIf="hasExpertiseContent" [groups]="expertiseGroups"></app-home-expertise-section>
+  <section *ngIf="hasExpertiseContent || hasExperienceContent" class="grid items-start gap-12 xl:grid-cols-[0.9fr_1.1fr] xl:gap-14">
+    <app-home-expertise-section *ngIf="hasExpertiseContent" [profile]="profile" [groups]="expertiseGroups"></app-home-expertise-section>
     <app-home-experience-section *ngIf="hasExperienceContent" [profile]="profile" [experiences]="experiencePreview"></app-home-experience-section>
   </section>
 

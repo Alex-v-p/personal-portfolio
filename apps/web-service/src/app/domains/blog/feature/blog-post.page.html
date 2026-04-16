@@ -53,7 +53,7 @@
       </div>
 
       <div class="flex flex-wrap gap-2">
-        <app-ui-chip *ngFor="let tag of post.tags">{{ tag }}</app-ui-chip>
+        <app-highlight-chip *ngFor="let tag of post.tags" [label]="tag"></app-highlight-chip>
       </div>
 
       <div class="flex items-center gap-3 text-sm ui-text-muted">

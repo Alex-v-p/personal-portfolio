@@ -71,7 +71,7 @@ export function normalizeProfile(profile: ProfileApi): Profile {
     name: fullName,
     headline,
     role: headline,
-    greeting: `Hi, I'm ${profile.firstName}`,
+    greeting: `Hi, I'm ${profile.firstName} !`,
     location: profile.location ?? '',
     email: profile.email ?? '',
     phone: profile.phone ?? '',

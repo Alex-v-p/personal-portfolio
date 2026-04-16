@@ -3,18 +3,20 @@ import { Component, Input } from '@angular/core';
 
 import { UiCardComponent } from '@shared/components/card/ui-card.component';
 import { UiChipComponent } from '@shared/components/chip/ui-chip.component';
+import { HighlightChipComponent } from '@shared/components/highlight-chip/highlight-chip.component';
 import { UiLinkButtonComponent } from '@shared/components/link-button/ui-link-button.component';
 import { BlogPostSummary } from '@domains/blog/model/blog-post-summary.model';
 
 @Component({
   selector: 'app-blog-card',
   standalone: true,
-  imports: [NgFor, NgIf, UiCardComponent, UiChipComponent, UiLinkButtonComponent],
+  imports: [NgFor, NgIf, UiCardComponent, UiChipComponent, HighlightChipComponent, UiLinkButtonComponent],
   templateUrl: './blog-card.component.html'
 })
 export class BlogCardComponent {
   @Input({ required: true }) post!: BlogPostSummary;
   @Input() featured = false;
+  @Input() showSecondaryAction = true;
 
   protected get displayedTags(): string[] {
     return this.post.tags.slice(0, this.featured ? 4 : 3);

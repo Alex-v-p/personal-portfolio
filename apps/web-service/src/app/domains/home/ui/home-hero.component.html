@@ -1,26 +1,56 @@
-<section class="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
-  <div class="space-y-6">
-    <div class="space-y-3">
-      <span class="ui-pill px-3 py-1 text-xs">{{ profile.location }}</span>
-      <p class="text-sm font-medium ui-text-soft">{{ profile.greeting }}</p>
-      <h1 class="ui-title-display max-w-xl leading-tight">
+<section
+  class="grid grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(340px,520px)] lg:gap-20 pb-16"
+>
+  <!-- Left side -->
+  <div class="order-1 lg:order-1 max-w-xl self-center space-y-8">
+    <div class="space-y-4">
+      <div class="flex items-start gap-1">
+        <div class="mt-1 flex-shrink-0">
+          <img
+            *ngIf="profile.avatarUrl; else heroIdentityFallback"
+            [src]="profile.avatarUrl"
+            [alt]="profile.name || 'Profile avatar'"
+            class="h-14 w-14 rounded-full border border-stone-300 object-cover shadow-sm"
+          />
+          <ng-template #heroIdentityFallback>
+            <span class="inline-flex h-14 w-14 items-center justify-center rounded-full border border-stone-300 bg-stone-200 text-sm font-semibold text-stone-700 shadow-sm">
+              {{ avatarInitials }}
+            </span>
+          </ng-template>
+        </div>
+
+        <div class="space-y-3 pt-1">
+          <span class="ui-pill inline-flex px-3 py-1 text-xs">
+            {{ profile.location }}
+          </span>
+
+          <p class="text-md font-medium ui-text-soft">
+            {{ profile.greeting }}
+          </p>
+        </div>
+      </div>
+
+      <h1 class="ui-title-display max-w-xl leading-[1.08]">
         {{ profile.heroTitle }}
       </h1>
-      <p class="max-w-2xl text-base leading-7 ui-text-muted">
+
+      <p class="max-w-xl text-base leading-8 ui-text-muted">
         {{ profile.summary }}
       </p>
     </div>
 
     <div class="space-y-3">
-      <p class="text-sm font-semibold ui-text-muted">My Skills:</p>
+      <p class="text-sm font-semibold ui-text-muted">My Core Skills:</p>
       <div class="flex flex-wrap gap-2">
-        <app-ui-chip *ngFor="let skill of profile.skills">{{ skill }}</app-ui-chip>
+        <app-ui-chip *ngFor="let skill of profile.skills">
+          {{ skill }}
+        </app-ui-chip>
       </div>
     </div>
 
-    <div class="flex flex-wrap gap-2">
+     <!-- <div class="flex flex-wrap gap-2">
       <app-ui-chip *ngFor="let label of profile.availability" tone="accent">{{ label }}</app-ui-chip>
-    </div>
+    </div> -->
 
     <div class="flex flex-wrap gap-3">
       <app-ui-link-button
@@ -33,27 +63,70 @@
         {{ action.label }}
       </app-ui-link-button>
     </div>
+
   </div>
 
-  <div class="mx-auto w-full max-w-md">
-    <div class="ui-media-frame ui-floating-media relative mx-auto aspect-[4/5] w-full max-w-sm overflow-hidden rounded-[1.75rem]">
-      <img *ngIf="profile.heroImageUrl || profile.avatarUrl; else heroFallback" [src]="profile.heroImageUrl || profile.avatarUrl" [alt]="profile.name || 'Profile image'" class="absolute inset-0 h-full w-full object-cover" />
-      <ng-template #heroFallback>
-        <div class="ui-media-placeholder absolute inset-4 rounded-[1.4rem] border" style="border-color: var(--ui-border-strong);"></div>
-        <div class="absolute inset-x-8 bottom-8 top-8 rounded-[1.2rem] border border-dashed" style="border-color: rgba(120, 113, 108, 0.35); background: rgba(255, 255, 255, 0.2);"></div>
-      </ng-template>
-      <div class="ui-glass-badge absolute left-8 top-8 rounded-full px-3 py-1 text-xs font-semibold">
-        {{ profile.firstName }} {{ profile.lastName }}
-      </div>
-      <div class="ui-glass-badge absolute bottom-8 left-8 right-8 rounded-3xl p-4">
-        <p class="text-sm font-semibold ui-text-strong">{{ profile.headline }}</p>
-        <p class="mt-1 text-xs leading-5 ui-text-muted">{{ profile.shortBio }}</p>
+  <!-- Right side -->
+  <div class="order-2 lg:order-2 hidden lg:flex items-center justify-center md:justify-end gap-4 ">
+    <div class="w-full max-w-[32rem] lg:max-w-[36rem]">
+      <div
+        class="ui-media-frame ui-floating-media relative aspect-[4/5] w-full overflow-hidden rounded-[0.5rem] p-3"
+      >
+        <img
+          *ngIf="profile.heroImageUrl || profile.avatarUrl; else heroFallback"
+          [src]="profile.heroImageUrl || profile.avatarUrl"
+          [alt]="profile.name || 'Profile image'"
+          class="absolute inset-0 h-full w-full object-cover rounded-[0.35rem]"
+        />
+
+        <ng-template #heroFallback>
+          <div
+            class="ui-media-placeholder absolute inset-3 rounded-[0.4rem] border"
+            style="border-color: var(--ui-border-strong);"
+          ></div>
+
+          <div
+            class="absolute inset-x-10 top-10 bottom-10 rounded-[0.35rem] border border-dashed"
+            style="border-color: rgba(120, 113, 108, 0.35); background: rgba(255, 255, 255, 0.2);"
+          ></div>
+        </ng-template>
+
+        <div
+          class="ui-glass-badge absolute left-5 top-5 rounded-full px-3 py-1 text-xs font-semibold"
+        >
+          {{ profile.firstName }} {{ profile.lastName }}
+        </div>
+        <!-- <div class="ui-glass-badge absolute bottom-8 left-8 right-8 rounded-3xl p-4">
+            <p class="text-sm font-semibold ui-text-strong">{{ profile.headline }}</p>
+            <p class="mt-1 text-xs leading-5 ui-text-muted">{{ profile.shortBio }}</p>
+          </div> -->
       </div>
     </div>
 
-    <div class="mt-6 flex justify-end gap-3">
-      <a *ngIf="profile.resumeUrl" [href]="profile.resumeUrl" target="_blank" rel="noreferrer noopener" class="ui-pill h-10 min-w-10 justify-center rounded-md px-3 text-xs">CV</a>
-      <span class="ui-pill h-10 w-10 justify-center rounded-md text-xs">UX</span>
+    <div class="hidden md:flex flex-col items-center gap-3 self-center">
+      <a
+        *ngIf="profile.resumeUrl"
+        [href]="profile.resumeUrl"
+        target="_blank"
+        rel="noreferrer noopener"
+        class="ui-pill flex h-11 min-w-11 items-center justify-center rounded-md px-3 text-xs"
+        aria-label="Open CV"
+        title="CV"
+      >
+        CV
+      </a>
+
+      <a
+        *ngFor="let link of socialButtons"
+        [href]="link.href"
+        [attr.target]="link.openInNewTab ? '_blank' : null"
+        [attr.rel]="link.openInNewTab ? 'noreferrer noopener' : null"
+        class="ui-pill flex h-11 min-w-11 items-center justify-center rounded-md px-3 text-xs"
+        [attr.aria-label]="link.label"
+        [attr.title]="link.label"
+      >
+        {{ link.mark }}
+      </a>
     </div>
   </div>
-</section>
+</section> 

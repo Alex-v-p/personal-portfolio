@@ -172,6 +172,22 @@ export class AppShellComponent implements OnInit {
     return `fixed bottom-6 right-4 z-40 transition duration-300 sm:bottom-8 sm:right-6 lg:right-8 ${visibleState}`;
   }
 
+  protected get assistantPanelClasses(): string {
+    const openState = this.isAssistantOpen
+      ? 'visible translate-y-0 scale-100 opacity-100'
+      : 'invisible pointer-events-none translate-y-3 scale-95 opacity-0';
+
+    return `mb-4 w-[min(36rem,calc(100vw-1.5rem))] origin-bottom-right transition-all duration-200 ease-out sm:w-[32rem] lg:w-[34rem] ${openState}`;
+  }
+
+  protected get assistantFabClasses(): string {
+    const openState = this.isAssistantOpen
+      ? 'scale-[0.985] shadow-[0_16px_36px_rgba(88,72,99,0.18)]'
+      : 'hover:-translate-y-0.5 hover:shadow-[0_16px_32px_rgba(88,72,99,0.12)]';
+
+    return `ui-fab inline-flex items-center gap-3 rounded-[1.75rem] px-4 py-3 ui-btn-secondary transition-all duration-200 ${openState}`;
+  }
+
   @HostListener('window:scroll')
   protected onWindowScroll(): void {
     if (typeof window === 'undefined') {

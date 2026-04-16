@@ -22,9 +22,8 @@ export class AssistantPanelComponent {
   protected draft = '';
   protected readonly starterPrompts = [
     'What projects are in this portfolio?',
-    'Tell me about the CMS architecture.',
     'Which blog posts talk about AI or backend work?',
-    'What technologies does this portfolio use?',
+    'What are Alex\'s specialities?',
   ];
 
   protected sendMessage(): void {
@@ -93,6 +92,11 @@ export class AssistantPanelComponent {
       return 'ui-alert ui-alert-danger';
     }
     return 'ui-card-soft ui-text-muted';
+  }
+
+
+  protected getComposerRows(): number {
+    return this.mode === 'page' ? 3 : 2;
   }
 
   protected getComposerHint(availability: AssistantAvailabilityState): string {

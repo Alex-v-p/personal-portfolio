@@ -210,9 +210,26 @@
     box-shadow: var(--ui-shadow-card);
   }
 
-  .ui-card-featured {
+  /* .ui-card-featured {
     border-color: var(--ui-border);
     background: linear-gradient(180deg, var(--ui-surface-strong) 0%, rgba(240, 232, 237, 0.95) 100%);
+  } */
+
+  /* .ui-card-featured {
+    border-color: var(--ui-border);
+    background: rgba(245, 240, 243, 0.96);
+  } */
+
+  .ui-card-featured {
+    border-color: var(--ui-border);
+    background: white;
+  }
+
+  .ui-chip.ui-chip-highlight {
+    border-color: rgb(140 108 159 / 0.7);
+    background: rgb(216 198 228 / 0.55);
+    color: rgb(72 49 98);
+    box-shadow: inset 0 0 0 1px rgb(140 108 159 / 0.22);
   }
 
   .ui-card-soft {
@@ -234,7 +251,7 @@
     min-height: 2.5rem;
     align-items: center;
     border-radius: var(--ui-radius-pill);
-    padding: 0 1rem;
+    padding: 0 2rem;
     font-size: 0.875rem;
     font-weight: 500;
     color: var(--ui-text-muted);
@@ -435,7 +452,7 @@
     margin: 0;
     max-width: 18ch;
     color: var(--ui-text);
-    font-size: clamp(2.4rem, 5vw, 3.4rem);
+    font-size: clamp(2rem, 4.5vw, 3rem);
     font-weight: 600;
     line-height: 1.02;
     letter-spacing: -0.03em;
