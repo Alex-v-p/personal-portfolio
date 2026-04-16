@@ -17,11 +17,6 @@ import { PublicProfileApiService } from '@domains/profile/data/profile-api.servi
 import { SiteTrackingService } from '@domains/site-activity/data/site-tracking.service';
 import { buildContactMethodsFromProfile, createEmptyProfile } from '@domains/profile/lib/profile-view.util';
 
-interface ContactTopic {
-  label: string;
-  hint: string;
-}
-
 type SubmissionState = 'idle' | 'submitting' | 'success' | 'error';
 
 @Component({
@@ -39,13 +34,7 @@ export class ContactPageComponent implements OnInit {
 
   protected profile: Profile = createEmptyProfile();
   protected contactMethods: ContactMethod[] = [];
-  protected readonly preferredTopics: ContactTopic[] = [
-    { label: 'Internships', hint: 'Questions about availability, timing, and current study status.' },
-    { label: 'Freelance work', hint: 'Small product sites, portfolio builds, or front-end feature work.' },
-    { label: 'Collaboration', hint: 'Student projects, hackathons, or longer-term side projects.' },
-    { label: 'Speaking or demos', hint: 'School events, portfolio walkthroughs, or project presentations.' }
-  ];
-
+  
   protected readonly contactForm = this.formBuilder.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
@@ -143,6 +132,38 @@ export class ContactPageComponent implements OnInit {
 
   protected get hasContactDetails(): boolean {
     return Boolean(this.contactMethods.length || this.profile.shortBio || this.profile.availability.length || this.profile.location);
+  }
+
+  protected get primaryContactMethods(): ContactMethod[] {
+    const preferredPlatforms = new Set(['email', 'phone']);
+    const preferredMethods = this.contactMethods.filter((method) => preferredPlatforms.has(method.platform));
+
+    return (preferredMethods.length ? preferredMethods : this.contactMethods).slice(0, 2);
+  }
+
+  protected get secondaryContactMethods(): ContactMethod[] {
+    const primaryIds = new Set(this.primaryContactMethods.map((method) => method.id));
+    return this.contactMethods.filter((method) => !primaryIds.has(method.id));
+  }
+
+  protected get hasSupplementaryContactMethods(): boolean {
+    return this.secondaryContactMethods.length > 0;
+  }
+
+  protected isExternalContactMethod(method: ContactMethod): boolean {
+    return !(method.href.startsWith('mailto:') || method.href.startsWith('tel:'));
+  }
+
+  protected contactMethodMonogram(method: ContactMethod): string {
+    const lookup: Record<string, string> = {
+      email: 'EM',
+      phone: 'PH',
+      github: 'GH',
+      linkedin: 'LI',
+      location: 'LO',
+    };
+
+    return lookup[method.platform] ?? method.label.slice(0, 2).toUpperCase();
   }
 
   protected showError(controlName: 'name' | 'email' | 'subject' | 'message'): boolean {
