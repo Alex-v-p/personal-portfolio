@@ -239,7 +239,7 @@
     min-height: 2.5rem;
     align-items: center;
     border-radius: var(--ui-radius-pill);
-    padding: 0 1rem;
+    padding: 0 2rem;
     font-size: 0.875rem;
     font-weight: 500;
     color: var(--ui-text-muted);

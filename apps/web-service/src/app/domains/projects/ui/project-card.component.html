@@ -46,22 +46,13 @@
 
       <div class="flex flex-wrap gap-3 pt-1">
         <app-ui-link-button
-          *ngIf="primaryAction"
-          [routerLink]="primaryAction.routerLink ?? '/projects'"
-          [href]="primaryAction.href ?? null"
-          [openInNewTab]="!!primaryAction.href"
-        >
-          {{ primaryAction.label }}
-        </app-ui-link-button>
-
-        <app-ui-link-button
-          *ngFor="let action of secondaryActions"
-          [routerLink]="action.routerLink ?? '/projects'"
-          [href]="action.href ?? null"
-          [openInNewTab]="!!action.href"
+          *ngIf="readMoreAction"
+          [routerLink]="readMoreAction.routerLink ?? '/projects'"
+          [href]="readMoreAction.href ?? null"
+          [openInNewTab]="!!readMoreAction.href"
           appearance="ghost"
         >
-          {{ action.label }}
+          Read more
         </app-ui-link-button>
       </div>
     </div>
@@ -97,13 +88,13 @@
 
       <div class="mt-auto flex flex-wrap gap-3 pt-1">
         <app-ui-link-button
-          *ngIf="primaryAction"
-          [routerLink]="primaryAction.routerLink ?? '/projects'"
-          [href]="primaryAction.href ?? null"
-          [openInNewTab]="!!primaryAction.href"
+          *ngIf="readMoreAction"
+          [routerLink]="readMoreAction.routerLink ?? '/projects'"
+          [href]="readMoreAction.href ?? null"
+          [openInNewTab]="!!readMoreAction.href"
           appearance="ghost"
         >
-          {{ primaryAction.label }}
+          Read more
         </app-ui-link-button>
       </div>
     </div>

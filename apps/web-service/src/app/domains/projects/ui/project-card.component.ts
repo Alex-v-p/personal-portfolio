@@ -28,6 +28,22 @@ export class ProjectCardComponent {
     return externalDemo ?? externalGithub ?? internalReadMore ?? this.project.links[0] ?? null;
   }
 
+
+  protected get readMoreAction(): ProjectLink | null {
+    const externalDemo = this.project.links.find((link) => link.label.toLowerCase().includes('demo'));
+    const externalGithub = this.project.links.find((link) => link.label.toLowerCase().includes('github'));
+    const internalReadMore = this.project.links.find((link) => link.routerLink);
+
+    return externalDemo ?? externalGithub ?? internalReadMore ?? this.project.links[0] ?? null;
+  }
+
+  protected get extraActions(): ProjectLink[] {
+    return this.project.links
+      .filter((link) => link !== this.readMoreAction)
+      .filter((link) => (link.label ?? '').trim().length > 0)
+      .slice(0, this.featured ? 1 : 0);
+  }
+
   protected get secondaryActions(): ProjectLink[] {
     return this.project.links.filter((link) => link !== this.primaryAction).slice(0, this.featured ? 2 : 1);
   }

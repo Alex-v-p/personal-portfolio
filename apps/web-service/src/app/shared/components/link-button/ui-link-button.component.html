@@ -1,15 +1,9 @@
 <a
-  *ngIf="href; else internalLink"
   [class]="linkClasses"
-  [href]="href"
-  [attr.target]="openInNewTab ? '_blank' : null"
-  [attr.rel]="openInNewTab ? 'noreferrer noopener' : null"
+  [attr.href]="resolvedHref"
+  [attr.target]="href && openInNewTab ? '_blank' : null"
+  [attr.rel]="href && openInNewTab ? 'noreferrer noopener' : null"
+  (click)="handleClick($event)"
 >
   <ng-content></ng-content>
 </a>
-
-<ng-template #internalLink>
-  <a [class]="linkClasses" [routerLink]="routerLink">
-    <ng-content></ng-content>
-  </a>
-</ng-template>

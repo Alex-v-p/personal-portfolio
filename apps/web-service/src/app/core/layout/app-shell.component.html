@@ -1,7 +1,8 @@
 <div class="flex min-h-screen flex-col" [attr.data-skin]="isAdminRoute ? 'admin' : 'public'">
   <header *ngIf="!isAdminRoute" [class]="headerClasses">
-    <div class="ui-nav-shell mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-3 py-2">
-      <nav class="flex flex-1 flex-wrap items-center gap-2">
+  <div class="mx-auto flex justify-center px-3 py-2">
+    <div class="ui-nav-shell inline-flex w-fit items-center gap-2 px-5 py-2">
+      <nav class="flex flex-wrap items-center gap-2">
         <ng-container *ngFor="let item of quickLinks">
           <a
             *ngIf="!item.isExternal; else externalHeaderLink"
@@ -12,6 +13,7 @@
           >
             {{ item.label }}
           </a>
+
           <ng-template #externalHeaderLink>
             <a
               [href]="item.path"
@@ -25,7 +27,8 @@
         </ng-container>
       </nav>
     </div>
-  </header>
+  </div>
+</header>
 
   <main class="flex-1 px-4 py-10 sm:px-6 md:py-12 lg:px-8 lg:py-14">
     <div [class]="mainContentContainerClasses">
