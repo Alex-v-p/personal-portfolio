@@ -1,0 +1,46 @@
+ .experience-item {
+  outline: none;
+}
+
+.experience-item:focus-visible .ui-card-surface {
+  box-shadow: 0 0 0 2px var(--ui-focus-ring);
+}
+
+.experience-content {
+  overflow: hidden;
+}
+
+.experience-summary-shell {
+  overflow: hidden;
+  max-height: 4.5rem;
+  transition: max-height 320ms ease;
+}
+
+.experience-summary-shell.is-open {
+  max-height: 16rem;
+}
+
+.experience-summary {
+  margin: 0;
+}
+
+.experience-summary.is-collapsed {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
+.experience-skills-shell {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition:
+    max-height 320ms ease,
+    opacity 180ms ease;
+}
+
+.experience-skills-shell.is-open {
+  max-height: 6rem;
+  opacity: 1;
+}

@@ -215,9 +215,14 @@
     background: linear-gradient(180deg, var(--ui-surface-strong) 0%, rgba(240, 232, 237, 0.95) 100%);
   } */
 
-  .ui-card-featured {
+  /* .ui-card-featured {
     border-color: var(--ui-border);
     background: rgba(245, 240, 243, 0.96);
+  } */
+
+  .ui-card-featured {
+    border-color: var(--ui-border);
+    background: white;
   }
 
   .ui-card-soft {

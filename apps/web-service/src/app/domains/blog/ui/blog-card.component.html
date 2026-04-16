@@ -1,26 +1,31 @@
-<app-ui-card *ngIf="featured; else defaultCard" [featured]="true" padding="lg">
-  <div class="grid gap-6 lg:grid-cols-[0.92fr_1.08fr] lg:gap-7">
-    <div class="ui-media-frame relative min-h-72 overflow-hidden rounded-[1.5rem]">
-      <img *ngIf="post.coverImageUrl; else blogFeaturedFallback" [src]="post.coverImageUrl" [alt]="post.coverImageAlt" class="h-full w-full object-cover" />
+<app-ui-card *ngIf="featured; else defaultCard" [featured]="true" padding="none">
+  <div class="grid h-full gap-0 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+    <div class="relative overflow-hidden lg:min-h-[24rem]">
+      <img
+        *ngIf="post.coverImageUrl; else blogFeaturedFallback"
+        [src]="post.coverImageUrl"
+        [alt]="post.coverImageAlt"
+        class="h-full w-full object-cover"
+      />
       <ng-template #blogFeaturedFallback>
-        <div class="ui-media-placeholder ui-media-fallback flex h-full items-end p-5 text-xs font-semibold uppercase tracking-[0.16em]">
+        <div class="ui-media-placeholder ui-media-fallback flex h-full min-h-[18rem] items-end p-5 text-xs font-semibold uppercase tracking-[0.16em]">
           <span class="max-w-[18ch]">{{ placeholderLabel }}</span>
         </div>
       </ng-template>
       <app-ui-chip *ngIf="post.isFeatured" tone="accent" class="absolute left-4 top-4">Featured</app-ui-chip>
     </div>
 
-    <div class="flex h-full flex-col justify-between gap-5">
+    <div class="flex h-full flex-col justify-between gap-5 px-6 py-6 lg:px-7 lg:py-7">
       <div class="space-y-5">
-        <div class="ui-meta-row flex flex-wrap items-center gap-2">
+        <div class="ui-meta-row flex flex-wrap items-center gap-x-3 gap-y-1">
           <span>{{ post.category }}</span>
           <span>{{ post.publishedAt }}</span>
           <span>{{ post.readTime }}</span>
         </div>
 
         <div class="space-y-3">
-          <h2 class="ui-title-card text-3xl">{{ post.title }}</h2>
-          <p class="text-sm leading-7 ui-text-muted">{{ post.excerpt }}</p>
+          <h2 class="ui-title-card text-3xl leading-[1.08]">{{ post.title }}</h2>
+          <p class="max-w-[42ch] text-sm leading-7 ui-text-muted">{{ post.excerpt }}</p>
         </div>
 
         <div class="flex flex-wrap gap-2">
@@ -28,7 +33,7 @@
         </div>
       </div>
 
-      <div class="flex flex-wrap gap-3">
+      <div class="flex flex-wrap gap-3 pt-1">
         <app-ui-link-button [routerLink]="['/blog', post.slug]">Read article</app-ui-link-button>
         <app-ui-link-button routerLink="/blog" appearance="ghost">All posts</app-ui-link-button>
       </div>
@@ -37,10 +42,15 @@
 </app-ui-card>
 
 <ng-template #defaultCard>
-  <app-ui-card>
-    <div class="flex h-full flex-col gap-4">
-      <div class="ui-media-frame relative overflow-hidden rounded-[1.35rem]">
-        <img *ngIf="post.coverImageUrl; else blogCardFallback" [src]="post.coverImageUrl" [alt]="post.coverImageAlt" class="aspect-[16/10] w-full object-cover" />
+  <app-ui-card padding="none">
+    <div class="flex h-full flex-col">
+      <div class="relative overflow-hidden">
+        <img
+          *ngIf="post.coverImageUrl; else blogCardFallback"
+          [src]="post.coverImageUrl"
+          [alt]="post.coverImageAlt"
+          class="aspect-[16/10] w-full object-cover"
+        />
         <ng-template #blogCardFallback>
           <div class="ui-media-placeholder ui-media-fallback relative flex aspect-[16/10] items-end p-4 text-[0.7rem] font-semibold uppercase tracking-[0.14em]">
             <span class="max-w-[16ch]">{{ placeholderLabel }}</span>
@@ -49,23 +59,25 @@
         <app-ui-chip *ngIf="post.isFeatured" tone="accent" class="absolute left-3 top-3">Featured</app-ui-chip>
       </div>
 
-      <div class="ui-meta-row flex flex-wrap gap-x-3 gap-y-1">
-        <span>{{ post.category }}</span>
-        <span>{{ post.publishedAt }}</span>
-        <span>{{ post.readTime }}</span>
-      </div>
+      <div class="flex h-full flex-col gap-4 px-6 pb-6 pt-5">
+        <div class="ui-meta-row flex flex-wrap gap-x-3 gap-y-1">
+          <span>{{ post.category }}</span>
+          <span>{{ post.publishedAt }}</span>
+          <span>{{ post.readTime }}</span>
+        </div>
 
-      <div class="space-y-2">
-        <h3 class="ui-title-card text-2xl">{{ post.title }}</h3>
-        <p class="text-sm leading-6 ui-text-muted">{{ post.excerpt }}</p>
-      </div>
+        <div class="space-y-2">
+          <h3 class="ui-title-card text-2xl leading-[1.12]">{{ post.title }}</h3>
+          <p class="text-sm leading-6 ui-text-muted">{{ post.excerpt }}</p>
+        </div>
 
-      <div class="flex flex-wrap gap-2">
-        <app-ui-chip *ngFor="let tag of displayedTags">{{ tag }}</app-ui-chip>
-      </div>
+        <div class="flex flex-wrap gap-2">
+          <app-ui-chip *ngFor="let tag of displayedTags">{{ tag }}</app-ui-chip>
+        </div>
 
-      <div class="mt-auto flex flex-wrap gap-3 pt-1">
-        <app-ui-link-button [routerLink]="['/blog', post.slug]" appearance="ghost">Read article</app-ui-link-button>
+        <div class="mt-auto flex flex-wrap gap-3 pt-1">
+          <app-ui-link-button [routerLink]="['/blog', post.slug]" appearance="ghost">Read article</app-ui-link-button>
+        </div>
       </div>
     </div>
   </app-ui-card>

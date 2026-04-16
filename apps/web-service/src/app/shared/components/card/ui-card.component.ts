@@ -1,10 +1,8 @@
 import { Component, Input } from '@angular/core';
-import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'app-ui-card',
   standalone: true,
-  imports: [NgClass],
   templateUrl: './ui-card.component.html'
 })
 export class UiCardComponent {
@@ -13,9 +11,14 @@ export class UiCardComponent {
 
   protected get cardClasses(): string {
     const base = 'min-w-0 ui-card-surface';
-    const padding = this.padding === 'lg' ? 'p-8' : 'p-6';
-    const featured = this.featured ? 'ui-card-featured' : '';
+    const padding =
+      this.padding === 'none' ? 'p-0' :
+      this.padding === 'sm' ? 'p-4' :
+      this.padding === 'lg' ? 'p-8' :
+      'p-6';
 
-    return `${base} ${padding} ${featured}`.trim();
+    const featured = this.featured ? ' ui-card-featured' : '';
+
+    return `${base} ${padding}${featured}`;
   }
 }

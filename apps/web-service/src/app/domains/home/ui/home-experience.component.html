@@ -1,5 +1,5 @@
-<section class="space-y-8">
-  <div class="space-y-4">
+<section class="space-y-8 lg:space-y-10">
+  <div class="space-y-4 pt-4 lg:pt-5">
     <p *ngFor="let paragraph of profile.introParagraphs" class="text-sm leading-7 text-stone-600">
       {{ paragraph }}
     </p>
@@ -11,38 +11,104 @@
   </div>
 
   <div *ngIf="experiences.length" class="space-y-6">
-    <app-ui-section-title title="Experience" description="A timeline preview of education, internships, and independent project work."></app-ui-section-title>
+    <app-ui-section-title title="Experience" description=""></app-ui-section-title>
 
-    <div class="relative space-y-4 pl-6 before:absolute before:bottom-2 before:left-[11px] before:top-2 before:w-px before:bg-stone-400/70">
-      <div *ngFor="let item of experiences" class="relative">
-        <span class="absolute -left-6 top-7 h-3 w-3 rounded-full bg-stone-500"></span>
+    <div class="relative space-y-4 pt-4">
+      <span
+        class="pointer-events-none absolute bottom-3 left-3 top-4 w-px -translate-x-1/2 bg-stone-600"
+        aria-hidden="true"
+      ></span>
 
-        <app-ui-card>
-          <div class="flex gap-4">
-            <img *ngIf="item.logoUrl; else experienceMark" [src]="item.logoUrl" [alt]="item.organizationName" class="mt-1 h-12 w-12 shrink-0 rounded-2xl object-cover" />
-            <ng-template #experienceMark>
-              <span class="mt-1 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-stone-300 text-xs font-semibold text-stone-600">
-                {{ item.organizationName.slice(0, 2).toUpperCase() }}
-              </span>
-            </ng-template>
+      <div
+        *ngFor="let item of experiences; let index = index"
+        class="grid grid-cols-[1.5rem_minmax(0,1fr)] gap-4"
+      >
+        <div class="relative flex justify-center">
+          <span
+            class="relative mt-7 h-4 w-4 rounded-full border-2 border-stone-600 bg-white shadow-sm"
+            aria-hidden="true"
+          ></span>
+        </div>
 
-            <div class="min-w-0 space-y-3">
-              <div class="space-y-1">
-                <div class="flex flex-wrap items-center gap-2">
-                  <h3 class="text-lg font-semibold text-stone-950">{{ item.title }}</h3>
-                  <span class="text-xs text-stone-500">{{ item.location }}</span>
+        <div
+          class="experience-item block cursor-pointer"
+          role="button"
+          tabindex="0"
+          [attr.aria-expanded]="isExpanded(item.id)"
+          [attr.aria-controls]="'experience-panel-' + item.id"
+          (click)="toggleExperience(item.id)"
+          (keydown)="handleExperienceKeydown($event, item.id)"
+        >
+          <app-ui-card padding="sm">
+            <div class="flex gap-4">
+              <img
+                *ngIf="item.logoUrl; else experienceMark"
+                [src]="item.logoUrl"
+                [alt]="item.organizationName"
+                class="mt-1 h-12 w-12 shrink-0 rounded-2xl object-cover"
+              />
+
+              <ng-template #experienceMark>
+                <span class="mt-1 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-stone-300 text-xs font-semibold text-stone-700">
+                  {{ item.organizationName.slice(0, 2).toUpperCase() }}
+                </span>
+              </ng-template>
+
+              <div class="min-w-0 flex-1 space-y-3">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0 space-y-2">
+                    <div class="space-y-1">
+                      <div class="flex flex-wrap items-center gap-2">
+                        <h3 class="text-lg font-semibold text-stone-950">{{ item.title }}</h3>
+                        <span class="text-xs text-stone-500">{{ item.location }}</span>
+                      </div>
+                      <p class="inline-flex rounded-full border border-stone-300 bg-stone-200/60 px-3 py-1 text-[0.7rem] font-medium uppercase tracking-[0.08em] text-stone-600">
+                        {{ item.period }}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-stone-300 bg-white/80 text-stone-500 transition hover:border-stone-400 hover:text-stone-700 focus:outline-none focus:ring-2 focus:ring-[var(--ui-focus-ring)]"
+                    [attr.aria-expanded]="isExpanded(item.id)"
+                    [attr.aria-controls]="'experience-panel-' + item.id"
+                    [attr.aria-label]="isExpanded(item.id) ? 'Collapse experience details' : 'Expand experience details'"
+                    (click)="$event.stopPropagation(); toggleExperience(item.id)"
+                  >
+                    <svg
+                      class="h-4 w-4 transition-transform duration-300"
+                      [class.rotate-180]="isExpanded(item.id)"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.51a.75.75 0 0 1-1.08 0l-4.25-4.51a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
+                    </svg>
+                  </button>
                 </div>
-                <p class="text-xs text-stone-500">{{ item.period }}</p>
-              </div>
 
-              <p class="text-sm leading-6 text-stone-600">{{ item.summary }}</p>
+                <div
+                  [attr.id]="'experience-panel-' + item.id"
+                  class="experience-content"
+                  [class.is-open]="isExpanded(item.id)"
+                >
+                  <div class="experience-summary-shell" [class.is-open]="isExpanded(item.id)">
+                    <p class="experience-summary text-sm leading-6 text-stone-600" [class.is-collapsed]="!isExpanded(item.id)">
+                      {{ item.summary }}
+                    </p>
+                  </div>
 
-              <div class="flex flex-wrap gap-2">
-                <app-ui-chip *ngFor="let skill of item.skillNames">{{ skill }}</app-ui-chip>
+                  <div class="experience-skills-shell" [class.is-open]="isExpanded(item.id)">
+                    <div *ngIf="item.skillNames.length" class="flex flex-wrap gap-2 pt-3">
+                      <app-ui-chip *ngFor="let skill of item.skillNames">{{ skill }}</app-ui-chip>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </app-ui-card>
+          </app-ui-card>
+        </div>
       </div>
     </div>
   </div>

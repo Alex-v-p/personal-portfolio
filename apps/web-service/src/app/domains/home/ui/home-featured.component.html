@@ -2,7 +2,7 @@
   <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
     <app-ui-section-title
       title="Featured"
-      description="A selection of my latest work that I'm proud to share!"
+      description=""
     ></app-ui-section-title>
 
     <div class="flex flex-wrap gap-3 md:justify-end">
@@ -17,7 +17,7 @@
 
         <div
           *ngIf="featuredBlogPost.coverImageUrl; else featuredFallback"
-          class=" overflow-hidden rounded-md"
+          class=" overflow-hidden"
         >
           <img
             [src]="featuredBlogPost.coverImageUrl"
@@ -51,7 +51,7 @@
               {{ featuredBlogPost.title }}
             </h3>
 
-            <p class="max-w-[46ch] text-sm leading-6 text-stone-600">
+            <p class="lg:max-w-[46ch] text-sm leading-6 text-stone-600">
               {{ featuredBlogPost.excerpt }}
             </p>
           </div>
