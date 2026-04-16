@@ -1,10 +1,15 @@
 import { ApplicationConfig } from '@angular/core';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideRouter } from '@angular/router';
+import { provideRouter, TitleStrategy } from '@angular/router';
 
 import { routes } from './app.routes';
-import { adminAuthInterceptor } from './shared/interceptors/admin-auth.interceptor';
+import { AppTitleStrategy } from './core/routing/app-title.strategy';
 
 export const appConfig: ApplicationConfig = {
-  providers: [provideRouter(routes), provideHttpClient(withInterceptors([adminAuthInterceptor]))]
+  providers: [
+    provideRouter(routes),
+    {
+      provide: TitleStrategy,
+      useClass: AppTitleStrategy,
+    },
+  ],
 };
