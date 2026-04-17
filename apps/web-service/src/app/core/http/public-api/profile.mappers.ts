@@ -1,10 +1,11 @@
 import { ContactMethod } from '@domains/profile/model/contact-method.model';
-import { Profile } from '@domains/profile/model/profile.model';
+import { ExpertiseGroup, ExpertiseSkill, Profile } from '@domains/profile/model/profile.model';
 import { NavigationItem, SiteShellData } from '@domains/profile/model/site-shell.model';
 import { SocialLink } from '@domains/profile/model/social-link.model';
 
 import { normalizeMedia } from './common.mappers';
 import { ContactMethodApi, NavigationItemApi, ProfileApi, SiteShellApi, SocialLinkApi } from './profile.contracts';
+import { ExpertiseGroupApi, ExpertiseSkillApi } from './common.contracts';
 
 export function normalizeNavigationItem(item: NavigationItemApi): NavigationItem {
   return {
@@ -53,6 +54,41 @@ export function normalizeContactMethods(items: ContactMethodApi[] | null | undef
   }));
 }
 
+export function normalizeExpertiseSkill(skill: ExpertiseSkillApi | null | undefined): ExpertiseSkill | null {
+  if (!skill?.name) {
+    return null;
+  }
+
+  return {
+    name: skill.name,
+    yearsOfExperience: skill.yearsOfExperience ?? null,
+  };
+}
+
+export function normalizeExpertiseGroups(items: ExpertiseGroupApi[] | null | undefined): ExpertiseGroup[] {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  return items.map((group) => {
+    const normalizedSkills = Array.isArray(group.skills)
+      ? group.skills
+          .map((skill) => normalizeExpertiseSkill(skill))
+          .filter((skill): skill is ExpertiseSkill => skill !== null)
+      : [];
+
+    const fallbackSkills = normalizedSkills.length
+      ? normalizedSkills
+      : (group.tags ?? []).map((tag) => parseExpertiseSkillFromTag(tag));
+
+    return {
+      title: group.title,
+      tags: Array.isArray(group.tags) ? group.tags : [],
+      skills: fallbackSkills,
+    };
+  });
+}
+
 export function normalizeProfile(profile: ProfileApi): Profile {
   const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(' ').trim();
   const longBio = profile.longBio ?? '';
@@ -63,6 +99,20 @@ export function normalizeProfile(profile: ProfileApi): Profile {
     toHeroAction(profile.ctaPrimaryLabel, profile.ctaPrimaryUrl, 'primary'),
     toHeroAction(profile.ctaSecondaryLabel, profile.ctaSecondaryUrl, 'secondary'),
   ].filter((action): action is Profile['heroActions'][number] => action !== null);
+
+  const longBioParagraphs = longBio
+    .split(/\n\s*\n/g)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+
+  const introParagraphs = (Array.isArray(profile.introParagraphs) && profile.introParagraphs.length
+    ? profile.introParagraphs
+    : longBioParagraphs
+  )
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean)
+    .filter((paragraph, index, items) => items.indexOf(paragraph) === index)
+    .filter((paragraph) => paragraph !== shortIntro.trim());
 
   return {
     id: profile.id,
@@ -79,8 +129,8 @@ export function normalizeProfile(profile: ProfileApi): Profile {
     longBio,
     heroTitle: `I’m ${headline}`,
     summary: shortIntro || longBio,
-    shortBio: longBio || shortIntro,
-    footerDescription: profile.footerDescription || longBio || shortIntro,
+    shortBio: shortIntro || longBio,
+    footerDescription: shortIntro || profile.footerDescription || longBio,
     avatarFileId: profile.avatarFileId ?? null,
     heroImageFileId: profile.heroImageFileId ?? null,
     resumeFileId: profile.resumeFileId ?? null,
@@ -88,8 +138,8 @@ export function normalizeProfile(profile: ProfileApi): Profile {
     heroImageUrl: normalizeMedia(profile.heroImage)?.url ?? '',
     resumeUrl: normalizeMedia(profile.resume)?.url ?? '',
     skills: Array.isArray(profile.skills) ? profile.skills : [],
-    expertiseGroups: Array.isArray(profile.expertiseGroups) ? profile.expertiseGroups : [],
-    introParagraphs: Array.isArray(profile.introParagraphs) ? profile.introParagraphs : [shortIntro, longBio].filter(Boolean),
+    expertiseGroups: normalizeExpertiseGroups(profile.expertiseGroups),
+    introParagraphs,
     availability: Array.isArray(profile.availability) ? profile.availability : [],
     heroActions,
     socialLinks,
@@ -104,6 +154,20 @@ export function normalizeSiteShell(shell: SiteShellApi): SiteShellData {
     profile: normalizeProfile(shell.profile),
     footerText: shell.footerText ?? '',
     contactMethods: normalizeContactMethods(shell.contactMethods),
+  };
+}
+
+function parseExpertiseSkillFromTag(tag: string): ExpertiseSkill {
+  const trimmedTag = tag.trim();
+  const match = trimmedTag.match(/^(.*?)\s*[-·]\s*(\d+)y$/i);
+
+  if (!match) {
+    return { name: trimmedTag, yearsOfExperience: null };
+  }
+
+  return {
+    name: match[1].trim(),
+    yearsOfExperience: Number.parseInt(match[2], 10) || null,
   };
 }
 

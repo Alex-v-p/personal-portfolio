@@ -68,7 +68,22 @@ class PublicProfileRepositoryMixin:
             ordered_skills = sorted(category.skills, key=lambda skill: (skill.sort_order, skill.name.lower()))
             if not ordered_skills:
                 continue
-            groups.append(ExpertiseGroupOut(title=category.name, tags=[skill.name for skill in ordered_skills]))
+            groups.append(
+                ExpertiseGroupOut(
+                    title=category.name,
+                    tags=[
+                        f'{skill.name} - {skill.years_of_experience}y' if skill.years_of_experience is not None else skill.name
+                        for skill in ordered_skills
+                    ],
+                    skills=[
+                        {
+                            'name': skill.name,
+                            'years_of_experience': skill.years_of_experience,
+                        }
+                        for skill in ordered_skills
+                    ],
+                )
+            )
         return groups
 
     def _get_highlighted_skill_names(self) -> list[str]:
@@ -81,7 +96,7 @@ class PublicProfileRepositoryMixin:
         return [skill.name for skill in fallback[:6]]
 
     def _map_profile(self, profile: Profile) -> ProfileOut:
-        intro_paragraphs = [part for part in [profile.short_intro, profile.long_bio] if part]
+        intro_paragraphs = [part for part in [profile.long_bio] if part]
         expertise_groups = self._get_expertise_groups()
         resume_url = self.media_resolver.resolve(profile.resume_file)
         primary_cta_url = profile.cta_primary_url
@@ -124,9 +139,9 @@ class PublicProfileRepositoryMixin:
                 for link in sorted(profile.social_links, key=lambda item: (item.sort_order, item.label.lower()))
                 if link.is_visible
             ],
-            footer_description=profile.long_bio or profile.short_intro,
+            footer_description=profile.short_intro or '',
             intro_paragraphs=intro_paragraphs,
-            availability=['Open to internships', 'Remote friendly', 'Portfolio projects'],
+            availability=['Open to internships', 'Remote friendly', 'Portfolio projects', 'Job opportunities', 'Scheduling a meeting'],
             skills=self._get_highlighted_skill_names(),
             expertise_groups=expertise_groups,
             created_at=profile.created_at.isoformat(),

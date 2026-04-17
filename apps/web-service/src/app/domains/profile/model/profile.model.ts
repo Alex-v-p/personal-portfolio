@@ -8,9 +8,15 @@ export interface HeroAction {
   openInNewTab?: boolean;
 }
 
+export interface ExpertiseSkill {
+  name: string;
+  yearsOfExperience?: number | null;
+}
+
 export interface ExpertiseGroup {
   title: string;
   tags: string[];
+  skills: ExpertiseSkill[];
 }
 
 export interface Profile {

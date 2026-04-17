@@ -2,7 +2,7 @@ from .blog import BlogPostDetailOut, BlogPostsListOut, BlogPostSummaryOut, BlogT
 from .common import PublicMediaAssetOut
 from .experience import ExperienceListOut, ExperienceOut
 from .overview import HomeOut
-from .profile import ContactMethodOut, ExpertiseGroupOut, NavigationItemOut, NavigationListOut, ProfileOut, SiteShellOut, SocialLinkOut
+from .profile import ContactMethodOut, ExpertiseGroupOut, ExpertiseSkillOut, NavigationItemOut, NavigationListOut, ProfileOut, SiteShellOut, SocialLinkOut
 from .projects import ProjectDetailOut, ProjectImageOut, ProjectsListOut, ProjectSummaryOut, SkillSummaryOut
 from .stats import GithubContributionDayOut, GithubSnapshotOut, StatItemOut, StatsOut
 
@@ -15,6 +15,7 @@ __all__ = [
     'ExperienceListOut',
     'ExperienceOut',
     'ExpertiseGroupOut',
+    'ExpertiseSkillOut',
     'GithubContributionDayOut',
     'GithubSnapshotOut',
     'HomeOut',

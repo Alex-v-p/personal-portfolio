@@ -23,7 +23,13 @@ export interface SkillApi {
   isHighlighted: boolean;
 }
 
+export interface ExpertiseSkillApi {
+  name: string;
+  yearsOfExperience?: number | null;
+}
+
 export interface ExpertiseGroupApi {
   title: string;
   tags: string[];
+  skills?: ExpertiseSkillApi[] | null;
 }

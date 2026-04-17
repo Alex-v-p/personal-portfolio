@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { finalize, take } from 'rxjs/operators';
 
 import { UiButtonComponent } from '@shared/components/button/ui-button.component';
-import { UiChipComponent } from '@shared/components/chip/ui-chip.component';
 import { UiEmptyStateComponent } from '@shared/components/empty-state/ui-empty-state.component';
 import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.component';
 import { PublicBlogApiService } from '@domains/blog/data/blog-api.service';
@@ -19,7 +18,7 @@ interface CategoryFilterOption {
 @Component({
   selector: 'app-blog-page',
   standalone: true,
-  imports: [NgFor, NgIf, FormsModule, UiButtonComponent, UiChipComponent, UiEmptyStateComponent, UiSkeletonComponent, BlogCardComponent],
+  imports: [NgFor, NgIf, FormsModule, UiButtonComponent, UiEmptyStateComponent, UiSkeletonComponent, BlogCardComponent],
   templateUrl: './blog.page.html'
 })
 export class BlogPageComponent implements OnInit {
