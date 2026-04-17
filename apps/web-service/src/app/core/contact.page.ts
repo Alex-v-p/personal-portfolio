@@ -7,7 +7,6 @@ import { UiButtonComponent } from '@shared/components/button/ui-button.component
 import { UiCardComponent } from '@shared/components/card/ui-card.component';
 import { UiChipComponent } from '@shared/components/chip/ui-chip.component';
 import { UiEmptyStateComponent } from '@shared/components/empty-state/ui-empty-state.component';
-import { UiLinkButtonComponent } from '@shared/components/link-button/ui-link-button.component';
 import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.component';
 import { ContactMessageDraft } from '@domains/contact/model/contact-message.model';
 import { ContactMethod } from '@domains/profile/model/contact-method.model';
@@ -22,7 +21,7 @@ type SubmissionState = 'idle' | 'submitting' | 'success' | 'error';
 @Component({
   selector: 'app-contact-page',
   standalone: true,
-  imports: [NgFor, NgIf, ReactiveFormsModule, UiButtonComponent, UiCardComponent, UiChipComponent, UiEmptyStateComponent, UiLinkButtonComponent, UiSkeletonComponent],
+  imports: [NgFor, NgIf, ReactiveFormsModule, UiButtonComponent, UiCardComponent, UiChipComponent, UiEmptyStateComponent, UiSkeletonComponent],
   templateUrl: './contact.page.html'
 })
 export class ContactPageComponent implements OnInit {
@@ -126,12 +125,12 @@ export class ContactPageComponent implements OnInit {
     return this.contactForm.controls.message.value.length;
   }
 
-  protected get contactIntroText(): string {
-    return this.profile.shortBio || 'Use the form or the listed channels below to start a conversation about internships, freelance work, or collaboration.';
-  }
+protected get contactIntroText(): string {
+  return "Whether you're reaching out about an internship, a project, job opportunities, or just want to talk tech, feel free to reach out using whichever channel suits you best. I'm always open to a friendly conversation about software, AI, self-hosting, or potential opportunities where I can learn, contribute, and keep growing as a software engineer.";
+}
 
   protected get hasContactDetails(): boolean {
-    return Boolean(this.contactMethods.length || this.profile.shortBio || this.profile.availability.length || this.profile.location);
+    return Boolean(this.contactMethods.length || this.profile.availability.length || this.profile.location);
   }
 
   protected get primaryContactMethods(): ContactMethod[] {

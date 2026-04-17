@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
+from infra.postgres.bootstrap.seed_content import BLOG_POST_ROWS, PROJECT_ROWS
+
 
 EXPECTED_SITE_SHELL_KEYS = {'navigation', 'profile', 'footerText', 'contactMethods'}
 EXPECTED_NAVIGATION_ITEM_KEYS = {'id', 'label', 'routePath', 'isExternal', 'sortOrder', 'isVisible'}
@@ -23,6 +25,20 @@ EXPECTED_BLOG_POST_SUMMARY_KEYS = {
     'readingTimeMinutes', 'status', 'isFeatured', 'publishedAt', 'createdAt', 'updatedAt', 'tags'
 }
 EXPECTED_BLOG_POST_DETAIL_KEYS = EXPECTED_BLOG_POST_SUMMARY_KEYS | {'contentMarkdown', 'seoTitle', 'seoDescription'}
+
+
+def _project_slug() -> str:
+    for project in PROJECT_ROWS:
+        if 'portfolio' in project['title'].lower():
+            return project['slug']
+    return PROJECT_ROWS[0]['slug']
+
+
+def _blog_slug() -> str:
+    for post in BLOG_POST_ROWS:
+        if 'homelab' in post['title'].lower():
+            return post['slug']
+    return BLOG_POST_ROWS[0]['slug']
 
 
 def test_site_shell_contract_matches_frontend_expectations(client: TestClient) -> None:
@@ -54,7 +70,7 @@ def test_home_contract_matches_frontend_expectations(client: TestClient) -> None
 
 
 def test_project_detail_contract_matches_frontend_expectations(client: TestClient) -> None:
-    response = client.get('/api/public/projects/personal-portfolio')
+    response = client.get(f'/api/public/projects/{_project_slug()}')
     assert response.status_code == 200
     body = response.json()
 
@@ -64,7 +80,7 @@ def test_project_detail_contract_matches_frontend_expectations(client: TestClien
 
 
 def test_blog_post_detail_contract_matches_frontend_expectations(client: TestClient) -> None:
-    response = client.get('/api/public/blog-posts/building-a-portfolio-shell')
+    response = client.get(f'/api/public/blog-posts/{_blog_slug()}')
     assert response.status_code == 200
     body = response.json()
 

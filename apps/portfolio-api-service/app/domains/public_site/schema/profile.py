@@ -30,9 +30,15 @@ class NavigationListOut(ApiSchema):
     total: int
 
 
+class ExpertiseSkillOut(ApiSchema):
+    name: str
+    years_of_experience: int | None = None
+
+
 class ExpertiseGroupOut(ApiSchema):
     title: str
     tags: list[str]
+    skills: list[ExpertiseSkillOut] = []
 
 
 class ContactMethodOut(ApiSchema):
@@ -89,6 +95,7 @@ class SiteShellOut(ApiSchema):
 __all__ = [
     'ContactMethodOut',
     'ExpertiseGroupOut',
+    'ExpertiseSkillOut',
     'NavigationItemOut',
     'NavigationListOut',
     'ProfileOut',

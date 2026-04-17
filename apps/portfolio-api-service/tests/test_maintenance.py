@@ -13,6 +13,7 @@ from app.services.async_tasks import reset_admin_task_queue_cache
 from app.services.maintenance import MaintenanceCoordinator, RetentionCleanupService, reset_maintenance_runtime_cache
 from app.services.rate_limit import reset_rate_limit_state
 from infra.postgres.bootstrap.bootstrap_core import initialize_database
+from infra.postgres.bootstrap.seed_data import SITE_EVENT_ROWS
 
 
 class FakeRedis:
@@ -135,8 +136,10 @@ def test_retention_cleanup_removes_old_site_events_and_stale_assistant_activity(
         remaining_conversations = session.scalars(select(AssistantConversation).order_by(AssistantConversation.session_id.asc())).all()
         remaining_messages = session.scalars(select(AssistantMessage).order_by(AssistantMessage.created_at.asc())).all()
 
-    assert len(remaining_events) == 1
-    assert remaining_events[0].visitor_id == 'visitor-fresh'
+    seeded_event_count = len(SITE_EVENT_ROWS)
+    assert len(remaining_events) == seeded_event_count + 1
+    assert any(event.visitor_id == 'visitor-fresh' for event in remaining_events)
+    assert all(event.visitor_id != 'visitor-old' for event in remaining_events)
     assert [conversation.session_id for conversation in remaining_conversations] == ['fresh-session']
     assert len(remaining_messages) == 1
     assert remaining_messages[0].message_text == 'Fresh question'
