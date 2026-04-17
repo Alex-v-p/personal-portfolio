@@ -7,7 +7,30 @@ from fastapi.testclient import TestClient
 
 from app.db.models import BlogPost, EventType, MediaFile, MediaVisibility, Project, ProjectState, PublicationStatus, SiteEvent
 from app.db.session import get_session_factory
+from infra.postgres.bootstrap.seed_content import BLOG_POST_ROWS, PROFILE_ROW, PROJECT_ROWS
+from infra.postgres.bootstrap.seed_data import GITHUB_SNAPSHOT, SITE_EVENT_ROWS
 from infra.postgres.bootstrap.seed_ids import seed_uuid
+
+
+def _find_project_slug(*, title_contains: str | None = None) -> str:
+    for project in PROJECT_ROWS:
+        if title_contains is None or title_contains.lower() in project['title'].lower():
+            return project['slug']
+    return PROJECT_ROWS[0]['slug']
+
+
+def _find_project_id(*, title_contains: str | None = None) -> str:
+    for project in PROJECT_ROWS:
+        if title_contains is None or title_contains.lower() in project['title'].lower():
+            return project['id']
+    return PROJECT_ROWS[0]['id']
+
+
+def _find_blog_slug(*, title_contains: str | None = None) -> str:
+    for post in BLOG_POST_ROWS:
+        if title_contains is None or title_contains.lower() in post['title'].lower():
+            return post['slug']
+    return BLOG_POST_ROWS[0]['slug']
 
 
 def test_get_profile_returns_media_and_derived_fields(client: TestClient) -> None:
@@ -15,7 +38,7 @@ def test_get_profile_returns_media_and_derived_fields(client: TestClient) -> Non
     assert response.status_code == 200
     body = response.json()
     UUID(body['id'])
-    assert body['headline'] == 'Software Engineer'
+    assert body['headline'] == PROFILE_ROW['headline']
     assert body['avatar']['url'].startswith('http://media.example.test/portfolio/profiles/')
     assert body['resume']['mimeType'] == 'application/pdf'
     assert body['skills']
@@ -36,7 +59,7 @@ def test_get_site_shell_returns_navigation_profile_and_contact_methods(client: T
     assert response.status_code == 200
     body = response.json()
     assert body['navigation']['items']
-    assert body['profile']['firstName'] == 'Alex'
+    assert body['profile']['firstName'] == PROFILE_ROW['first_name']
     assert body['contactMethods']
     assert body['footerText']
 
@@ -45,7 +68,7 @@ def test_get_home_returns_composed_public_sections(client: TestClient) -> None:
     response = client.get('/api/public/home')
     assert response.status_code == 200
     body = response.json()
-    assert body['hero']['headline'] == 'Software Engineer'
+    assert body['hero']['headline'] == PROFILE_ROW['headline']
     assert body['featuredProjects']
     assert 'descriptionMarkdown' not in body['featuredProjects'][0]
     assert body['featuredBlogPosts']
@@ -58,7 +81,7 @@ def test_list_projects_returns_project_summaries_with_embedded_media(client: Tes
     response = client.get('/api/public/projects')
     assert response.status_code == 200
     body = response.json()
-    assert body['total'] >= 5
+    assert body['total'] == len(PROJECT_ROWS)
     project = body['items'][0]
     UUID(project['id'])
     assert project['coverImage']['url'].startswith('http://media.example.test/portfolio/projects/')
@@ -69,10 +92,11 @@ def test_list_projects_returns_project_summaries_with_embedded_media(client: Tes
 
 
 def test_get_project_by_slug_returns_project_detail(client: TestClient) -> None:
-    response = client.get('/api/public/projects/personal-portfolio')
+    slug = _find_project_slug(title_contains='portfolio')
+    response = client.get(f'/api/public/projects/{slug}')
     assert response.status_code == 200
     body = response.json()
-    assert body['slug'] == 'personal-portfolio'
+    assert body['slug'] == slug
     assert body['images']
     assert body['coverImage']['url'].startswith('http://media.example.test/portfolio/projects/')
 
@@ -81,7 +105,7 @@ def test_list_blog_posts_returns_blog_post_summaries_with_embedded_cover_media(c
     response = client.get('/api/public/blog-posts')
     assert response.status_code == 200
     body = response.json()
-    assert body['total'] >= 4
+    assert body['total'] == len(BLOG_POST_ROWS)
     assert body['items'][0]['coverImage']['url'].startswith('http://media.example.test/portfolio/blog/')
     assert body['items'][0]['tags']
     assert 'contentMarkdown' not in body['items'][0]
@@ -89,11 +113,12 @@ def test_list_blog_posts_returns_blog_post_summaries_with_embedded_cover_media(c
 
 
 def test_get_blog_post_by_slug_returns_single_article(client: TestClient) -> None:
-    response = client.get('/api/public/blog-posts/building-a-portfolio-shell')
+    slug = _find_blog_slug(title_contains='homelab')
+    response = client.get(f'/api/public/blog-posts/{slug}')
     assert response.status_code == 200
     body = response.json()
     UUID(body['id'])
-    assert body['slug'] == 'building-a-portfolio-shell'
+    assert body['slug'] == slug
     assert body['status'] == 'published'
     assert body['coverImage']['url'].startswith('http://media.example.test/portfolio/blog/')
 
@@ -110,11 +135,14 @@ def test_get_github_snapshot_returns_latest_snapshot(client: TestClient) -> None
     response = client.get('/api/public/github')
     assert response.status_code == 200
     body = response.json()
-    assert body['username'] == 'shuzu'
+    assert body['username'] == GITHUB_SNAPSHOT['username']
     assert body['contributionDays']
 
 
 def test_get_stats_returns_api_backed_stats_payload(client: TestClient) -> None:
+    baseline_views = sum(1 for event in SITE_EVENT_ROWS if event['event_type'] == EventType.PAGE_VIEW)
+    baseline_likes = sum(1 for event in SITE_EVENT_ROWS if event['event_type'] == EventType.PORTFOLIO_LIKE)
+
     session_factory = get_session_factory()
     with session_factory() as session:
         session.add_all(
@@ -130,11 +158,11 @@ def test_get_stats_returns_api_backed_stats_payload(client: TestClient) -> None:
     assert response.status_code == 200
     body = response.json()
     assert body['githubSummary']['label'] == 'Public repos'
-    assert body['latestGithubSnapshot']['username'] == 'shuzu'
+    assert body['latestGithubSnapshot']['username'] == GITHUB_SNAPSHOT['username']
     assert body['portfolioHighlights'][0]['label'] == 'Total views'
-    assert body['portfolioHighlights'][0]['value'] == '2'
+    assert body['portfolioHighlights'][0]['value'] == str(baseline_views + 2)
     assert body['portfolioHighlights'][1]['label'] == 'Like counter'
-    assert body['portfolioHighlights'][1]['value'] == '1'
+    assert body['portfolioHighlights'][1]['value'] == str(baseline_likes + 1)
     assert len(body['contributionWeeks']) >= 52
     assert len(body['monthLabels']) == len(body['contributionWeeks'])
 
@@ -231,14 +259,14 @@ def test_public_media_mapping_hides_non_public_assets(client: TestClient) -> Non
             mime_type='image/png',
             visibility=MediaVisibility.PRIVATE,
         )
-        project = session.get(Project, seed_uuid('project-personal-portfolio'))
+        project = session.get(Project, seed_uuid(_find_project_id(title_contains='portfolio')))
         assert project is not None
         session.add(private_file)
         session.flush()
         project.cover_image_file_id = private_file.id
         session.commit()
 
-    response = client.get('/api/public/projects/personal-portfolio')
+    response = client.get(f"/api/public/projects/{_find_project_slug(title_contains='portfolio')}")
     assert response.status_code == 200
     body = response.json()
     assert body['coverImage'] is None

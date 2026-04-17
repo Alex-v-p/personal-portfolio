@@ -32,7 +32,7 @@ const profileFixture: Profile = {
   heroImageUrl: '',
   resumeUrl: '',
   skills: ['Angular', 'FastAPI'],
-  expertiseGroups: [{ title: 'Core stack', tags: ['Angular', 'FastAPI'] }],
+  expertiseGroups: [{ title: 'Core stack', tags: ['Angular', 'FastAPI'], skills: [{ name: 'Angular', yearsOfExperience: 1 }, { name: 'FastAPI', yearsOfExperience: 3 }] }],
   introParagraphs: ['Builder'],
   availability: ['Open to internships'],
   heroActions: [],

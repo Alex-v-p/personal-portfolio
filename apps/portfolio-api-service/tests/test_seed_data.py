@@ -60,7 +60,7 @@ def test_initialize_database_creates_and_seeds_expected_content(tmp_path: Path) 
         assert session.scalar(select(func.count()).select_from(Profile)) == 1
         assert session.scalar(select(func.count()).select_from(Project)) == len(PROJECT_ROWS)
         assert session.scalar(select(func.count()).select_from(BlogPost)) == len(BLOG_POST_ROWS)
-        assert session.scalar(select(func.count()).select_from(SocialLink)) >= 3
+        assert session.scalar(select(func.count()).select_from(SocialLink)) >= 2
         assert session.scalar(select(func.count()).select_from(ProjectSkill)) > 0
         assert session.scalar(select(func.count()).select_from(BlogTag)) > 0
 
