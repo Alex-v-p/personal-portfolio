@@ -20,7 +20,7 @@ export class PublicBlogApiService {
 
     return this.publicHttp.cacheRequest(`public:blog-posts:${locale}`, () =>
       this.publicHttp.http
-        .get<CollectionResponse<BlogPostSummaryApi>>(`${this.publicHttp.apiBaseUrl}/public/blog-posts`)
+        .get<CollectionResponse<BlogPostSummaryApi>>(`${this.publicHttp.apiBaseUrl}/public/blog-posts`, { params: this.publicHttp.localeParams(locale) })
         .pipe(map((response) => normalizeBlogPostSummaries(response.items, locale)))
     );
   }
@@ -30,7 +30,7 @@ export class PublicBlogApiService {
 
     return this.publicHttp.cacheRequest(`public:blog-posts:${slug}:${locale}`, () =>
       this.publicHttp.http
-        .get<BlogPostDetailApi>(`${this.publicHttp.apiBaseUrl}/public/blog-posts/${slug}`)
+        .get<BlogPostDetailApi>(`${this.publicHttp.apiBaseUrl}/public/blog-posts/${slug}`, { params: this.publicHttp.localeParams(locale) })
         .pipe(map((post) => normalizeBlogPostDetail(post, locale)))
     );
   }

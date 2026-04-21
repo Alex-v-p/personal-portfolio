@@ -20,7 +20,7 @@ export class PublicProjectsApiService {
 
     return this.publicHttp.cacheRequest(`public:projects:${locale}`, () =>
       this.publicHttp.http
-        .get<CollectionResponse<ProjectSummaryApi>>(`${this.publicHttp.apiBaseUrl}/public/projects`)
+        .get<CollectionResponse<ProjectSummaryApi>>(`${this.publicHttp.apiBaseUrl}/public/projects`, { params: this.publicHttp.localeParams(locale) })
         .pipe(map((response) => normalizeProjectSummaries(response.items, locale)))
     );
   }
@@ -30,7 +30,7 @@ export class PublicProjectsApiService {
 
     return this.publicHttp.cacheRequest(`public:projects:${slug}:${locale}`, () =>
       this.publicHttp.http
-        .get<ProjectDetailApi>(`${this.publicHttp.apiBaseUrl}/public/projects/${slug}`)
+        .get<ProjectDetailApi>(`${this.publicHttp.apiBaseUrl}/public/projects/${slug}`, { params: this.publicHttp.localeParams(locale) })
         .pipe(map((project) => normalizeProjectDetail(project, locale)))
     );
   }

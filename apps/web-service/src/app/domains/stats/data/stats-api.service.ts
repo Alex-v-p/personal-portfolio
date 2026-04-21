@@ -19,7 +19,7 @@ export class PublicStatsApiService {
 
     return this.publicHttp.cacheRequest(`public:github-snapshot:${locale}`, () =>
       this.publicHttp.http
-        .get<GithubSnapshotApi>(`${this.publicHttp.apiBaseUrl}/public/github`)
+        .get<GithubSnapshotApi>(`${this.publicHttp.apiBaseUrl}/public/github`, { params: this.publicHttp.localeParams(locale) })
         .pipe(map((snapshot) => normalizeGithubSnapshot(snapshot)))
     );
   }
@@ -29,7 +29,7 @@ export class PublicStatsApiService {
 
     return this.publicHttp.cacheRequest(`public:stats:${locale}`, () =>
       this.publicHttp.http
-        .get<StatsApi>(`${this.publicHttp.apiBaseUrl}/public/stats`)
+        .get<StatsApi>(`${this.publicHttp.apiBaseUrl}/public/stats`, { params: this.publicHttp.localeParams(locale) })
         .pipe(map((stats) => normalizeStats(stats)))
     );
   }

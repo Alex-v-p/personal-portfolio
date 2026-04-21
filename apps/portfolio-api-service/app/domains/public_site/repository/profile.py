@@ -4,7 +4,15 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.db.models import NavigationItem, Profile, Skill, SkillCategory
-from app.domains.public_site.schema import ContactMethodOut, ExpertiseGroupOut, NavigationItemOut, NavigationListOut, ProfileOut, SocialLinkOut, SiteShellOut
+from app.domains.public_site.schema import (
+    ContactMethodOut,
+    ExpertiseGroupOut,
+    NavigationItemOut,
+    NavigationListOut,
+    ProfileOut,
+    SocialLinkOut,
+    SiteShellOut,
+)
 
 
 class PublicProfileRepositoryMixin:
@@ -23,7 +31,7 @@ class PublicProfileRepositoryMixin:
         return [
             NavigationItemOut(
                 id=str(item.id),
-                label=item.label,
+                label=self._localized(item, 'label') or item.label,
                 route_path=item.route_path,
                 is_external=item.is_external,
                 sort_order=item.sort_order,
@@ -70,9 +78,11 @@ class PublicProfileRepositoryMixin:
                 continue
             groups.append(
                 ExpertiseGroupOut(
-                    title=category.name,
+                    title=self._localized(category, 'name') or category.name,
                     tags=[
-                        f'{skill.name} - {skill.years_of_experience}y' if skill.years_of_experience is not None else skill.name
+                        f'{skill.name} - {self._localized_years_label(skill.years_of_experience)}'
+                        if skill.years_of_experience is not None
+                        else skill.name
                         for skill in ordered_skills
                     ],
                     skills=[
@@ -96,7 +106,12 @@ class PublicProfileRepositoryMixin:
         return [skill.name for skill in fallback[:6]]
 
     def _map_profile(self, profile: Profile) -> ProfileOut:
-        intro_paragraphs = [part for part in [profile.long_bio] if part]
+        headline = self._localized(profile, 'headline') or profile.headline
+        short_intro = self._localized(profile, 'short_intro') or profile.short_intro
+        long_bio = self._localized(profile, 'long_bio') or profile.long_bio
+        cta_primary_label = self._localized(profile, 'cta_primary_label') or profile.cta_primary_label
+        cta_secondary_label = self._localized(profile, 'cta_secondary_label') or profile.cta_secondary_label
+        intro_paragraphs = [part for part in [long_bio] if part]
         expertise_groups = self._get_expertise_groups()
         resume_url = self.media_resolver.resolve(profile.resume_file)
         primary_cta_url = profile.cta_primary_url
@@ -104,25 +119,26 @@ class PublicProfileRepositoryMixin:
             primary_cta_url = resume_url
         elif not primary_cta_url and resume_url:
             primary_cta_url = resume_url
+        full_name = f'{profile.first_name} {profile.last_name}'
         return ProfileOut(
             id=str(profile.id),
             first_name=profile.first_name,
             last_name=profile.last_name,
-            headline=profile.headline,
-            short_intro=profile.short_intro,
-            long_bio=profile.long_bio,
+            headline=headline,
+            short_intro=short_intro,
+            long_bio=long_bio,
             location=profile.location,
             email=profile.email,
             phone=profile.phone,
             avatar_file_id=str(profile.avatar_file_id) if profile.avatar_file_id else None,
             hero_image_file_id=str(profile.hero_image_file_id) if profile.hero_image_file_id else None,
             resume_file_id=str(profile.resume_file_id) if profile.resume_file_id else None,
-            avatar=self._map_media(profile.avatar_file, alt=f'{profile.first_name} {profile.last_name} avatar'),
-            hero_image=self._map_media(profile.hero_image_file, alt=f'{profile.first_name} {profile.last_name} hero image'),
-            resume=self._map_media(profile.resume_file, alt=f'{profile.first_name} {profile.last_name} resume'),
-            cta_primary_label=profile.cta_primary_label,
+            avatar=self._map_media(profile.avatar_file, alt=f'{full_name} {self._copy("avatar_suffix")}'),
+            hero_image=self._map_media(profile.hero_image_file, alt=f'{full_name} {self._copy("hero_image_suffix")}'),
+            resume=self._map_media(profile.resume_file, alt=f'{full_name} {self._copy("resume_suffix")}'),
+            cta_primary_label=cta_primary_label,
             cta_primary_url=primary_cta_url,
-            cta_secondary_label=profile.cta_secondary_label,
+            cta_secondary_label=cta_secondary_label,
             cta_secondary_url=profile.cta_secondary_url,
             is_public=profile.is_public,
             social_links=[
@@ -139,9 +155,15 @@ class PublicProfileRepositoryMixin:
                 for link in sorted(profile.social_links, key=lambda item: (item.sort_order, item.label.lower()))
                 if link.is_visible
             ],
-            footer_description=profile.short_intro or '',
+            footer_description=short_intro or '',
             intro_paragraphs=intro_paragraphs,
-            availability=['Open to internships', 'Remote friendly', 'Portfolio projects', 'Job opportunities', 'Scheduling a meeting'],
+            availability=[
+                self._copy('availability_internships'),
+                self._copy('availability_remote'),
+                self._copy('availability_portfolio'),
+                self._copy('availability_jobs'),
+                self._copy('availability_meeting'),
+            ],
             skills=self._get_highlighted_skill_names(),
             expertise_groups=expertise_groups,
             created_at=profile.created_at.isoformat(),
@@ -154,12 +176,12 @@ class PublicProfileRepositoryMixin:
             methods.append(ContactMethodOut(
                 id='contact-email',
                 platform='email',
-                label='Email',
+                label=self._copy('contact_email_label'),
                 value=profile.email,
                 href=f'mailto:{profile.email}',
-                action_label='Send Email',
+                action_label=self._copy('contact_email_action'),
                 icon_key='mail',
-                description='Best for project enquiries, internships, and collaboration.',
+                description=self._copy('contact_email_description'),
                 sort_order=1,
                 is_visible=True,
             ))
@@ -167,12 +189,12 @@ class PublicProfileRepositoryMixin:
             methods.append(ContactMethodOut(
                 id='contact-phone',
                 platform='phone',
-                label='Phone',
+                label=self._copy('contact_phone_label'),
                 value=profile.phone,
                 href=f"tel:{profile.phone.replace(' ', '')}",
-                action_label='Call',
+                action_label=self._copy('contact_phone_action'),
                 icon_key='phone',
-                description='Useful for quick coordination or planning a meeting.',
+                description=self._copy('contact_phone_description'),
                 sort_order=2,
                 is_visible=True,
             ))
@@ -183,10 +205,10 @@ class PublicProfileRepositoryMixin:
                 label=link.label,
                 value=link.url.replace('https://', '').replace('http://', ''),
                 href=link.url,
-                action_label='Connect +' if link.platform in {'github', 'linkedin'} else 'Open',
+                action_label=self._copy('contact_social_action_connect') if link.platform in {'github', 'linkedin'} else self._copy('contact_social_action_open'),
                 icon_key=link.icon_key,
-                description='Code samples, experiments, and project work.' if link.platform == 'github' else (
-                    'Professional background and experience.' if link.platform == 'linkedin' else 'Direct line for portfolio contact.'
+                description=self._copy('contact_social_description_github') if link.platform == 'github' else (
+                    self._copy('contact_social_description_linkedin') if link.platform == 'linkedin' else self._copy('contact_social_description_default')
                 ),
                 sort_order=(link.sort_order or 0) + 10,
                 is_visible=link.is_visible,
@@ -195,12 +217,12 @@ class PublicProfileRepositoryMixin:
             methods.append(ContactMethodOut(
                 id='contact-location',
                 platform='location',
-                label='Location',
+                label=self._copy('contact_location_label'),
                 value=profile.location,
                 href=f'https://maps.google.com/?q={profile.location}',
-                action_label='View Map',
+                action_label=self._copy('contact_location_action'),
                 icon_key='map-pin',
-                description='Available for on-site, hybrid, or remote collaboration.',
+                description=self._copy('contact_location_description'),
                 sort_order=99,
                 is_visible=True,
             ))

@@ -167,6 +167,46 @@ def test_get_stats_returns_api_backed_stats_payload(client: TestClient) -> None:
     assert len(body['monthLabels']) == len(body['contributionWeeks'])
 
 
+
+
+def test_public_routes_return_localized_dutch_content_when_available(client: TestClient) -> None:
+    profile_response = client.get('/api/public/profile', params={'locale': 'nl'})
+    assert profile_response.status_code == 200
+    profile_body = profile_response.json()
+    assert profile_body['headline'] == PROFILE_ROW['headline_nl']
+    assert profile_body['ctaPrimaryLabel'] == PROFILE_ROW['cta_primary_label_nl']
+
+    navigation_response = client.get('/api/public/navigation', params={'locale': 'nl'})
+    assert navigation_response.status_code == 200
+    navigation_body = navigation_response.json()
+    assert navigation_body['items'][1]['label'] == 'Projecten'
+
+    project_response = client.get('/api/public/projects', params={'locale': 'nl'})
+    assert project_response.status_code == 200
+    assert project_response.json()['items'][0]['durationLabel'].endswith('maanden') or project_response.json()['items'][0]['durationLabel'].endswith('maand')
+
+    blog_slug = _find_blog_slug(title_contains='homelab')
+    blog_response = client.get(f'/api/public/blog-posts/{blog_slug}', params={'locale': 'nl'})
+    assert blog_response.status_code == 200
+    assert blog_response.json()['title'] == 'Mijn homelab'
+
+
+def test_public_routes_fall_back_to_english_when_locale_content_is_missing(client: TestClient) -> None:
+    session_factory = get_session_factory()
+    with session_factory() as session:
+        project = session.get(Project, seed_uuid(_find_project_id(title_contains='portfolio')))
+        assert project is not None
+        project.title_nl = None
+        project.summary_nl = None
+        project.description_markdown_nl = None
+        session.commit()
+
+    response = client.get(f"/api/public/projects/{_find_project_slug(title_contains='portfolio')}", params={'locale': 'nl'})
+    assert response.status_code == 200
+    body = response.json()
+    assert body['title'] == 'Old Laravel Portfolio'
+    assert body['descriptionMarkdown'].startswith('## Why I built it')
+
 def test_public_projects_exclude_archived_or_scheduled_records(client: TestClient) -> None:
     session_factory = get_session_factory()
     with session_factory() as session:

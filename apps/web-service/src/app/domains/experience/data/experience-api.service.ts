@@ -19,7 +19,7 @@ export class PublicExperienceApiService {
 
     return this.publicHttp.cacheRequest(`public:experience:${locale}`, () =>
       this.publicHttp.http
-        .get<CollectionResponse<ExperienceApi>>(`${this.publicHttp.apiBaseUrl}/public/experience`)
+        .get<CollectionResponse<ExperienceApi>>(`${this.publicHttp.apiBaseUrl}/public/experience`, { params: this.publicHttp.localeParams(locale) })
         .pipe(map((response) => normalizeExperienceList(response.items, locale)))
     );
   }

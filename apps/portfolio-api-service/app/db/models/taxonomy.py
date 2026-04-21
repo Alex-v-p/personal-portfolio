@@ -19,7 +19,9 @@ class SkillCategory(Base):
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(120), nullable=False, unique=True)
+    name_nl: Mapped[str | None] = mapped_column(String(120))
     description: Mapped[str | None] = mapped_column(Text)
+    description_nl: Mapped[str | None] = mapped_column(Text)
     sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
     skills: Mapped[list[Skill]] = relationship(back_populates='category')

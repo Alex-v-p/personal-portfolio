@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.domains.public_site.repository import PublicContentRepository
+from app.domains.public_site.repository import DEFAULT_PUBLIC_LOCALE, PublicContentRepository, PublicLocale
 from app.domains.public_site.schema import (
     BlogPostDetailOut,
     BlogPostsListOut,
@@ -20,8 +20,8 @@ from app.domains.public_site.schema import (
 
 
 class PublicContentQueryService:
-    def __init__(self, session: Session) -> None:
-        self.repository = PublicContentRepository(session)
+    def __init__(self, session: Session, *, locale: PublicLocale = DEFAULT_PUBLIC_LOCALE) -> None:
+        self.repository = PublicContentRepository(session, locale=locale)
 
     def get_profile(self) -> ProfileOut:
         return self._require(self.repository.get_profile(), 'Public profile not found.')

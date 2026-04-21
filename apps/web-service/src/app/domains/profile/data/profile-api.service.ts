@@ -22,7 +22,9 @@ export class PublicProfileApiService {
     const locale = this.i18n.currentLocale();
 
     return this.publicHttp.cacheRequest(`public:profile:${locale}`, () =>
-      this.publicHttp.http.get<ProfileApi>(`${this.publicHttp.apiBaseUrl}/public/profile`).pipe(map((profile) => normalizeProfile(profile)))
+      this.publicHttp.http
+        .get<ProfileApi>(`${this.publicHttp.apiBaseUrl}/public/profile`, { params: this.publicHttp.localeParams(locale) })
+        .pipe(map((profile) => normalizeProfile(profile)))
     );
   }
 
@@ -31,7 +33,7 @@ export class PublicProfileApiService {
 
     return this.publicHttp.cacheRequest(`public:navigation:${locale}`, () =>
       this.publicHttp.http
-        .get<CollectionResponse<NavigationItemApi>>(`${this.publicHttp.apiBaseUrl}/public/navigation`)
+        .get<CollectionResponse<NavigationItemApi>>(`${this.publicHttp.apiBaseUrl}/public/navigation`, { params: this.publicHttp.localeParams(locale) })
         .pipe(map((response) => (response.items ?? []).map((item) => normalizeNavigationItem(item))))
     );
   }
@@ -40,7 +42,9 @@ export class PublicProfileApiService {
     const locale = this.i18n.currentLocale();
 
     return this.publicHttp.cacheRequest(`public:site-shell:${locale}`, () =>
-      this.publicHttp.http.get<SiteShellApi>(`${this.publicHttp.apiBaseUrl}/public/site-shell`).pipe(map((shell) => normalizeSiteShell(shell)))
+      this.publicHttp.http
+        .get<SiteShellApi>(`${this.publicHttp.apiBaseUrl}/public/site-shell`, { params: this.publicHttp.localeParams(locale) })
+        .pipe(map((shell) => normalizeSiteShell(shell)))
     );
   }
 
@@ -48,7 +52,9 @@ export class PublicProfileApiService {
     const locale = this.i18n.currentLocale();
 
     return this.publicHttp.cacheRequest(`public:home:${locale}`, () =>
-      this.publicHttp.http.get<HomeApi>(`${this.publicHttp.apiBaseUrl}/public/home`).pipe(map((home) => normalizeHome(home, locale)))
+      this.publicHttp.http
+        .get<HomeApi>(`${this.publicHttp.apiBaseUrl}/public/home`, { params: this.publicHttp.localeParams(locale) })
+        .pipe(map((home) => normalizeHome(home, locale)))
     );
   }
 }

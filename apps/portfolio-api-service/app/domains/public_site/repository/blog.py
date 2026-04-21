@@ -45,14 +45,17 @@ class PublicBlogRepositoryMixin:
 
     def _map_blog_post_summary(self, post: BlogPost) -> BlogPostSummaryOut:
         ordered_tag_links = sorted([link for link in post.tag_links if link.tag is not None], key=lambda item: item.tag.name.lower())
+        title = self._localized(post, 'title') or post.title
+        excerpt = self._localized(post, 'excerpt') or post.excerpt
+        cover_image_alt = self._localized(post, 'cover_image_alt') or post.cover_image_alt
         return BlogPostSummaryOut(
             id=str(post.id),
             slug=post.slug,
-            title=post.title,
-            excerpt=post.excerpt,
+            title=title,
+            excerpt=excerpt,
             cover_image_file_id=str(post.cover_image_file_id) if post.cover_image_file_id else None,
-            cover_image_alt=post.cover_image_alt,
-            cover_image=self._map_media(post.cover_image_file, alt=post.cover_image_alt or post.title),
+            cover_image_alt=cover_image_alt,
+            cover_image=self._map_media(post.cover_image_file, alt=cover_image_alt or title),
             reading_time_minutes=post.reading_time_minutes,
             status=post.status.value,
             is_featured=post.is_featured,
@@ -66,7 +69,7 @@ class PublicBlogRepositoryMixin:
         summary = self._map_blog_post_summary(post)
         return BlogPostDetailOut(
             **summary.model_dump(),
-            content_markdown=post.content_markdown,
-            seo_title=post.seo_title,
-            seo_description=post.seo_description,
+            content_markdown=self._localized(post, 'content_markdown') or post.content_markdown,
+            seo_title=self._localized(post, 'seo_title') or post.seo_title,
+            seo_description=self._localized(post, 'seo_description') or post.seo_description,
         )

@@ -2,6 +2,7 @@ import { NgFor, NgIf } from '@angular/common';
 import { ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { finalize, take } from 'rxjs/operators';
 
@@ -18,7 +19,7 @@ import { Profile } from '@domains/profile/model/profile.model';
 import { PublicContactApiService } from '@domains/contact/data/contact-api.service';
 import { PublicProfileApiService } from '@domains/profile/data/profile-api.service';
 import { SiteTrackingService } from '@domains/site-activity/data/site-tracking.service';
-import { buildContactMethodsFromProfile, createEmptyProfile } from '@domains/profile/lib/profile-view.util';
+import { createEmptyProfile } from '@domains/profile/lib/profile-view.util';
 
 type SubmissionState = 'idle' | 'submitting' | 'success' | 'error';
 
@@ -213,19 +214,20 @@ export class ContactPageComponent implements OnInit {
     this.profile = createEmptyProfile();
     this.contactMethods = [];
 
-    this.profileApi
-      .getProfile()
+    forkJoin({
+      profile: this.profileApi.getProfile().pipe(take(1)),
+      shell: this.profileApi.getSiteShell().pipe(take(1)),
+    })
       .pipe(
-        take(1),
         finalize(() => {
           this.isLoadingProfile = false;
           this.changeDetectorRef.detectChanges();
         })
       )
       .subscribe({
-        next: (profile) => {
+        next: ({ profile, shell }) => {
           this.profile = profile;
-          this.contactMethods = buildContactMethodsFromProfile(this.profile);
+          this.contactMethods = shell.contactMethods;
         },
         error: () => {
           this.profile = createEmptyProfile();
