@@ -236,6 +236,60 @@ class Settings(BaseSettings):
         default=20.0,
         validation_alias=AliasChoices('KNOWLEDGE_EMBEDDING_TIMEOUT_SECONDS', 'PORTFOLIO_API_KNOWLEDGE_EMBEDDING_TIMEOUT_SECONDS'),
     )
+    translation_provider_backend: str = Field(
+        default='mock',
+        validation_alias=AliasChoices(
+            'TRANSLATION_PROVIDER_BACKEND',
+            'PORTFOLIO_API_TRANSLATION_PROVIDER_BACKEND',
+            'ASSISTANT_PROVIDER_BACKEND',
+            'PROVIDER_BACKEND',
+        ),
+    )
+    translation_provider_model: str = Field(
+        default='llama3.1:8b',
+        validation_alias=AliasChoices(
+            'TRANSLATION_PROVIDER_MODEL',
+            'PORTFOLIO_API_TRANSLATION_PROVIDER_MODEL',
+            'ASSISTANT_PROVIDER_MODEL',
+            'PROVIDER_MODEL',
+        ),
+    )
+    translation_provider_base_url: str = Field(
+        default='http://ollama:11434',
+        validation_alias=AliasChoices(
+            'TRANSLATION_PROVIDER_BASE_URL',
+            'PORTFOLIO_API_TRANSLATION_PROVIDER_BASE_URL',
+            'ASSISTANT_PROVIDER_BASE_URL',
+            'PROVIDER_BASE_URL',
+        ),
+    )
+    translation_provider_api_key: str = Field(
+        default='',
+        validation_alias=AliasChoices(
+            'TRANSLATION_PROVIDER_API_KEY',
+            'PORTFOLIO_API_TRANSLATION_PROVIDER_API_KEY',
+            'ASSISTANT_PROVIDER_API_KEY',
+            'PROVIDER_API_KEY',
+        ),
+    )
+    translation_provider_request_timeout_seconds: float = Field(
+        default=40.0,
+        validation_alias=AliasChoices(
+            'TRANSLATION_PROVIDER_REQUEST_TIMEOUT_SECONDS',
+            'PORTFOLIO_API_TRANSLATION_PROVIDER_REQUEST_TIMEOUT_SECONDS',
+            'ASSISTANT_PROVIDER_REQUEST_TIMEOUT_SECONDS',
+            'PROVIDER_REQUEST_TIMEOUT_SECONDS',
+        ),
+    )
+    translation_provider_max_retries: int = Field(
+        default=1,
+        validation_alias=AliasChoices(
+            'TRANSLATION_PROVIDER_MAX_RETRIES',
+            'PORTFOLIO_API_TRANSLATION_PROVIDER_MAX_RETRIES',
+            'ASSISTANT_PROVIDER_MAX_RETRIES',
+            'PROVIDER_MAX_RETRIES',
+        ),
+    )
 
     model_config = SettingsConfigDict(env_file='.env', extra='ignore')
 

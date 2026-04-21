@@ -1,7 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { I18nService } from '@core/i18n/i18n.service';
 import { BehaviorSubject, Subscription, timer } from 'rxjs';
 import { switchMap, takeWhile } from 'rxjs/operators';
 
@@ -15,6 +14,7 @@ import {
   AssistantHealthResponse,
 } from '../model/assistant-chat.model';
 import { SiteTrackingService } from '@domains/site-activity/data/site-tracking.service';
+import { I18nService } from '@core/i18n/i18n.service';
 
 const ASSISTANT_STATE_STORAGE_KEY = 'portfolio.assistant.state';
 const ASSISTANT_SESSION_STORAGE_KEY = 'portfolio.assistant.session-id';
@@ -28,13 +28,13 @@ export class AssistantApiService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly assistantApiBaseUrl = resolveAssistantApiBaseUrl();
-  private readonly i18n = inject(I18nService);
   private readonly siteTracking = inject(SiteTrackingService);
+  private readonly i18n = inject(I18nService);
   private readonly stateSubject = new BehaviorSubject<AssistantChatState>(this.restoreState());
   private readonly availabilitySubject = new BehaviorSubject<AssistantAvailabilityState>({
     mode: 'checking',
-    label: 'Checking status',
-    detail: 'Checking whether the assistant model is reachable.',
+    label: this.i18n.translate('assistantPopup.availability.checking.label'),
+    detail: this.i18n.translate('assistantPopup.availability.checking.detail'),
     providerBackend: null,
     providerModel: null,
     checkedAt: null,
@@ -46,6 +46,7 @@ export class AssistantApiService {
   readonly availability$ = this.availabilitySubject.asObservable();
 
   constructor() {
+    this.i18n.localeChanges$.subscribe(() => this.relocalizeAvailability());
     this.refreshAvailability();
     timer(ASSISTANT_AVAILABILITY_POLL_MS, ASSISTANT_AVAILABILITY_POLL_MS)
       .pipe(switchMap(() => this.http.get<AssistantHealthResponse>(`${this.assistantApiBaseUrl}/health/status`)))
@@ -159,11 +160,11 @@ export class AssistantApiService {
             return;
           }
           if (task.status === 'failed') {
-            this.applyFailureMessage(task.errorMessage || 'The assistant could not finish that reply. Please try again in a moment.');
+            this.applyFailureMessage(task.errorMessage || this.i18n.translate('assistantPopup.errors.finishFailed'));
             return;
           }
           if (pollCount >= ASSISTANT_MAX_TASK_POLLS) {
-            this.applyFailureMessage('That reply is taking longer than expected. Please try again in a moment.');
+            this.applyFailureMessage(this.i18n.translate('assistantPopup.errors.timeout'));
           }
         },
         error: (error) => {
@@ -268,27 +269,60 @@ export class AssistantApiService {
   }
 
   private toAvailabilityState(response: AssistantHealthResponse): AssistantAvailabilityState {
-    const labelMap: Record<AssistantHealthResponse['mode'], string> = {
-      ready: 'Online',
-      fallback: 'Fallback mode',
-      preview: 'Preview mode',
-    };
-
     return {
       mode: response.mode,
-      label: labelMap[response.mode],
-      detail: response.detail,
+      label: this.localizedAvailabilityLabel(response.mode),
+      detail: this.localizedAvailabilityDetail(response.mode),
       providerBackend: response.providerBackend,
       providerModel: response.providerModel,
       checkedAt: response.checkedAt,
     };
   }
 
+  private relocalizeAvailability(): void {
+    const current = this.availabilitySnapshot;
+    this.availabilitySubject.next({
+      ...current,
+      label: this.localizedAvailabilityLabel(current.mode),
+      detail: this.localizedAvailabilityDetail(current.mode),
+    });
+  }
+
+  private localizedAvailabilityLabel(mode: AssistantAvailabilityState['mode']): string {
+    switch (mode) {
+      case 'checking':
+        return this.i18n.translate('assistantPopup.availability.checking.label');
+      case 'ready':
+        return this.i18n.translate('assistantPopup.availability.ready.label');
+      case 'fallback':
+        return this.i18n.translate('assistantPopup.availability.fallback.label');
+      case 'preview':
+        return this.i18n.translate('assistantPopup.availability.preview.label');
+      default:
+        return this.i18n.translate('assistantPopup.availability.offline.label');
+    }
+  }
+
+  private localizedAvailabilityDetail(mode: AssistantAvailabilityState['mode']): string {
+    switch (mode) {
+      case 'checking':
+        return this.i18n.translate('assistantPopup.availability.checking.detail');
+      case 'ready':
+        return this.i18n.translate('assistantPopup.availability.ready.detail');
+      case 'fallback':
+        return this.i18n.translate('assistantPopup.availability.fallback.detail');
+      case 'preview':
+        return this.i18n.translate('assistantPopup.availability.preview.detail');
+      default:
+        return this.i18n.translate('assistantPopup.availability.offline.detail');
+    }
+  }
+
   private markAvailabilityOffline(): void {
     this.availabilitySubject.next({
       mode: 'offline',
-      label: 'Offline',
-      detail: 'The assistant service could not be reached. Try again when the app and Ollama services are back online.',
+      label: this.i18n.translate('assistantPopup.availability.offline.label'),
+      detail: this.i18n.translate('assistantPopup.availability.offline.detail'),
       providerBackend: null,
       providerModel: null,
       checkedAt: new Date().toISOString(),
@@ -300,19 +334,19 @@ export class AssistantApiService {
     const detail = this.extractErrorDetail(httpError?.error);
 
     if (httpError?.status === 0) {
-      return 'The assistant is offline right now. Please try again once the assistant service and local Ollama model are available.';
+      return this.i18n.translate('assistantPopup.errors.offline');
     }
 
     if (httpError?.status === 429) {
-      return 'Too many assistant messages were sent in a short period. Please wait a moment before trying again.';
+      return this.i18n.translate('assistantPopup.errors.rateLimited');
     }
 
     if ([502, 503, 504].includes(httpError?.status ?? 0)) {
-      return 'The assistant is temporarily unavailable. The local model or assistant worker may still be starting up.';
+      return this.i18n.translate('assistantPopup.errors.temporarilyUnavailable');
     }
 
     if (httpError?.status === 404 && context === 'poll') {
-      return 'The assistant lost track of that reply while it was processing. Please send your message again.';
+      return this.i18n.translate('assistantPopup.errors.lostReply');
     }
 
     if (detail) {
@@ -320,8 +354,8 @@ export class AssistantApiService {
     }
 
     return context === 'poll'
-      ? 'Checking the assistant reply failed. Please try again in a moment.'
-      : 'The assistant could not answer that message right now. Please try again in a moment.';
+      ? this.i18n.translate('assistantPopup.errors.pollFailed')
+      : this.i18n.translate('assistantPopup.errors.sendFailed');
   }
 
   private extractErrorDetail(value: unknown): string | null {

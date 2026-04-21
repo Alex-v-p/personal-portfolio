@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { take } from 'rxjs/operators';
 
 import { AdminReferenceData } from '@domains/admin/model/admin.model';
 import { AdminBlogTagForm, AdminSkillCategoryForm, AdminSkillForm } from '@domains/admin/model/forms/index';
 import { categoryName } from '@domains/admin/shell/state/admin-page.display.utils';
+import { AdminOverviewApiService } from '@domains/admin/data/api/admin-overview-api.service';
 
 type ContentLocale = 'en' | 'nl';
 
@@ -14,12 +16,9 @@ type ContentLocale = 'en' | 'nl';
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-taxonomy-tab.component.html'
 })
-export class AdminTaxonomyTabComponent implements OnChanges {
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['selectedSkillCategoryId']) {
-      this.contentLocale = 'en';
-    }
-  }
+export class AdminTaxonomyTabComponent {
+  private readonly overviewApi = inject(AdminOverviewApiService);
+
   @Input({ required: true }) referenceData!: AdminReferenceData;
   @Input() selectedSkillCategoryId: string | null = null;
   @Input() selectedSkillId: string | null = null;
@@ -41,14 +40,16 @@ export class AdminTaxonomyTabComponent implements OnChanges {
   @Output() readonly blogTagSaved = new EventEmitter<void>();
   @Output() readonly blogTagDeleted = new EventEmitter<void>();
 
+  protected isGeneratingDutchDraft = false;
+  protected translationMessage = '';
   protected contentLocale: ContentLocale = 'en';
-
-  get highlightedSkillCount(): number {
-    return this.referenceData.skills.filter((skill) => skill.isHighlighted).length;
-  }
 
   protected setContentLocale(locale: ContentLocale): void {
     this.contentLocale = locale;
+  }
+
+  get highlightedSkillCount(): number {
+    return this.referenceData.skills.filter((skill) => skill.isHighlighted).length;
   }
 
   categoryName(categoryId: string): string {
@@ -61,6 +62,8 @@ export class AdminTaxonomyTabComponent implements OnChanges {
 
   startNewSkillCategory(): void {
     this.newSkillCategoryStarted.emit();
+    this.translationMessage = '';
+    this.contentLocale = 'en';
   }
 
   saveSkillCategory(): void {
@@ -101,5 +104,32 @@ export class AdminTaxonomyTabComponent implements OnChanges {
 
   deleteBlogTag(): void {
     this.blogTagDeleted.emit();
+  }
+
+  generateDutchDraft(): void {
+    this.isGeneratingDutchDraft = true;
+    this.translationMessage = '';
+    this.overviewApi.generateTranslationDraft({
+      sourceLocale: 'en',
+      targetLocale: 'nl',
+      entityType: 'skill-category',
+      context: 'Translate concise skill-category labels and descriptions for a developer portfolio. Keep technology names unchanged when appropriate.',
+      fields: {
+        nameNl: this.skillCategoryForm.name,
+        descriptionNl: this.skillCategoryForm.description,
+      },
+    }).pipe(take(1)).subscribe({
+      next: (response) => {
+        this.skillCategoryForm.nameNl = response.translatedFields['nameNl'] ?? this.skillCategoryForm.nameNl;
+        this.skillCategoryForm.descriptionNl = response.translatedFields['descriptionNl'] ?? this.skillCategoryForm.descriptionNl;
+        this.contentLocale = 'nl';
+        this.translationMessage = 'Dutch draft generated from the English skill category.';
+        this.isGeneratingDutchDraft = false;
+      },
+      error: (error) => {
+        this.translationMessage = error?.error?.detail || 'Generating the Dutch skill-category draft failed.';
+        this.isGeneratingDutchDraft = false;
+      },
+    });
   }
 }

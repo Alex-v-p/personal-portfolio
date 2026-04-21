@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { take } from 'rxjs/operators';
 
 import { AdminExperience, AdminMediaFile, AdminSkillOption } from '@domains/admin/model/admin.model';
 import { AdminExperienceForm, ScopedUploadForm } from '@domains/admin/model/forms/index';
 import { slugify } from '@domains/admin/shell/state/admin-page.utils';
+import { AdminOverviewApiService } from '@domains/admin/data/api/admin-overview-api.service';
 
 type ContentLocale = 'en' | 'nl';
 
@@ -14,12 +16,9 @@ type ContentLocale = 'en' | 'nl';
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-experience-tab.component.html'
 })
-export class AdminExperienceTabComponent implements OnChanges {
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['selectedExperienceId']) {
-      this.contentLocale = 'en';
-    }
-  }
+export class AdminExperienceTabComponent {
+  private readonly overviewApi = inject(AdminOverviewApiService);
+
   @Input({ required: true }) experiences: AdminExperience[] = [];
   @Input() selectedExperienceId: string | null = null;
   @Input({ required: true }) experienceForm!: AdminExperienceForm;
@@ -36,6 +35,8 @@ export class AdminExperienceTabComponent implements OnChanges {
   @Output() readonly scopedFileSelected = new EventEmitter<{ event: Event; form: ScopedUploadForm }>();
   @Output() readonly experienceLogoUploadRequested = new EventEmitter<void>();
 
+  protected isGeneratingDutchDraft = false;
+  protected translationMessage = '';
   protected contentLocale: ContentLocale = 'en';
 
   protected setContentLocale(locale: ContentLocale): void {
@@ -48,6 +49,8 @@ export class AdminExperienceTabComponent implements OnChanges {
 
   startNewExperience(): void {
     this.newExperienceStarted.emit();
+    this.translationMessage = '';
+    this.contentLocale = 'en';
   }
 
   toggleExperienceSkill(skillId: string): void {
@@ -76,5 +79,34 @@ export class AdminExperienceTabComponent implements OnChanges {
 
   buildExperienceFolder(): string {
     return `experience/${slugify(this.experienceForm.organizationName || this.experienceForm.roleTitle || 'experience')}`;
+  }
+
+  generateDutchDraft(): void {
+    this.isGeneratingDutchDraft = true;
+    this.translationMessage = '';
+    this.overviewApi.generateTranslationDraft({
+      sourceLocale: 'en',
+      targetLocale: 'nl',
+      entityType: 'experience',
+      context: 'Translate an experience entry for a developer portfolio. Keep organization names and technology names unchanged where appropriate.',
+      fields: {
+        roleTitleNl: this.experienceForm.roleTitle,
+        summaryNl: this.experienceForm.summary,
+        descriptionMarkdownNl: this.experienceForm.descriptionMarkdown,
+      },
+    }).pipe(take(1)).subscribe({
+      next: (response) => {
+        this.experienceForm.roleTitleNl = response.translatedFields['roleTitleNl'] ?? this.experienceForm.roleTitleNl;
+        this.experienceForm.summaryNl = response.translatedFields['summaryNl'] ?? this.experienceForm.summaryNl;
+        this.experienceForm.descriptionMarkdownNl = response.translatedFields['descriptionMarkdownNl'] ?? this.experienceForm.descriptionMarkdownNl;
+        this.contentLocale = 'nl';
+        this.translationMessage = 'Dutch draft generated from the English experience copy.';
+        this.isGeneratingDutchDraft = false;
+      },
+      error: (error) => {
+        this.translationMessage = error?.error?.detail || 'Generating the Dutch experience draft failed.';
+        this.isGeneratingDutchDraft = false;
+      },
+    });
   }
 }

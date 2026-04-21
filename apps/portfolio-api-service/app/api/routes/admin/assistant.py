@@ -11,7 +11,10 @@ from app.domains.admin.schema import (
     AdminAssistantKnowledgeRebuildOut,
     AdminAssistantKnowledgeStatusOut,
     AdminAsyncTaskAcceptedOut,
+    AdminTranslationDraftIn,
+    AdminTranslationDraftOut,
 )
+from app.domains.admin.service.admin_translation_service import AdminTranslationDraftService
 from app.domains.knowledge.service.service import KnowledgeSyncService
 from app.services.async_tasks import KNOWLEDGE_REBUILD_TASK, TaskQueueUnavailable, get_admin_task_queue
 
@@ -44,3 +47,11 @@ def rebuild_assistant_knowledge(
         except TaskQueueUnavailable:
             pass
     return AdminAssistantKnowledgeRebuildOut(**asdict(KnowledgeSyncService(session).rebuild()))
+
+
+@router.post('/assistant/translate-draft', response_model=AdminTranslationDraftOut)
+def translate_draft(
+    payload: AdminTranslationDraftIn,
+    _: CurrentAdminDep,
+) -> AdminTranslationDraftOut:
+    return AdminTranslationDraftService().generate_draft(payload)

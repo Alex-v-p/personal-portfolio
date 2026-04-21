@@ -5,3 +5,5 @@ export * from './media-admin.model';
 export * from './stats-admin.model';
 export * from './taxonomy-admin.model';
 export * from './async-admin.model';
+
+export * from './assistant-admin.model';

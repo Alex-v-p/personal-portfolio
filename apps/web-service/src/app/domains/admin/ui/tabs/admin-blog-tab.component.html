@@ -1,85 +1,83 @@
 <section class="grid gap-6 xl:grid-cols-[22rem_minmax(0,1fr)] 2xl:grid-cols-[24rem_minmax(0,1fr)] items-start">
   <aside class="rounded-[2rem] border border-stone-300 bg-white p-5 shadow-[0_20px_45px_rgba(40,31,20,0.08)] xl:sticky xl:top-6">
-    <div class="flex items-center justify-between gap-4">
-      <div>
-        <h2 class="text-lg font-semibold text-stone-950">Blog posts</h2>
-        <p class="mt-1 text-sm text-stone-600">Markdown articles with localized copy.</p>
-      </div>
-      <button type="button" (click)="startNewBlogPost()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">New</button>
-    </div>
+    <div class="flex items-center justify-between gap-4"><h2 class="text-lg font-semibold text-stone-950">Blog posts</h2><button type="button" (click)="startNewBlogPost()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">New</button></div>
     <div class="mt-5 grid gap-3 min-h-[18rem] max-h-[calc(100vh-17rem)] overflow-y-auto pr-1">
       <button *ngFor="let post of blogPosts" type="button" (click)="selectBlogPost(post.id)" [ngClass]="post.id === selectedBlogPostId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-[1.5rem] border p-4 text-left transition">
-        <p class="text-sm font-semibold text-stone-950">{{ post.title }}</p>
-        <p class="mt-1 text-xs text-stone-500">{{ post.titleNl || 'No Dutch title yet' }}</p>
-        <p class="mt-2 text-sm text-stone-600">{{ post.status }} · {{ formatTagSummary(post) }}</p>
-        <p class="mt-2 text-xs text-stone-500">{{ post.slug }}</p>
+        <p class="text-sm font-semibold text-stone-950">{{ post.title }}</p><p class="mt-1 text-sm text-stone-600">{{ post.status }} · {{ formatTagSummary(post) }}</p><p class="mt-2 text-xs text-stone-500">{{ post.slug }}</p>
       </button>
     </div>
   </aside>
-
   <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] lg:p-7 2xl:p-8">
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <h2 class="text-xl font-semibold text-stone-950">{{ selectedBlogPostId ? 'Edit blog post' : 'Create blog post' }}</h2>
-        <p class="mt-1 text-sm text-stone-600">English copy is required. Dutch copy is optional and falls back to English publicly until you add it.</p>
-      </div>
-      <button *ngIf="selectedBlogPostId" type="button" (click)="deleteBlogPost()" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700">Delete</button>
-    </div>
-
-    <div class="mt-6 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4 sm:p-5">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><h2 class="text-xl font-semibold text-stone-950">{{ selectedBlogPostId ? 'Edit blog post' : 'Create blog post' }}</h2><button *ngIf="selectedBlogPostId" type="button" (click)="deleteBlogPost()" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700">Delete</button></div>
+<section class="mt-6 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
       <div class="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p class="text-sm font-semibold text-stone-950">Localized blog copy</p>
-          <p class="mt-1 text-xs leading-5 text-stone-500">Switch between English and Dutch for titles, excerpt, article body, cover alt text, and SEO copy.</p>
-        </div>
-        <div class="inline-flex rounded-full border border-stone-300 bg-white p-1">
-          <button type="button" (click)="setContentLocale('en')" [ngClass]="contentLocale === 'en' ? 'bg-stone-900 text-white' : 'text-stone-700'" class="rounded-full px-4 py-2 text-sm font-semibold">English · required</button>
-          <button type="button" (click)="setContentLocale('nl')" [ngClass]="contentLocale === 'nl' ? 'bg-stone-900 text-white' : 'text-stone-700'" class="rounded-full px-4 py-2 text-sm font-semibold">Dutch · optional</button>
+        <div><p class="text-sm font-semibold text-stone-950">Localized blog copy</p><p class="mt-1 text-xs leading-5 text-stone-500">Switch between English and Dutch for the article copy and SEO text. Shared publishing settings stay visible below.</p></div>
+        <div class="flex flex-wrap items-center gap-3">
+          <button type="button" (click)="generateDutchDraft()" [disabled]="isGeneratingDutchDraft" class="rounded-full border border-emerald-300 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 disabled:opacity-60">{{ isGeneratingDutchDraft ? 'Generating…' : 'Generate Dutch draft' }}</button>
+          <div class="inline-flex rounded-full border border-stone-300 bg-white p-1">
+            <button type="button" (click)="setContentLocale('en')" [ngClass]="contentLocale === 'en' ? 'bg-stone-900 text-white' : 'text-stone-700'" class="rounded-full px-4 py-2 text-sm font-semibold">English · required</button>
+            <button type="button" (click)="setContentLocale('nl')" [ngClass]="contentLocale === 'nl' ? 'bg-stone-900 text-white' : 'text-stone-700'" class="rounded-full px-4 py-2 text-sm font-semibold">Dutch · optional</button>
+          </div>
         </div>
       </div>
+      <p *ngIf="translationMessage" class="mt-4 rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm text-stone-700">{{ translationMessage }}</p>
+    </section>
+    <div class="mt-6 grid gap-4 lg:grid-cols-2">
+      <label *ngIf="contentLocale === 'en'" class="space-y-2"><span class="text-sm font-semibold">Title</span><input [(ngModel)]="blogPostForm.title" name="blogTitle" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+      <label *ngIf="contentLocale === 'nl'" class="space-y-2"><span class="text-sm font-semibold">Title (NL)</span><input [(ngModel)]="blogPostForm.titleNl" name="blogPostTitleNlTop" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+      <label class="space-y-2"><span class="text-sm font-semibold">Slug</span><input [(ngModel)]="blogPostForm.slug" name="blogSlug" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+      <label *ngIf="contentLocale === 'en'" class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Excerpt</span><textarea [(ngModel)]="blogPostForm.excerpt" name="blogExcerpt" rows="3" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"></textarea></label>
+      <label *ngIf="contentLocale === 'nl'" class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Excerpt (NL)</span><textarea [(ngModel)]="blogPostForm.excerptNl" name="blogPostExcerptNlTop" rows="3" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"></textarea></label>
+      <div *ngIf="contentLocale === 'en'" class="space-y-4 lg:col-span-2 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p class="text-sm font-semibold text-stone-950">Markdown editor</p>
+            <p class="text-xs leading-5 text-stone-500">Use the shortcuts below to insert headings, emphasis, code, links, lists, quotes, dividers, and inline images without leaving the editor.</p>
+          </div>
+          <div class="flex flex-wrap gap-2 text-xs text-stone-500">
+            <span class="rounded-full border border-stone-300 bg-white px-3 py-1">{{ blogMarkdownWordCount }} words</span>
+            <button type="button" (click)="applySuggestedBlogReadingTime()" class="rounded-full border border-stone-300 bg-white px-3 py-1 font-medium text-stone-700">Use {{ suggestedBlogReadingTimeMinutes || 1 }} min estimate</button>
+          </div>
+        </div>
 
-      <div class="mt-5 grid gap-4 lg:grid-cols-2">
-        <ng-container *ngIf="contentLocale === 'en'; else dutchTitleFields">
-          <label class="space-y-2"><span class="text-sm font-semibold">Title</span><input [(ngModel)]="blogPostForm.title" name="blogTitleEn" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
-          <label class="space-y-2"><span class="text-sm font-semibold">Slug</span><input [(ngModel)]="blogPostForm.slug" name="blogSlug" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
-          <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Excerpt</span><textarea [(ngModel)]="blogPostForm.excerpt" name="blogExcerptEn" rows="3" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea></label>
-        </ng-container>
-        <ng-template #dutchTitleFields>
-          <label class="space-y-2"><span class="text-sm font-semibold">Title (Dutch)</span><input [(ngModel)]="blogPostForm.titleNl" name="blogTitleNl" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
-          <label class="space-y-2"><span class="text-sm font-semibold">Slug</span><input [(ngModel)]="blogPostForm.slug" name="blogSlugNlView" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
-          <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Excerpt (Dutch)</span><textarea [(ngModel)]="blogPostForm.excerptNl" name="blogExcerptNl" rows="3" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea></label>
-        </ng-template>
-      </div>
-
-      <div class="mt-5 space-y-4">
-        <div class="flex flex-wrap gap-2 rounded-[1.25rem] border border-stone-200 bg-white p-3">
-          <button type="button" (click)="wrapBlogSelection('**', '**', 'Bold text')" class="rounded-full border border-stone-300 px-3 py-1 text-sm font-medium text-stone-700">Bold</button>
-          <button type="button" (click)="wrapBlogSelection('*', '*', 'Emphasis')" class="rounded-full border border-stone-300 px-3 py-1 text-sm font-medium text-stone-700">Italic</button>
-          <button type="button" (click)="toggleBlogLinePrefix('# ')" class="rounded-full border border-stone-300 px-3 py-1 text-sm font-medium text-stone-700">Heading</button>
-          <button type="button" (click)="toggleBlogLinePrefix('- ')" class="rounded-full border border-stone-300 px-3 py-1 text-sm font-medium text-stone-700">List</button>
-          <button type="button" (click)="insertBlogMarkdownLink()" class="rounded-full border border-stone-300 px-3 py-1 text-sm font-medium text-stone-700">Link</button>
-          <button type="button" (click)="insertBlogMarkdownImageTemplate()" class="rounded-full border border-stone-300 px-3 py-1 text-sm font-medium text-stone-700">Image</button>
-          <button type="button" (click)="insertBlogMarkdownCodeBlock()" class="rounded-full border border-stone-300 px-3 py-1 text-sm font-medium text-stone-700">Code</button>
-          <button type="button" (click)="insertBlogMarkdownDivider()" class="rounded-full border border-stone-300 px-3 py-1 text-sm font-medium text-stone-700">Divider</button>
+        <div class="flex flex-wrap gap-2">
+          <button type="button" (click)="toggleBlogLinePrefix('# ')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">H1</button>
+          <button type="button" (click)="toggleBlogLinePrefix('## ')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">H2</button>
+          <button type="button" (click)="toggleBlogLinePrefix('### ')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">H3</button>
+          <button type="button" (click)="wrapBlogSelection('**', '**', 'Bold text')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Bold</button>
+          <button type="button" (click)="wrapBlogSelection('*', '*', 'Italic text')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Italic</button>
+          <button type="button" (click)="wrapBlogSelection('`', '`', 'inline code')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Inline code</button>
+          <button type="button" (click)="insertBlogMarkdownLink()" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Link</button>
+          <button type="button" (click)="insertBlogMarkdownImageTemplate()" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Image</button>
+          <button type="button" (click)="toggleBlogLinePrefix('- ')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Bullets</button>
+          <button type="button" (click)="toggleBlogLinePrefix('1. ')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Numbered list</button>
+          <button type="button" (click)="toggleBlogLinePrefix('> ')" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Quote</button>
+          <button type="button" (click)="insertBlogMarkdownCodeBlock()" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Code block</button>
+          <button type="button" (click)="insertBlogMarkdownDivider()" class="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700">Divider</button>
         </div>
 
         <div class="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.85fr)] 2xl:grid-cols-[minmax(0,1.45fr)_minmax(24rem,0.8fr)]">
           <label class="space-y-2">
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-sm font-semibold">{{ contentLocale === 'en' ? 'Content markdown' : 'Content markdown (Dutch)' }}</span>
-              <span class="text-xs text-stone-500">{{ blogMarkdownWordCount }} words</span>
-            </div>
-            <textarea #blogMarkdownEditor [ngModel]="activeBlogMarkdown" (ngModelChange)="activeBlogMarkdown = $event" [name]="contentLocale === 'en' ? 'blogMarkdownEn' : 'blogMarkdownNl'" rows="18" class="min-h-[26rem] w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm font-mono"></textarea>
+            <span class="text-sm font-semibold">Content markdown</span>
+            <textarea #blogMarkdownEditor [(ngModel)]="blogPostForm.contentMarkdown" name="blogMarkdown" rows="18" class="min-h-[26rem] w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm font-mono"></textarea>
           </label>
           <div class="space-y-2">
-            <div class="flex items-center justify-between gap-3"><span class="text-sm font-semibold text-stone-950">Live preview</span><span class="text-xs text-stone-500">Matches the public blog renderer</span></div>
-            <div class="min-h-[26rem] rounded-2xl border border-stone-300 bg-white px-5 py-4"><div class="blog-markdown" [innerHTML]="renderedBlogContentPreview"></div></div>
+            <div class="flex items-center justify-between gap-3">
+              <span class="text-sm font-semibold text-stone-950">Live preview</span>
+              <span class="text-xs text-stone-500">Matches the public blog renderer</span>
+            </div>
+            <div class="min-h-[26rem] rounded-2xl border border-stone-300 bg-white px-5 py-4">
+              <div class="blog-markdown" [innerHTML]="renderedBlogContentPreview"></div>
+            </div>
           </div>
         </div>
 
         <div class="grid gap-4 xl:grid-cols-[minmax(22rem,0.9fr)_minmax(0,1.1fr)] 2xl:grid-cols-[minmax(24rem,0.85fr)_minmax(0,1.15fr)]">
           <div class="space-y-3 rounded-[1.25rem] border border-stone-200 bg-white p-4">
-            <div><p class="text-sm font-semibold text-stone-950">Upload inline image</p><p class="text-xs text-stone-500">Uploads to {{ blogFolder }} and inserts the markdown image syntax into the active language editor automatically.</p></div>
+            <div>
+              <p class="text-sm font-semibold text-stone-950">Upload inline image</p>
+              <p class="text-xs text-stone-500">Uploads to {{ blogFolder }} and inserts the markdown image syntax into the editor automatically.</p>
+            </div>
             <input [(ngModel)]="blogInlineImageUploadForm.title" name="blogInlineImageUploadTitle" placeholder="Image title" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" />
             <input [(ngModel)]="blogInlineImageUploadForm.altText" name="blogInlineImageUploadAltText" placeholder="Alt text for the article" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" />
             <textarea [(ngModel)]="blogInlineImageUploadForm.description" name="blogInlineImageUploadDescription" rows="2" placeholder="Optional description" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"></textarea>
@@ -89,43 +87,53 @@
           </div>
 
           <div class="space-y-3 rounded-[1.25rem] border border-stone-200 bg-white p-4">
-            <div class="flex items-start justify-between gap-3"><div><p class="text-sm font-semibold text-stone-950">Insert from media library</p><p class="text-xs text-stone-500">Search your existing uploads and insert any image into the article at the current cursor position.</p></div><span class="rounded-full border border-stone-300 bg-stone-50 px-3 py-1 text-xs text-stone-500">{{ filteredBlogImageMediaFiles.length }} image{{ filteredBlogImageMediaFiles.length === 1 ? '' : 's' }}</span></div>
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p class="text-sm font-semibold text-stone-950">Insert from media library</p>
+                <p class="text-xs text-stone-500">Search your existing uploads and insert any image into the article at the current cursor position.</p>
+              </div>
+              <span class="rounded-full border border-stone-300 bg-stone-50 px-3 py-1 text-xs text-stone-500">{{ filteredBlogImageMediaFiles.length }} image{{ filteredBlogImageMediaFiles.length === 1 ? '' : 's' }}</span>
+            </div>
             <input [(ngModel)]="blogMediaSearchTerm" name="blogMediaSearchTerm" placeholder="Search by title, alt text, filename, or path" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" />
             <div class="grid max-h-72 gap-2 overflow-y-auto pr-1">
               <button *ngFor="let media of filteredBlogImageMediaFiles.slice(0, 16)" type="button" (click)="insertBlogImageFromMedia(media)" class="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-3 py-3 text-left transition hover:border-stone-300 hover:bg-stone-100">
-                <div class="h-14 w-14 overflow-hidden rounded-xl border border-stone-200 bg-white"><img *ngIf="media.resolvedAsset?.url" [src]="media.resolvedAsset?.url" [alt]="media.altText || media.title || media.originalFilename" class="h-full w-full object-cover" /><div *ngIf="!media.resolvedAsset?.url" class="flex h-full w-full items-center justify-center text-[10px] font-semibold uppercase tracking-[0.12em] text-stone-400">IMG</div></div>
-                <div class="min-w-0 flex-1"><p class="truncate text-sm font-semibold text-stone-900">{{ media.title || media.originalFilename }}</p><p class="truncate text-xs text-stone-500">{{ media.objectKey }}</p></div>
+                <div class="h-14 w-14 overflow-hidden rounded-xl border border-stone-200 bg-white">
+                  <img *ngIf="media.resolvedAsset?.url" [src]="media.resolvedAsset?.url" [alt]="media.altText || media.title || media.originalFilename" class="h-full w-full object-cover" />
+                  <div *ngIf="!media.resolvedAsset?.url" class="flex h-full w-full items-center justify-center text-[10px] font-semibold uppercase tracking-[0.12em] text-stone-400">IMG</div>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-semibold text-stone-900">{{ media.title || media.originalFilename }}</p>
+                  <p class="truncate text-xs text-stone-500">{{ media.objectKey }}</p>
+                </div>
               </button>
               <p *ngIf="filteredBlogImageMediaFiles.length === 0" class="rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-4 py-5 text-sm text-stone-500">No matching images yet. Upload one on the left or clear the search.</p>
             </div>
           </div>
         </div>
       </div>
-
-      <div class="mt-5 grid gap-4 lg:grid-cols-2" *ngIf="contentLocale === 'en'; else dutchSeoFields">
-        <label class="space-y-2"><span class="text-sm font-semibold">Cover alt text</span><input [(ngModel)]="blogPostForm.coverImageAlt" name="blogCoverAltEn" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
-        <label class="space-y-2"><span class="text-sm font-semibold">SEO title</span><input [(ngModel)]="blogPostForm.seoTitle" name="blogSeoTitleEn" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
-        <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">SEO description</span><textarea [(ngModel)]="blogPostForm.seoDescription" name="blogSeoDescriptionEn" rows="3" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea></label>
-      </div>
-      <ng-template #dutchSeoFields>
-        <div class="mt-5 grid gap-4 lg:grid-cols-2">
-          <label class="space-y-2"><span class="text-sm font-semibold">Cover alt text (Dutch)</span><input [(ngModel)]="blogPostForm.coverImageAltNl" name="blogCoverAltNl" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
-          <label class="space-y-2"><span class="text-sm font-semibold">SEO title (Dutch)</span><input [(ngModel)]="blogPostForm.seoTitleNl" name="blogSeoTitleNl" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
-          <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">SEO description (Dutch)</span><textarea [(ngModel)]="blogPostForm.seoDescriptionNl" name="blogSeoDescriptionNl" rows="3" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea></label>
-        </div>
-      </ng-template>
-    </div>
-
-    <div class="mt-6 grid gap-4 lg:grid-cols-2">
       <label class="space-y-2"><span class="text-sm font-semibold">Status</span><select [(ngModel)]="blogPostForm.status" name="blogStatus" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"><option *ngFor="let status of referenceData.publicationStatuses" [ngValue]="status">{{ status }}</option></select></label>
-      <label class="space-y-2"><span class="text-sm font-semibold">Reading time</span><div class="space-y-2"><input [(ngModel)]="blogPostForm.readingTimeMinutes" name="blogReadingTime" type="number" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /><p class="text-xs text-stone-500">Suggested from active language content: {{ suggestedBlogReadingTimeMinutes || 1 }} minute{{ (suggestedBlogReadingTimeMinutes || 1) === 1 ? '' : 's' }}. <button type="button" (click)="applySuggestedBlogReadingTime()" class="font-semibold text-stone-700 underline underline-offset-2">Apply</button></p></div></label>
+      <label class="space-y-2"><span class="text-sm font-semibold">Reading time</span><div class="space-y-2"><input [(ngModel)]="blogPostForm.readingTimeMinutes" name="blogReadingTime" type="number" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /><p class="text-xs text-stone-500">Suggested from content: {{ suggestedBlogReadingTimeMinutes || 1 }} minute{{ (suggestedBlogReadingTimeMinutes || 1) === 1 ? '' : 's' }}.</p></div></label>
       <label class="space-y-2"><span class="text-sm font-semibold">Published at</span><input [(ngModel)]="blogPostForm.publishedAt" name="blogPublishedAt" type="datetime-local" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
-      <label class="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm"><input [(ngModel)]="blogPostForm.isFeatured" name="blogFeatured" type="checkbox" class="h-4 w-4" /> Feature on home page</label>
-
+      <label *ngIf="contentLocale === 'en'" class="space-y-2"><span class="text-sm font-semibold">Cover alt text</span><input [(ngModel)]="blogPostForm.coverImageAlt" name="blogCoverAlt" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+      <label *ngIf="contentLocale === 'nl'" class="space-y-2"><span class="text-sm font-semibold">Cover alt text (NL)</span><input [(ngModel)]="blogPostForm.coverImageAltNl" name="blogPostCoverImageAltNlTop" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+      <label *ngIf="contentLocale === 'en'" class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">SEO title</span><input [(ngModel)]="blogPostForm.seoTitle" name="blogSeoTitle" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+      <label *ngIf="contentLocale === 'nl'" class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">SEO title (NL)</span><input [(ngModel)]="blogPostForm.seoTitleNl" name="blogPostSeoTitleNlTop" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+      <label *ngIf="contentLocale === 'en'" class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">SEO description</span><textarea [(ngModel)]="blogPostForm.seoDescription" name="blogSeoDescription" rows="3" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"></textarea></label>
+      <label *ngIf="contentLocale === 'nl'" class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">SEO description (NL)</span><textarea [(ngModel)]="blogPostForm.seoDescriptionNl" name="blogPostSeoDescriptionNlTop" rows="3" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"></textarea></label>
+      <label class="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm lg:col-span-2"><input [(ngModel)]="blogPostForm.isFeatured" name="blogFeatured" type="checkbox" class="h-4 w-4" /> Feature on home page</label>
       <div class="space-y-3 lg:col-span-2 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4"><div><p class="text-sm font-semibold">Blog cover upload</p><p class="text-xs text-stone-500">Uploaded to {{ blogFolder }}</p></div><div class="grid gap-3 lg:grid-cols-2"><input [(ngModel)]="blogUploadForm.title" name="blogUploadTitle" placeholder="Media title" class="rounded-2xl border border-stone-300 px-4 py-3 text-sm" /><input [(ngModel)]="blogUploadForm.altText" name="blogUploadAltText" placeholder="Alt text" class="rounded-2xl border border-stone-300 px-4 py-3 text-sm" /><textarea [(ngModel)]="blogUploadForm.description" name="blogUploadDescription" rows="2" placeholder="Description" class="rounded-2xl border border-stone-300 px-4 py-3 text-sm lg:col-span-2"></textarea><input type="file" (change)="onScopedFileSelected($event, blogUploadForm)" class="rounded-2xl border border-stone-300 px-4 py-3 text-sm lg:col-span-2" /></div><button type="button" (click)="uploadBlogCover()" [disabled]="uploadInProgressKey === 'blog-cover'" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Upload and select</button></div>
       <div class="space-y-3 lg:col-span-2"><span class="text-sm font-semibold">Cover image media</span><select [(ngModel)]="blogPostForm.coverImageFileId" name="blogCoverMediaId" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"><option [ngValue]="null">No cover image selected</option><option *ngFor="let media of referenceData.mediaFiles" [ngValue]="media.id">{{ media.title || media.originalFilename }} · {{ media.objectKey }}</option></select></div>
       <div class="space-y-3 lg:col-span-2"><span class="text-sm font-semibold">Assigned blog tags</span><div class="grid gap-2 md:grid-cols-2 xl:grid-cols-3"><label *ngFor="let tag of referenceData.blogTags" class="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm"><input type="checkbox" [checked]="blogPostForm.tagIds.includes(tag.id)" (change)="toggleBlogTag(tag.id)" class="h-4 w-4" />{{ tag.name }} <span class="text-xs text-stone-500">({{ tag.slug }})</span></label></div></div>
     </div>
+    <section *ngIf="contentLocale === 'nl'" class="mt-6 rounded-[1.5rem] border border-emerald-200 bg-emerald-50/60 p-4">
+      <div>
+        <h3 class="text-base font-semibold text-stone-950">Dutch article body</h3>
+        <p class="mt-1 text-sm text-stone-600">Edit the Dutch markdown body here after generating or refining the translated copy.</p>
+      </div>
+      <div class="mt-4 grid gap-4">
+        <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Content markdown (NL)</span><textarea [(ngModel)]="blogPostForm.contentMarkdownNl" name="blogPostContentMarkdownNl" rows="12" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm font-mono"></textarea></label>
+      </div>
+    </section>
 
     <div class="mt-6 flex justify-end gap-3"><button type="button" (click)="startNewBlogPost()" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold">Reset</button><button type="button" (click)="saveBlogPost()" class="rounded-full bg-stone-900 px-5 py-2 text-sm font-semibold text-white">Save blog post</button></div>
   </article>

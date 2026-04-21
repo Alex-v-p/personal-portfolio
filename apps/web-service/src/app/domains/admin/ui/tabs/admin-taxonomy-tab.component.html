@@ -1,47 +1,63 @@
-<section class="grid gap-6 xl:grid-cols-3 items-start">
+<section class="grid gap-6 xl:grid-cols-3 2xl:grid-cols-[minmax(22rem,0.95fr)_minmax(24rem,1.05fr)_minmax(22rem,0.95fr)] items-start">
   <article class="flex min-h-[44rem] flex-col rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
     <div class="flex items-start justify-between gap-4">
       <div>
         <h2 class="text-lg font-semibold text-stone-950">Skill categories</h2>
-        <p class="mt-1 text-sm text-stone-600">English is required. Dutch category copy is optional for the public expertise section.</p>
+        <p class="mt-1 text-sm text-stone-600">Group skills for cleaner public sections and admin selectors.</p>
       </div>
       <button type="button" (click)="startNewSkillCategory()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">New</button>
     </div>
 
-    <div class="mt-4 grid max-h-[16rem] gap-2 overflow-y-auto pr-1">
+    <div class="mt-4 grid grid-cols-2 gap-3">
+      <article class="rounded-[1.25rem] border border-stone-200 bg-stone-50 px-3 py-3 text-center">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Total</p>
+        <p class="mt-2 text-2xl font-semibold text-stone-950">{{ referenceData.skillCategories.length }}</p>
+      </article>
+      <article class="rounded-[1.25rem] border border-stone-200 bg-stone-50 px-3 py-3 text-center">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Selected</p>
+        <p class="mt-2 text-2xl font-semibold text-stone-950">{{ selectedSkillCategoryId ? '1' : '—' }}</p>
+      </article>
+    </div>
+
+    <div class="mt-5 grid gap-2 max-h-[16rem] overflow-y-auto pr-1">
       <button *ngFor="let category of referenceData.skillCategories" type="button" (click)="selectSkillCategory(category.id)" [ngClass]="category.id === selectedSkillCategoryId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-2xl border px-4 py-3 text-left text-sm">
         <div class="font-semibold text-stone-950">{{ category.name }}</div>
-        <div class="text-xs text-stone-500">{{ category.nameNl || 'No Dutch name yet' }}</div>
         <div class="text-xs text-stone-500">Sort {{ category.sortOrder }} · {{ category.description || 'No description yet' }}</div>
       </button>
     </div>
 
-    <div class="mt-6 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
-      <div class="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p class="text-sm font-semibold text-stone-950">Localized category copy</p>
-          <p class="mt-1 text-xs leading-5 text-stone-500">Switch between English and Dutch for category names and descriptions only. Individual skill names stay shared.</p>
+    <div class="mt-6 grid gap-4">
+      <section class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div><p class="text-sm font-semibold text-stone-950">Localized skill-category copy</p><p class="mt-1 text-xs leading-5 text-stone-500">Switch between English and Dutch for the public category label and description. Skills and tags remain shared.</p></div>
+          <div class="flex flex-wrap items-center gap-3">
+            <button type="button" (click)="generateDutchDraft()" [disabled]="isGeneratingDutchDraft" class="rounded-full border border-emerald-300 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 disabled:opacity-60">{{ isGeneratingDutchDraft ? 'Generating…' : 'Generate Dutch draft' }}</button>
+            <div class="inline-flex rounded-full border border-stone-300 bg-white p-1">
+              <button type="button" (click)="setContentLocale('en')" [ngClass]="contentLocale === 'en' ? 'bg-stone-900 text-white' : 'text-stone-700'" class="rounded-full px-4 py-2 text-sm font-semibold">English · required</button>
+              <button type="button" (click)="setContentLocale('nl')" [ngClass]="contentLocale === 'nl' ? 'bg-stone-900 text-white' : 'text-stone-700'" class="rounded-full px-4 py-2 text-sm font-semibold">Dutch · optional</button>
+            </div>
+          </div>
         </div>
-        <div class="inline-flex rounded-full border border-stone-300 bg-white p-1">
-          <button type="button" (click)="setContentLocale('en')" [ngClass]="contentLocale === 'en' ? 'bg-stone-900 text-white' : 'text-stone-700'" class="rounded-full px-4 py-2 text-sm font-semibold">English · required</button>
-          <button type="button" (click)="setContentLocale('nl')" [ngClass]="contentLocale === 'nl' ? 'bg-stone-900 text-white' : 'text-stone-700'" class="rounded-full px-4 py-2 text-sm font-semibold">Dutch · optional</button>
+        <p *ngIf="translationMessage" class="mt-4 rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm text-stone-700">{{ translationMessage }}</p>
+        <div class="mt-4 grid gap-4">
+          <label *ngIf="contentLocale === 'en'" class="space-y-2">
+            <span class="text-sm font-semibold text-stone-800">Category name</span>
+            <input [(ngModel)]="skillCategoryForm.name" name="skillCategoryName" placeholder="Frontend" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
+          </label>
+          <label *ngIf="contentLocale === 'nl'" class="space-y-2"><span class="text-sm font-semibold text-stone-800">Category name (NL)</span><input [(ngModel)]="skillCategoryForm.nameNl" name="skillCategoryNameNl" placeholder="Frontend" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
+          <label *ngIf="contentLocale === 'en'" class="space-y-2">
+            <span class="text-sm font-semibold text-stone-800">Description</span>
+            <textarea [(ngModel)]="skillCategoryForm.description" name="skillCategoryDescription" rows="4" placeholder="UI and client-side technologies" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea>
+          </label>
+          <label *ngIf="contentLocale === 'nl'" class="space-y-2"><span class="text-sm font-semibold text-stone-800">Description (NL)</span><textarea [(ngModel)]="skillCategoryForm.descriptionNl" name="skillCategoryDescriptionNl" rows="4" placeholder="UI- en client-side technologieën" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea></label>
         </div>
-      </div>
+      </section>
 
-      <div *ngIf="contentLocale === 'en'" class="mt-5 grid gap-4">
-        <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Category name</span><input [(ngModel)]="skillCategoryForm.name" name="skillCategoryNameEn" placeholder="Frontend" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
-        <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Description</span><textarea [(ngModel)]="skillCategoryForm.description" name="skillCategoryDescriptionEn" rows="4" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea></label>
-      </div>
-      <div *ngIf="contentLocale === 'nl'" class="mt-5 grid gap-4">
-        <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Category name (Dutch)</span><input [(ngModel)]="skillCategoryForm.nameNl" name="skillCategoryNameNl" placeholder="Frontend" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
-        <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Description (Dutch)</span><textarea [(ngModel)]="skillCategoryForm.descriptionNl" name="skillCategoryDescriptionNl" rows="4" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea></label>
-      </div>
+      <label class="space-y-2 lg:max-w-xs">
+        <span class="text-sm font-semibold text-stone-800">Sort order</span>
+        <input [(ngModel)]="skillCategoryForm.sortOrder" name="skillCategorySortOrder" type="number" placeholder="10" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+      </label>
     </div>
-
-    <label class="mt-4 space-y-2 lg:max-w-xs">
-      <span class="text-sm font-semibold text-stone-800">Sort order</span>
-      <input [(ngModel)]="skillCategoryForm.sortOrder" name="skillCategorySortOrder" type="number" placeholder="10" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
-    </label>
 
     <div class="mt-auto flex flex-wrap gap-3 pt-6">
       <button type="button" (click)="saveSkillCategory()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Save category</button>
@@ -60,48 +76,112 @@
     </div>
 
     <div class="mt-4 grid grid-cols-2 gap-3">
-      <article class="rounded-[1.25rem] border border-stone-200 bg-stone-50 px-3 py-3 text-center"><p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Total</p><p class="mt-2 text-2xl font-semibold text-stone-950">{{ referenceData.skills.length }}</p></article>
-      <article class="rounded-[1.25rem] border border-stone-200 bg-stone-50 px-3 py-3 text-center"><p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Highlighted</p><p class="mt-2 text-2xl font-semibold text-stone-950">{{ highlightedSkillCount }}</p></article>
+      <article class="rounded-[1.25rem] border border-stone-200 bg-stone-50 px-3 py-3 text-center">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Total</p>
+        <p class="mt-2 text-2xl font-semibold text-stone-950">{{ referenceData.skills.length }}</p>
+      </article>
+      <article class="rounded-[1.25rem] border border-stone-200 bg-stone-50 px-3 py-3 text-center">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Highlighted</p>
+        <p class="mt-2 text-2xl font-semibold text-stone-950">{{ highlightedSkillCount }}</p>
+      </article>
     </div>
 
     <div class="mt-5 grid gap-2 max-h-[16rem] overflow-y-auto pr-1">
-      <button *ngFor="let skill of referenceData.skills" type="button" (click)="selectSkill(skill.id)" [ngClass]="skill.id === selectedSkillId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-2xl border px-4 py-3 text-left text-sm"><div class="font-semibold text-stone-950">{{ skill.name }}</div><div class="text-xs text-stone-500">{{ categoryName(skill.categoryId) }} · {{ skill.yearsOfExperience ?? 0 }} years</div></button>
+      <button *ngFor="let skill of referenceData.skills" type="button" (click)="selectSkill(skill.id)" [ngClass]="skill.id === selectedSkillId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-2xl border px-4 py-3 text-left text-sm">
+        <div class="font-semibold text-stone-950">{{ skill.name }}</div>
+        <div class="text-xs text-stone-500">{{ categoryName(skill.categoryId) }} · {{ skill.yearsOfExperience ?? 0 }} years</div>
+      </button>
     </div>
 
     <div class="mt-6 grid gap-4">
-      <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Category</span><select [(ngModel)]="skillForm.categoryId" name="skillCategoryId" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm"><option *ngFor="let category of referenceData.skillCategories" [ngValue]="category.id">{{ category.name }}</option></select></label>
-      <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Skill name</span><input [(ngModel)]="skillForm.name" name="skillName" placeholder="Angular" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
-      <div class="grid gap-4 sm:grid-cols-2"><label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Years of experience</span><input [(ngModel)]="skillForm.yearsOfExperience" name="skillYearsOfExperience" type="number" placeholder="2" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label><label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Sort order</span><input [(ngModel)]="skillForm.sortOrder" name="skillSortOrder" type="number" placeholder="10" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label></div>
-      <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Icon key</span><input [(ngModel)]="skillForm.iconKey" name="skillIconKey" placeholder="angular" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
-      <label class="flex items-start gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-800"><input [(ngModel)]="skillForm.isHighlighted" name="skillHighlighted" type="checkbox" class="mt-1 h-4 w-4" /><span><span class="font-semibold text-stone-900">Highlighted skill</span><span class="mt-1 block text-xs leading-5 text-stone-500">Use this when the skill should be emphasized in summaries.</span></span></label>
+      <label class="space-y-2">
+        <span class="text-sm font-semibold text-stone-800">Category</span>
+        <select [(ngModel)]="skillForm.categoryId" name="skillCategoryId" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm">
+          <option *ngFor="let category of referenceData.skillCategories" [ngValue]="category.id">{{ category.name }}</option>
+        </select>
+      </label>
+
+      <label class="space-y-2">
+        <span class="text-sm font-semibold text-stone-800">Skill name</span>
+        <input [(ngModel)]="skillForm.name" name="skillName" placeholder="Angular" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+      </label>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class="space-y-2">
+          <span class="text-sm font-semibold text-stone-800">Years of experience</span>
+          <input [(ngModel)]="skillForm.yearsOfExperience" name="skillYearsOfExperience" type="number" placeholder="2" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+        </label>
+
+        <label class="space-y-2">
+          <span class="text-sm font-semibold text-stone-800">Sort order</span>
+          <input [(ngModel)]="skillForm.sortOrder" name="skillSortOrder" type="number" placeholder="10" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+        </label>
+      </div>
+
+      <label class="space-y-2">
+        <span class="text-sm font-semibold text-stone-800">Icon key</span>
+        <input [(ngModel)]="skillForm.iconKey" name="skillIconKey" placeholder="angular" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+      </label>
+
+      <label class="flex items-start gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-800">
+        <input [(ngModel)]="skillForm.isHighlighted" name="skillHighlighted" type="checkbox" class="mt-1 h-4 w-4" />
+        <span>
+          <span class="font-semibold text-stone-900">Highlighted skill</span>
+          <span class="mt-1 block text-xs leading-5 text-stone-500">Use this when the skill should be emphasized in summaries.</span>
+        </span>
+      </label>
     </div>
 
-    <div class="mt-auto flex flex-wrap gap-3 pt-6"><button type="button" (click)="saveSkill()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Save skill</button><button type="button" (click)="startNewSkill()" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700">Reset form</button><button *ngIf="selectedSkillId" type="button" (click)="deleteSkill()" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700">Delete skill</button></div>
+    <div class="mt-auto flex flex-wrap gap-3 pt-6">
+      <button type="button" (click)="saveSkill()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Save skill</button>
+      <button type="button" (click)="startNewSkill()" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700">Reset form</button>
+      <button *ngIf="selectedSkillId" type="button" (click)="deleteSkill()" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700">Delete skill</button>
+    </div>
   </article>
 
   <article class="flex min-h-[44rem] flex-col rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
     <div class="flex items-start justify-between gap-4">
       <div>
         <h2 class="text-lg font-semibold text-stone-950">Blog tags</h2>
-        <p class="mt-1 text-sm text-stone-600">Short labels used for post filters and chips. Tags stay shared across languages for now.</p>
+        <p class="mt-1 text-sm text-stone-600">Short labels used for post filters and chips.</p>
       </div>
       <button type="button" (click)="startNewBlogTag()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">New</button>
     </div>
 
     <div class="mt-4 grid grid-cols-2 gap-3">
-      <article class="rounded-[1.25rem] border border-stone-200 bg-stone-50 px-3 py-3 text-center"><p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Total</p><p class="mt-2 text-2xl font-semibold text-stone-950">{{ referenceData.blogTags.length }}</p></article>
-      <article class="rounded-[1.25rem] border border-stone-200 bg-stone-50 px-3 py-3 text-center"><p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Selected</p><p class="mt-2 text-2xl font-semibold text-stone-950">{{ selectedBlogTagId ? '1' : '—' }}</p></article>
+      <article class="rounded-[1.25rem] border border-stone-200 bg-stone-50 px-3 py-3 text-center">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Total</p>
+        <p class="mt-2 text-2xl font-semibold text-stone-950">{{ referenceData.blogTags.length }}</p>
+      </article>
+      <article class="rounded-[1.25rem] border border-stone-200 bg-stone-50 px-3 py-3 text-center">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Selected</p>
+        <p class="mt-2 text-2xl font-semibold text-stone-950">{{ selectedBlogTagId ? '1' : '—' }}</p>
+      </article>
     </div>
 
     <div class="mt-5 grid gap-2 max-h-[16rem] overflow-y-auto pr-1">
-      <button *ngFor="let tag of referenceData.blogTags" type="button" (click)="selectBlogTag(tag.id)" [ngClass]="tag.id === selectedBlogTagId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-2xl border px-4 py-3 text-left text-sm"><div class="font-semibold text-stone-950">{{ tag.name }}</div><div class="text-xs text-stone-500">/{{ tag.slug }}</div></button>
+      <button *ngFor="let tag of referenceData.blogTags" type="button" (click)="selectBlogTag(tag.id)" [ngClass]="tag.id === selectedBlogTagId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-2xl border px-4 py-3 text-left text-sm">
+        <div class="font-semibold text-stone-950">{{ tag.name }}</div>
+        <div class="text-xs text-stone-500">/{{ tag.slug }}</div>
+      </button>
     </div>
 
     <div class="mt-6 grid gap-4">
-      <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Tag name</span><input [(ngModel)]="blogTagForm.name" name="blogTagName" placeholder="Laravel" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
-      <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Tag slug</span><input [(ngModel)]="blogTagForm.slug" name="blogTagSlug" placeholder="laravel" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+      <label class="space-y-2">
+        <span class="text-sm font-semibold text-stone-800">Tag name</span>
+        <input [(ngModel)]="blogTagForm.name" name="blogTagName" placeholder="Laravel" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+      </label>
+
+      <label class="space-y-2">
+        <span class="text-sm font-semibold text-stone-800">Tag slug</span>
+        <input [(ngModel)]="blogTagForm.slug" name="blogTagSlug" placeholder="laravel" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+      </label>
     </div>
 
-    <div class="mt-auto flex flex-wrap gap-3 pt-6"><button type="button" (click)="saveBlogTag()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Save tag</button><button type="button" (click)="startNewBlogTag()" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700">Reset form</button><button *ngIf="selectedBlogTagId" type="button" (click)="deleteBlogTag()" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700">Delete tag</button></div>
+    <div class="mt-auto flex flex-wrap gap-3 pt-6">
+      <button type="button" (click)="saveBlogTag()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Save tag</button>
+      <button type="button" (click)="startNewBlogTag()" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700">Reset form</button>
+      <button *ngIf="selectedBlogTagId" type="button" (click)="deleteBlogTag()" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700">Delete tag</button>
+    </div>
   </article>
 </section>

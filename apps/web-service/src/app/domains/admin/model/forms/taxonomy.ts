@@ -44,7 +44,7 @@ export function toSkillCategoryForm(category: AdminSkillCategory): AdminSkillCat
     nameNl: category.nameNl ?? '',
     description: category.description ?? '',
     descriptionNl: category.descriptionNl ?? '',
-    sortOrder: category.sortOrder
+    sortOrder: category.sortOrder,
   };
 }
 

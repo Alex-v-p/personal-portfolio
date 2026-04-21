@@ -375,5 +375,72 @@
         "feedbackKicker": "Portfoliofeedback"
       }
     }
+  },
+  "assistantPopup": {
+    "header": {
+      "kicker": "Portfolio-assistent",
+      "title": "Stel een vraag over het portfolio"
+    },
+    "actions": {
+      "retry": "Opnieuw proberen",
+      "newChat": "Nieuw gesprek",
+      "close": "Assistent sluiten",
+      "send": "Verzenden"
+    },
+    "availability": {
+      "checking": {
+        "label": "Beschikbaarheid controleren",
+        "detail": "De status van de assistent en de recentste portfolio-context worden opgehaald."
+      },
+      "ready": {
+        "label": "Klaar",
+        "detail": "De assistent kan antwoorden met live portfolio-context."
+      },
+      "fallback": {
+        "label": "Fallback-modus",
+        "detail": "Live retrieval is nu beperkt, maar de assistent kan nog steeds antwoorden op basis van de beschikbare portfolio-snapshot.",
+        "extra": "Antwoorden kunnen minder gedetailleerd zijn tot de volledige assistentstack opnieuw beschikbaar is."
+      },
+      "preview": {
+        "label": "Preview-modus",
+        "detail": "De assistent draait in preview-modus met beperkte retrieval-dekking."
+      },
+      "offline": {
+        "label": "Offline",
+        "detail": "De assistentservice is momenteel niet beschikbaar.",
+        "extra": "Je kunt het portfolio nog steeds handmatig bekijken of het zo meteen opnieuw proberen."
+      }
+    },
+    "empty": {
+      "intro": "Vraag naar projecten, blogposts, ervaring, technologieën of wat er in dit portfolio zit.",
+      "promptsLabel": "Probeer een van deze startvragen:"
+    },
+    "starterPrompts": {
+      "projects": "Welke projecten tonen Alex zijn sterkste werk het best?",
+      "blog": "Wat zijn de belangrijkste thema's in de blogposts?",
+      "specialities": "Welke technologieën en specialiteiten komen het vaakst terug?"
+    },
+    "loading": "Aan het nadenken…",
+    "composer": {
+      "label": "Bericht aan de portfolio-assistent",
+      "placeholder": "Stel een vraag over het portfolio…",
+      "placeholderOffline": "De assistent is momenteel offline.",
+      "hints": {
+        "ready": "Live portfolio-context is beschikbaar.",
+        "fallback": "Fallback-modus is actief. Antwoorden kunnen korter of minder specifiek zijn.",
+        "preview": "Preview-modus is actief.",
+        "offline": "De assistent is momenteel offline."
+      }
+    },
+    "errors": {
+      "offline": "De assistent is momenteel offline.",
+      "rateLimited": "De assistent is tijdelijk rate limited. Probeer het zo meteen opnieuw.",
+      "temporarilyUnavailable": "De assistent is tijdelijk niet beschikbaar.",
+      "lostReply": "Het antwoord kon niet worden afgerond.",
+      "pollFailed": "Het antwoord van de assistent kon niet worden vernieuwd.",
+      "sendFailed": "Het bericht kon niet worden verzonden.",
+      "finishFailed": "Het antwoord van de assistent eindigde onverwacht.",
+      "timeout": "De assistent deed er te lang over om te antwoorden."
+    }
   }
 }

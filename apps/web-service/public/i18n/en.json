@@ -375,5 +375,72 @@
         "feedbackKicker": "Portfolio feedback"
       }
     }
+  },
+  "assistantPopup": {
+    "header": {
+      "kicker": "Portfolio assistant",
+      "title": "Ask about the portfolio"
+    },
+    "actions": {
+      "retry": "Retry",
+      "newChat": "New chat",
+      "close": "Close assistant",
+      "send": "Send"
+    },
+    "availability": {
+      "checking": {
+        "label": "Checking availability",
+        "detail": "Looking up the assistant status and retrieving the latest portfolio context."
+      },
+      "ready": {
+        "label": "Ready",
+        "detail": "The assistant can answer with live portfolio context."
+      },
+      "fallback": {
+        "label": "Fallback mode",
+        "detail": "Live retrieval is limited right now, but the assistant can still answer from the available portfolio snapshot.",
+        "extra": "Answers may be less detailed until the full assistant stack is available again."
+      },
+      "preview": {
+        "label": "Preview mode",
+        "detail": "The assistant is running in preview mode with limited retrieval coverage."
+      },
+      "offline": {
+        "label": "Offline",
+        "detail": "The assistant service is unavailable right now.",
+        "extra": "You can still browse the portfolio manually or try again in a moment."
+      }
+    },
+    "empty": {
+      "intro": "Ask about projects, blog posts, experience, technologies, or what this portfolio includes.",
+      "promptsLabel": "Try one of these starter prompts:"
+    },
+    "starterPrompts": {
+      "projects": "Which projects best show Alex's strongest work?",
+      "blog": "What are the main themes in the blog posts?",
+      "specialities": "What technologies and specialties show up most often?"
+    },
+    "loading": "Thinking…",
+    "composer": {
+      "label": "Message the portfolio assistant",
+      "placeholder": "Ask a question about the portfolio…",
+      "placeholderOffline": "The assistant is currently offline.",
+      "hints": {
+        "ready": "Live portfolio context is available.",
+        "fallback": "Fallback mode is active. Answers may be shorter or less specific.",
+        "preview": "Preview mode is active.",
+        "offline": "The assistant is offline right now."
+      }
+    },
+    "errors": {
+      "offline": "The assistant is currently offline.",
+      "rateLimited": "The assistant is temporarily rate limited. Please try again in a moment.",
+      "temporarilyUnavailable": "The assistant is temporarily unavailable.",
+      "lostReply": "The reply could not be completed.",
+      "pollFailed": "The assistant reply could not be refreshed.",
+      "sendFailed": "The message could not be sent.",
+      "finishFailed": "The assistant reply ended unexpectedly.",
+      "timeout": "The assistant took too long to respond."
+    }
   }
 }
