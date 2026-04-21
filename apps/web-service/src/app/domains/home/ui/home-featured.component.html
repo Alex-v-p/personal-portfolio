@@ -1,13 +1,13 @@
 <section class="space-y-8 py-5">
   <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
     <app-ui-section-title
-      title="Featured"
+      [title]="'pages.home.featured.title' | translate"
       description=""
     ></app-ui-section-title>
 
     <div class="flex flex-wrap gap-3 md:justify-end">
-      <app-ui-link-button routerLink="/blog" appearance="ghost">Blog Posts</app-ui-link-button>
-      <app-ui-link-button routerLink="/projects" appearance="ghost">Projects</app-ui-link-button>
+      <app-ui-link-button routerLink="/blog" appearance="ghost">{{ 'navigation.blog' | translate }}</app-ui-link-button>
+      <app-ui-link-button routerLink="/projects" appearance="ghost">{{ 'navigation.projects' | translate }}</app-ui-link-button>
     </div>
   </div>
 
@@ -35,7 +35,7 @@
         </ng-template>
 
         <div class="grid grid-cols-[auto_1fr_auto_auto] items-center gap-x-4 gap-y-2 px-6 pt-6">
-          <app-ui-chip tone="accent">Featured</app-ui-chip>
+          <app-ui-chip tone="accent">{{ 'common.labels.featured' | translate }}</app-ui-chip>
           <span></span>
           <span class="text-xs whitespace-nowrap text-stone-500 justify-self-end">
             {{ featuredBlogPost.publishedAt }}
@@ -62,7 +62,7 @@
 
           <div class="pt-2">
             <app-ui-link-button [routerLink]="['/blog', featuredBlogPost.slug]">
-              Read article
+              {{ 'common.actions.readArticle' | translate }}
             </app-ui-link-button>
           </div>
         </div>

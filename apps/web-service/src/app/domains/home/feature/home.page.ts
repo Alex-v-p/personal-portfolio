@@ -1,10 +1,14 @@
-import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { NgIf } from '@angular/common';
+import { ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { distinctUntilChanged } from 'rxjs/operators';
 import { finalize, take } from 'rxjs/operators';
 
+import { TranslatePipe } from '@core/i18n/translate.pipe';
+import { I18nService } from '@core/i18n/i18n.service';
+import { BlogPostSummary } from '@domains/blog/model/blog-post-summary.model';
 import { ContactMethod } from '@domains/profile/model/contact-method.model';
 import { Experience } from '@domains/experience/model/experience.model';
-import { BlogPostSummary } from '@domains/blog/model/blog-post-summary.model';
 import { Profile, ExpertiseGroup } from '@domains/profile/model/profile.model';
 import { ProjectSummary } from '@domains/projects/model/project-summary.model';
 import { PublicProfileApiService } from '@domains/profile/data/profile-api.service';
@@ -23,6 +27,7 @@ import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.com
   standalone: true,
   imports: [
     NgIf,
+    TranslatePipe,
     HomeHeroSectionComponent,
     HomeFeaturedSectionComponent,
     HomeExpertiseSectionComponent,
@@ -37,6 +42,8 @@ import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.com
 export class HomePageComponent implements OnInit {
   private readonly profileApi = inject(PublicProfileApiService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private readonly i18n = inject(I18nService);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected profile: Profile = createEmptyProfile();
   protected featuredBlogPost: BlogPostSummary = this.createEmptyBlogPost();
@@ -48,7 +55,9 @@ export class HomePageComponent implements OnInit {
   protected errorMessage = '';
 
   ngOnInit(): void {
-    this.loadHome();
+    this.i18n.localeChanges$.pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.loadHome();
+    });
   }
 
   protected loadHome(): void {
@@ -76,7 +85,7 @@ export class HomePageComponent implements OnInit {
         },
         error: () => {
           this.resetHomeData();
-          this.errorMessage = 'Homepage content could not be loaded from the portfolio API. Make sure the API or reverse proxy is running.';
+          this.errorMessage = this.i18n.translate('pages.home.errors.load');
         }
       });
   }

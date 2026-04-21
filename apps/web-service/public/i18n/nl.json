@@ -1,0 +1,379 @@
+{
+  "seo": {
+    "defaults": {
+      "siteName": "Alex van Poppel Portfolio",
+      "description": "Student Toegepaste Informatica en full-stack bouwer met focus op praktische webapplicaties, softwarearchitectuur, dataprojecten en self-hosting.",
+      "keywords": [
+        "Alex van Poppel",
+        "portfolio",
+        "Toegepaste Informatica",
+        "full-stack developer",
+        "webontwikkeling",
+        "softwarearchitectuur",
+        "dataprojecten",
+        "self-hosting",
+        "België"
+      ]
+    }
+  },
+  "routes": {
+    "home": {
+      "title": "Home",
+      "description": "Ontdek geselecteerde projecten, ervaring, blogposts en contactgegevens uit het portfolio van Alex van Poppel.",
+      "keywords": [
+        "Alex van Poppel",
+        "portfolio home",
+        "uitgelichte projecten",
+        "ervaring",
+        "blog"
+      ]
+    },
+    "projects": {
+      "title": "Projecten",
+      "description": "Bekijk praktische software-, web- en dataprojecten van Alex van Poppel, met technologiefilters en uitgelicht werk.",
+      "keywords": [
+        "projecten",
+        "portfolio projecten",
+        "Angular",
+        "Laravel",
+        "Python",
+        "softwareprojecten"
+      ]
+    },
+    "blog": {
+      "title": "Blogposts",
+      "description": "Lees notities over portfolio-opbouw, architectuur, klantworkshops, hardware en softwarelessen uit huidige en vorige projecten.",
+      "keywords": [
+        "blog",
+        "portfolio blog",
+        "architectuur",
+        "analyse",
+        "hardware",
+        "softwarelessen"
+      ]
+    },
+    "blogPost": {
+      "title": "Blogpost",
+      "description": "Lees een artikel uit de portfolioblog van Alex van Poppel.",
+      "keywords": [
+        "portfolio blog",
+        "artikel"
+      ]
+    },
+    "contact": {
+      "title": "Contact",
+      "description": "Gebruik het contactformulier of publieke links om contact op te nemen over stages, freelance werk, samenwerking of portfolio-vragen.",
+      "keywords": [
+        "contact",
+        "stage",
+        "freelance",
+        "samenwerking",
+        "email"
+      ]
+    },
+    "stats": {
+      "title": "Statistieken",
+      "description": "Bekijk GitHub-bijdragen, portfolio-weergaven en betrokkenheidsstatistieken van het publieke portfolio.",
+      "keywords": [
+        "GitHub statistieken",
+        "portfolio weergaven",
+        "betrokkenheid",
+        "bijdragen"
+      ]
+    },
+    "assistant": {
+      "title": "Portfolio-assistent",
+      "description": "Vraag de portfolio-assistent naar projecten, blogposts, ervaring en de site in het algemeen.",
+      "keywords": [
+        "assistent",
+        "portfolio-assistent",
+        "projecten",
+        "blog",
+        "ervaring"
+      ]
+    }
+  },
+  "navigation": {
+    "home": "Home",
+    "projects": "Projecten",
+    "blog": "Blog",
+    "contact": "Contact",
+    "stats": "Statistieken",
+    "assistant": "Assistent"
+  },
+  "common": {
+    "loading": {
+      "page": "Pagina-inhoud laden"
+    },
+    "actions": {
+      "retry": "Opnieuw proberen",
+      "done": "Klaar",
+      "readMore": "Meer lezen",
+      "readArticle": "Artikel lezen",
+      "contactMe": "Contacteer me",
+      "viewProjects": "Projecten bekijken"
+    },
+    "labels": {
+      "featured": "Uitgelicht"
+    },
+    "images": {
+      "profileAvatar": "Profielavatar",
+      "profileImage": "Profielafbeelding"
+    }
+  },
+  "shell": {
+    "profileAvatar": "Profielavatar",
+    "portfolioSuffix": "portfolio",
+    "quickLinks": "Snelle links",
+    "resources": {
+      "title": "Bronnen",
+      "resume": "Cv"
+    },
+    "contact": {
+      "title": "Neem contact op"
+    },
+    "language": {
+      "label": "Taal",
+      "options": {
+        "en": "EN",
+        "nl": "NL"
+      }
+    },
+    "assistant": {
+      "toggle": "Portfolio-assistent tonen of verbergen",
+      "title": "Assistent",
+      "close": "Assistent sluiten"
+    }
+  },
+  "pages": {
+    "home": {
+      "loading": "Homepagina laden",
+      "errors": {
+        "load": "De homepagina kon niet geladen worden vanuit de portfolio-API. Controleer of de API of reverse proxy draait."
+      },
+      "empty": {
+        "loadTitle": "Homepagina kon niet geladen worden",
+        "notReadyTitle": "Homepagina-inhoud is nog niet klaar",
+        "notReadyDescription": "Publiceer hero-, uitgelichte en profielinhoud in de CMS om de publieke homepagina te vullen."
+      },
+      "hero": {
+        "coreSkills": "Mijn kernvaardigheden:",
+        "openCv": "Cv openen",
+        "cvShort": "Cv"
+      },
+      "featured": {
+        "title": "Uitgelicht"
+      },
+      "expertise": {
+        "title": "Expertise"
+      },
+      "experience": {
+        "title": "Ervaring",
+        "expand": "Ervaringsdetails uitklappen",
+        "collapse": "Ervaringsdetails inklappen"
+      },
+      "contactPreview": {
+        "title": "Laten we verbinden"
+      }
+    },
+    "projects": {
+      "title": "Projecten",
+      "loading": "Projecten laden",
+      "summary": "{{shown}} van {{total}} projecten getoond",
+      "errors": {
+        "load": "Projecten konden niet geladen worden vanuit de portfolio-API. Controleer of de API of reverse proxy draait."
+      },
+      "empty": {
+        "loadTitle": "Projecten konden niet geladen worden",
+        "noneTitle": "Er zijn nog geen projecten gepubliceerd",
+        "noneDescription": "Publiceer een project in de CMS om deze pagina en de uitgelichte spotlight-kaart te vullen.",
+        "noMatchTitle": "Geen projecten passen bij deze filters",
+        "noMatchDescription": "Probeer een andere zoekterm of wis enkele technologiefilters om de rest van de portfolio-projecten weer te tonen."
+      },
+      "filters": {
+        "searchLabel": "Zoeken",
+        "searchPlaceholder": "Zoek projecten, beschrijvingen of tools",
+        "technologiesLabel": "Technologiefilters",
+        "selectTechnologies": "Selecteer technologieën",
+        "helper": "Kies één of meer technologieën om de projectlijst te verfijnen.",
+        "clearTechnologies": "Technologieën wissen",
+        "allTechnologies": "Alle technologieën",
+        "selectedCount": "{{count}} technologieën geselecteerd",
+        "reset": "Zoekopdracht en filters wissen"
+      },
+      "featured": {
+        "kicker": "Uitgelicht project",
+        "title": "Een uitgelicht project uit de huidige collectie"
+      },
+      "browseTitle": "Alle projecten bekijken",
+      "card": {
+        "placeholder": "Tijdelijke projectafbeelding"
+      }
+    },
+    "blog": {
+      "title": "Blogposts",
+      "loading": "Blogposts laden",
+      "summary": "{{shown}} van {{total}} artikelen getoond",
+      "actions": {
+        "allPosts": "Alle posts"
+      },
+      "errors": {
+        "load": "Blogposts konden niet geladen worden vanuit de portfolio-API. Controleer of de API of reverse proxy draait."
+      },
+      "empty": {
+        "loadTitle": "Blogposts konden niet geladen worden",
+        "noneTitle": "Er zijn nog geen blogposts gepubliceerd",
+        "noneDescription": "Publiceer een blogpost in de CMS om deze pagina en de uitgelichte artikelslot te vullen.",
+        "noMatchTitle": "Geen blogposts passen bij die zoekopdracht",
+        "noMatchDescription": "Probeer een ander zoekwoord of kies een bredere topic om de rest van de artikelen te bekijken."
+      },
+      "filters": {
+        "searchLabel": "Zoeken",
+        "searchPlaceholder": "Zoek in titels, samenvattingen, tags of markdown-inhoud",
+        "topicsLabel": "Topicfilters",
+        "selectTopics": "Selecteer topics",
+        "helper": "Kies één of meer topics om de artikellijst te verfijnen.",
+        "clearTopics": "Topics wissen",
+        "allTopics": "Alle topics",
+        "selectedCount": "{{count}} topics geselecteerd"
+      },
+      "featured": {
+        "kicker": "Uitgelicht artikel",
+        "title": "Een uitgelichte post uit de huidige collectie"
+      },
+      "browseTitle": "Alle posts bekijken",
+      "card": {
+        "placeholder": "Tijdelijke blogafbeelding"
+      }
+    },
+    "blogPost": {
+      "back": "← Terug naar blog",
+      "loading": "Artikel laden",
+      "share": "Delen:",
+      "errors": {
+        "load": "Deze blogpost kon niet geladen worden vanuit de portfolio-API."
+      },
+      "empty": {
+        "loadTitle": "Artikel kon niet geladen worden"
+      }
+    },
+    "contact": {
+      "intro": "Of je nu contact opneemt over een stage, een project of gewoon over technologie wilt praten: gebruik gerust het kanaal dat voor jou het makkelijkst aanvoelt.",
+      "errors": {
+        "submit": "Het bericht kon niet naar de portfolio-API gestuurd worden. Controleer of de API of reverse proxy draait en probeer opnieuw.",
+        "profileLoad": "Contactgegevens konden niet geladen worden vanuit de portfolio-API. Je kunt het formulier hieronder nog steeds gebruiken."
+      },
+      "validation": {
+        "nameRequired": "Vul je naam in.",
+        "emailRequired": "Vul je e-mailadres in.",
+        "subjectRequired": "Voeg een onderwerp toe.",
+        "messageRequired": "Beschrijf waarover je het wilt hebben.",
+        "emailInvalid": "Vul een geldig e-mailadres in.",
+        "nameMinLength": "Naam moet minstens 2 tekens bevatten.",
+        "subjectMinLength": "Onderwerp moet minstens 4 tekens bevatten.",
+        "messageMinLength": "Bericht moet minstens 20 tekens bevatten zodat er genoeg context is.",
+        "messageMaxLength": "Bericht moet onder de 1200 tekens blijven."
+      },
+      "hero": {
+        "title": "Laten we samenwerken"
+      },
+      "loading": {
+        "profile": "Contactgegevens laden"
+      },
+      "empty": {
+        "loadTitle": "Contactgegevens konden niet geladen worden",
+        "noDetailsTitle": "Er zijn nog geen contactgegevens gepubliceerd",
+        "noDetailsDescription": "Je kunt het formulier nog steeds gebruiken, maar het profiel toont momenteel geen publieke contactinformatie."
+      },
+      "info": {
+        "kicker": "Contactinfo",
+        "title": "Begin met het kanaal dat het makkelijkst aanvoelt"
+      },
+      "form": {
+        "kicker": "Stuur een bericht",
+        "title": "Contactformulier",
+        "description": "Ik sta ook open voor het bespreken van nieuwe kansen. Stuur gerust een bericht en ik kom zo snel mogelijk bij je terug.",
+        "fields": {
+          "name": {
+            "label": "Naam",
+            "placeholder": "Jouw naam"
+          },
+          "email": {
+            "label": "E-mail",
+            "placeholder": "jouw.email@voorbeeld.com"
+          },
+          "subject": {
+            "label": "Onderwerp",
+            "placeholder": "Stage, freelance project, idee voor samenwerking..."
+          },
+          "website": {
+            "label": "Website"
+          },
+          "message": {
+            "label": "Bericht",
+            "placeholder": "Vertel me wat je in gedachten hebt."
+          }
+        },
+        "actions": {
+          "submit": "Bericht versturen",
+          "submitting": "Versturen…",
+          "clear": "Formulier wissen"
+        }
+      },
+      "success": {
+        "kicker": "Bericht verzonden",
+        "title": "Bedankt, {{name}}.",
+        "description": "Je bericht over {{subject}} is succesvol naar de portfolio-API gestuurd en opgeslagen.",
+        "action": "Nog een bericht sturen"
+      },
+      "error": {
+        "kicker": "Verzenden mislukt",
+        "retry": "Opnieuw proberen",
+        "dismiss": "Sluiten"
+      },
+      "quick": {
+        "kicker": "Snel contact"
+      },
+      "more": {
+        "kicker": "Meer manieren om contact op te nemen"
+      }
+    },
+    "stats": {
+      "errors": {
+        "load": "Statistieken konden niet geladen worden vanuit de portfolio-API. Controleer of de API of reverse proxy draait.",
+        "like": "Je like kon nu niet opgeslagen worden. Probeer het zo meteen opnieuw."
+      },
+      "cards": {
+        "reposLabel": "Publieke repositories",
+        "viewsLabel": "Totaal aantal weergaven",
+        "likesLabel": "Like-teller",
+        "likesAction": "Geef dit portfolio liefde",
+        "likesSaving": "Like opslaan…",
+        "likesThanks": "Bedankt voor de liefde"
+      },
+      "loading": "Statistieken laden",
+      "empty": {
+        "loadTitle": "Statistieken konden niet geladen worden",
+        "noDataTitle": "Statistieken zijn nog niet beschikbaar",
+        "noDataDescription": "Publiceer een GitHub-snapshot of portfolio-analyse om deze pagina te vullen."
+      },
+      "github": {
+        "title": "GitHub-statistieken",
+        "description": "Inzichten en statistieken over mijn GitHub-portfolio.",
+        "boardTitle": "GitHub-bijdragebord",
+        "boardDescription": "De laatste 12 maanden aan commits en bijdrage-activiteit.",
+        "snapshotLabel": "Snapshot",
+        "commitsLabel": "Commits",
+        "totalCommits": "{{count}} commits in totaal",
+        "legendLess": "Minder",
+        "legendMore": "Meer"
+      },
+      "portfolio": {
+        "title": "Over dit portfolio",
+        "description": "Inzichten en statistieken over mijn portfolio-website.",
+        "trafficKicker": "Portfolioverkeer",
+        "feedbackKicker": "Portfoliofeedback"
+      }
+    }
+  }
+}

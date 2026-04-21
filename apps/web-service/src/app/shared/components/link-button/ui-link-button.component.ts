@@ -1,6 +1,8 @@
 import { Component, Input, inject } from '@angular/core';
 import { Router } from '@angular/router';
 
+import { I18nService } from '@core/i18n/i18n.service';
+
 @Component({
   selector: 'app-ui-link-button',
   standalone: true,
@@ -13,6 +15,7 @@ export class UiLinkButtonComponent {
   @Input() appearance: 'primary' | 'secondary' | 'ghost' = 'secondary';
 
   private readonly router = inject(Router);
+  private readonly i18n = inject(I18nService);
 
   protected get linkClasses(): string {
     const base = 'ui-btn';
@@ -30,16 +33,22 @@ export class UiLinkButtonComponent {
       return this.href;
     }
 
-    if (!this.routerLink) {
+    const localizedRouterLink = this.localizedRouterLink;
+    if (!localizedRouterLink) {
       return null;
     }
 
-    const commands = Array.isArray(this.routerLink) ? this.routerLink : [this.routerLink];
+    const commands = Array.isArray(localizedRouterLink) ? localizedRouterLink : [localizedRouterLink];
     return this.router.serializeUrl(this.router.createUrlTree([...commands]));
   }
 
   protected handleClick(event: MouseEvent): void {
-    if (this.href || !this.routerLink) {
+    if (this.href) {
+      return;
+    }
+
+    const localizedRouterLink = this.localizedRouterLink;
+    if (!localizedRouterLink) {
       return;
     }
 
@@ -49,7 +58,11 @@ export class UiLinkButtonComponent {
 
     event.preventDefault();
 
-    const commands = Array.isArray(this.routerLink) ? [...this.routerLink] : [this.routerLink];
+    const commands = Array.isArray(localizedRouterLink) ? [...localizedRouterLink] : [localizedRouterLink];
     void this.router.navigate(commands);
+  }
+
+  private get localizedRouterLink(): string | readonly string[] | null {
+    return this.i18n.localizeRouterCommands(this.routerLink);
   }
 }

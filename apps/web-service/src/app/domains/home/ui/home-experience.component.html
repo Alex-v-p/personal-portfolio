@@ -5,13 +5,13 @@
     </p>
 
     <div class="flex flex-wrap gap-3 pt-1">
-      <app-ui-link-button routerLink="/contact">Contact Me</app-ui-link-button>
-      <app-ui-link-button routerLink="/projects" appearance="ghost">View Projects</app-ui-link-button>
+      <app-ui-link-button routerLink="/contact">{{ 'common.actions.contactMe' | translate }}</app-ui-link-button>
+      <app-ui-link-button routerLink="/projects" appearance="ghost">{{ 'common.actions.viewProjects' | translate }}</app-ui-link-button>
     </div>
   </div>
 
   <div *ngIf="experiences.length" class="space-y-6">
-    <app-ui-section-title title="Experience" description=""></app-ui-section-title>
+    <app-ui-section-title [title]="'pages.home.experience.title' | translate" description=""></app-ui-section-title>
 
     <div class="relative space-y-4 pt-4">
       <span
@@ -73,7 +73,7 @@
                     class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-stone-300 bg-white/80 text-stone-500 transition hover:border-stone-400 hover:text-stone-700 focus:outline-none focus:ring-2 focus:ring-[var(--ui-focus-ring)]"
                     [attr.aria-expanded]="isExpanded(item.id)"
                     [attr.aria-controls]="'experience-panel-' + item.id"
-                    [attr.aria-label]="isExpanded(item.id) ? 'Collapse experience details' : 'Expand experience details'"
+                    [attr.aria-label]="isExpanded(item.id) ? ('pages.home.experience.collapse' | translate) : ('pages.home.experience.expand' | translate)"
                     (click)="$event.stopPropagation(); toggleExperience(item.id)"
                   >
                     <svg

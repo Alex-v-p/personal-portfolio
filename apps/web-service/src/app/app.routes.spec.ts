@@ -3,10 +3,10 @@ import { describe, expect, it } from 'vitest';
 import { routes } from './app.routes';
 
 describe('app routes', () => {
-  it('redirects unknown top-level routes to the homepage', () => {
-    const wildcardRoute = routes.find((route) => route.path === '**');
+  it('redirects the bare root path to the default locale', () => {
+    const rootRoute = routes.find((route) => route.path === '');
 
-    expect(wildcardRoute?.redirectTo).toBe('');
+    expect(rootRoute?.redirectTo).toBe('en');
   });
 
   it('redirects unknown admin child routes to the homepage', () => {

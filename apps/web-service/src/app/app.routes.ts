@@ -1,8 +1,101 @@
 import { Routes } from '@angular/router';
 
+import { localeMatcher } from '@core/routing/locale.matcher';
 import { adminAuthGuard, adminGuestGuard, adminMfaGuard } from './shared/guards/admin-auth.guard';
 
+const publicRoutes: Routes = [
+  {
+    path: '',
+    loadComponent: () => import('@domains/home/feature/home.page').then((module) => module.HomePageComponent),
+    data: {
+      titleKey: 'routes.home.title',
+      seo: {
+        titleKey: 'routes.home.title',
+        descriptionKey: 'routes.home.description',
+        keywordsKey: 'routes.home.keywords',
+        type: 'profile',
+      },
+    },
+  },
+  {
+    path: 'projects',
+    loadComponent: () => import('@domains/projects/feature/projects.page').then((module) => module.ProjectsPageComponent),
+    data: {
+      titleKey: 'routes.projects.title',
+      seo: {
+        titleKey: 'routes.projects.title',
+        descriptionKey: 'routes.projects.description',
+        keywordsKey: 'routes.projects.keywords',
+      },
+    },
+  },
+  {
+    path: 'blog',
+    loadComponent: () => import('@domains/blog/feature/blog.page').then((module) => module.BlogPageComponent),
+    data: {
+      titleKey: 'routes.blog.title',
+      seo: {
+        titleKey: 'routes.blog.title',
+        descriptionKey: 'routes.blog.description',
+        keywordsKey: 'routes.blog.keywords',
+        type: 'website',
+      },
+    },
+  },
+  {
+    path: 'blog/:slug',
+    loadComponent: () => import('@domains/blog/feature/blog-post.page').then((module) => module.BlogPostPageComponent),
+    data: {
+      titleKey: 'routes.blogPost.title',
+      seo: {
+        titleKey: 'routes.blogPost.title',
+        descriptionKey: 'routes.blogPost.description',
+        keywordsKey: 'routes.blogPost.keywords',
+        type: 'article',
+      },
+    },
+  },
+  {
+    path: 'contact',
+    loadComponent: () => import('@domains/contact/feature/contact.page').then((module) => module.ContactPageComponent),
+    data: {
+      titleKey: 'routes.contact.title',
+      seo: {
+        titleKey: 'routes.contact.title',
+        descriptionKey: 'routes.contact.description',
+        keywordsKey: 'routes.contact.keywords',
+      },
+    },
+  },
+  {
+    path: 'stats',
+    loadComponent: () => import('@domains/stats/feature/stats.page').then((module) => module.StatsPageComponent),
+    data: {
+      titleKey: 'routes.stats.title',
+      seo: {
+        titleKey: 'routes.stats.title',
+        descriptionKey: 'routes.stats.description',
+        keywordsKey: 'routes.stats.keywords',
+      },
+    },
+  },
+  {
+    path: 'assistant',
+    loadComponent: () => import('@domains/assistant/feature/assistant.page').then((module) => module.AssistantPageComponent),
+    data: {
+      titleKey: 'routes.assistant.title',
+      seo: {
+        titleKey: 'routes.assistant.title',
+        descriptionKey: 'routes.assistant.description',
+        keywordsKey: 'routes.assistant.keywords',
+      },
+    },
+  },
+  { path: '**', redirectTo: '' },
+];
+
 export const routes: Routes = [
+  { path: '', pathMatch: 'full', redirectTo: 'en' },
   {
     path: 'admin/login',
     loadComponent: () => import('@domains/admin/auth/feature/admin-login.page').then((module) => module.AdminLoginPageComponent),
@@ -10,6 +103,7 @@ export const routes: Routes = [
     canActivate: [adminGuestGuard],
     data: {
       seo: {
+        title: 'CMS Login',
         description: 'Secure sign-in for the portfolio content management system.',
         keywords: ['portfolio CMS', 'admin login'],
         noIndex: true,
@@ -23,6 +117,7 @@ export const routes: Routes = [
     canActivate: [adminMfaGuard],
     data: {
       seo: {
+        title: 'CMS MFA',
         description: 'Two-factor authentication for the portfolio content management system.',
         keywords: ['portfolio CMS', 'admin MFA'],
         noIndex: true,
@@ -36,6 +131,7 @@ export const routes: Routes = [
     canActivate: [adminAuthGuard],
     data: {
       seo: {
+        title: 'Portfolio CMS',
         description: 'Private content management workspace for the portfolio site.',
         keywords: ['portfolio CMS', 'admin'],
         noIndex: true,
@@ -120,84 +216,8 @@ export const routes: Routes = [
     ],
   },
   {
-    path: '',
-    loadComponent: () => import('@domains/home/feature/home.page').then((module) => module.HomePageComponent),
-    title: 'Home',
-    data: {
-      seo: {
-        description: 'Explore selected projects, experience, blog posts, and contact details from the portfolio of Alex van Poppel.',
-        keywords: ['Alex van Poppel', 'portfolio home', 'featured projects', 'experience', 'blog'],
-        type: 'profile',
-      },
-    },
+    matcher: localeMatcher,
+    children: publicRoutes,
   },
-  {
-    path: 'projects',
-    loadComponent: () => import('@domains/projects/feature/projects.page').then((module) => module.ProjectsPageComponent),
-    title: 'Projects',
-    data: {
-      seo: {
-        description: 'Browse practical software, web, and data projects built by Alex van Poppel, with technology filters and featured work.',
-        keywords: ['projects', 'portfolio projects', 'Angular', 'Laravel', 'Python', 'software projects'],
-      },
-    },
-  },
-  {
-    path: 'blog',
-    loadComponent: () => import('@domains/blog/feature/blog.page').then((module) => module.BlogPageComponent),
-    title: 'Blog posts',
-    data: {
-      seo: {
-        description: 'Read notes on portfolio building, architecture, client workshops, hardware, and software lessons from current and past projects.',
-        keywords: ['blog', 'portfolio blog', 'architecture', 'analysis', 'hardware', 'software lessons'],
-        type: 'website',
-      },
-    },
-  },
-  {
-    path: 'blog/:slug',
-    loadComponent: () => import('@domains/blog/feature/blog-post.page').then((module) => module.BlogPostPageComponent),
-    title: 'Blog post',
-    data: {
-      seo: {
-        description: 'Read an article from the portfolio blog of Alex van Poppel.',
-        keywords: ['portfolio blog', 'article'],
-        type: 'article',
-      },
-    },
-  },
-  {
-    path: 'contact',
-    loadComponent: () => import('@domains/contact/feature/contact.page').then((module) => module.ContactPageComponent),
-    title: 'Contact',
-    data: {
-      seo: {
-        description: 'Use the contact form or public links to get in touch about internships, freelance work, collaboration, or portfolio questions.',
-        keywords: ['contact', 'internship', 'freelance', 'collaboration', 'email'],
-      },
-    },
-  },
-  {
-    path: 'stats',
-    loadComponent: () => import('@domains/stats/feature/stats.page').then((module) => module.StatsPageComponent),
-    title: 'Stats',
-    data: {
-      seo: {
-        description: 'View GitHub contribution activity, portfolio views, and engagement metrics from the public portfolio.',
-        keywords: ['GitHub stats', 'portfolio views', 'engagement', 'contributions'],
-      },
-    },
-  },
-  {
-    path: 'assistant',
-    loadComponent: () => import('@domains/assistant/feature/assistant.page').then((module) => module.AssistantPageComponent),
-    title: 'Portfolio Assistant',
-    data: {
-      seo: {
-        description: 'Ask the portfolio assistant about projects, blog posts, experience, and the overall site.',
-        keywords: ['assistant', 'portfolio assistant', 'projects', 'blog', 'experience'],
-      },
-    },
-  },
-  { path: '**', redirectTo: '' },
+  { path: '**', redirectTo: 'en' },
 ];

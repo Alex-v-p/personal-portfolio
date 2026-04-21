@@ -12,7 +12,7 @@
           <span class="max-w-[18ch]">{{ placeholderLabel }}</span>
         </div>
       </ng-template>
-      <app-ui-chip *ngIf="post.isFeatured" tone="accent" class="absolute left-4 top-4">Featured</app-ui-chip>
+      <app-ui-chip *ngIf="post.isFeatured" tone="accent" class="absolute left-4 top-4">{{ 'common.labels.featured' | translate }}</app-ui-chip>
     </div>
 
     <div class="flex h-full flex-col justify-between gap-5 px-6 py-6 lg:px-7 lg:py-7">
@@ -34,8 +34,8 @@
       </div>
 
       <div class="flex flex-wrap gap-3 pt-1">
-        <app-ui-link-button [routerLink]="['/blog', post.slug]">Read article</app-ui-link-button>
-        <app-ui-link-button *ngIf="showSecondaryAction" routerLink="/blog" appearance="ghost">All posts</app-ui-link-button>
+        <app-ui-link-button [routerLink]="['/blog', post.slug]">{{ 'common.actions.readArticle' | translate }}</app-ui-link-button>
+        <app-ui-link-button *ngIf="showSecondaryAction" routerLink="/blog" appearance="ghost">{{ 'pages.blog.actions.allPosts' | translate }}</app-ui-link-button>
       </div>
     </div>
   </div>
@@ -56,7 +56,7 @@
             <span class="max-w-[16ch]">{{ placeholderLabel }}</span>
           </div>
         </ng-template>
-        <app-ui-chip *ngIf="post.isFeatured" tone="accent" class="absolute left-3 top-3">Featured</app-ui-chip>
+        <app-ui-chip *ngIf="post.isFeatured" tone="accent" class="absolute left-3 top-3">{{ 'common.labels.featured' | translate }}</app-ui-chip>
       </div>
 
       <div class="flex h-full flex-col gap-4 px-6 pb-6 pt-5">
@@ -76,7 +76,7 @@
         </div>
 
         <div class="mt-auto flex flex-wrap gap-3 pt-1">
-          <app-ui-link-button [routerLink]="['/blog', post.slug]" appearance="ghost">Read article</app-ui-link-button>
+          <app-ui-link-button [routerLink]="['/blog', post.slug]" appearance="ghost">{{ 'common.actions.readArticle' | translate }}</app-ui-link-button>
         </div>
       </div>
     </div>

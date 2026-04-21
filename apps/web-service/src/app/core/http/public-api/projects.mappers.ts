@@ -1,3 +1,4 @@
+import { AppLocale } from '@core/i18n/locales';
 import { ResolvedMedia } from '@domains/media/model/resolved-media.model';
 import { ProjectDetail } from '@domains/projects/model/project-detail.model';
 import { ProjectLink, ProjectSummary } from '@domains/projects/model/project-summary.model';
@@ -5,15 +6,15 @@ import { ProjectLink, ProjectSummary } from '@domains/projects/model/project-sum
 import { normalizeMedia } from './common.mappers';
 import { ProjectDetailApi, ProjectSummaryApi } from './projects.contracts';
 
-export function normalizeProjectSummaries(items: ProjectSummaryApi[] | null | undefined): ProjectSummary[] {
+export function normalizeProjectSummaries(items: ProjectSummaryApi[] | null | undefined, locale: AppLocale): ProjectSummary[] {
   if (!Array.isArray(items)) {
     return [];
   }
 
-  return items.map((project) => normalizeProjectSummary(project));
+  return items.map((project) => normalizeProjectSummary(project, locale));
 }
 
-export function normalizeProjectSummary(project: ProjectSummaryApi): ProjectSummary {
+export function normalizeProjectSummary(project: ProjectSummaryApi, locale: AppLocale): ProjectSummary {
   const orderedSkills = [...(project.skills ?? [])].sort((left, right) => left.sortOrder - right.sortOrder || left.name.localeCompare(right.name));
   const coverImage = normalizeMedia(project.coverImage);
   const coverAlt = coverImage?.alt ?? project.title;
@@ -25,10 +26,10 @@ export function normalizeProjectSummary(project: ProjectSummaryApi): ProjectSumm
   }
 
   if (project.demoUrl) {
-    links.unshift({ label: 'Live Demo', href: project.demoUrl });
+    links.unshift({ label: locale === 'nl' ? 'Live demo' : 'Live Demo', href: project.demoUrl });
   }
 
-  links.push({ label: 'Read more', routerLink: ['/projects', project.slug] });
+  links.push({ label: locale === 'nl' ? 'Meer lezen' : 'Read more', routerLink: ['/projects', project.slug] });
 
   return {
     id: project.id,
@@ -42,7 +43,7 @@ export function normalizeProjectSummary(project: ProjectSummaryApi): ProjectSumm
     durationLabel: project.durationLabel,
     status: project.status,
     state: project.state,
-    category: 'Project',
+    category: locale === 'nl' ? 'Project' : 'Project',
     tags,
     featured: project.isFeatured,
     isFeatured: project.isFeatured,
@@ -62,9 +63,9 @@ export function normalizeProjectSummary(project: ProjectSummaryApi): ProjectSumm
   };
 }
 
-export function normalizeProjectDetail(project: ProjectDetailApi): ProjectDetail {
+export function normalizeProjectDetail(project: ProjectDetailApi, locale: AppLocale): ProjectDetail {
   return {
-    ...normalizeProjectSummary(project),
+    ...normalizeProjectSummary(project, locale),
     descriptionMarkdown: project.descriptionMarkdown ?? undefined,
     images: (project.images ?? []).map((image) => normalizeMedia(image.image)).filter((item): item is ResolvedMedia => item !== null),
   };

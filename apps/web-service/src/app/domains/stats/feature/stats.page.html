@@ -1,4 +1,4 @@
-<section *ngIf="isLoading" class="mx-auto max-w-6xl space-y-10" aria-label="Loading stats">
+<section *ngIf="isLoading" class="mx-auto max-w-6xl space-y-10" [attr.aria-label]="'pages.stats.loading' | translate">
   <div class="space-y-3">
     <app-ui-skeleton className="h-4 w-24 rounded-full"></app-ui-skeleton>
     <app-ui-skeleton className="h-12 w-72 rounded-3xl"></app-ui-skeleton>
@@ -17,46 +17,46 @@
 
 <app-ui-empty-state
   *ngIf="!isLoading && errorMessage"
-  title="Could not load stats"
+  [title]="'pages.stats.empty.loadTitle' | translate"
   [description]="errorMessage"
   [hasActions]="true"
   tone="error"
 >
   <div actions>
-    <app-ui-button appearance="secondary" type="button" (click)="loadStats()">Retry</app-ui-button>
+    <app-ui-button appearance="secondary" type="button" (click)="loadStats()">{{ 'common.actions.retry' | translate }}</app-ui-button>
   </div>
 </app-ui-empty-state>
 
 <app-ui-empty-state
   *ngIf="!isLoading && !errorMessage && !hasStatsData"
-  title="Stats are not available yet"
-  description="Publish a GitHub snapshot or portfolio analytics summary to populate this page."
+  [title]="'pages.stats.empty.noDataTitle' | translate"
+  [description]="'pages.stats.empty.noDataDescription' | translate"
 ></app-ui-empty-state>
 
 <div *ngIf="!isLoading && !errorMessage && hasStatsData" class="mx-auto max-w-6xl space-y-10">
-  <p class="text-sm text-stone-600">Home &gt; Stats</p>
+  <p class="text-sm text-stone-600">{{ 'navigation.home' | translate }} &gt; {{ 'routes.stats.title' | translate }}</p>
 
   <section class="space-y-6">
     <div class="space-y-2">
-      <h1 class="text-4xl font-semibold tracking-tight text-stone-950">GitHub Stats</h1>
-      <p class="max-w-3xl text-base leading-7 text-stone-600">Insights and metrics about my GitHub portfolio.</p>
+      <h1 class="text-4xl font-semibold tracking-tight text-stone-950">{{ 'pages.stats.github.title' | translate }}</h1>
+      <p class="max-w-3xl text-base leading-7 text-stone-600">{{ 'pages.stats.github.description' | translate }}</p>
     </div>
 
     <app-ui-card padding="lg" [featured]="true">
       <div class="space-y-6">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div class="space-y-1">
-            <h2 class="text-xl font-semibold tracking-tight text-stone-950">GitHub contribution board</h2>
-            <p class="text-sm text-stone-600">Last 12 months of commits and contribution activity.</p>
+            <h2 class="text-xl font-semibold tracking-tight text-stone-950">{{ 'pages.stats.github.boardTitle' | translate }}</h2>
+            <p class="text-sm text-stone-600">{{ 'pages.stats.github.boardDescription' | translate }}</p>
           </div>
 
           <div class="flex flex-wrap items-center gap-3 text-xs text-stone-500">
             <div class="rounded-full border border-stone-300 bg-stone-100/80 px-3 py-1.5" *ngIf="latestGithubSnapshot.snapshotDate">
-              <span class="mr-2 uppercase tracking-[0.18em] text-stone-500">Snapshot</span>
+              <span class="mr-2 uppercase tracking-[0.18em] text-stone-500">{{ 'pages.stats.github.snapshotLabel' | translate }}</span>
               <span class="font-semibold uppercase tracking-[0.14em] text-stone-700">{{ latestGithubSnapshot.snapshotDate }}</span>
             </div>
             <div class="rounded-full border border-stone-300 bg-stone-100/80 px-3 py-1.5" *ngIf="latestGithubSnapshot.totalCommits">
-              <span class="mr-2 uppercase tracking-[0.18em] text-stone-500">Commits</span>
+              <span class="mr-2 uppercase tracking-[0.18em] text-stone-500">{{ 'pages.stats.github.commitsLabel' | translate }}</span>
               <span class="font-semibold text-stone-700">{{ latestGithubSnapshot.totalCommits }}</span>
             </div>
           </div>
@@ -71,10 +71,7 @@
 
               <div class="min-w-0 pb-2">
                 <div class="space-y-2 sm:space-y-3">
-                  <div
-                    class="grid gap-1.5 text-[11px] uppercase tracking-[0.16em] text-stone-400"
-                    [style.gridTemplateColumns]="contributionGridColumns"
-                  >
+                  <div class="grid gap-1.5 text-[11px] uppercase tracking-[0.16em] text-stone-400" [style.gridTemplateColumns]="contributionGridColumns">
                     <span *ngFor="let month of monthLabels; trackBy: trackByIndex" class="min-w-0">{{ month }}</span>
                   </div>
 
@@ -91,16 +88,16 @@
 
         <div class="flex flex-wrap items-center justify-between gap-4 text-xs text-stone-500">
           <p>
-            {{ latestGithubSnapshot.totalCommits || 0 }} total commits
+            {{ 'pages.stats.github.totalCommits' | translate:{ count: latestGithubSnapshot.totalCommits || 0 } }}
             <span *ngIf="latestGithubSnapshot.username">· {{ latestGithubSnapshot.username }}</span>
           </p>
 
           <div class="flex items-center gap-2">
-            <span>Less</span>
+            <span>{{ 'pages.stats.github.legendLess' | translate }}</span>
             <div class="flex gap-1">
               <span *ngFor="let level of contributionLegend; trackBy: trackByIndex" [class]="getContributionLegendClass(level)"></span>
             </div>
-            <span>More</span>
+            <span>{{ 'pages.stats.github.legendMore' | translate }}</span>
           </div>
         </div>
       </div>
@@ -109,15 +106,15 @@
 
   <section class="space-y-6">
     <div class="space-y-2">
-      <h2 class="text-4xl font-semibold tracking-tight text-stone-950">About this portfolio</h2>
-      <p class="max-w-3xl text-base leading-7 text-stone-600">Insights and metrics about my portfolio website.</p>
+      <h2 class="text-4xl font-semibold tracking-tight text-stone-950">{{ 'pages.stats.portfolio.title' | translate }}</h2>
+      <p class="max-w-3xl text-base leading-7 text-stone-600">{{ 'pages.stats.portfolio.description' | translate }}</p>
     </div>
 
     <div class="grid gap-5 md:grid-cols-2">
       <app-ui-card padding="lg" [featured]="true">
         <div class="flex min-h-[15rem] flex-col rounded-[1.5rem] border border-stone-200 bg-stone-50/80 px-6 py-6 text-center sm:px-8">
           <div class="space-y-2">
-            <p class="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">Portfolio traffic</p>
+            <p class="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">{{ 'pages.stats.portfolio.trafficKicker' | translate }}</p>
             <h3 class="text-2xl font-semibold tracking-tight text-stone-950">{{ portfolioViewsCard.label }}</h3>
             <p class="text-sm leading-6 text-stone-600">{{ portfolioViewsCard.description }}</p>
           </div>
@@ -131,7 +128,7 @@
       <app-ui-card padding="lg" [featured]="true">
         <div class="flex min-h-[15rem] flex-col rounded-[1.5rem] border border-stone-200 bg-[rgba(177,134,176,0.12)] px-6 py-6 text-center sm:px-8">
           <div class="space-y-2">
-            <p class="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">Portfolio feedback</p>
+            <p class="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">{{ 'pages.stats.portfolio.feedbackKicker' | translate }}</p>
             <h3 class="text-2xl font-semibold tracking-tight text-stone-950">{{ portfolioLikesCard.label }}</h3>
             <p class="text-sm leading-6 text-stone-600">{{ portfolioLikesCard.description }}</p>
           </div>

@@ -14,7 +14,7 @@
         </div>
       </ng-template>
 
-      <app-ui-chip tone="accent" class="absolute left-4 top-4">Featured</app-ui-chip>
+      <app-ui-chip tone="accent" class="absolute left-4 top-4">{{ 'common.labels.featured' | translate }}</app-ui-chip>
     </div>
 
     <div class="flex h-full flex-col justify-between gap-5 px-6 py-6 lg:px-7 lg:py-7">
@@ -47,7 +47,7 @@
           [href]="readMoreAction.href ?? null"
           [openInNewTab]="!!readMoreAction.href"
         >
-          Read more
+          {{ 'common.actions.readMore' | translate }}
         </app-ui-link-button>
       </div>
     </div>
@@ -64,7 +64,7 @@
             <span class="max-w-[16ch]">{{ placeholderLabel }}</span>
           </div>
         </ng-template>
-        <app-ui-chip *ngIf="project.isFeatured" tone="accent" class="absolute left-3 top-3">Featured</app-ui-chip>
+        <app-ui-chip *ngIf="project.isFeatured" tone="accent" class="absolute left-3 top-3">{{ 'common.labels.featured' | translate }}</app-ui-chip>
       </div>
 
       <div class="flex h-full flex-col gap-4 px-6 pb-6 pt-5">

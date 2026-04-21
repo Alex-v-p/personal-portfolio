@@ -1,8 +1,12 @@
 import { NgFor, NgIf } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { distinctUntilChanged } from 'rxjs/operators';
 import { finalize, take } from 'rxjs/operators';
 
+import { TranslatePipe } from '@core/i18n/translate.pipe';
+import { I18nService } from '@core/i18n/i18n.service';
 import { UiButtonComponent } from '@shared/components/button/ui-button.component';
 import { UiCardComponent } from '@shared/components/card/ui-card.component';
 import { UiChipComponent } from '@shared/components/chip/ui-chip.component';
@@ -21,7 +25,7 @@ type SubmissionState = 'idle' | 'submitting' | 'success' | 'error';
 @Component({
   selector: 'app-contact-page',
   standalone: true,
-  imports: [NgFor, NgIf, ReactiveFormsModule, UiButtonComponent, UiCardComponent, UiChipComponent, UiEmptyStateComponent, UiSkeletonComponent],
+  imports: [NgFor, NgIf, ReactiveFormsModule, TranslatePipe, UiButtonComponent, UiCardComponent, UiChipComponent, UiEmptyStateComponent, UiSkeletonComponent],
   templateUrl: './contact.page.html'
 })
 export class ContactPageComponent implements OnInit {
@@ -30,10 +34,12 @@ export class ContactPageComponent implements OnInit {
   private readonly profileApi = inject(PublicProfileApiService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly siteTracking = inject(SiteTrackingService);
+  private readonly i18n = inject(I18nService);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected profile: Profile = createEmptyProfile();
   protected contactMethods: ContactMethod[] = [];
-  
+
   protected readonly contactForm = this.formBuilder.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
@@ -50,7 +56,9 @@ export class ContactPageComponent implements OnInit {
   protected isLoadingProfile = true;
 
   ngOnInit(): void {
-    this.loadProfile();
+    this.i18n.localeChanges$.pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.loadProfile();
+    });
   }
 
   protected submit(): void {
@@ -89,7 +97,7 @@ export class ContactPageComponent implements OnInit {
         },
         error: (error) => {
           this.submissionState = 'error';
-          this.errorMessage = error?.error?.detail || 'The message could not be sent to the portfolio API. Make sure the API or reverse proxy is running and try again.';
+          this.errorMessage = error?.error?.detail || this.i18n.translate('pages.contact.errors.submit');
         }
       });
   }
@@ -110,23 +118,12 @@ export class ContactPageComponent implements OnInit {
     this.hasAttemptedSubmit = false;
   }
 
-  protected useTopic(label: string): void {
-    const subjectControl = this.contactForm.controls.subject;
-
-    if (!subjectControl.value.trim()) {
-      subjectControl.setValue(label);
-    }
-
-    subjectControl.markAsDirty();
-    subjectControl.markAsTouched();
-  }
-
   protected get messageLength(): number {
     return this.contactForm.controls.message.value.length;
   }
 
   protected get contactIntroText(): string {
-    return "Whether you're reaching out about an internship, a project, or just want to talk tech, feel free to use whichever channel suits you best.";
+    return this.i18n.translate('pages.contact.intro');
   }
 
   protected get hasContactDetails(): boolean {
@@ -175,32 +172,32 @@ export class ContactPageComponent implements OnInit {
 
     if (control.hasError('required')) {
       const labels = {
-        name: 'Please share your name.',
-        email: 'Please share your email address.',
-        subject: 'Please add a subject.',
-        message: 'Please describe what you would like to discuss.'
+        name: 'pages.contact.validation.nameRequired',
+        email: 'pages.contact.validation.emailRequired',
+        subject: 'pages.contact.validation.subjectRequired',
+        message: 'pages.contact.validation.messageRequired'
       } as const;
 
-      return labels[controlName];
+      return this.i18n.translate(labels[controlName]);
     }
 
     if (control.hasError('email')) {
-      return 'Please enter a valid email address.';
+      return this.i18n.translate('pages.contact.validation.emailInvalid');
     }
 
     if (control.hasError('minlength')) {
       const labels = {
-        name: 'Name should be at least 2 characters.',
-        email: 'Please enter a valid email address.',
-        subject: 'Subject should be at least 4 characters.',
-        message: 'Message should be at least 20 characters so there is enough context.'
+        name: 'pages.contact.validation.nameMinLength',
+        email: 'pages.contact.validation.emailInvalid',
+        subject: 'pages.contact.validation.subjectMinLength',
+        message: 'pages.contact.validation.messageMinLength'
       } as const;
 
-      return labels[controlName];
+      return this.i18n.translate(labels[controlName]);
     }
 
     if (control.hasError('maxlength')) {
-      return 'Message should stay under 1200 characters.';
+      return this.i18n.translate('pages.contact.validation.messageMaxLength');
     }
 
     return '';
@@ -233,7 +230,7 @@ export class ContactPageComponent implements OnInit {
         error: () => {
           this.profile = createEmptyProfile();
           this.contactMethods = [];
-          this.profileErrorMessage = 'Contact details could not be loaded from the portfolio API. You can still use the form below.';
+          this.profileErrorMessage = this.i18n.translate('pages.contact.errors.profileLoad');
         }
       });
   }
