@@ -5,9 +5,13 @@ export interface AdminProject {
   id: string;
   slug: string;
   title: string;
+  titleNl?: string | null;
   teaser: string;
+  teaserNl?: string | null;
   summary?: string | null;
+  summaryNl?: string | null;
   descriptionMarkdown?: string | null;
+  descriptionMarkdownNl?: string | null;
   coverImageFileId?: string | null;
   coverImage?: ResolvedMedia | null;
   githubUrl?: string | null;
@@ -18,7 +22,9 @@ export interface AdminProject {
   startedOn?: string | null;
   endedOn?: string | null;
   durationLabel: string;
+  durationLabelNl?: string | null;
   status: string;
+  statusNl?: string | null;
   state: 'published' | 'archived' | 'completed' | 'paused';
   isFeatured: boolean;
   sortOrder: number;
@@ -32,9 +38,13 @@ export interface AdminProject {
 export interface AdminProjectUpsert {
   slug?: string | null;
   title: string;
+  titleNl?: string | null;
   teaser: string;
+  teaserNl?: string | null;
   summary?: string | null;
+  summaryNl?: string | null;
   descriptionMarkdown?: string | null;
+  descriptionMarkdownNl?: string | null;
   coverImageFileId?: string | null;
   githubUrl?: string | null;
   githubRepoOwner?: string | null;
@@ -44,7 +54,9 @@ export interface AdminProjectUpsert {
   startedOn?: string | null;
   endedOn?: string | null;
   durationLabel: string;
+  durationLabelNl?: string | null;
   status: string;
+  statusNl?: string | null;
   state: 'published' | 'archived' | 'completed' | 'paused';
   isFeatured: boolean;
   sortOrder: number;

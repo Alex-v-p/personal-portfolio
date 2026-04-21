@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { AdminProject, AdminReferenceData } from '@domains/admin/model/admin.model';
 import { AdminProjectForm, ScopedUploadForm } from '@domains/admin/model/forms/index';
 import { slugify } from '@domains/admin/shell/state/admin-page.utils';
+
+type ContentLocale = 'en' | 'nl';
 
 @Component({
   selector: 'app-admin-projects-tab',
@@ -12,7 +14,12 @@ import { slugify } from '@domains/admin/shell/state/admin-page.utils';
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-projects-tab.component.html'
 })
-export class AdminProjectsTabComponent {
+export class AdminProjectsTabComponent implements OnChanges {
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['selectedProjectId']) {
+      this.contentLocale = 'en';
+    }
+  }
   @Input({ required: true }) projects: AdminProject[] = [];
   @Input() selectedProjectId: string | null = null;
   @Input({ required: true }) projectForm!: AdminProjectForm;
@@ -27,6 +34,12 @@ export class AdminProjectsTabComponent {
   @Output() readonly projectDeleted = new EventEmitter<void>();
   @Output() readonly scopedFileSelected = new EventEmitter<{ event: Event; form: ScopedUploadForm }>();
   @Output() readonly projectCoverUploadRequested = new EventEmitter<void>();
+
+  protected contentLocale: ContentLocale = 'en';
+
+  protected setContentLocale(locale: ContentLocale): void {
+    this.contentLocale = locale;
+  }
 
   selectProject(projectId: string): void {
     this.projectSelected.emit(projectId);

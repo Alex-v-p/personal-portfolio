@@ -1,9 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { AdminNavigationItem } from '@domains/admin/model/admin.model';
 import { AdminNavigationItemForm } from '@domains/admin/model/forms/index';
+
+type ContentLocale = 'en' | 'nl';
 
 @Component({
   selector: 'app-admin-navigation-tab',
@@ -11,7 +13,12 @@ import { AdminNavigationItemForm } from '@domains/admin/model/forms/index';
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-navigation-tab.component.html'
 })
-export class AdminNavigationTabComponent {
+export class AdminNavigationTabComponent implements OnChanges {
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['selectedNavigationItemId']) {
+      this.contentLocale = 'en';
+    }
+  }
   @Input({ required: true }) navigationItems: AdminNavigationItem[] = [];
   @Input() selectedNavigationItemId: string | null = null;
   @Input({ required: true }) navigationItemForm!: AdminNavigationItemForm;
@@ -20,6 +27,8 @@ export class AdminNavigationTabComponent {
   @Output() readonly newNavigationItemStarted = new EventEmitter<void>();
   @Output() readonly navigationItemSaved = new EventEmitter<void>();
   @Output() readonly navigationItemDeleted = new EventEmitter<void>();
+
+  protected contentLocale: ContentLocale = 'en';
 
   get visibleCount(): number {
     return this.navigationItems.filter((item) => item.isVisible).length;
@@ -31,6 +40,10 @@ export class AdminNavigationTabComponent {
 
   get hiddenCount(): number {
     return this.navigationItems.filter((item) => !item.isVisible).length;
+  }
+
+  protected setContentLocale(locale: ContentLocale): void {
+    this.contentLocale = locale;
   }
 
   selectNavigationItem(itemId: string): void {

@@ -1,61 +1,192 @@
-    <section class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] sm:p-8">
+<section class="space-y-6 rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] sm:p-8">
+  <div>
+    <h2 class="text-xl font-semibold text-stone-950">Profile and shell content</h2>
+    <p class="mt-1 text-sm text-stone-600">
+      English copy is required. Dutch copy is optional and falls back to English on the public site until you fill it in.
+    </p>
+  </div>
+
+  <section class="grid gap-5 lg:grid-cols-2">
+    <label class="space-y-2">
+      <span class="text-sm font-semibold text-stone-800">First name</span>
+      <input [(ngModel)]="profileForm.firstName" name="profileFirstName" placeholder="Alex" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+    </label>
+    <label class="space-y-2">
+      <span class="text-sm font-semibold text-stone-800">Last name</span>
+      <input [(ngModel)]="profileForm.lastName" name="profileLastName" placeholder="Van Poppel" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+    </label>
+  </section>
+
+  <section class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4 sm:p-5">
+    <div class="flex flex-wrap items-start justify-between gap-4">
       <div>
-        <h2 class="text-xl font-semibold text-stone-950">Profile and shell content</h2>
-        <p class="mt-1 text-sm text-stone-600">This section controls the public hero text, contact identity, CTA buttons, social links, and the profile media used throughout the site shell.</p>
+        <p class="text-sm font-semibold text-stone-950">Localized profile copy</p>
+        <p class="mt-1 text-xs leading-5 text-stone-500">Switch between English and Dutch content for the hero, bio, and CTA labels.</p>
       </div>
-
-      <section class="mt-6 grid gap-5 lg:grid-cols-2">
-        <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">First name</span><p class="text-xs leading-5 text-stone-500">Used anywhere the public site displays your personal identity.</p><input [(ngModel)]="profileForm.firstName" name="profileFirstName" placeholder="Alex" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
-        <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Last name</span><p class="text-xs leading-5 text-stone-500">Usually paired with the first name for the full public profile heading.</p><input [(ngModel)]="profileForm.lastName" name="profileLastName" placeholder="Van Poppel" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
-        <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold text-stone-800">Headline</span><p class="text-xs leading-5 text-stone-500">Primary hero line that quickly explains who you are or what you specialize in.</p><input [(ngModel)]="profileForm.headline" name="profileHeadline" placeholder="Applied AI student building practical software" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
-        <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold text-stone-800">Short intro</span><p class="text-xs leading-5 text-stone-500">Compact intro paragraph used in previews or the homepage hero area.</p><textarea [(ngModel)]="profileForm.shortIntro" name="profileShortIntro" rows="3" placeholder="A short introduction for visitors landing on the homepage." class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm"></textarea></label>
-        <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold text-stone-800">Long bio</span><p class="text-xs leading-5 text-stone-500">Longer descriptive body for your about/profile content. Good for background, approach, and goals.</p><textarea [(ngModel)]="profileForm.longBio" name="profileLongBio" rows="8" placeholder="Write the fuller profile story shown in the portfolio." class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm"></textarea></label>
-        <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Location</span><p class="text-xs leading-5 text-stone-500">Public-facing city / country or remote availability text.</p><input [(ngModel)]="profileForm.location" name="profileLocation" placeholder="Belgium" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
-        <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Email</span><p class="text-xs leading-5 text-stone-500">Contact address used in shell/contact sections.</p><input [(ngModel)]="profileForm.email" name="profileEmail" placeholder="you@example.com" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
-        <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold text-stone-800">Phone</span><p class="text-xs leading-5 text-stone-500">Optional public phone number. Leave blank if you do not want to expose one.</p><input [(ngModel)]="profileForm.phone" name="profilePhone" placeholder="Optional phone number" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
-        <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Primary CTA label</span><p class="text-xs leading-5 text-stone-500">Text shown on the main action button in the hero section.</p><input [(ngModel)]="profileForm.ctaPrimaryLabel" name="profileCtaPrimaryLabel" placeholder="View projects" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
-        <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Primary CTA URL</span><p class="text-xs leading-5 text-stone-500">Destination for the main button, usually a route like <span class="font-medium text-stone-700">/projects</span> or a file link.</p><input [(ngModel)]="profileForm.ctaPrimaryUrl" name="profileCtaPrimaryUrl" placeholder="/projects or https://..." class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
-        <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Secondary CTA label</span><p class="text-xs leading-5 text-stone-500">Text shown on the secondary supporting action next to the main CTA.</p><input [(ngModel)]="profileForm.ctaSecondaryLabel" name="profileCtaSecondaryLabel" placeholder="Contact me" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
-        <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Secondary CTA URL</span><p class="text-xs leading-5 text-stone-500">Destination for the second button, often <span class="font-medium text-stone-700">/contact</span> or an external link.</p><input [(ngModel)]="profileForm.ctaSecondaryUrl" name="profileCtaSecondaryUrl" placeholder="/contact or https://..." class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
-        <label class="flex items-start gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-800 lg:col-span-2"><input [(ngModel)]="profileForm.isPublic" name="profilePublic" type="checkbox" class="mt-1 h-4 w-4" /><span><span class="font-semibold text-stone-900">Public profile enabled</span><span class="mt-1 block text-xs leading-5 text-stone-500">Turn this off only if you want to temporarily hide the public profile content while keeping it saved in the CMS.</span></span></label>
-      </section>
-
-      <div class="mt-6 grid gap-6 xl:grid-cols-3">
-        <div class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4 space-y-3"><div><p class="text-sm font-semibold text-stone-950">Avatar upload</p><p class="text-xs text-stone-500">Used for smaller profile portraits and identity images. Files go to <span class="font-medium text-stone-700">{{ buildProfileFolder() }}</span>.</p></div><input [(ngModel)]="profileAvatarUploadForm.title" name="profileAvatarUploadTitle" placeholder="Avatar title" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /><input [(ngModel)]="profileAvatarUploadForm.altText" name="profileAvatarUploadAltText" placeholder="Alt text for accessibility" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /><textarea [(ngModel)]="profileAvatarUploadForm.description" name="profileAvatarUploadDescription" rows="2" placeholder="Optional internal note" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea><select [(ngModel)]="profileAvatarUploadForm.visibility" name="profileAvatarUploadVisibility" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"><option [ngValue]="'public'">public</option><option [ngValue]="'private'">private</option><option [ngValue]="'signed'">signed</option></select><input type="file" (change)="onScopedFileSelected($event, profileAvatarUploadForm)" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /><button type="button" (click)="uploadProfileAvatar()" [disabled]="uploadInProgressKey === 'profile-avatar'" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Upload avatar</button><select [(ngModel)]="profileForm.avatarFileId" name="profileAvatarFileId" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"><option [ngValue]="null">No avatar selected</option><option *ngFor="let media of mediaFiles" [ngValue]="media.id">{{ media.title || media.originalFilename }}</option></select></div>
-        <div class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4 space-y-3"><div><p class="text-sm font-semibold text-stone-950">Hero image upload</p><p class="text-xs text-stone-500">Used in the homepage hero or profile banner area. Files go to <span class="font-medium text-stone-700">{{ buildProfileFolder() }}</span>.</p></div><input [(ngModel)]="profileHeroUploadForm.title" name="profileHeroUploadTitle" placeholder="Hero title" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /><input [(ngModel)]="profileHeroUploadForm.altText" name="profileHeroUploadAltText" placeholder="Alt text for accessibility" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /><textarea [(ngModel)]="profileHeroUploadForm.description" name="profileHeroUploadDescription" rows="2" placeholder="Optional internal note" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea><select [(ngModel)]="profileHeroUploadForm.visibility" name="profileHeroUploadVisibility" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"><option [ngValue]="'public'">public</option><option [ngValue]="'private'">private</option><option [ngValue]="'signed'">signed</option></select><input type="file" (change)="onScopedFileSelected($event, profileHeroUploadForm)" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /><button type="button" (click)="uploadProfileHero()" [disabled]="uploadInProgressKey === 'profile-hero'" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Upload hero image</button><select [(ngModel)]="profileForm.heroImageFileId" name="profileHeroImageFileId" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"><option [ngValue]="null">No hero selected</option><option *ngFor="let media of mediaFiles" [ngValue]="media.id">{{ media.title || media.originalFilename }}</option></select></div>
-        <div class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4 space-y-3"><div><p class="text-sm font-semibold text-stone-950">Resume upload</p><p class="text-xs text-stone-500">Document opened by your resume CTA or download link. Files go to <span class="font-medium text-stone-700">{{ buildProfileFolder() }}</span>.</p></div><input [(ngModel)]="profileResumeUploadForm.title" name="profileResumeUploadTitle" placeholder="Resume title" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /><input [(ngModel)]="profileResumeUploadForm.altText" name="profileResumeUploadAltText" placeholder="Alt text or short note" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /><textarea [(ngModel)]="profileResumeUploadForm.description" name="profileResumeUploadDescription" rows="2" placeholder="Optional internal note" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea><select [(ngModel)]="profileResumeUploadForm.visibility" name="profileResumeUploadVisibility" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"><option [ngValue]="'public'">public</option><option [ngValue]="'private'">private</option><option [ngValue]="'signed'">signed</option></select><input type="file" (change)="onScopedFileSelected($event, profileResumeUploadForm)" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /><button type="button" (click)="uploadProfileResume()" [disabled]="uploadInProgressKey === 'profile-resume'" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Upload resume</button><select [(ngModel)]="profileForm.resumeFileId" name="profileResumeFileId" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"><option [ngValue]="null">No resume selected</option><option *ngFor="let media of mediaFiles" [ngValue]="media.id">{{ media.title || media.originalFilename }}</option></select></div>
+      <div class="inline-flex rounded-full border border-stone-300 bg-white p-1">
+        <button type="button" (click)="setContentLocale('en')" [ngClass]="contentLocale === 'en' ? 'bg-stone-900 text-white' : 'text-stone-700'" class="rounded-full px-4 py-2 text-sm font-semibold">English · required</button>
+        <button type="button" (click)="setContentLocale('nl')" [ngClass]="contentLocale === 'nl' ? 'bg-stone-900 text-white' : 'text-stone-700'" class="rounded-full px-4 py-2 text-sm font-semibold">Dutch · optional</button>
       </div>
+    </div>
 
-      <div class="mt-8 space-y-4">
-        <div class="flex items-center justify-between gap-4">
-          <div>
-            <h3 class="text-lg font-semibold text-stone-950">Social links</h3>
-            <p class="text-sm text-stone-600">These rows power repeated social/contact links in the shell and profile areas.</p>
+    <div *ngIf="contentLocale === 'en'" class="mt-5 grid gap-5 lg:grid-cols-2">
+      <label class="space-y-2 lg:col-span-2">
+        <span class="text-sm font-semibold text-stone-800">Headline</span>
+        <input [(ngModel)]="profileForm.headline" name="profileHeadlineEn" placeholder="Applied AI student building practical software" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
+      </label>
+      <label class="space-y-2 lg:col-span-2">
+        <span class="text-sm font-semibold text-stone-800">Short intro</span>
+        <textarea [(ngModel)]="profileForm.shortIntro" name="profileShortIntroEn" rows="3" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea>
+      </label>
+      <label class="space-y-2 lg:col-span-2">
+        <span class="text-sm font-semibold text-stone-800">Long bio</span>
+        <textarea [(ngModel)]="profileForm.longBio" name="profileLongBioEn" rows="8" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea>
+      </label>
+      <label class="space-y-2">
+        <span class="text-sm font-semibold text-stone-800">Primary CTA label</span>
+        <input [(ngModel)]="profileForm.ctaPrimaryLabel" name="profileCtaPrimaryLabelEn" placeholder="View projects" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
+      </label>
+      <label class="space-y-2">
+        <span class="text-sm font-semibold text-stone-800">Secondary CTA label</span>
+        <input [(ngModel)]="profileForm.ctaSecondaryLabel" name="profileCtaSecondaryLabelEn" placeholder="Contact me" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
+      </label>
+    </div>
+
+    <div *ngIf="contentLocale === 'nl'" class="mt-5 grid gap-5 lg:grid-cols-2">
+      <label class="space-y-2 lg:col-span-2">
+        <span class="text-sm font-semibold text-stone-800">Headline (Dutch)</span>
+        <input [(ngModel)]="profileForm.headlineNl" name="profileHeadlineNl" placeholder="Laat leeg om Engels te gebruiken" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
+      </label>
+      <label class="space-y-2 lg:col-span-2">
+        <span class="text-sm font-semibold text-stone-800">Short intro (Dutch)</span>
+        <textarea [(ngModel)]="profileForm.shortIntroNl" name="profileShortIntroNl" rows="3" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea>
+      </label>
+      <label class="space-y-2 lg:col-span-2">
+        <span class="text-sm font-semibold text-stone-800">Long bio (Dutch)</span>
+        <textarea [(ngModel)]="profileForm.longBioNl" name="profileLongBioNl" rows="8" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea>
+      </label>
+      <label class="space-y-2">
+        <span class="text-sm font-semibold text-stone-800">Primary CTA label (Dutch)</span>
+        <input [(ngModel)]="profileForm.ctaPrimaryLabelNl" name="profileCtaPrimaryLabelNl" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
+      </label>
+      <label class="space-y-2">
+        <span class="text-sm font-semibold text-stone-800">Secondary CTA label (Dutch)</span>
+        <input [(ngModel)]="profileForm.ctaSecondaryLabelNl" name="profileCtaSecondaryLabelNl" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
+      </label>
+    </div>
+  </section>
+
+  <section class="grid gap-5 lg:grid-cols-2">
+    <label class="space-y-2">
+      <span class="text-sm font-semibold text-stone-800">Location</span>
+      <input [(ngModel)]="profileForm.location" name="profileLocation" placeholder="Belgium" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+    </label>
+    <label class="space-y-2">
+      <span class="text-sm font-semibold text-stone-800">Email</span>
+      <input [(ngModel)]="profileForm.email" name="profileEmail" placeholder="you@example.com" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+    </label>
+    <label class="space-y-2 lg:col-span-2">
+      <span class="text-sm font-semibold text-stone-800">Phone</span>
+      <input [(ngModel)]="profileForm.phone" name="profilePhone" placeholder="Optional phone number" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+    </label>
+    <label class="space-y-2">
+      <span class="text-sm font-semibold text-stone-800">Primary CTA URL</span>
+      <input [(ngModel)]="profileForm.ctaPrimaryUrl" name="profileCtaPrimaryUrl" placeholder="/projects or https://..." class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+    </label>
+    <label class="space-y-2">
+      <span class="text-sm font-semibold text-stone-800">Secondary CTA URL</span>
+      <input [(ngModel)]="profileForm.ctaSecondaryUrl" name="profileCtaSecondaryUrl" placeholder="/contact or https://..." class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+    </label>
+    <label class="flex items-start gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-800 lg:col-span-2">
+      <input [(ngModel)]="profileForm.isPublic" name="profilePublic" type="checkbox" class="mt-1 h-4 w-4" />
+      <span>
+        <span class="font-semibold text-stone-900">Public profile enabled</span>
+        <span class="mt-1 block text-xs leading-5 text-stone-500">Turn this off only if you want to temporarily hide the public profile content while keeping it saved in the CMS.</span>
+      </span>
+    </label>
+  </section>
+
+  <div class="grid gap-6 xl:grid-cols-3">
+    <div class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4 space-y-3">
+      <div>
+        <p class="text-sm font-semibold text-stone-950">Avatar upload</p>
+        <p class="text-xs text-stone-500">Used for smaller profile portraits. Files go to <span class="font-medium text-stone-700">{{ buildProfileFolder() }}</span>.</p>
+      </div>
+      <input [(ngModel)]="profileAvatarUploadForm.title" name="profileAvatarUploadTitle" placeholder="Avatar title" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
+      <input [(ngModel)]="profileAvatarUploadForm.altText" name="profileAvatarUploadAltText" placeholder="Alt text" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
+      <textarea [(ngModel)]="profileAvatarUploadForm.description" name="profileAvatarUploadDescription" rows="2" placeholder="Optional note" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea>
+      <select [(ngModel)]="profileAvatarUploadForm.visibility" name="profileAvatarUploadVisibility" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"><option [ngValue]="'public'">public</option><option [ngValue]="'private'">private</option><option [ngValue]="'signed'">signed</option></select>
+      <input type="file" (change)="onScopedFileSelected($event, profileAvatarUploadForm)" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
+      <button type="button" (click)="uploadProfileAvatar()" [disabled]="uploadInProgressKey === 'profile-avatar'" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Upload and select avatar</button>
+      <select [(ngModel)]="profileForm.avatarFileId" name="profileAvatarFileId" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"><option [ngValue]="null">No avatar selected</option><option *ngFor="let media of mediaFiles" [ngValue]="media.id">{{ media.title || media.originalFilename }} · {{ media.objectKey }}</option></select>
+    </div>
+
+    <div class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4 space-y-3">
+      <div>
+        <p class="text-sm font-semibold text-stone-950">Hero image upload</p>
+        <p class="text-xs text-stone-500">Used in the home-page hero section and shell previews.</p>
+      </div>
+      <input [(ngModel)]="profileHeroUploadForm.title" name="profileHeroUploadTitle" placeholder="Hero image title" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
+      <input [(ngModel)]="profileHeroUploadForm.altText" name="profileHeroUploadAltText" placeholder="Alt text" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
+      <textarea [(ngModel)]="profileHeroUploadForm.description" name="profileHeroUploadDescription" rows="2" placeholder="Optional note" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea>
+      <select [(ngModel)]="profileHeroUploadForm.visibility" name="profileHeroUploadVisibility" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"><option [ngValue]="'public'">public</option><option [ngValue]="'private'">private</option><option [ngValue]="'signed'">signed</option></select>
+      <input type="file" (change)="onScopedFileSelected($event, profileHeroUploadForm)" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
+      <button type="button" (click)="uploadProfileHero()" [disabled]="uploadInProgressKey === 'profile-hero'" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Upload and select hero image</button>
+      <select [(ngModel)]="profileForm.heroImageFileId" name="profileHeroImageFileId" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"><option [ngValue]="null">No hero image selected</option><option *ngFor="let media of mediaFiles" [ngValue]="media.id">{{ media.title || media.originalFilename }} · {{ media.objectKey }}</option></select>
+    </div>
+
+    <div class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4 space-y-3">
+      <div>
+        <p class="text-sm font-semibold text-stone-950">Resume upload</p>
+        <p class="text-xs text-stone-500">This can be linked from your primary CTA or kept as a downloadable asset.</p>
+      </div>
+      <input [(ngModel)]="profileResumeUploadForm.title" name="profileResumeUploadTitle" placeholder="Resume title" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
+      <input [(ngModel)]="profileResumeUploadForm.altText" name="profileResumeUploadAltText" placeholder="Alt text" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
+      <textarea [(ngModel)]="profileResumeUploadForm.description" name="profileResumeUploadDescription" rows="2" placeholder="Optional note" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea>
+      <select [(ngModel)]="profileResumeUploadForm.visibility" name="profileResumeUploadVisibility" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"><option [ngValue]="'public'">public</option><option [ngValue]="'private'">private</option><option [ngValue]="'signed'">signed</option></select>
+      <input type="file" (change)="onScopedFileSelected($event, profileResumeUploadForm)" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
+      <button type="button" (click)="uploadProfileResume()" [disabled]="uploadInProgressKey === 'profile-resume'" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Upload and select resume</button>
+      <select [(ngModel)]="profileForm.resumeFileId" name="profileResumeFileId" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"><option [ngValue]="null">No resume selected</option><option *ngFor="let media of mediaFiles" [ngValue]="media.id">{{ media.title || media.originalFilename }} · {{ media.objectKey }}</option></select>
+    </div>
+  </div>
+
+  <section class="space-y-4 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4 sm:p-5">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <p class="text-sm font-semibold text-stone-950">Social links</p>
+        <p class="mt-1 text-xs leading-5 text-stone-500">Social link rows stay shared across languages because they usually point to the same platform accounts.</p>
+      </div>
+      <button type="button" (click)="addSocialLink()" class="rounded-full border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-700">Add social link</button>
+    </div>
+
+    <div class="grid gap-4" *ngIf="profileForm.socialLinks.length; else noSocialLinks">
+      <article *ngFor="let link of profileForm.socialLinks; let index = index" class="rounded-[1.25rem] border border-stone-200 bg-white p-4">
+        <div class="grid gap-4 xl:grid-cols-2">
+          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Platform</span><input [(ngModel)]="link.platform" [name]="'socialPlatform' + index" placeholder="github" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Public label</span><input [(ngModel)]="link.label" [name]="'socialLabel' + index" placeholder="GitHub" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2 xl:col-span-2"><span class="text-sm font-semibold text-stone-800">URL</span><input [(ngModel)]="link.url" [name]="'socialUrl' + index" placeholder="https://github.com/..." class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Icon key</span><input [(ngModel)]="link.iconKey" [name]="'socialIconKey' + index" placeholder="github" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Sort order</span><input [(ngModel)]="link.sortOrder" [name]="'socialSortOrder' + index" type="number" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <label class="flex items-start gap-3 rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm text-stone-800">
+            <input [(ngModel)]="link.isVisible" [name]="'socialVisible' + index" type="checkbox" class="mt-1 h-4 w-4" />
+            <span>
+              <span class="font-semibold text-stone-900">Visible publicly</span>
+              <span class="mt-1 block text-xs leading-5 text-stone-500">Turn this off to keep the row saved without showing it publicly.</span>
+            </span>
+          </label>
+          <div class="flex items-end justify-end">
+            <button type="button" (click)="removeSocialLink(index)" class="inline-flex min-h-11 items-center rounded-full border border-rose-300 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50">Remove link</button>
           </div>
-          <button type="button" (click)="addSocialLink()" class="inline-flex min-h-10 items-center rounded-full border border-stone-300 px-4 text-sm font-semibold text-stone-700 transition hover:bg-stone-50">Add link</button>
         </div>
+      </article>
+    </div>
 
-        <div class="grid gap-4">
-          <article *ngFor="let link of profileForm.socialLinks; let index = index" class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
-            <div class="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
-              <label class="space-y-2"><span class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Platform</span><p class="text-xs leading-5 text-stone-500">Internal platform name such as GitHub, LinkedIn, Email, or Instagram.</p><input [(ngModel)]="link.platform" [name]="'socialPlatform' + index" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
-              <label class="space-y-2"><span class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Label</span><p class="text-xs leading-5 text-stone-500">Readable text shown to visitors on the button or link.</p><input [(ngModel)]="link.label" [name]="'socialLabel' + index" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
-              <label class="space-y-2"><span class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">URL</span><p class="text-xs leading-5 text-stone-500">Destination opened when the visitor clicks this row.</p><input [(ngModel)]="link.url" [name]="'socialUrl' + index" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
-              <label class="space-y-2"><span class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Icon key</span><p class="text-xs leading-5 text-stone-500">Optional identifier the frontend can map to a specific icon.</p><input [(ngModel)]="link.iconKey" [name]="'socialIconKey' + index" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
-              <label class="space-y-2"><span class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Sort order</span><p class="text-xs leading-5 text-stone-500">Lower numbers appear earlier in the visible social links list.</p><input [(ngModel)]="link.sortOrder" [name]="'socialSortOrder' + index" type="number" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
-              <label class="flex items-start gap-3 rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm text-stone-800"><input [(ngModel)]="link.isVisible" [name]="'socialIsVisible' + index" type="checkbox" class="mt-1 h-4 w-4" /> <span><span class="font-semibold text-stone-900">Visible</span><span class="mt-1 block text-xs leading-5 text-stone-500">Turn this off to keep the row saved in the CMS without showing it publicly.</span></span></label>
-              <div class="flex items-end justify-end xl:col-span-2">
-                <button type="button" (click)="removeSocialLink(index)" class="inline-flex min-h-11 items-center rounded-full border border-rose-300 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50">Remove link</button>
-              </div>
-            </div>
-          </article>
-        </div>
-      </div>
+    <ng-template #noSocialLinks>
+      <div class="rounded-2xl border border-dashed border-stone-300 bg-white px-4 py-5 text-sm text-stone-500">No social links yet. Add the platforms you want to show in the footer and contact section.</div>
+    </ng-template>
+  </section>
 
-      <div class="mt-6 flex justify-end">
-        <button type="button" (click)="saveProfile()" class="inline-flex min-h-11 items-center rounded-full bg-stone-900 px-5 text-sm font-semibold text-white transition hover:bg-stone-700">Save profile</button>
-      </div>
-    </section>
-
-
-
+  <div class="flex justify-end">
+    <button type="button" (click)="saveProfile()" class="inline-flex min-h-11 items-center rounded-full bg-stone-900 px-5 text-sm font-semibold text-white transition hover:bg-stone-700">Save profile</button>
+  </div>
+</section>

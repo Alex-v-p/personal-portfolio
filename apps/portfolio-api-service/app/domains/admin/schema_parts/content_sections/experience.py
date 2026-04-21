@@ -9,13 +9,16 @@ from app.domains.public_site.schema import PublicMediaAssetOut, SkillSummaryOut
 class AdminExperienceUpsertIn(ApiSchema):
     organization_name: str = Field(min_length=1, max_length=255)
     role_title: str = Field(min_length=1, max_length=255)
+    role_title_nl: str | None = Field(default=None, max_length=255)
     location: str | None = Field(default=None, max_length=255)
     experience_type: str = Field(min_length=1, max_length=80)
     start_date: str
     end_date: str | None = None
     is_current: bool = False
     summary: str = Field(min_length=1)
+    summary_nl: str | None = None
     description_markdown: str | None = None
+    description_markdown_nl: str | None = None
     logo_file_id: str | None = None
     sort_order: int = 0
     skill_ids: list[str] = Field(default_factory=list)
@@ -25,13 +28,16 @@ class AdminExperienceOut(ApiSchema):
     id: str
     organization_name: str
     role_title: str
+    role_title_nl: str | None = None
     location: str | None = None
     experience_type: str
     start_date: str
     end_date: str | None = None
     is_current: bool
     summary: str
+    summary_nl: str | None = None
     description_markdown: str | None = None
+    description_markdown_nl: str | None = None
     logo_file_id: str | None = None
     logo: PublicMediaAssetOut | None = None
     sort_order: int

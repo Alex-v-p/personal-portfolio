@@ -8,13 +8,17 @@ from app.schemas.base import ApiSchema
 class AdminSkillCategoryOut(ApiSchema):
     id: str
     name: str
+    name_nl: str | None = None
     description: str | None = None
+    description_nl: str | None = None
     sort_order: int
 
 
 class AdminSkillCategoryUpsertIn(ApiSchema):
     name: str = Field(min_length=1, max_length=120)
+    name_nl: str | None = Field(default=None, max_length=120)
     description: str | None = None
+    description_nl: str | None = None
     sort_order: int = 0
 
 

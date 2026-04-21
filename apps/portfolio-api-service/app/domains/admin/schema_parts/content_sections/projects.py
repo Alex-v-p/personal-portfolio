@@ -10,9 +10,13 @@ from app.domains.public_site.schema import PublicMediaAssetOut, SkillSummaryOut
 class AdminProjectUpsertIn(ApiSchema):
     slug: str | None = Field(default=None, max_length=160)
     title: str = Field(min_length=1, max_length=255)
+    title_nl: str | None = Field(default=None, max_length=255)
     teaser: str = Field(min_length=1)
+    teaser_nl: str | None = None
     summary: str | None = None
+    summary_nl: str | None = None
     description_markdown: str | None = None
+    description_markdown_nl: str | None = None
     cover_image_file_id: str | None = None
     github_url: str | None = Field(default=None, max_length=500)
     github_repo_owner: str | None = Field(default=None, max_length=120)
@@ -22,7 +26,9 @@ class AdminProjectUpsertIn(ApiSchema):
     started_on: str | None = None
     ended_on: str | None = None
     duration_label: str = Field(min_length=1, max_length=120)
+    duration_label_nl: str | None = Field(default=None, max_length=120)
     status: str = Field(min_length=1, max_length=120)
+    status_nl: str | None = Field(default=None, max_length=120)
     state: ProjectStateLiteral
     is_featured: bool = False
     sort_order: int = 0
@@ -34,9 +40,13 @@ class AdminProjectOut(ApiSchema):
     id: str
     slug: str
     title: str
+    title_nl: str | None = None
     teaser: str
+    teaser_nl: str | None = None
     summary: str | None = None
+    summary_nl: str | None = None
     description_markdown: str | None = None
+    description_markdown_nl: str | None = None
     cover_image_file_id: str | None = None
     cover_image: PublicMediaAssetOut | None = None
     github_url: str | None = None
@@ -47,7 +57,9 @@ class AdminProjectOut(ApiSchema):
     started_on: str | None = None
     ended_on: str | None = None
     duration_label: str
+    duration_label_nl: str | None = None
     status: str
+    status_nl: str | None = None
     state: ProjectStateLiteral
     is_featured: bool
     sort_order: int

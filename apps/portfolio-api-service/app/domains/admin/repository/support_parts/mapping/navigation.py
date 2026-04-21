@@ -9,6 +9,7 @@ class AdminRepositoryNavigationMappingMixin:
         return AdminNavigationItemOut(
             id=str(item.id),
             label=item.label,
+            label_nl=item.label_nl,
             route_path=item.route_path,
             is_external=item.is_external,
             sort_order=item.sort_order,

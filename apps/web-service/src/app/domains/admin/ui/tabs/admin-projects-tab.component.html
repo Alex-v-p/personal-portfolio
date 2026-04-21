@@ -1,41 +1,84 @@
-    <section class="grid gap-6 xl:grid-cols-[22rem_minmax(0,1fr)] 2xl:grid-cols-[24rem_minmax(0,1fr)] items-start">
-      <aside class="rounded-[2rem] border border-stone-300 bg-white p-5 shadow-[0_20px_45px_rgba(40,31,20,0.08)] xl:sticky xl:top-6">
-        <div class="flex items-center justify-between gap-4"><h2 class="text-lg font-semibold text-stone-950">Projects</h2><button type="button" (click)="startNewProject()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">New</button></div>
-        <div class="mt-5 grid gap-3 min-h-[18rem] max-h-[calc(100vh-17rem)] overflow-y-auto pr-1">
-          <button *ngFor="let project of projects" type="button" (click)="selectProject(project.id)" [ngClass]="project.id === selectedProjectId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-[1.5rem] border p-4 text-left transition">
-            <p class="text-sm font-semibold text-stone-950">{{ project.title }}</p><p class="mt-1 text-sm text-stone-600">{{ project.state }} · {{ project.status }}</p><p class="mt-2 text-xs text-stone-500">{{ project.slug }}</p>
-          </button>
-        </div>
-      </aside>
-      <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] lg:p-7 2xl:p-8">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><h2 class="text-xl font-semibold text-stone-950">{{ selectedProjectId ? 'Edit project' : 'Create project' }}</h2><button *ngIf="selectedProjectId" type="button" (click)="deleteProject()" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700">Delete</button></div>
-        <div class="mt-6 grid gap-4 lg:grid-cols-2">
-          <label class="space-y-2"><span class="text-sm font-semibold">Title</span><input [(ngModel)]="projectForm.title" name="projectTitle" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
-          <label class="space-y-2"><span class="text-sm font-semibold">Slug</span><input [(ngModel)]="projectForm.slug" name="projectSlug" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
-          <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Teaser</span><textarea [(ngModel)]="projectForm.teaser" name="projectTeaser" rows="3" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"></textarea></label>
-          <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Summary</span><textarea [(ngModel)]="projectForm.summary" name="projectSummary" rows="3" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"></textarea></label>
-          <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Description markdown</span><textarea [(ngModel)]="projectForm.descriptionMarkdown" name="projectDescriptionMarkdown" rows="8" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm font-mono"></textarea></label>
-          <label class="space-y-2"><span class="text-sm font-semibold">Status</span><input [(ngModel)]="projectForm.status" name="projectStatus" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
-          <label class="space-y-2"><span class="text-sm font-semibold">State</span><select [(ngModel)]="projectForm.state" name="projectState" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"><option *ngFor="let state of referenceData.projectStates" [ngValue]="state">{{ state }}</option></select></label>
-          <label class="space-y-2"><span class="text-sm font-semibold">Start date</span><input [(ngModel)]="projectForm.startedOn" name="projectStartedOn" type="date" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
-          <label class="space-y-2"><span class="text-sm font-semibold">End date</span><input [(ngModel)]="projectForm.endedOn" name="projectEndedOn" type="date" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
-          <label class="space-y-2"><span class="text-sm font-semibold">Duration label</span><input [(ngModel)]="projectForm.durationLabel" name="projectDurationLabel" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
-          <label class="space-y-2"><span class="text-sm font-semibold">Published at</span><input [(ngModel)]="projectForm.publishedAt" name="projectPublishedAt" type="datetime-local" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
-          <label class="space-y-2"><span class="text-sm font-semibold">GitHub URL</span><input [(ngModel)]="projectForm.githubUrl" name="projectGithubUrl" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
-          <label class="space-y-2"><span class="text-sm font-semibold">Demo URL</span><input [(ngModel)]="projectForm.demoUrl" name="projectDemoUrl" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
-          <label class="space-y-2"><span class="text-sm font-semibold">GitHub owner</span><input [(ngModel)]="projectForm.githubRepoOwner" name="projectGithubOwner" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
-          <label class="space-y-2"><span class="text-sm font-semibold">GitHub repo</span><input [(ngModel)]="projectForm.githubRepoName" name="projectGithubRepo" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
-          <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Company / context</span><input [(ngModel)]="projectForm.companyName" name="projectCompanyName" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
-          <label class="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm lg:col-span-2"><input [(ngModel)]="projectForm.isFeatured" name="projectFeatured" type="checkbox" class="h-4 w-4" /> Feature on home page</label>
-          <div class="space-y-3 lg:col-span-2 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
-            <div class="flex items-center justify-between gap-4"><div><p class="text-sm font-semibold">Project cover upload</p><p class="text-xs text-stone-500">Uploaded to {{ buildProjectFolder() }}</p></div></div>
-            <div class="grid gap-3 lg:grid-cols-2"><input [(ngModel)]="projectUploadForm.title" name="projectUploadTitle" placeholder="Media title" class="rounded-2xl border border-stone-300 px-4 py-3 text-sm" /><input [(ngModel)]="projectUploadForm.altText" name="projectUploadAltText" placeholder="Alt text" class="rounded-2xl border border-stone-300 px-4 py-3 text-sm" /><textarea [(ngModel)]="projectUploadForm.description" name="projectUploadDescription" rows="2" placeholder="Description" class="rounded-2xl border border-stone-300 px-4 py-3 text-sm lg:col-span-2"></textarea><input type="file" (change)="onScopedFileSelected($event, projectUploadForm)" class="rounded-2xl border border-stone-300 px-4 py-3 text-sm lg:col-span-2" /></div>
-            <button type="button" (click)="uploadProjectCover()" [disabled]="uploadInProgressKey === 'project-cover'" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Upload and select</button>
-          </div>
-          <div class="space-y-3 lg:col-span-2"><span class="text-sm font-semibold">Cover image media</span><select [(ngModel)]="projectForm.coverImageFileId" name="projectCoverImageFileId" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"><option [ngValue]="null">No cover image selected</option><option *ngFor="let media of referenceData.mediaFiles" [ngValue]="media.id">{{ media.title || media.originalFilename }} · {{ media.objectKey }}</option></select></div>
-          <div class="space-y-3 lg:col-span-2"><span class="text-sm font-semibold">Attached skills</span><div class="grid gap-2 md:grid-cols-2 xl:grid-cols-3"><label *ngFor="let skill of referenceData.skills" class="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm"><input type="checkbox" [checked]="projectForm.skillIds.includes(skill.id)" (change)="toggleProjectSkill(skill.id)" class="h-4 w-4" />{{ skill.name }}</label></div></div>
-        </div>
-        <div class="mt-6 flex justify-end gap-3"><button type="button" (click)="startNewProject()" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold">Reset</button><button type="button" (click)="saveProject()" class="rounded-full bg-stone-900 px-5 py-2 text-sm font-semibold text-white">Save project</button></div>
-      </article>
-    </section>
+<section class="grid gap-6 xl:grid-cols-[22rem_minmax(0,1fr)] 2xl:grid-cols-[24rem_minmax(0,1fr)] items-start">
+  <aside class="rounded-[2rem] border border-stone-300 bg-white p-5 shadow-[0_20px_45px_rgba(40,31,20,0.08)] xl:sticky xl:top-6">
+    <div class="flex items-center justify-between gap-4">
+      <h2 class="text-lg font-semibold text-stone-950">Projects</h2>
+      <button type="button" (click)="startNewProject()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">New</button>
+    </div>
+    <div class="mt-5 grid gap-3 min-h-[18rem] max-h-[calc(100vh-17rem)] overflow-y-auto pr-1">
+      <button *ngFor="let project of projects" type="button" (click)="selectProject(project.id)" [ngClass]="project.id === selectedProjectId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-[1.5rem] border p-4 text-left transition">
+        <p class="text-sm font-semibold text-stone-950">{{ project.title }}</p>
+        <p class="mt-1 text-xs text-stone-500">{{ project.titleNl || 'No Dutch title yet' }}</p>
+        <p class="mt-2 text-sm text-stone-600">{{ project.state }} · {{ project.status }}</p>
+        <p class="mt-2 text-xs text-stone-500">{{ project.slug }}</p>
+      </button>
+    </div>
+  </aside>
 
+  <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] lg:p-7 2xl:p-8">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h2 class="text-xl font-semibold text-stone-950">{{ selectedProjectId ? 'Edit project' : 'Create project' }}</h2>
+        <p class="mt-1 text-sm text-stone-600">English copy is required. Dutch copy is optional and falls back to English publicly until you add it.</p>
+      </div>
+      <button *ngIf="selectedProjectId" type="button" (click)="deleteProject()" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700">Delete</button>
+    </div>
+
+    <div class="mt-6 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4 sm:p-5">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p class="text-sm font-semibold text-stone-950">Localized project copy</p>
+          <p class="mt-1 text-xs leading-5 text-stone-500">Switch between English and Dutch for titles, summaries, descriptions, and public status labels.</p>
+        </div>
+        <div class="inline-flex rounded-full border border-stone-300 bg-white p-1">
+          <button type="button" (click)="setContentLocale('en')" [ngClass]="contentLocale === 'en' ? 'bg-stone-900 text-white' : 'text-stone-700'" class="rounded-full px-4 py-2 text-sm font-semibold">English · required</button>
+          <button type="button" (click)="setContentLocale('nl')" [ngClass]="contentLocale === 'nl' ? 'bg-stone-900 text-white' : 'text-stone-700'" class="rounded-full px-4 py-2 text-sm font-semibold">Dutch · optional</button>
+        </div>
+      </div>
+
+      <div *ngIf="contentLocale === 'en'" class="mt-5 grid gap-4 lg:grid-cols-2">
+        <label class="space-y-2"><span class="text-sm font-semibold">Title</span><input [(ngModel)]="projectForm.title" name="projectTitleEn" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
+        <label class="space-y-2"><span class="text-sm font-semibold">Slug</span><input [(ngModel)]="projectForm.slug" name="projectSlug" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
+        <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Teaser</span><textarea [(ngModel)]="projectForm.teaser" name="projectTeaserEn" rows="3" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea></label>
+        <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Summary</span><textarea [(ngModel)]="projectForm.summary" name="projectSummaryEn" rows="3" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea></label>
+        <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Description markdown</span><textarea [(ngModel)]="projectForm.descriptionMarkdown" name="projectDescriptionMarkdownEn" rows="8" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm font-mono"></textarea></label>
+        <label class="space-y-2"><span class="text-sm font-semibold">Duration label</span><input [(ngModel)]="projectForm.durationLabel" name="projectDurationLabelEn" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
+        <label class="space-y-2"><span class="text-sm font-semibold">Public status label</span><input [(ngModel)]="projectForm.status" name="projectStatusEn" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
+      </div>
+
+      <div *ngIf="contentLocale === 'nl'" class="mt-5 grid gap-4 lg:grid-cols-2">
+        <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Title (Dutch)</span><input [(ngModel)]="projectForm.titleNl" name="projectTitleNl" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
+        <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Teaser (Dutch)</span><textarea [(ngModel)]="projectForm.teaserNl" name="projectTeaserNl" rows="3" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea></label>
+        <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Summary (Dutch)</span><textarea [(ngModel)]="projectForm.summaryNl" name="projectSummaryNl" rows="3" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea></label>
+        <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Description markdown (Dutch)</span><textarea [(ngModel)]="projectForm.descriptionMarkdownNl" name="projectDescriptionMarkdownNl" rows="8" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm font-mono"></textarea></label>
+        <label class="space-y-2"><span class="text-sm font-semibold">Duration label (Dutch)</span><input [(ngModel)]="projectForm.durationLabelNl" name="projectDurationLabelNl" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
+        <label class="space-y-2"><span class="text-sm font-semibold">Public status label (Dutch)</span><input [(ngModel)]="projectForm.statusNl" name="projectStatusNl" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /></label>
+      </div>
+    </div>
+
+    <div class="mt-6 grid gap-4 lg:grid-cols-2">
+      <label class="space-y-2"><span class="text-sm font-semibold">State</span><select [(ngModel)]="projectForm.state" name="projectState" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"><option *ngFor="let state of referenceData.projectStates" [ngValue]="state">{{ state }}</option></select></label>
+      <label class="space-y-2"><span class="text-sm font-semibold">Published at</span><input [(ngModel)]="projectForm.publishedAt" name="projectPublishedAt" type="datetime-local" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+      <label class="space-y-2"><span class="text-sm font-semibold">Start date</span><input [(ngModel)]="projectForm.startedOn" name="projectStartedOn" type="date" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+      <label class="space-y-2"><span class="text-sm font-semibold">End date</span><input [(ngModel)]="projectForm.endedOn" name="projectEndedOn" type="date" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+      <label class="space-y-2"><span class="text-sm font-semibold">GitHub URL</span><input [(ngModel)]="projectForm.githubUrl" name="projectGithubUrl" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+      <label class="space-y-2"><span class="text-sm font-semibold">Demo URL</span><input [(ngModel)]="projectForm.demoUrl" name="projectDemoUrl" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+      <label class="space-y-2"><span class="text-sm font-semibold">GitHub owner</span><input [(ngModel)]="projectForm.githubRepoOwner" name="projectGithubOwner" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+      <label class="space-y-2"><span class="text-sm font-semibold">GitHub repo</span><input [(ngModel)]="projectForm.githubRepoName" name="projectGithubRepo" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+      <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Company / context</span><input [(ngModel)]="projectForm.companyName" name="projectCompanyName" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+      <label class="space-y-2"><span class="text-sm font-semibold">Sort order</span><input [(ngModel)]="projectForm.sortOrder" name="projectSortOrder" type="number" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+      <label class="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm"><input [(ngModel)]="projectForm.isFeatured" name="projectFeatured" type="checkbox" class="h-4 w-4" /> Feature on home page</label>
+
+      <div class="space-y-3 lg:col-span-2 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
+        <div><p class="text-sm font-semibold">Project cover upload</p><p class="text-xs text-stone-500">Uploaded to {{ buildProjectFolder() }}</p></div>
+        <div class="grid gap-3 lg:grid-cols-2"><input [(ngModel)]="projectUploadForm.title" name="projectUploadTitle" placeholder="Media title" class="rounded-2xl border border-stone-300 px-4 py-3 text-sm" /><input [(ngModel)]="projectUploadForm.altText" name="projectUploadAltText" placeholder="Alt text" class="rounded-2xl border border-stone-300 px-4 py-3 text-sm" /><textarea [(ngModel)]="projectUploadForm.description" name="projectUploadDescription" rows="2" placeholder="Description" class="rounded-2xl border border-stone-300 px-4 py-3 text-sm lg:col-span-2"></textarea><input type="file" (change)="onScopedFileSelected($event, projectUploadForm)" class="rounded-2xl border border-stone-300 px-4 py-3 text-sm lg:col-span-2" /></div>
+        <button type="button" (click)="uploadProjectCover()" [disabled]="uploadInProgressKey === 'project-cover'" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Upload and select</button>
+      </div>
+
+      <div class="space-y-3 lg:col-span-2"><span class="text-sm font-semibold">Cover image media</span><select [(ngModel)]="projectForm.coverImageFileId" name="projectCoverImageFileId" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"><option [ngValue]="null">No cover image selected</option><option *ngFor="let media of referenceData.mediaFiles" [ngValue]="media.id">{{ media.title || media.originalFilename }} · {{ media.objectKey }}</option></select></div>
+
+      <div class="space-y-3 lg:col-span-2"><span class="text-sm font-semibold">Assigned skills</span><div class="grid gap-2 md:grid-cols-2 xl:grid-cols-3"><label *ngFor="let skill of referenceData.skills" class="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm"><input type="checkbox" [checked]="projectForm.skillIds.includes(skill.id)" (change)="toggleProjectSkill(skill.id)" class="h-4 w-4" />{{ skill.name }}</label></div></div>
+    </div>
+
+    <div class="mt-6 flex justify-end gap-3"><button type="button" (click)="startNewProject()" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold">Reset</button><button type="button" (click)="saveProject()" class="rounded-full bg-stone-900 px-5 py-2 text-sm font-semibold text-white">Save project</button></div>
+  </article>
+</section>

@@ -37,15 +37,21 @@ class AdminBlogContentRepository:
         post = BlogPost(
             slug=self._ensure_unique_slug(BlogPost, slug_source),
             title=payload.title,
+            title_nl=self._normalize_optional_text(payload.title_nl),
             excerpt=payload.excerpt,
+            excerpt_nl=self._normalize_optional_text(payload.excerpt_nl),
             content_markdown=payload.content_markdown,
+            content_markdown_nl=self._normalize_optional_text(payload.content_markdown_nl),
             cover_image_file_id=self._optional_uuid(payload.cover_image_file_id),
             cover_image_alt=self._normalize_optional_text(payload.cover_image_alt),
+            cover_image_alt_nl=self._normalize_optional_text(payload.cover_image_alt_nl),
             reading_time_minutes=payload.reading_time_minutes,
             status=PublicationStatus(payload.status),
             is_featured=payload.is_featured,
             seo_title=self._normalize_optional_text(payload.seo_title),
+            seo_title_nl=self._normalize_optional_text(payload.seo_title_nl),
             seo_description=self._normalize_optional_text(payload.seo_description),
+            seo_description_nl=self._normalize_optional_text(payload.seo_description_nl),
             published_at=self._parse_datetime(payload.published_at),
         )
         self.session.add(post)
@@ -61,15 +67,21 @@ class AdminBlogContentRepository:
         slug_source = payload.slug or payload.title
         post.slug = self._ensure_unique_slug(BlogPost, slug_source, current_id=post_id)
         post.title = payload.title
+        post.title_nl = self._normalize_optional_text(payload.title_nl)
         post.excerpt = payload.excerpt
+        post.excerpt_nl = self._normalize_optional_text(payload.excerpt_nl)
         post.content_markdown = payload.content_markdown
+        post.content_markdown_nl = self._normalize_optional_text(payload.content_markdown_nl)
         post.cover_image_file_id = self._optional_uuid(payload.cover_image_file_id)
         post.cover_image_alt = self._normalize_optional_text(payload.cover_image_alt)
+        post.cover_image_alt_nl = self._normalize_optional_text(payload.cover_image_alt_nl)
         post.reading_time_minutes = payload.reading_time_minutes
         post.status = PublicationStatus(payload.status)
         post.is_featured = payload.is_featured
         post.seo_title = self._normalize_optional_text(payload.seo_title)
+        post.seo_title_nl = self._normalize_optional_text(payload.seo_title_nl)
         post.seo_description = self._normalize_optional_text(payload.seo_description)
+        post.seo_description_nl = self._normalize_optional_text(payload.seo_description_nl)
         post.published_at = self._parse_datetime(payload.published_at)
         self._replace_blog_post_tags(post, payload.tag_ids)
         self.session.commit()

@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { AdminReferenceData } from '@domains/admin/model/admin.model';
 import { AdminBlogTagForm, AdminSkillCategoryForm, AdminSkillForm } from '@domains/admin/model/forms/index';
 import { categoryName } from '@domains/admin/shell/state/admin-page.display.utils';
+
+type ContentLocale = 'en' | 'nl';
 
 @Component({
   selector: 'app-admin-taxonomy-tab',
@@ -12,7 +14,12 @@ import { categoryName } from '@domains/admin/shell/state/admin-page.display.util
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-taxonomy-tab.component.html'
 })
-export class AdminTaxonomyTabComponent {
+export class AdminTaxonomyTabComponent implements OnChanges {
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['selectedSkillCategoryId']) {
+      this.contentLocale = 'en';
+    }
+  }
   @Input({ required: true }) referenceData!: AdminReferenceData;
   @Input() selectedSkillCategoryId: string | null = null;
   @Input() selectedSkillId: string | null = null;
@@ -34,8 +41,14 @@ export class AdminTaxonomyTabComponent {
   @Output() readonly blogTagSaved = new EventEmitter<void>();
   @Output() readonly blogTagDeleted = new EventEmitter<void>();
 
+  protected contentLocale: ContentLocale = 'en';
+
   get highlightedSkillCount(): number {
     return this.referenceData.skills.filter((skill) => skill.isHighlighted).length;
+  }
+
+  protected setContentLocale(locale: ContentLocale): void {
+    this.contentLocale = locale;
   }
 
   categoryName(categoryId: string): string {

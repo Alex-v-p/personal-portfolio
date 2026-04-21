@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { AdminExperience, AdminMediaFile, AdminSkillOption } from '@domains/admin/model/admin.model';
 import { AdminExperienceForm, ScopedUploadForm } from '@domains/admin/model/forms/index';
 import { slugify } from '@domains/admin/shell/state/admin-page.utils';
+
+type ContentLocale = 'en' | 'nl';
 
 @Component({
   selector: 'app-admin-experience-tab',
@@ -12,7 +14,12 @@ import { slugify } from '@domains/admin/shell/state/admin-page.utils';
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-experience-tab.component.html'
 })
-export class AdminExperienceTabComponent {
+export class AdminExperienceTabComponent implements OnChanges {
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['selectedExperienceId']) {
+      this.contentLocale = 'en';
+    }
+  }
   @Input({ required: true }) experiences: AdminExperience[] = [];
   @Input() selectedExperienceId: string | null = null;
   @Input({ required: true }) experienceForm!: AdminExperienceForm;
@@ -28,6 +35,12 @@ export class AdminExperienceTabComponent {
   @Output() readonly experienceDeleted = new EventEmitter<void>();
   @Output() readonly scopedFileSelected = new EventEmitter<{ event: Event; form: ScopedUploadForm }>();
   @Output() readonly experienceLogoUploadRequested = new EventEmitter<void>();
+
+  protected contentLocale: ContentLocale = 'en';
+
+  protected setContentLocale(locale: ContentLocale): void {
+    this.contentLocale = locale;
+  }
 
   selectExperience(experienceId: string): void {
     this.experienceSelected.emit(experienceId);

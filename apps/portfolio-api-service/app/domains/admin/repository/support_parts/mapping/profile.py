@@ -11,8 +11,11 @@ class AdminRepositoryProfileMappingMixin:
             first_name=profile.first_name,
             last_name=profile.last_name,
             headline=profile.headline,
+            headline_nl=profile.headline_nl,
             short_intro=profile.short_intro,
+            short_intro_nl=profile.short_intro_nl,
             long_bio=profile.long_bio,
+            long_bio_nl=profile.long_bio_nl,
             location=profile.location,
             email=profile.email,
             phone=profile.phone,
@@ -23,8 +26,10 @@ class AdminRepositoryProfileMappingMixin:
             hero_image=self._map_media(profile.hero_image_file, alt=f'{profile.first_name} {profile.last_name} hero image'),
             resume=self._map_media(profile.resume_file, alt=f'{profile.first_name} {profile.last_name} resume'),
             cta_primary_label=profile.cta_primary_label,
+            cta_primary_label_nl=profile.cta_primary_label_nl,
             cta_primary_url=profile.cta_primary_url,
             cta_secondary_label=profile.cta_secondary_label,
+            cta_secondary_label_nl=profile.cta_secondary_label_nl,
             cta_secondary_url=profile.cta_secondary_url,
             is_public=profile.is_public,
             social_links=[
@@ -47,7 +52,9 @@ class AdminRepositoryProfileMappingMixin:
         return AdminSkillCategoryOut(
             id=str(category.id),
             name=category.name,
+            name_nl=category.name_nl,
             description=category.description,
+            description_nl=category.description_nl,
             sort_order=category.sort_order,
         )
 

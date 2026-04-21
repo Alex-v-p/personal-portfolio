@@ -6,6 +6,8 @@ import { AdminMediaFile } from '@domains/admin/model/admin.model';
 import { AdminProfileForm, ScopedUploadForm } from '@domains/admin/model/forms/index';
 import { buildProfileMediaFolder } from '@domains/admin/media/state/admin-media.filters';
 
+type ContentLocale = 'en' | 'nl';
+
 @Component({
   selector: 'app-admin-profile-tab',
   standalone: true,
@@ -27,6 +29,12 @@ export class AdminProfileTabComponent {
   @Output() readonly profileAvatarUploadRequested = new EventEmitter<void>();
   @Output() readonly profileHeroUploadRequested = new EventEmitter<void>();
   @Output() readonly profileResumeUploadRequested = new EventEmitter<void>();
+
+  protected contentLocale: ContentLocale = 'en';
+
+  protected setContentLocale(locale: ContentLocale): void {
+    this.contentLocale = locale;
+  }
 
   addSocialLink(): void {
     this.socialLinkAdded.emit();

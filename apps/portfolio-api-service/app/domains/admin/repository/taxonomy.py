@@ -22,7 +22,13 @@ class AdminTaxonomyRepository(AdminRepositorySupport):
         return [self._map_skill_category(category) for category in categories]
 
     def create_skill_category(self, payload: AdminSkillCategoryUpsertIn) -> AdminSkillCategoryOut:
-        category = SkillCategory(name=payload.name.strip(), description=self._normalize_optional_text(payload.description), sort_order=payload.sort_order)
+        category = SkillCategory(
+            name=payload.name.strip(),
+            name_nl=self._normalize_optional_text(payload.name_nl),
+            description=self._normalize_optional_text(payload.description),
+            description_nl=self._normalize_optional_text(payload.description_nl),
+            sort_order=payload.sort_order,
+        )
         self.session.add(category)
         self.session.commit()
         self.session.refresh(category)
@@ -33,7 +39,9 @@ class AdminTaxonomyRepository(AdminRepositorySupport):
         if category is None:
             return None
         category.name = payload.name.strip()
+        category.name_nl = self._normalize_optional_text(payload.name_nl)
         category.description = self._normalize_optional_text(payload.description)
+        category.description_nl = self._normalize_optional_text(payload.description_nl)
         category.sort_order = payload.sort_order
         self.session.commit()
         self.session.refresh(category)

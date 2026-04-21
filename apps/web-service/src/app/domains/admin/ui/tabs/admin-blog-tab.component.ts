@@ -18,6 +18,8 @@ import { AdminBlogPostForm, ScopedUploadForm } from '@domains/admin/model/forms/
 import { formatTagSummary, isImageMedia } from '@domains/admin/shell/state/admin-page.display.utils';
 import { matchesSearch, slugify, toggleSelection } from '@domains/admin/shell/state/admin-page.utils';
 
+type ContentLocale = 'en' | 'nl';
+
 @Component({
   selector: 'app-admin-blog-tab',
   standalone: true,
@@ -47,23 +49,41 @@ export class AdminBlogTabComponent implements OnChanges {
   @Output() readonly statusMessageSet = new EventEmitter<string>();
 
   protected blogMediaSearchTerm = '';
+  protected contentLocale: ContentLocale = 'en';
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['selectedBlogPostId']) {
       this.blogMediaSearchTerm = '';
+      this.contentLocale = 'en';
     }
   }
 
+  protected setContentLocale(locale: ContentLocale): void {
+    this.contentLocale = locale;
+  }
+
+  protected get activeBlogMarkdown(): string {
+    return this.contentLocale === 'nl' ? this.blogPostForm.contentMarkdownNl : this.blogPostForm.contentMarkdown;
+  }
+
+  protected set activeBlogMarkdown(value: string) {
+    if (this.contentLocale === 'nl') {
+      this.blogPostForm.contentMarkdownNl = value;
+      return;
+    }
+    this.blogPostForm.contentMarkdown = value;
+  }
+
   protected get renderedBlogContentPreview(): string {
-    return renderMarkdownToHtml(this.blogPostForm.contentMarkdown || '');
+    return renderMarkdownToHtml(this.activeBlogMarkdown || '');
   }
 
   protected get blogMarkdownWordCount(): number {
-    return countMarkdownWords(this.blogPostForm.contentMarkdown);
+    return countMarkdownWords(this.activeBlogMarkdown || '');
   }
 
   protected get suggestedBlogReadingTimeMinutes(): number {
-    return suggestReadingTimeMinutes(this.blogPostForm.contentMarkdown);
+    return suggestReadingTimeMinutes(this.activeBlogMarkdown || '');
   }
 
   protected get filteredBlogImageMediaFiles(): AdminMediaFile[] {
@@ -150,7 +170,7 @@ export class AdminBlogTabComponent implements OnChanges {
 
     const markdown = this.buildBlogImageMarkdown(media, url);
     this.updateBlogMarkdownSelection((content, selection) => insertSnippet(content, selection, `\n${markdown}\n`));
-    this.statusMessageSet.emit('Image markdown inserted into the blog post.');
+    this.statusMessageSet.emit('Image markdown inserted into the active language article body.');
   }
 
   protected insertBlogImageFromMedia(media: AdminMediaFile): void {
@@ -161,14 +181,14 @@ export class AdminBlogTabComponent implements OnChanges {
     updater: (content: string, selection: { start: number; end: number }) => TextSelectionUpdate,
   ): void {
     const textarea = this.blogMarkdownEditor?.nativeElement;
-    const content = this.blogPostForm.contentMarkdown || '';
+    const content = this.activeBlogMarkdown || '';
     const selection = {
       start: textarea?.selectionStart ?? content.length,
       end: textarea?.selectionEnd ?? content.length,
     };
     const nextState = updater(content, selection);
 
-    this.blogPostForm.contentMarkdown = nextState.value;
+    this.activeBlogMarkdown = nextState.value;
     this.changeDetectorRef.detectChanges();
 
     if (!textarea) {
