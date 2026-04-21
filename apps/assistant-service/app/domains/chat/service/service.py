@@ -11,10 +11,10 @@ from sqlalchemy.orm import Session, selectinload
 from app.core.config import get_settings
 from app.db.models import AssistantConversation, AssistantMessage, AssistantRole
 from app.domains.chat.service.events import record_assistant_site_event
-from app.domains.chat.service.formatting import build_citations, build_context_blocks, build_fallback_answer, serialize_recent_history
+from app.domains.chat.service.formatting import build_citations, build_context_blocks, build_fallback_answer, resolve_response_locale, serialize_recent_history
 from app.domains.providers.client import ProviderClient
-from app.services.rate_limit import provider_budget_guard
 from app.domains.retrieval.service.service import KnowledgeRetrievalService
+from app.services.rate_limit import provider_budget_guard
 
 logger = logging.getLogger(__name__)
 
@@ -41,60 +41,65 @@ class ChatService:
         site_session_id: str | None = None,
         visitor_id: str | None = None,
         page_path: str | None = None,
+        locale: str | None = None,
         request: Request | None = None,
     ) -> dict:
         conversation = self._get_or_create_conversation(conversation_id=conversation_id, session_id=session_id)
+        response_locale = resolve_response_locale(locale=locale, page_path=page_path)
         history = serialize_recent_history(conversation, max_history_messages=self.settings.max_history_messages)
-        retrieved = self.retrieval.search(message, page_path=page_path)
-        citations = build_citations(retrieved)
-        context_blocks = build_context_blocks(retrieved)
+        retrieved = self.retrieval.search(message, page_path=page_path, locale=response_locale)
+        citations = build_citations(retrieved, locale=response_locale)
+        context_blocks = build_context_blocks(retrieved, locale=response_locale)
 
         generated = None
         budget_scope = 'global'
-        if provider_budget_guard.consume_generation_budget(
-            scope=budget_scope,
-            daily_limit=self.settings.provider_daily_generation_cap,
-        ):
+        if provider_budget_guard.consume_generation_budget(scope=budget_scope, daily_limit=self.settings.provider_daily_generation_cap):
             try:
                 generated = self.provider.generate_answer(
                     question=message,
                     context_blocks=context_blocks,
                     history=history,
                     page_path=page_path,
+                    locale=response_locale,
                 )
             except Exception as exc:
                 logger.exception(
-                    'Assistant text generation failed using backend=%s model=%s: %s',
+                    'Assistant text generation failed using backend=%s model=%s locale=%s page_path=%s: %s',
                     self.settings.provider_backend,
                     self.settings.provider_model,
+                    response_locale,
+                    page_path,
                     exc,
                 )
                 generated = None
         else:
             logger.warning(
-                'Assistant provider daily generation cap reached. backend=%s model=%s',
+                'Assistant provider daily generation cap reached. backend=%s model=%s locale=%s',
                 self.settings.provider_backend,
                 self.settings.provider_model,
+                response_locale,
             )
 
         if generated:
             logger.info(
-                'Assistant response generated with backend=%s model=%s page_path=%s citations=%s',
+                'Assistant response generated with backend=%s model=%s locale=%s page_path=%s citations=%s',
                 self.settings.provider_backend,
                 self.settings.provider_model,
+                response_locale,
                 page_path,
                 len(citations),
             )
         else:
             logger.warning(
-                'Assistant fell back to retrieval-only answer. backend=%s model=%s page_path=%s citations=%s',
+                'Assistant fell back to retrieval-only answer. backend=%s model=%s locale=%s page_path=%s citations=%s',
                 self.settings.provider_backend,
                 self.settings.provider_model,
+                response_locale,
                 page_path,
                 len(citations),
             )
 
-        answer = generated or build_fallback_answer(citations=citations)
+        answer = generated or build_fallback_answer(citations=citations, locale=response_locale)
 
         now = datetime.now(timezone.utc)
         conversation.last_message_at = now
@@ -154,9 +159,7 @@ class ChatService:
                 conversation = self.session.get(AssistantConversation, conversation_uuid)
 
         if conversation is None and session_id:
-            conversation = self.session.scalar(
-                select(AssistantConversation).where(AssistantConversation.session_id == session_id)
-            )
+            conversation = self.session.scalar(select(AssistantConversation).where(AssistantConversation.session_id == session_id))
 
         if conversation is None:
             conversation = AssistantConversation(session_id=(session_id or uuid4().hex))

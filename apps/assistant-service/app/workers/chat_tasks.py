@@ -22,11 +22,9 @@ def _process_chat_task(payload: dict[str, object]) -> dict[str, object]:
             site_session_id=str(payload.get('site_session_id') or '') or None,
             visitor_id=str(payload.get('visitor_id') or '') or None,
             page_path=str(payload.get('page_path') or '') or None,
+            locale=str(payload.get('locale') or '') or None,
             request=None,
         )
-        # Store worker results in Python-native snake_case inside Redis.
-        # The API layer can still serialize aliases for clients, and existing
-        # queued tasks with camelCase fields remain readable via validation_alias.
         return ChatResponse(**response).model_dump(mode='json')
 
 

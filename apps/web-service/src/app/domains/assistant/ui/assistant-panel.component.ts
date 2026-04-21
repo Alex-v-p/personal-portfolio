@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { AssistantApiService } from '@domains/assistant/data/assistant-api.service';
 import { AssistantAvailabilityState, AssistantChatState } from '@domains/assistant/model/assistant-chat.model';
+import { I18nService } from '@core/i18n/i18n.service';
 
 @Component({
   selector: 'app-assistant-panel',
@@ -16,6 +17,7 @@ export class AssistantPanelComponent {
   @Output() close = new EventEmitter<void>();
 
   private readonly assistant = inject(AssistantApiService);
+  private readonly i18n = inject(I18nService);
 
   protected readonly state$ = this.assistant.state$;
   protected readonly availability$ = this.assistant.availability$;
@@ -23,7 +25,7 @@ export class AssistantPanelComponent {
   protected readonly starterPrompts = [
     'What projects are in this portfolio?',
     'Which blog posts talk about AI or backend work?',
-    'What are Alex\'s specialities?',
+    "What are Alex's specialities?",
   ];
 
   protected sendMessage(): void {
@@ -94,6 +96,12 @@ export class AssistantPanelComponent {
     return 'ui-card-soft ui-text-muted';
   }
 
+  protected citationHref(href: string | null | undefined): string | null {
+    if (!href) {
+      return null;
+    }
+    return this.i18n.prefixPath(href);
+  }
 
   protected getComposerRows(): number {
     return this.mode === 'page' ? 3 : 2;

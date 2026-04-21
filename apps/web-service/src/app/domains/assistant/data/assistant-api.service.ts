@@ -1,6 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
+import { I18nService } from '@core/i18n/i18n.service';
 import { BehaviorSubject, Subscription, timer } from 'rxjs';
 import { switchMap, takeWhile } from 'rxjs/operators';
 
@@ -27,6 +28,7 @@ export class AssistantApiService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly assistantApiBaseUrl = resolveAssistantApiBaseUrl();
+  private readonly i18n = inject(I18nService);
   private readonly siteTracking = inject(SiteTrackingService);
   private readonly stateSubject = new BehaviorSubject<AssistantChatState>(this.restoreState());
   private readonly availabilitySubject = new BehaviorSubject<AssistantAvailabilityState>({
@@ -88,6 +90,7 @@ export class AssistantApiService {
       site_session_id: this.siteTracking.sessionId,
       visitor_id: this.siteTracking.visitorId,
       page_path: pagePath ?? this.router.url,
+      locale: this.i18n.currentLocale(),
     }).subscribe({
       next: (response) => {
         if (this.isTaskAccepted(response)) {

@@ -5,6 +5,7 @@ import logging
 import httpx
 
 from app.core.config import get_settings
+from app.services.localization import locale_language_name
 
 logger = logging.getLogger(__name__)
 
@@ -20,15 +21,16 @@ class ProviderClient:
         context_blocks: list[str],
         history: list[dict[str, str]],
         page_path: str | None = None,
+        locale: str = 'en',
     ) -> str | None:
         backend = self.settings.provider_backend.strip().lower()
         if backend == 'mock':
             logger.info('Assistant provider backend is mock; skipping text generation.')
             return None
         if backend == 'ollama':
-            return self._generate_with_ollama(question=question, context_blocks=context_blocks, history=history, page_path=page_path)
+            return self._generate_with_ollama(question=question, context_blocks=context_blocks, history=history, page_path=page_path, locale=locale)
         if backend in {'openai-compatible', 'openai_compatible', 'vllm'}:
-            return self._generate_with_openai_compatible(question=question, context_blocks=context_blocks, history=history, page_path=page_path)
+            return self._generate_with_openai_compatible(question=question, context_blocks=context_blocks, history=history, page_path=page_path, locale=locale)
         logger.warning('Unknown assistant provider backend: %s', backend)
         return None
 
@@ -39,8 +41,9 @@ class ProviderClient:
         context_blocks: list[str],
         history: list[dict[str, str]],
         page_path: str | None,
+        locale: str,
     ) -> str | None:
-        messages = self._build_messages(question=question, context_blocks=context_blocks, history=history, page_path=page_path)
+        messages = self._build_messages(question=question, context_blocks=context_blocks, history=history, page_path=page_path, locale=locale)
         payload = self._post_json_with_retries(
             f"{self.settings.provider_base_url.rstrip('/')}/api/chat",
             json={
@@ -62,11 +65,12 @@ class ProviderClient:
         context_blocks: list[str],
         history: list[dict[str, str]],
         page_path: str | None,
+        locale: str,
     ) -> str | None:
         headers = {'Content-Type': 'application/json'}
         if self.settings.provider_api_key.strip():
             headers['Authorization'] = f"Bearer {self.settings.provider_api_key.strip()}"
-        messages = self._build_messages(question=question, context_blocks=context_blocks, history=history, page_path=page_path)
+        messages = self._build_messages(question=question, context_blocks=context_blocks, history=history, page_path=page_path, locale=locale)
         payload = self._post_json_with_retries(
             f"{self.settings.provider_base_url.rstrip('/')}/v1/chat/completions",
             headers=headers,
@@ -89,9 +93,11 @@ class ProviderClient:
         context_blocks: list[str],
         history: list[dict[str, str]],
         page_path: str | None,
+        locale: str,
     ) -> list[dict[str, str]]:
         context = '\n\n'.join(context_blocks) if context_blocks else 'No indexed portfolio context was found.'
         current_page = page_path or 'unknown'
+        preferred_language = locale_language_name(locale)
         system_prompt = (
             'You are the assistant embedded on a developer portfolio website. '
             'You are helping a visitor evaluate the portfolio, usually someone like a recruiter, hiring manager, collaborator, or client. '
@@ -102,7 +108,8 @@ class ProviderClient:
             'For project questions, prioritize projects first and use profile or introduction details only as supporting background. '
             'For experience questions, prioritize experience entries. For blog questions, prioritize blog posts. '
             'Never dump raw retrieved chunks, never say "indexed matches", and never list irrelevant sections just because they were provided. '
-            'If the context is weak or does not support the answer, say so briefly and offer the closest helpful answer instead.'
+            'If the context is weak or does not support the answer, say so briefly and offer the closest helpful answer instead. '
+            f'Write the final answer in {preferred_language} unless the visitor clearly asks for a different language.'
         )
         messages: list[dict[str, str]] = [{'role': 'system', 'content': system_prompt}]
         for item in history[-6:]:
@@ -113,6 +120,7 @@ class ProviderClient:
                 'role': 'user',
                 'content': (
                     f'Current page: {current_page}\n\n'
+                    f'Preferred answer language: {preferred_language}\n\n'
                     'Retrieved portfolio context:\n'
                     f'{context}\n\n'
                     'Visitor question:\n'
@@ -123,7 +131,6 @@ class ProviderClient:
             }
         )
         return messages
-
 
     def check_health(self) -> tuple[bool, str]:
         backend = self.settings.provider_backend.strip().lower()

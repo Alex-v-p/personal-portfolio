@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.db.session import get_session
 from app.domains.chat.schema import ChatRequest, ChatResponse, ChatTaskAccepted, ChatTaskStatus
-from app.core.config import get_settings
 from app.domains.chat.service.service import ChatService
 from app.services.async_tasks import CHAT_RESPONSE_TASK, TaskQueueUnavailable, get_chat_task_queue
 from app.services.request_protection import derive_request_identifier, enforce_rate_limit_or_429, ensure_payload_size_within_limit
@@ -42,6 +42,7 @@ def respond(payload: ChatRequest, request: Request, session: Session = Depends(g
                     'site_session_id': payload.site_session_id,
                     'visitor_id': payload.visitor_id,
                     'page_path': payload.page_path,
+                    'locale': payload.locale,
                     'message': payload.message,
                 },
             )
@@ -61,6 +62,7 @@ def respond(payload: ChatRequest, request: Request, session: Session = Depends(g
         site_session_id=payload.site_session_id,
         visitor_id=payload.visitor_id,
         page_path=payload.page_path,
+        locale=payload.locale,
         request=request,
     )
     return ChatResponse(**result)

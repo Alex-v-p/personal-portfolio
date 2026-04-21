@@ -71,6 +71,7 @@ describe('AssistantApiService', () => {
       site_session_id: 'site-session-123',
       visitor_id: 'visitor-123',
       page_path: '/projects',
+      locale: 'en',
     });
 
     request.flush({

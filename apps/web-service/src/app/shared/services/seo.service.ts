@@ -42,8 +42,9 @@ export class SeoService {
     const absoluteUrl = this.resolveUrl(metadata.path ?? this.document.location.pathname);
     const imageUrl = metadata.image ? this.resolveUrl(metadata.image) : undefined;
     const robots = metadata.noIndex ? 'noindex,nofollow' : 'index,follow';
+    const currentLocale = this.i18n.currentLocale();
 
-    this.document.documentElement.lang = this.i18n.currentLocale();
+    this.document.documentElement.lang = currentLocale;
 
     this.title.setTitle(fullTitle);
     this.meta.updateTag({ name: 'description', content: description });
@@ -54,7 +55,8 @@ export class SeoService {
     this.meta.updateTag({ property: 'og:title', content: fullTitle });
     this.meta.updateTag({ property: 'og:description', content: description });
     this.meta.updateTag({ property: 'og:type', content: type });
-    this.meta.updateTag({ property: 'og:locale', content: this.i18n.currentLocale() === 'nl' ? 'nl_BE' : 'en_GB' });
+    this.meta.updateTag({ property: 'og:locale', content: currentLocale === 'nl' ? 'nl_BE' : 'en_GB' });
+    this.updateOgLocaleAlternateTags(currentLocale);
 
     if (absoluteUrl) {
       this.meta.updateTag({ property: 'og:url', content: absoluteUrl });
@@ -147,6 +149,21 @@ export class SeoService {
     }
 
     defaultLink.setAttribute('href', defaultHref);
+  }
+
+  private updateOgLocaleAlternateTags(currentLocale: 'en' | 'nl'): void {
+    const alternateLocales = SUPPORTED_LOCALES
+      .filter((locale) => locale !== currentLocale)
+      .map((locale) => (locale === 'nl' ? 'nl_BE' : 'en_GB'));
+    const existing = this.document.head.querySelectorAll("meta[property='og:locale:alternate']");
+    existing.forEach((tag) => tag.remove());
+
+    alternateLocales.forEach((localeValue) => {
+      const tag = this.document.createElement('meta');
+      tag.setAttribute('property', 'og:locale:alternate');
+      tag.setAttribute('content', localeValue);
+      this.document.head.appendChild(tag);
+    });
   }
 
   private removeAlternateLinks(): void {

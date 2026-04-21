@@ -10,6 +10,8 @@ class RetrievedChunk:
     canonical_url: str | None
     excerpt: str
     score: float
+    locale: str | None = None
+    source_key: str | None = None
 
 
 @dataclass(slots=True)
