@@ -12,6 +12,7 @@ import { UiCardComponent } from '@shared/components/card/ui-card.component';
 import { UiChipComponent } from '@shared/components/chip/ui-chip.component';
 import { UiEmptyStateComponent } from '@shared/components/empty-state/ui-empty-state.component';
 import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.component';
+import { UiIconComponent } from '@shared/icons';
 import { ContactMessageDraft } from '@domains/contact/model/contact-message.model';
 import { ContactMethod } from '@domains/profile/model/contact-method.model';
 import { Profile } from '@domains/profile/model/profile.model';
@@ -25,7 +26,7 @@ type SubmissionState = 'idle' | 'submitting' | 'success' | 'error';
 @Component({
   selector: 'app-contact-page',
   standalone: true,
-  imports: [NgFor, NgIf, ReactiveFormsModule, TranslatePipe, UiButtonComponent, UiCardComponent, UiChipComponent, UiEmptyStateComponent, UiSkeletonComponent],
+  imports: [NgFor, NgIf, ReactiveFormsModule, TranslatePipe, UiButtonComponent, UiCardComponent, UiChipComponent, UiEmptyStateComponent, UiSkeletonComponent, UiIconComponent],
   templateUrl: './contact.page.html'
 })
 export class ContactPageComponent implements OnInit {
@@ -148,18 +149,6 @@ export class ContactPageComponent implements OnInit {
 
   protected isExternalContactMethod(method: ContactMethod): boolean {
     return !(method.href.startsWith('mailto:') || method.href.startsWith('tel:'));
-  }
-
-  protected contactMethodMonogram(method: ContactMethod): string {
-    const lookup: Record<string, string> = {
-      email: 'EM',
-      phone: 'PH',
-      github: 'GH',
-      linkedin: 'LI',
-      location: 'LO',
-    };
-
-    return lookup[method.platform] ?? method.label.slice(0, 2).toUpperCase();
   }
 
   protected showError(controlName: 'name' | 'email' | 'subject' | 'message'): boolean {

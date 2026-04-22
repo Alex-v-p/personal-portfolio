@@ -15,12 +15,13 @@ import { AssistantApiService } from '@domains/assistant/data/assistant-api.servi
 import { SiteTrackingService } from '@domains/site-activity/data/site-tracking.service';
 import { createEmptyProfile } from '@domains/profile/lib/profile-view.util';
 import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.component';
+import { UiIconComponent } from '@shared/icons';
 import { SeoService } from '@shared/services/seo.service';
 
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [AsyncPipe, NgClass, NgFor, NgIf, RouterOutlet, RouterLink, RouterLinkActive, AssistantPanelComponent, UiSkeletonComponent, TranslatePipe],
+  imports: [AsyncPipe, NgClass, NgFor, NgIf, RouterOutlet, RouterLink, RouterLinkActive, AssistantPanelComponent, UiSkeletonComponent, TranslatePipe, UiIconComponent],
   templateUrl: './app-shell.component.html'
 })
 export class AppShellComponent implements OnInit {
@@ -148,14 +149,19 @@ export class AppShellComponent implements OnInit {
     return items;
   }
 
-  protected get socialLinks(): Array<{ label: string; href: string; mark: string }> {
+  protected get socialLinks(): Array<{ label: string; href: string; iconName: string; openInNewTab: boolean }> {
     return (this.profile.socialLinks ?? [])
       .filter((link) => ['email', 'github', 'linkedin'].includes(link.platform))
-      .map((link) => ({
-        label: link.label,
-        href: link.platform === 'email' ? `mailto:${this.profile.email}` : link.url,
-        mark: link.platform === 'email' ? 'EM' : link.platform === 'github' ? 'GH' : 'LI'
-      }));
+      .map((link) => {
+        const href = link.platform === 'email' ? `mailto:${this.profile.email}` : link.url;
+
+        return {
+          label: link.label,
+          href,
+          iconName: link.iconKey || link.platform,
+          openInNewTab: !href.startsWith('mailto:')
+        };
+      });
   }
 
   protected get primaryEmail(): string {

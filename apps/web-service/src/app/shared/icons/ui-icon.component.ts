@@ -34,19 +34,30 @@ export class UiIconComponent {
   }
 
   protected get pixelSize(): number {
-    if (typeof this.size === 'number' && Number.isFinite(this.size)) {
-      return Math.max(12, this.size);
+    const size = this.size;
+
+    if (typeof size === 'number' && Number.isFinite(size)) {
+      return Math.max(12, size);
     }
 
-    const lookup: Record<Exclude<IconSize, number>, number> = {
+    const lookup = {
       xs: 14,
       sm: 16,
       md: 20,
       lg: 24,
       xl: 32,
-    };
+    } as const;
 
-    return lookup[this.size];
+    switch (size) {
+      case 'xs':
+      case 'sm':
+      case 'md':
+      case 'lg':
+      case 'xl':
+        return lookup[size];
+      default:
+        return lookup.md;
+    }
   }
 
   protected get fallbackMark(): string {

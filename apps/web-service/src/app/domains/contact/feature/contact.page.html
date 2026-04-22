@@ -187,8 +187,8 @@
       >
         <div class="flex h-full flex-col gap-4">
           <div class="flex items-start gap-4">
-            <span class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--ui-accent-soft)] text-xs font-semibold tracking-[0.14em] text-[var(--ui-accent-strong)]">
-              {{ contactMethodMonogram(method) }}
+            <span class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--ui-accent-soft)] text-[var(--ui-accent-strong)]">
+              <app-ui-icon [name]="method.iconKey || method.platform" [fallbackText]="method.label" size="md"></app-ui-icon>
             </span>
 
             <div class="min-w-0 flex-1 space-y-1">
@@ -222,8 +222,8 @@
       >
         <div class="flex h-full flex-col gap-4">
           <div class="flex items-start gap-3">
-            <span class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--ui-accent-soft)] text-xs font-semibold tracking-[0.14em] text-[var(--ui-accent-strong)]">
-              {{ contactMethodMonogram(method) }}
+            <span class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--ui-accent-soft)] text-[var(--ui-accent-strong)]">
+              <app-ui-icon [name]="method.iconKey || method.platform" [fallbackText]="method.label" size="sm"></app-ui-icon>
             </span>
 
             <div class="min-w-0 flex-1 space-y-1">

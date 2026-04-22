@@ -6,12 +6,13 @@ import { UiCardComponent } from '@shared/components/card/ui-card.component';
 import { HighlightChipComponent } from '@shared/components/highlight-chip/highlight-chip.component';
 import { UiLinkButtonComponent } from '@shared/components/link-button/ui-link-button.component';
 import { UiSectionTitleComponent } from '@shared/components/section-title/ui-section-title.component';
+import { UiIconComponent } from '@shared/icons';
 import { ExpertiseGroup, ExpertiseSkill, Profile } from '@domains/profile/model/profile.model';
 
 @Component({
   selector: 'app-home-expertise-section',
   standalone: true,
-  imports: [NgFor, NgIf, TranslatePipe, UiCardComponent, HighlightChipComponent, UiLinkButtonComponent, UiSectionTitleComponent],
+  imports: [NgFor, NgIf, TranslatePipe, UiCardComponent, HighlightChipComponent, UiLinkButtonComponent, UiSectionTitleComponent, UiIconComponent],
   templateUrl: './home-expertise.component.html'
 })
 export class HomeExpertiseSectionComponent {
