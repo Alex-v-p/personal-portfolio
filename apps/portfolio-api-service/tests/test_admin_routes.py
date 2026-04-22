@@ -279,9 +279,17 @@ def test_admin_can_manage_taxonomy_experience_navigation_and_stats(client: TestC
     category_response = client.post(
         '/api/admin/skill-categories',
         headers=headers,
-        json={'name': 'Backend', 'nameNl': 'Backend', 'description': 'Backend skills', 'descriptionNl': 'Backendvaardigheden', 'sortOrder': 25},
+        json={
+            'name': 'Backend',
+            'nameNl': 'Backend',
+            'description': 'Backend skills',
+            'descriptionNl': 'Backendvaardigheden',
+            'iconKey': 'server',
+            'sortOrder': 25,
+        },
     )
     assert category_response.status_code == 201
+    assert category_response.json()['iconKey'] == 'server'
     category_id = category_response.json()['id']
 
     skill_response = client.post(

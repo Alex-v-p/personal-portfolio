@@ -55,6 +55,7 @@ class AdminRepositoryProfileMappingMixin:
             name_nl=category.name_nl,
             description=category.description,
             description_nl=category.description_nl,
+            icon_key=category.icon_key,
             sort_order=category.sort_order,
         )
 

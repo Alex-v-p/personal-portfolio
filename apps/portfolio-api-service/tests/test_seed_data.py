@@ -10,7 +10,7 @@ from app.core.config import get_settings
 from infra.postgres.bootstrap.bootstrap_core import initialize_database
 from infra.postgres.bootstrap.seed_content import BLOG_POST_ROWS, PROFILE_ROW, PROJECT_ROWS
 from infra.postgres.bootstrap.seed_ids import seed_uuid
-from app.db.models import BlogPost, BlogTag, MediaFile, Profile, Project, ProjectSkill, SocialLink, AdminUser
+from app.db.models import AdminUser, BlogPost, BlogTag, MediaFile, Profile, Project, ProjectSkill, SkillCategory, SocialLink
 from infra.postgres.bootstrap.seed_data import MEDIA_FILES
 from app.db.session import get_session_factory, reset_database_caches
 
@@ -63,6 +63,14 @@ def test_initialize_database_creates_and_seeds_expected_content(tmp_path: Path) 
         assert session.scalar(select(func.count()).select_from(SocialLink)) >= 2
         assert session.scalar(select(func.count()).select_from(ProjectSkill)) > 0
         assert session.scalar(select(func.count()).select_from(BlogTag)) > 0
+
+        categories = session.scalars(select(SkillCategory).order_by(SkillCategory.sort_order.asc(), SkillCategory.name.asc())).all()
+        assert categories
+        category_icons = {category.name: category.icon_key for category in categories}
+        assert category_icons['Front-End'] == 'code'
+        assert category_icons['Back-End'] == 'server'
+        assert category_icons['Infrastructure & Tools'] == 'database'
+        assert category_icons['Languages'] == 'languages'
 
         profile = session.scalar(select(Profile))
         project = session.scalar(select(Project).limit(1))

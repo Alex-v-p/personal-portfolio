@@ -11,6 +11,7 @@ class AdminSkillCategoryOut(ApiSchema):
     name_nl: str | None = None
     description: str | None = None
     description_nl: str | None = None
+    icon_key: str | None = None
     sort_order: int
 
 
@@ -19,6 +20,7 @@ class AdminSkillCategoryUpsertIn(ApiSchema):
     name_nl: str | None = Field(default=None, max_length=120)
     description: str | None = None
     description_nl: str | None = None
+    icon_key: str | None = Field(default=None, max_length=80)
     sort_order: int = 0
 
 
