@@ -13,6 +13,10 @@ EXPECTED_PROFILE_KEYS = {
     'ctaPrimaryUrl', 'ctaSecondaryLabel', 'ctaSecondaryUrl', 'isPublic', 'socialLinks', 'footerDescription',
     'introParagraphs', 'availability', 'skills', 'expertiseGroups', 'createdAt', 'updatedAt'
 }
+EXPECTED_SOCIAL_LINK_KEYS = {'id', 'profileId', 'platform', 'label', 'url', 'iconKey', 'sortOrder', 'isVisible'}
+EXPECTED_EXPERTISE_GROUP_KEYS = {'title', 'iconKey', 'tags', 'skills'}
+EXPECTED_EXPERTISE_SKILL_KEYS = {'name', 'yearsOfExperience', 'iconKey'}
+EXPECTED_CONTACT_METHOD_KEYS = {'id', 'platform', 'label', 'value', 'href', 'actionLabel', 'iconKey', 'sortOrder', 'isVisible'}
 EXPECTED_PROJECT_SUMMARY_KEYS = {
     'id', 'slug', 'title', 'teaser', 'summary', 'coverImageFileId', 'coverImage',
     'githubUrl', 'githubRepoOwner', 'githubRepoName', 'demoUrl', 'companyName', 'startedOn', 'endedOn',
@@ -51,7 +55,10 @@ def test_site_shell_contract_matches_frontend_expectations(client: TestClient) -
     assert body['navigation']['items']
     assert EXPECTED_NAVIGATION_ITEM_KEYS <= set(body['navigation']['items'][0])
     assert EXPECTED_PROFILE_KEYS <= set(body['profile'])
-    assert {'platform', 'label', 'value', 'href', 'actionLabel', 'sortOrder', 'isVisible'} <= set(body['contactMethods'][0])
+    assert EXPECTED_SOCIAL_LINK_KEYS <= set(body['profile']['socialLinks'][0])
+    assert EXPECTED_EXPERTISE_GROUP_KEYS <= set(body['profile']['expertiseGroups'][0])
+    assert EXPECTED_EXPERTISE_SKILL_KEYS <= set(body['profile']['expertiseGroups'][0]['skills'][0])
+    assert EXPECTED_CONTACT_METHOD_KEYS <= set(body['contactMethods'][0])
 
 
 def test_home_contract_matches_frontend_expectations(client: TestClient) -> None:
@@ -61,6 +68,9 @@ def test_home_contract_matches_frontend_expectations(client: TestClient) -> None
 
     assert {'hero', 'featuredProjects', 'featuredBlogPosts', 'expertiseGroups', 'experiencePreview', 'contactPreview'} <= set(body)
     assert EXPECTED_PROFILE_KEYS <= set(body['hero'])
+    assert EXPECTED_EXPERTISE_GROUP_KEYS <= set(body['expertiseGroups'][0])
+    assert EXPECTED_EXPERTISE_SKILL_KEYS <= set(body['expertiseGroups'][0]['skills'][0])
+    assert EXPECTED_CONTACT_METHOD_KEYS <= set(body['contactPreview'][0])
     assert body['featuredProjects']
     assert EXPECTED_PROJECT_SUMMARY_KEYS <= set(body['featuredProjects'][0])
     assert 'descriptionMarkdown' not in body['featuredProjects'][0]
@@ -76,7 +86,7 @@ def test_project_detail_contract_matches_frontend_expectations(client: TestClien
 
     assert EXPECTED_PROJECT_DETAIL_KEYS <= set(body)
     assert {'id', 'url', 'alt', 'fileName', 'mimeType', 'width', 'height'} <= set(body['coverImage'])
-    assert {'id', 'name', 'sortOrder', 'isHighlighted'} <= set(body['skills'][0])
+    assert {'id', 'name', 'iconKey', 'sortOrder', 'isHighlighted'} <= set(body['skills'][0])
 
 
 def test_blog_post_detail_contract_matches_frontend_expectations(client: TestClient) -> None:

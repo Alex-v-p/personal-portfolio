@@ -79,6 +79,7 @@ class PublicProfileRepositoryMixin:
             groups.append(
                 ExpertiseGroupOut(
                     title=self._localized(category, 'name') or category.name,
+                    icon_key=category.icon_key,
                     tags=[
                         f'{skill.name} - {self._localized_years_label(skill.years_of_experience)}'
                         if skill.years_of_experience is not None
@@ -89,6 +90,7 @@ class PublicProfileRepositoryMixin:
                         {
                             'name': skill.name,
                             'years_of_experience': skill.years_of_experience,
+                            'icon_key': skill.icon_key,
                         }
                         for skill in ordered_skills
                     ],

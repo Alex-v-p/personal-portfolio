@@ -43,7 +43,10 @@ def test_get_profile_returns_media_and_derived_fields(client: TestClient) -> Non
     assert body['resume']['mimeType'] == 'application/pdf'
     assert body['skills']
     assert body['expertiseGroups']
+    assert body['expertiseGroups'][0]['iconKey']
+    assert 'iconKey' in body['expertiseGroups'][0]['skills'][0]
     assert body['socialLinks'][0]['platform'] == 'github'
+    assert 'iconKey' in body['socialLinks'][0]
 
 
 def test_get_navigation_returns_visible_items(client: TestClient) -> None:
@@ -61,6 +64,7 @@ def test_get_site_shell_returns_navigation_profile_and_contact_methods(client: T
     assert body['navigation']['items']
     assert body['profile']['firstName'] == PROFILE_ROW['first_name']
     assert body['contactMethods']
+    assert body['contactMethods'][0]['iconKey']
     assert body['footerText']
 
 
@@ -74,7 +78,10 @@ def test_get_home_returns_composed_public_sections(client: TestClient) -> None:
     assert body['featuredBlogPosts']
     assert 'contentMarkdown' not in body['featuredBlogPosts'][0]
     assert body['experiencePreview']
+    assert body['expertiseGroups'][0]['iconKey']
+    assert 'iconKey' in body['expertiseGroups'][0]['skills'][0]
     assert body['contactPreview']
+    assert body['contactPreview'][0]['iconKey']
 
 
 def test_list_projects_returns_project_summaries_with_embedded_media(client: TestClient) -> None:

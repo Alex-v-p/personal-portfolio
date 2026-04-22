@@ -62,6 +62,7 @@ export function normalizeExpertiseSkill(skill: ExpertiseSkillApi | null | undefi
   return {
     name: skill.name,
     yearsOfExperience: skill.yearsOfExperience ?? null,
+    iconKey: skill.iconKey ?? undefined,
   };
 }
 
@@ -83,6 +84,7 @@ export function normalizeExpertiseGroups(items: ExpertiseGroupApi[] | null | und
 
     return {
       title: group.title,
+      iconKey: group.iconKey ?? undefined,
       tags: Array.isArray(group.tags) ? group.tags : [],
       skills: fallbackSkills,
     };
@@ -162,12 +164,13 @@ function parseExpertiseSkillFromTag(tag: string): ExpertiseSkill {
   const match = trimmedTag.match(/^(.*?)\s*[-·]\s*(\d+)y$/i);
 
   if (!match) {
-    return { name: trimmedTag, yearsOfExperience: null };
+    return { name: trimmedTag, yearsOfExperience: null, iconKey: undefined };
   }
 
   return {
     name: match[1].trim(),
     yearsOfExperience: Number.parseInt(match[2], 10) || null,
+    iconKey: undefined,
   };
 }
 

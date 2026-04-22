@@ -33,10 +33,12 @@ class NavigationListOut(ApiSchema):
 class ExpertiseSkillOut(ApiSchema):
     name: str
     years_of_experience: int | None = None
+    icon_key: str | None = None
 
 
 class ExpertiseGroupOut(ApiSchema):
     title: str
+    icon_key: str | None = None
     tags: list[str]
     skills: list[ExpertiseSkillOut] = []
 
