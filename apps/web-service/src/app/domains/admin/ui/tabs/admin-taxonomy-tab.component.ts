@@ -8,7 +8,7 @@ import { AdminBlogTagForm, AdminSkillCategoryForm, AdminSkillForm } from '@domai
 import { categoryName } from '@domains/admin/shell/state/admin-page.display.utils';
 import { AdminOverviewApiService } from '@domains/admin/data/api/admin-overview-api.service';
 
-type ContentLocale = 'en' | 'nl';
+import { AdminLocalizedContentTabBase } from './admin-localized-content-tab.base';
 
 @Component({
   selector: 'app-admin-taxonomy-tab',
@@ -16,7 +16,7 @@ type ContentLocale = 'en' | 'nl';
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-taxonomy-tab.component.html'
 })
-export class AdminTaxonomyTabComponent {
+export class AdminTaxonomyTabComponent extends AdminLocalizedContentTabBase {
   private readonly overviewApi = inject(AdminOverviewApiService);
 
   @Input({ required: true }) referenceData!: AdminReferenceData;
@@ -40,13 +40,6 @@ export class AdminTaxonomyTabComponent {
   @Output() readonly blogTagSaved = new EventEmitter<void>();
   @Output() readonly blogTagDeleted = new EventEmitter<void>();
 
-  protected isGeneratingDutchDraft = false;
-  protected translationMessage = '';
-  protected contentLocale: ContentLocale = 'en';
-
-  protected setContentLocale(locale: ContentLocale): void {
-    this.contentLocale = locale;
-  }
 
   get highlightedSkillCount(): number {
     return this.referenceData.skills.filter((skill) => skill.isHighlighted).length;
@@ -62,8 +55,7 @@ export class AdminTaxonomyTabComponent {
 
   startNewSkillCategory(): void {
     this.newSkillCategoryStarted.emit();
-    this.translationMessage = '';
-    this.contentLocale = 'en';
+    this.resetLocalizedEditingState();
   }
 
   saveSkillCategory(): void {
@@ -107,8 +99,7 @@ export class AdminTaxonomyTabComponent {
   }
 
   generateDutchDraft(): void {
-    this.isGeneratingDutchDraft = true;
-    this.translationMessage = '';
+    this.beginDutchDraftGeneration();
     this.overviewApi.generateTranslationDraft({
       sourceLocale: 'en',
       targetLocale: 'nl',
@@ -120,15 +111,14 @@ export class AdminTaxonomyTabComponent {
       },
     }).pipe(take(1)).subscribe({
       next: (response) => {
-        this.skillCategoryForm.nameNl = response.translatedFields['nameNl'] ?? this.skillCategoryForm.nameNl;
-        this.skillCategoryForm.descriptionNl = response.translatedFields['descriptionNl'] ?? this.skillCategoryForm.descriptionNl;
-        this.contentLocale = 'nl';
-        this.translationMessage = 'Dutch draft generated from the English skill category.';
-        this.isGeneratingDutchDraft = false;
+        this.applyTranslatedFields(this.skillCategoryForm, response.translatedFields, {
+          nameNl: 'nameNl',
+          descriptionNl: 'descriptionNl',
+        });
+        this.finishDutchDraftGeneration(response, 'Dutch draft generated from the English skill category.');
       },
       error: (error) => {
-        this.translationMessage = error?.error?.detail || 'Generating the Dutch skill-category draft failed.';
-        this.isGeneratingDutchDraft = false;
+        this.failDutchDraftGeneration(error, 'Generating the Dutch skill-category draft failed.');
       },
     });
   }

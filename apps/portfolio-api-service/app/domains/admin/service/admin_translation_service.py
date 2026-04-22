@@ -51,7 +51,7 @@ class AdminTranslationDraftService:
                 warnings=['Source and target locale are identical, so the original text was returned unchanged.'],
             )
 
-        translated_fields = self._translate_fields(payload=payload, fields=fields)
+        translated_fields, warnings = self._translate_fields(payload=payload, fields=fields)
         return AdminTranslationDraftOut(
             source_locale=payload.source_locale,
             target_locale=payload.target_locale,
@@ -59,10 +59,10 @@ class AdminTranslationDraftService:
             translated_fields=translated_fields,
             provider_backend=self.config.backend,
             provider_model=self.config.model,
-            warnings=[],
+            warnings=warnings,
         )
 
-    def _translate_fields(self, *, payload: AdminTranslationDraftIn, fields: dict[str, str]) -> dict[str, str]:
+    def _translate_fields(self, *, payload: AdminTranslationDraftIn, fields: dict[str, str]) -> tuple[dict[str, str], list[str]]:
         backend = self.config.backend
         if backend == 'mock':
             raise HTTPException(
@@ -73,14 +73,21 @@ class AdminTranslationDraftService:
             raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=f'Unsupported translation provider backend: {self.config.backend}.')
 
         translated: dict[str, str] = {}
+        warnings: list[str] = []
         for key, value in fields.items():
             rendered = self._translate_single_field(payload=payload, field_key=key, value=value)
-            if rendered.strip():
-                translated[key] = rendered.strip()
+            cleaned = rendered.strip()
+            if not cleaned:
+                warnings.append(f'{key} returned empty text and needs manual review.')
+                continue
+
+            translated[key] = cleaned
+            if self._field_needs_review(field_key=key, source=value, translated=cleaned):
+                warnings.append(f'{key} was returned unchanged and may still need translation review.')
 
         if not translated:
             raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail='The translation provider did not return any usable translated fields.')
-        return translated
+        return translated, warnings
 
     def _translate_single_field(self, *, payload: AdminTranslationDraftIn, field_key: str, value: str) -> str:
         if self._should_chunk_field(field_key=field_key, value=value):
@@ -329,6 +336,13 @@ class AdminTranslationDraftService:
             return False
         words = re.findall(r'[A-Za-z]{3,}', source)
         return len(words) >= 3
+
+    def _field_needs_review(self, *, field_key: str, source: str, translated: str) -> bool:
+        if not translated.strip() or source.strip() != translated.strip():
+            return False
+        if self._is_markdown_field(field_key):
+            return len(re.findall(r'[A-Za-z]{3,}', source)) >= 12
+        return self._should_retry_unchanged(field_key=field_key, source=source, translated=translated)
 
     def _split_code_fence_segments(self, value: str) -> list[tuple[bool, str]]:
         pattern = re.compile(r'(```[\s\S]*?```|~~~[\s\S]*?~~~)')

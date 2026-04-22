@@ -8,7 +8,7 @@ import { AdminProfileForm, ScopedUploadForm } from '@domains/admin/model/forms/i
 import { buildProfileMediaFolder } from '@domains/admin/media/state/admin-media.filters';
 import { AdminOverviewApiService } from '@domains/admin/data/api/admin-overview-api.service';
 
-type ContentLocale = 'en' | 'nl';
+import { AdminLocalizedContentTabBase } from './admin-localized-content-tab.base';
 
 @Component({
   selector: 'app-admin-profile-tab',
@@ -16,7 +16,7 @@ type ContentLocale = 'en' | 'nl';
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-profile-tab.component.html'
 })
-export class AdminProfileTabComponent {
+export class AdminProfileTabComponent extends AdminLocalizedContentTabBase {
   private readonly overviewApi = inject(AdminOverviewApiService);
 
   @Input({ required: true }) profileForm!: AdminProfileForm;
@@ -34,13 +34,6 @@ export class AdminProfileTabComponent {
   @Output() readonly profileHeroUploadRequested = new EventEmitter<void>();
   @Output() readonly profileResumeUploadRequested = new EventEmitter<void>();
 
-  protected contentLocale: ContentLocale = 'en';
-  protected isGeneratingDutchDraft = false;
-  protected translationMessage = '';
-
-  protected setContentLocale(locale: ContentLocale): void {
-    this.contentLocale = locale;
-  }
 
   addSocialLink(): void {
     this.socialLinkAdded.emit();
@@ -82,9 +75,7 @@ export class AdminProfileTabComponent {
       ctaPrimaryLabelNl: this.profileForm.ctaPrimaryLabel,
       ctaSecondaryLabelNl: this.profileForm.ctaSecondaryLabel,
     };
-    this.isGeneratingDutchDraft = true;
-    this.translationMessage = '';
-    this.contentLocale = 'en';
+    this.beginDutchDraftGeneration();
     this.overviewApi.generateTranslationDraft({
       sourceLocale: 'en',
       targetLocale: 'nl',
@@ -93,17 +84,17 @@ export class AdminProfileTabComponent {
       fields,
     }).pipe(take(1)).subscribe({
       next: (response) => {
-        this.profileForm.headlineNl = response.translatedFields['headlineNl'] ?? this.profileForm.headlineNl;
-        this.profileForm.shortIntroNl = response.translatedFields['shortIntroNl'] ?? this.profileForm.shortIntroNl;
-        this.profileForm.longBioNl = response.translatedFields['longBioNl'] ?? this.profileForm.longBioNl;
-        this.profileForm.ctaPrimaryLabelNl = response.translatedFields['ctaPrimaryLabelNl'] ?? this.profileForm.ctaPrimaryLabelNl;
-        this.profileForm.ctaSecondaryLabelNl = response.translatedFields['ctaSecondaryLabelNl'] ?? this.profileForm.ctaSecondaryLabelNl;
-        this.translationMessage = 'Dutch draft generated from the English copy.';
-        this.isGeneratingDutchDraft = false;
+        this.applyTranslatedFields(this.profileForm, response.translatedFields, {
+          headlineNl: 'headlineNl',
+          shortIntroNl: 'shortIntroNl',
+          longBioNl: 'longBioNl',
+          ctaPrimaryLabelNl: 'ctaPrimaryLabelNl',
+          ctaSecondaryLabelNl: 'ctaSecondaryLabelNl',
+        });
+        this.finishDutchDraftGeneration(response, 'Dutch draft generated from the English copy.');
       },
       error: (error) => {
-        this.translationMessage = error?.error?.detail || 'Generating the Dutch draft failed.';
-        this.isGeneratingDutchDraft = false;
+        this.failDutchDraftGeneration(error, 'Generating the Dutch draft failed.');
       },
     });
   }

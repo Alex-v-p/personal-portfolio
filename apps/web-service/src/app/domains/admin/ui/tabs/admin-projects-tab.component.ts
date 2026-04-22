@@ -8,7 +8,7 @@ import { AdminProject, AdminReferenceData } from '@domains/admin/model/admin.mod
 import { AdminProjectForm, ScopedUploadForm } from '@domains/admin/model/forms/index';
 import { slugify } from '@domains/admin/shell/state/admin-page.utils';
 
-type ContentLocale = 'en' | 'nl';
+import { AdminLocalizedContentTabBase } from './admin-localized-content-tab.base';
 
 @Component({
   selector: 'app-admin-projects-tab',
@@ -16,7 +16,7 @@ type ContentLocale = 'en' | 'nl';
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-projects-tab.component.html'
 })
-export class AdminProjectsTabComponent {
+export class AdminProjectsTabComponent extends AdminLocalizedContentTabBase {
   private readonly overviewApi = inject(AdminOverviewApiService);
 
   @Input({ required: true }) projects: AdminProject[] = [];
@@ -34,13 +34,6 @@ export class AdminProjectsTabComponent {
   @Output() readonly scopedFileSelected = new EventEmitter<{ event: Event; form: ScopedUploadForm }>();
   @Output() readonly projectCoverUploadRequested = new EventEmitter<void>();
 
-  protected isGeneratingDutchDraft = false;
-  protected translationMessage = '';
-  protected contentLocale: ContentLocale = 'en';
-
-  protected setContentLocale(locale: ContentLocale): void {
-    this.contentLocale = locale;
-  }
 
   selectProject(projectId: string): void {
     this.projectSelected.emit(projectId);
@@ -48,8 +41,7 @@ export class AdminProjectsTabComponent {
 
   startNewProject(): void {
     this.newProjectStarted.emit();
-    this.translationMessage = '';
-    this.contentLocale = 'en';
+    this.resetLocalizedEditingState();
   }
 
   toggleProjectSkill(skillId: string): void {
@@ -77,8 +69,7 @@ export class AdminProjectsTabComponent {
   }
 
   generateDutchDraft(): void {
-    this.isGeneratingDutchDraft = true;
-    this.translationMessage = '';
+    this.beginDutchDraftGeneration();
     this.overviewApi.generateTranslationDraft({
       sourceLocale: 'en',
       targetLocale: 'nl',
@@ -94,19 +85,18 @@ export class AdminProjectsTabComponent {
       },
     }).pipe(take(1)).subscribe({
       next: (response) => {
-        this.projectForm.titleNl = response.translatedFields['titleNl'] ?? this.projectForm.titleNl;
-        this.projectForm.teaserNl = response.translatedFields['teaserNl'] ?? this.projectForm.teaserNl;
-        this.projectForm.summaryNl = response.translatedFields['summaryNl'] ?? this.projectForm.summaryNl;
-        this.projectForm.descriptionMarkdownNl = response.translatedFields['descriptionMarkdownNl'] ?? this.projectForm.descriptionMarkdownNl;
-        this.projectForm.durationLabelNl = response.translatedFields['durationLabelNl'] ?? this.projectForm.durationLabelNl;
-        this.projectForm.statusNl = response.translatedFields['statusNl'] ?? this.projectForm.statusNl;
-        this.contentLocale = 'nl';
-        this.translationMessage = 'Dutch draft generated from the English project copy.';
-        this.isGeneratingDutchDraft = false;
+        this.applyTranslatedFields(this.projectForm, response.translatedFields, {
+          titleNl: 'titleNl',
+          teaserNl: 'teaserNl',
+          summaryNl: 'summaryNl',
+          descriptionMarkdownNl: 'descriptionMarkdownNl',
+          durationLabelNl: 'durationLabelNl',
+          statusNl: 'statusNl',
+        });
+        this.finishDutchDraftGeneration(response, 'Dutch draft generated from the English project copy.');
       },
       error: (error) => {
-        this.translationMessage = error?.error?.detail || 'Generating the Dutch project draft failed.';
-        this.isGeneratingDutchDraft = false;
+        this.failDutchDraftGeneration(error, 'Generating the Dutch project draft failed.');
       },
     });
   }

@@ -28,15 +28,15 @@
       <label class="space-y-2"><span class="text-sm font-semibold">Slug</span><input [(ngModel)]="blogPostForm.slug" name="blogSlug" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
       <label *ngIf="contentLocale === 'en'" class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Excerpt</span><textarea [(ngModel)]="blogPostForm.excerpt" name="blogExcerpt" rows="3" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"></textarea></label>
       <label *ngIf="contentLocale === 'nl'" class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Excerpt (NL)</span><textarea [(ngModel)]="blogPostForm.excerptNl" name="blogPostExcerptNlTop" rows="3" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"></textarea></label>
-      <div *ngIf="contentLocale === 'en'" class="space-y-4 lg:col-span-2 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
+      <div class="space-y-4 lg:col-span-2 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
         <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p class="text-sm font-semibold text-stone-950">Markdown editor</p>
-            <p class="text-xs leading-5 text-stone-500">Use the shortcuts below to insert headings, emphasis, code, links, lists, quotes, dividers, and inline images without leaving the editor.</p>
+            <p class="text-sm font-semibold text-stone-950">{{ activeContentLocaleLabel }} markdown editor</p>
+            <p class="text-xs leading-5 text-stone-500">Use the shortcuts below to insert headings, emphasis, code, links, lists, quotes, dividers, and inline images without leaving the {{ activeContentLocaleLabel.toLowerCase() }} article body.</p>
           </div>
           <div class="flex flex-wrap gap-2 text-xs text-stone-500">
-            <span class="rounded-full border border-stone-300 bg-white px-3 py-1">{{ blogMarkdownWordCount }} words</span>
-            <button type="button" (click)="applySuggestedBlogReadingTime()" class="rounded-full border border-stone-300 bg-white px-3 py-1 font-medium text-stone-700">Use {{ suggestedBlogReadingTimeMinutes || 1 }} min estimate</button>
+            <span class="rounded-full border border-stone-300 bg-white px-3 py-1">{{ activeContentLocaleLabel }} · {{ blogMarkdownWordCount }} words</span>
+            <button type="button" (click)="applySuggestedBlogReadingTime()" class="rounded-full border border-stone-300 bg-white px-3 py-1 font-medium text-stone-700">Use {{ suggestedBlogReadingTimeMinutes || 1 }} min estimate from {{ activeContentLocaleLabel.toLowerCase() }}</button>
           </div>
         </div>
 
@@ -58,13 +58,13 @@
 
         <div class="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.85fr)] 2xl:grid-cols-[minmax(0,1.45fr)_minmax(24rem,0.8fr)]">
           <label class="space-y-2">
-            <span class="text-sm font-semibold">Content markdown</span>
-            <textarea #blogMarkdownEditor [(ngModel)]="blogPostForm.contentMarkdown" name="blogMarkdown" rows="18" class="min-h-[26rem] w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm font-mono"></textarea>
+            <span class="text-sm font-semibold">Content markdown{{ contentLocale === 'nl' ? " (NL)" : "" }}</span>
+            <textarea #blogMarkdownEditor [(ngModel)]="activeBlogContentMarkdown" name="blogMarkdown" rows="18" class="min-h-[26rem] w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm font-mono"></textarea>
           </label>
           <div class="space-y-2">
             <div class="flex items-center justify-between gap-3">
               <span class="text-sm font-semibold text-stone-950">Live preview</span>
-              <span class="text-xs text-stone-500">Matches the public blog renderer</span>
+              <span class="text-xs text-stone-500">Matches the public {{ activeContentLocaleLabel.toLowerCase() }} blog renderer</span>
             </div>
             <div class="min-h-[26rem] rounded-2xl border border-stone-300 bg-white px-5 py-4">
               <div class="blog-markdown" [innerHTML]="renderedBlogContentPreview"></div>
@@ -112,7 +112,7 @@
         </div>
       </div>
       <label class="space-y-2"><span class="text-sm font-semibold">Status</span><select [(ngModel)]="blogPostForm.status" name="blogStatus" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"><option *ngFor="let status of referenceData.publicationStatuses" [ngValue]="status">{{ status }}</option></select></label>
-      <label class="space-y-2"><span class="text-sm font-semibold">Reading time</span><div class="space-y-2"><input [(ngModel)]="blogPostForm.readingTimeMinutes" name="blogReadingTime" type="number" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /><p class="text-xs text-stone-500">Suggested from content: {{ suggestedBlogReadingTimeMinutes || 1 }} minute{{ (suggestedBlogReadingTimeMinutes || 1) === 1 ? '' : 's' }}.</p></div></label>
+      <label class="space-y-2"><span class="text-sm font-semibold">Reading time</span><div class="space-y-2"><input [(ngModel)]="blogPostForm.readingTimeMinutes" name="blogReadingTime" type="number" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /><p class="text-xs text-stone-500">Suggested from the current article body: {{ suggestedBlogReadingTimeMinutes || 1 }} minute{{ (suggestedBlogReadingTimeMinutes || 1) === 1 ? '' : 's' }}.</p></div></label>
       <label class="space-y-2"><span class="text-sm font-semibold">Published at</span><input [(ngModel)]="blogPostForm.publishedAt" name="blogPublishedAt" type="datetime-local" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
       <label *ngIf="contentLocale === 'en'" class="space-y-2"><span class="text-sm font-semibold">Cover alt text</span><input [(ngModel)]="blogPostForm.coverImageAlt" name="blogCoverAlt" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
       <label *ngIf="contentLocale === 'nl'" class="space-y-2"><span class="text-sm font-semibold">Cover alt text (NL)</span><input [(ngModel)]="blogPostForm.coverImageAltNl" name="blogPostCoverImageAltNlTop" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
@@ -125,15 +125,7 @@
       <div class="space-y-3 lg:col-span-2"><span class="text-sm font-semibold">Cover image media</span><select [(ngModel)]="blogPostForm.coverImageFileId" name="blogCoverMediaId" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"><option [ngValue]="null">No cover image selected</option><option *ngFor="let media of referenceData.mediaFiles" [ngValue]="media.id">{{ media.title || media.originalFilename }} · {{ media.objectKey }}</option></select></div>
       <div class="space-y-3 lg:col-span-2"><span class="text-sm font-semibold">Assigned blog tags</span><div class="grid gap-2 md:grid-cols-2 xl:grid-cols-3"><label *ngFor="let tag of referenceData.blogTags" class="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm"><input type="checkbox" [checked]="blogPostForm.tagIds.includes(tag.id)" (change)="toggleBlogTag(tag.id)" class="h-4 w-4" />{{ tag.name }} <span class="text-xs text-stone-500">({{ tag.slug }})</span></label></div></div>
     </div>
-    <section *ngIf="contentLocale === 'nl'" class="mt-6 rounded-[1.5rem] border border-emerald-200 bg-emerald-50/60 p-4">
-      <div>
-        <h3 class="text-base font-semibold text-stone-950">Dutch article body</h3>
-        <p class="mt-1 text-sm text-stone-600">Edit the Dutch markdown body here after generating or refining the translated copy.</p>
-      </div>
-      <div class="mt-4 grid gap-4">
-        <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Content markdown (NL)</span><textarea [(ngModel)]="blogPostForm.contentMarkdownNl" name="blogPostContentMarkdownNl" rows="12" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm font-mono"></textarea></label>
-      </div>
-    </section>
+
 
     <div class="mt-6 flex justify-end gap-3"><button type="button" (click)="startNewBlogPost()" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold">Reset</button><button type="button" (click)="saveBlogPost()" class="rounded-full bg-stone-900 px-5 py-2 text-sm font-semibold text-white">Save blog post</button></div>
   </article>

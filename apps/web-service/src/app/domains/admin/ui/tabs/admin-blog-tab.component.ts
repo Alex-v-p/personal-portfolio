@@ -20,7 +20,7 @@ import { formatTagSummary, isImageMedia } from '@domains/admin/shell/state/admin
 import { matchesSearch, slugify, toggleSelection } from '@domains/admin/shell/state/admin-page.utils';
 import { AdminOverviewApiService } from '@domains/admin/data/api/admin-overview-api.service';
 
-type ContentLocale = 'en' | 'nl';
+import { AdminLocalizedContentTabBase } from './admin-localized-content-tab.base';
 
 @Component({
   selector: 'app-admin-blog-tab',
@@ -28,7 +28,7 @@ type ContentLocale = 'en' | 'nl';
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-blog-tab.component.html'
 })
-export class AdminBlogTabComponent implements OnChanges {
+export class AdminBlogTabComponent extends AdminLocalizedContentTabBase implements OnChanges {
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly overviewApi = inject(AdminOverviewApiService);
 
@@ -52,32 +52,42 @@ export class AdminBlogTabComponent implements OnChanges {
   @Output() readonly statusMessageSet = new EventEmitter<string>();
 
   protected blogMediaSearchTerm = '';
-  protected isGeneratingDutchDraft = false;
-  protected translationMessage = '';
-  protected contentLocale: ContentLocale = 'en';
-
-  protected setContentLocale(locale: ContentLocale): void {
-    this.contentLocale = locale;
-  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['selectedBlogPostId']) {
       this.blogMediaSearchTerm = '';
-      this.translationMessage = '';
-    this.contentLocale = 'en';
+      this.resetLocalizedEditingState();
     }
   }
 
+  protected get activeContentLocaleLabel(): string {
+    return this.contentLocale === 'nl' ? 'Dutch' : 'English';
+  }
+
+  protected get activeBlogContentMarkdown(): string {
+    return this.contentLocale === 'nl'
+      ? (this.blogPostForm.contentMarkdownNl || '')
+      : (this.blogPostForm.contentMarkdown || '');
+  }
+
+  protected set activeBlogContentMarkdown(value: string) {
+    if (this.contentLocale === 'nl') {
+      this.blogPostForm.contentMarkdownNl = value;
+      return;
+    }
+    this.blogPostForm.contentMarkdown = value;
+  }
+
   protected get renderedBlogContentPreview(): string {
-    return renderMarkdownToHtml(this.blogPostForm.contentMarkdown || '');
+    return renderMarkdownToHtml(this.activeBlogContentMarkdown);
   }
 
   protected get blogMarkdownWordCount(): number {
-    return countMarkdownWords(this.blogPostForm.contentMarkdown);
+    return countMarkdownWords(this.activeBlogContentMarkdown);
   }
 
   protected get suggestedBlogReadingTimeMinutes(): number {
-    return suggestReadingTimeMinutes(this.blogPostForm.contentMarkdown);
+    return suggestReadingTimeMinutes(this.activeBlogContentMarkdown);
   }
 
   protected get filteredBlogImageMediaFiles(): AdminMediaFile[] {
@@ -101,6 +111,7 @@ export class AdminBlogTabComponent implements OnChanges {
 
   protected startNewBlogPost(): void {
     this.newBlogPostStarted.emit();
+    this.resetLocalizedEditingState();
   }
 
   protected saveBlogPost(): void {
@@ -156,8 +167,7 @@ export class AdminBlogTabComponent implements OnChanges {
   }
 
   protected generateDutchDraft(): void {
-    this.isGeneratingDutchDraft = true;
-    this.translationMessage = '';
+    this.beginDutchDraftGeneration();
     this.overviewApi.generateTranslationDraft({
       sourceLocale: 'en',
       targetLocale: 'nl',
@@ -173,19 +183,18 @@ export class AdminBlogTabComponent implements OnChanges {
       },
     }).pipe(take(1)).subscribe({
       next: (response) => {
-        this.blogPostForm.titleNl = response.translatedFields['titleNl'] ?? this.blogPostForm.titleNl;
-        this.blogPostForm.excerptNl = response.translatedFields['excerptNl'] ?? this.blogPostForm.excerptNl;
-        this.blogPostForm.contentMarkdownNl = response.translatedFields['contentMarkdownNl'] ?? this.blogPostForm.contentMarkdownNl;
-        this.blogPostForm.coverImageAltNl = response.translatedFields['coverImageAltNl'] ?? this.blogPostForm.coverImageAltNl;
-        this.blogPostForm.seoTitleNl = response.translatedFields['seoTitleNl'] ?? this.blogPostForm.seoTitleNl;
-        this.blogPostForm.seoDescriptionNl = response.translatedFields['seoDescriptionNl'] ?? this.blogPostForm.seoDescriptionNl;
-        this.contentLocale = 'nl';
-        this.translationMessage = 'Dutch draft generated from the English blog post.';
-        this.isGeneratingDutchDraft = false;
+        this.applyTranslatedFields(this.blogPostForm, response.translatedFields, {
+          titleNl: 'titleNl',
+          excerptNl: 'excerptNl',
+          contentMarkdownNl: 'contentMarkdownNl',
+          coverImageAltNl: 'coverImageAltNl',
+          seoTitleNl: 'seoTitleNl',
+          seoDescriptionNl: 'seoDescriptionNl',
+        });
+        this.finishDutchDraftGeneration(response, 'Dutch draft generated from the English blog post.');
       },
       error: (error) => {
-        this.translationMessage = error?.error?.detail || 'Generating the Dutch blog draft failed.';
-        this.isGeneratingDutchDraft = false;
+        this.failDutchDraftGeneration(error, 'Generating the Dutch blog draft failed.');
       },
     });
   }
@@ -199,7 +208,7 @@ export class AdminBlogTabComponent implements OnChanges {
 
     const markdown = this.buildBlogImageMarkdown(media, url);
     this.updateBlogMarkdownSelection((content, selection) => insertSnippet(content, selection, `\n${markdown}\n`));
-    this.statusMessageSet.emit('Image markdown inserted into the blog post.');
+    this.statusMessageSet.emit(`Image markdown inserted into the ${this.activeContentLocaleLabel.toLowerCase()} article body.`);
   }
 
   protected insertBlogImageFromMedia(media: AdminMediaFile): void {
@@ -210,14 +219,14 @@ export class AdminBlogTabComponent implements OnChanges {
     updater: (content: string, selection: { start: number; end: number }) => TextSelectionUpdate,
   ): void {
     const textarea = this.blogMarkdownEditor?.nativeElement;
-    const content = this.blogPostForm.contentMarkdown || '';
+    const content = this.activeBlogContentMarkdown;
     const selection = {
       start: textarea?.selectionStart ?? content.length,
       end: textarea?.selectionEnd ?? content.length,
     };
     const nextState = updater(content, selection);
 
-    this.blogPostForm.contentMarkdown = nextState.value;
+    this.activeBlogContentMarkdown = nextState.value;
     this.changeDetectorRef.detectChanges();
 
     if (!textarea) {

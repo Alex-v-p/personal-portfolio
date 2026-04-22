@@ -7,7 +7,7 @@ import { AdminNavigationItem } from '@domains/admin/model/admin.model';
 import { AdminNavigationItemForm } from '@domains/admin/model/forms/index';
 import { AdminOverviewApiService } from '@domains/admin/data/api/admin-overview-api.service';
 
-type ContentLocale = 'en' | 'nl';
+import { AdminLocalizedContentTabBase } from './admin-localized-content-tab.base';
 
 @Component({
   selector: 'app-admin-navigation-tab',
@@ -15,7 +15,7 @@ type ContentLocale = 'en' | 'nl';
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-navigation-tab.component.html'
 })
-export class AdminNavigationTabComponent {
+export class AdminNavigationTabComponent extends AdminLocalizedContentTabBase {
   private readonly overviewApi = inject(AdminOverviewApiService);
 
   @Input({ required: true }) navigationItems: AdminNavigationItem[] = [];
@@ -27,13 +27,6 @@ export class AdminNavigationTabComponent {
   @Output() readonly navigationItemSaved = new EventEmitter<void>();
   @Output() readonly navigationItemDeleted = new EventEmitter<void>();
 
-  protected isGeneratingDutchDraft = false;
-  protected translationMessage = '';
-  protected contentLocale: ContentLocale = 'en';
-
-  protected setContentLocale(locale: ContentLocale): void {
-    this.contentLocale = locale;
-  }
 
   get visibleCount(): number {
     return this.navigationItems.filter((item) => item.isVisible).length;
@@ -53,8 +46,7 @@ export class AdminNavigationTabComponent {
 
   startNewNavigationItem(): void {
     this.newNavigationItemStarted.emit();
-    this.translationMessage = '';
-    this.contentLocale = 'en';
+    this.resetLocalizedEditingState();
   }
 
   saveNavigationItem(): void {
@@ -66,8 +58,7 @@ export class AdminNavigationTabComponent {
   }
 
   generateDutchDraft(): void {
-    this.isGeneratingDutchDraft = true;
-    this.translationMessage = '';
+    this.beginDutchDraftGeneration();
     this.overviewApi.generateTranslationDraft({
       sourceLocale: 'en',
       targetLocale: 'nl',
@@ -76,14 +67,11 @@ export class AdminNavigationTabComponent {
       fields: { labelNl: this.navigationItemForm.label },
     }).pipe(take(1)).subscribe({
       next: (response) => {
-        this.navigationItemForm.labelNl = response.translatedFields['labelNl'] ?? this.navigationItemForm.labelNl;
-        this.contentLocale = 'nl';
-        this.translationMessage = 'Dutch draft generated from the English navigation label.';
-        this.isGeneratingDutchDraft = false;
+        this.applyTranslatedFields(this.navigationItemForm, response.translatedFields, { labelNl: 'labelNl' });
+        this.finishDutchDraftGeneration(response, 'Dutch draft generated from the English navigation label.');
       },
       error: (error) => {
-        this.translationMessage = error?.error?.detail || 'Generating the Dutch navigation draft failed.';
-        this.isGeneratingDutchDraft = false;
+        this.failDutchDraftGeneration(error, 'Generating the Dutch navigation draft failed.');
       },
     });
   }

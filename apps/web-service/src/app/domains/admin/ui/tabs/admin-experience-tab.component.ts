@@ -8,7 +8,7 @@ import { AdminExperienceForm, ScopedUploadForm } from '@domains/admin/model/form
 import { slugify } from '@domains/admin/shell/state/admin-page.utils';
 import { AdminOverviewApiService } from '@domains/admin/data/api/admin-overview-api.service';
 
-type ContentLocale = 'en' | 'nl';
+import { AdminLocalizedContentTabBase } from './admin-localized-content-tab.base';
 
 @Component({
   selector: 'app-admin-experience-tab',
@@ -16,7 +16,7 @@ type ContentLocale = 'en' | 'nl';
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-experience-tab.component.html'
 })
-export class AdminExperienceTabComponent {
+export class AdminExperienceTabComponent extends AdminLocalizedContentTabBase {
   private readonly overviewApi = inject(AdminOverviewApiService);
 
   @Input({ required: true }) experiences: AdminExperience[] = [];
@@ -35,13 +35,6 @@ export class AdminExperienceTabComponent {
   @Output() readonly scopedFileSelected = new EventEmitter<{ event: Event; form: ScopedUploadForm }>();
   @Output() readonly experienceLogoUploadRequested = new EventEmitter<void>();
 
-  protected isGeneratingDutchDraft = false;
-  protected translationMessage = '';
-  protected contentLocale: ContentLocale = 'en';
-
-  protected setContentLocale(locale: ContentLocale): void {
-    this.contentLocale = locale;
-  }
 
   selectExperience(experienceId: string): void {
     this.experienceSelected.emit(experienceId);
@@ -49,8 +42,7 @@ export class AdminExperienceTabComponent {
 
   startNewExperience(): void {
     this.newExperienceStarted.emit();
-    this.translationMessage = '';
-    this.contentLocale = 'en';
+    this.resetLocalizedEditingState();
   }
 
   toggleExperienceSkill(skillId: string): void {
@@ -82,8 +74,7 @@ export class AdminExperienceTabComponent {
   }
 
   generateDutchDraft(): void {
-    this.isGeneratingDutchDraft = true;
-    this.translationMessage = '';
+    this.beginDutchDraftGeneration();
     this.overviewApi.generateTranslationDraft({
       sourceLocale: 'en',
       targetLocale: 'nl',
@@ -96,16 +87,15 @@ export class AdminExperienceTabComponent {
       },
     }).pipe(take(1)).subscribe({
       next: (response) => {
-        this.experienceForm.roleTitleNl = response.translatedFields['roleTitleNl'] ?? this.experienceForm.roleTitleNl;
-        this.experienceForm.summaryNl = response.translatedFields['summaryNl'] ?? this.experienceForm.summaryNl;
-        this.experienceForm.descriptionMarkdownNl = response.translatedFields['descriptionMarkdownNl'] ?? this.experienceForm.descriptionMarkdownNl;
-        this.contentLocale = 'nl';
-        this.translationMessage = 'Dutch draft generated from the English experience copy.';
-        this.isGeneratingDutchDraft = false;
+        this.applyTranslatedFields(this.experienceForm, response.translatedFields, {
+          roleTitleNl: 'roleTitleNl',
+          summaryNl: 'summaryNl',
+          descriptionMarkdownNl: 'descriptionMarkdownNl',
+        });
+        this.finishDutchDraftGeneration(response, 'Dutch draft generated from the English experience copy.');
       },
       error: (error) => {
-        this.translationMessage = error?.error?.detail || 'Generating the Dutch experience draft failed.';
-        this.isGeneratingDutchDraft = false;
+        this.failDutchDraftGeneration(error, 'Generating the Dutch experience draft failed.');
       },
     });
   }
