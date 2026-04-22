@@ -8,12 +8,15 @@ import { AdminProfileForm, ScopedUploadForm } from '@domains/admin/model/forms/i
 import { buildProfileMediaFolder } from '@domains/admin/media/state/admin-media.filters';
 import { AdminOverviewApiService } from '@domains/admin/data/api/admin-overview-api.service';
 
+import { IconPickerComponent } from '@shared/icons';
+import type { IconGroupKey } from '@shared/icons';
+
 import { AdminLocalizedContentTabBase } from './admin-localized-content-tab.base';
 
 @Component({
   selector: 'app-admin-profile-tab',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, IconPickerComponent],
   templateUrl: './admin-profile-tab.component.html'
 })
 export class AdminProfileTabComponent extends AdminLocalizedContentTabBase {
@@ -33,6 +36,8 @@ export class AdminProfileTabComponent extends AdminLocalizedContentTabBase {
   @Output() readonly profileAvatarUploadRequested = new EventEmitter<void>();
   @Output() readonly profileHeroUploadRequested = new EventEmitter<void>();
   @Output() readonly profileResumeUploadRequested = new EventEmitter<void>();
+
+  protected readonly socialIconGroups: readonly IconGroupKey[] = ['social', 'contact'];
 
 
   addSocialLink(): void {

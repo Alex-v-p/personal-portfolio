@@ -170,7 +170,16 @@
           <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Platform</span><input [(ngModel)]="link.platform" [name]="'socialPlatform' + index" placeholder="github" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
           <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Public label</span><input [(ngModel)]="link.label" [name]="'socialLabel' + index" placeholder="GitHub" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
           <label class="space-y-2 xl:col-span-2"><span class="text-sm font-semibold text-stone-800">URL</span><input [(ngModel)]="link.url" [name]="'socialUrl' + index" placeholder="https://github.com/..." class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
-          <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Icon key</span><input [(ngModel)]="link.iconKey" [name]="'socialIconKey' + index" placeholder="github" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
+          <div class="space-y-2">
+            <span class="text-sm font-semibold text-stone-800">Social icon</span>
+            <app-icon-picker
+              [(value)]="link.iconKey"
+              [groups]="socialIconGroups"
+              [fallbackText]="link.label || link.platform"
+              placeholder="Choose the icon shown for this social link."
+              searchPlaceholder="Search social and contact icons"
+            ></app-icon-picker>
+          </div>
           <label class="space-y-2"><span class="text-sm font-semibold text-stone-800">Sort order</span><input [(ngModel)]="link.sortOrder" [name]="'socialSortOrder' + index" type="number" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" /></label>
           <label class="flex items-start gap-3 rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm text-stone-800">
             <input [(ngModel)]="link.isVisible" [name]="'socialVisible' + index" type="checkbox" class="mt-1 h-4 w-4" />

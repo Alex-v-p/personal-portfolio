@@ -4,6 +4,7 @@ export interface AdminSkillCategory {
   nameNl?: string | null;
   description?: string | null;
   descriptionNl?: string | null;
+  iconKey?: string | null;
   sortOrder: number;
 }
 
@@ -12,6 +13,7 @@ export interface AdminSkillCategoryUpsert {
   nameNl?: string | null;
   description?: string | null;
   descriptionNl?: string | null;
+  iconKey?: string | null;
   sortOrder: number;
 }
 

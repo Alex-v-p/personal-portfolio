@@ -20,9 +20,14 @@
     </div>
 
     <div class="mt-5 grid gap-2 max-h-[16rem] overflow-y-auto pr-1">
-      <button *ngFor="let category of referenceData.skillCategories" type="button" (click)="selectSkillCategory(category.id)" [ngClass]="category.id === selectedSkillCategoryId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-2xl border px-4 py-3 text-left text-sm">
-        <div class="font-semibold text-stone-950">{{ category.name }}</div>
-        <div class="text-xs text-stone-500">Sort {{ category.sortOrder }} · {{ category.description || 'No description yet' }}</div>
+      <button *ngFor="let category of referenceData.skillCategories" type="button" (click)="selectSkillCategory(category.id)" [ngClass]="category.id === selectedSkillCategoryId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="flex items-start gap-3 rounded-2xl border px-4 py-3 text-left text-sm">
+        <span class="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-stone-200 bg-white text-stone-700">
+          <app-ui-icon [name]="category.iconKey || category.name" [fallbackText]="category.name" size="sm"></app-ui-icon>
+        </span>
+        <span class="min-w-0">
+          <span class="block font-semibold text-stone-950">{{ category.name }}</span>
+          <span class="block text-xs text-stone-500">{{ category.iconKey || 'No icon selected' }} · Sort {{ category.sortOrder }} · {{ category.description || 'No description yet' }}</span>
+        </span>
       </button>
     </div>
 
@@ -53,10 +58,23 @@
         </div>
       </section>
 
-      <label class="space-y-2 lg:max-w-xs">
-        <span class="text-sm font-semibold text-stone-800">Sort order</span>
-        <input [(ngModel)]="skillCategoryForm.sortOrder" name="skillCategorySortOrder" type="number" placeholder="10" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
-      </label>
+      <div class="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <label class="space-y-2">
+          <span class="text-sm font-semibold text-stone-800">Sort order</span>
+          <input [(ngModel)]="skillCategoryForm.sortOrder" name="skillCategorySortOrder" type="number" placeholder="10" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
+        </label>
+
+        <div class="space-y-2">
+          <span class="text-sm font-semibold text-stone-800">Category icon</span>
+          <app-icon-picker
+            [(value)]="skillCategoryForm.iconKey"
+            [groups]="skillCategoryIconGroups"
+            [fallbackText]="skillCategoryForm.name"
+            placeholder="Choose a category icon for expertise cards."
+            searchPlaceholder="Search expertise and generic icons"
+          ></app-icon-picker>
+        </div>
+      </div>
     </div>
 
     <div class="mt-auto flex flex-wrap gap-3 pt-6">
@@ -87,9 +105,14 @@
     </div>
 
     <div class="mt-5 grid gap-2 max-h-[16rem] overflow-y-auto pr-1">
-      <button *ngFor="let skill of referenceData.skills" type="button" (click)="selectSkill(skill.id)" [ngClass]="skill.id === selectedSkillId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-2xl border px-4 py-3 text-left text-sm">
-        <div class="font-semibold text-stone-950">{{ skill.name }}</div>
-        <div class="text-xs text-stone-500">{{ categoryName(skill.categoryId) }} · {{ skill.yearsOfExperience ?? 0 }} years</div>
+      <button *ngFor="let skill of referenceData.skills" type="button" (click)="selectSkill(skill.id)" [ngClass]="skill.id === selectedSkillId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="flex items-start gap-3 rounded-2xl border px-4 py-3 text-left text-sm">
+        <span class="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-stone-200 bg-white text-stone-700">
+          <app-ui-icon [name]="skill.iconKey || skill.name" [fallbackText]="skill.name" size="sm"></app-ui-icon>
+        </span>
+        <span class="min-w-0">
+          <span class="block font-semibold text-stone-950">{{ skill.name }}</span>
+          <span class="block text-xs text-stone-500">{{ skill.iconKey || 'No icon selected' }} · {{ categoryName(skill.categoryId) }} · {{ skill.yearsOfExperience ?? 0 }} years</span>
+        </span>
       </button>
     </div>
 
@@ -118,10 +141,16 @@
         </label>
       </div>
 
-      <label class="space-y-2">
-        <span class="text-sm font-semibold text-stone-800">Icon key</span>
-        <input [(ngModel)]="skillForm.iconKey" name="skillIconKey" placeholder="angular" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
-      </label>
+      <div class="space-y-2">
+        <span class="text-sm font-semibold text-stone-800">Skill icon</span>
+        <app-icon-picker
+          [(value)]="skillForm.iconKey"
+          [groups]="skillIconGroups"
+          [fallbackText]="skillForm.name"
+          placeholder="Choose a skill icon for chips and labels."
+          searchPlaceholder="Search technology, expertise, and social icons"
+        ></app-icon-picker>
+      </div>
 
       <label class="flex items-start gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-800">
         <input [(ngModel)]="skillForm.isHighlighted" name="skillHighlighted" type="checkbox" class="mt-1 h-4 w-4" />

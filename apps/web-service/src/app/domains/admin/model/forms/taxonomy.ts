@@ -6,6 +6,7 @@ export interface AdminSkillCategoryForm {
   nameNl: string;
   description: string;
   descriptionNl: string;
+  iconKey: string;
   sortOrder: number;
 }
 
@@ -26,7 +27,7 @@ export interface AdminBlogTagForm {
 }
 
 export function createEmptySkillCategoryForm(): AdminSkillCategoryForm {
-  return { name: '', nameNl: '', description: '', descriptionNl: '', sortOrder: 0 };
+  return { name: '', nameNl: '', description: '', descriptionNl: '', iconKey: '', sortOrder: 0 };
 }
 
 export function createEmptySkillForm(): AdminSkillForm {
@@ -44,6 +45,7 @@ export function toSkillCategoryForm(category: AdminSkillCategory): AdminSkillCat
     nameNl: category.nameNl ?? '',
     description: category.description ?? '',
     descriptionNl: category.descriptionNl ?? '',
+    iconKey: category.iconKey ?? '',
     sortOrder: category.sortOrder,
   };
 }

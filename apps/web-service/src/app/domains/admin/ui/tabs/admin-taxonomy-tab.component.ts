@@ -8,12 +8,15 @@ import { AdminBlogTagForm, AdminSkillCategoryForm, AdminSkillForm } from '@domai
 import { categoryName } from '@domains/admin/shell/state/admin-page.display.utils';
 import { AdminOverviewApiService } from '@domains/admin/data/api/admin-overview-api.service';
 
+import { IconPickerComponent, UiIconComponent } from '@shared/icons';
+import type { IconGroupKey } from '@shared/icons';
+
 import { AdminLocalizedContentTabBase } from './admin-localized-content-tab.base';
 
 @Component({
   selector: 'app-admin-taxonomy-tab',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, IconPickerComponent, UiIconComponent],
   templateUrl: './admin-taxonomy-tab.component.html'
 })
 export class AdminTaxonomyTabComponent extends AdminLocalizedContentTabBase {
@@ -39,6 +42,10 @@ export class AdminTaxonomyTabComponent extends AdminLocalizedContentTabBase {
   @Output() readonly newBlogTagStarted = new EventEmitter<void>();
   @Output() readonly blogTagSaved = new EventEmitter<void>();
   @Output() readonly blogTagDeleted = new EventEmitter<void>();
+
+
+  protected readonly skillCategoryIconGroups: readonly IconGroupKey[] = ['expertise', 'tech', 'contact'];
+  protected readonly skillIconGroups: readonly IconGroupKey[] = ['tech', 'expertise', 'contact', 'social'];
 
 
   get highlightedSkillCount(): number {
