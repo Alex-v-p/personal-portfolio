@@ -3,6 +3,7 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
+from app.core.icon_keys import choose_icon_key, infer_category_icon_key, infer_skill_icon_key, infer_social_icon_key
 from app.db.models import NavigationItem, Profile, Skill, SkillCategory
 from app.domains.public_site.schema import (
     ContactMethodOut,
@@ -79,7 +80,7 @@ class PublicProfileRepositoryMixin:
             groups.append(
                 ExpertiseGroupOut(
                     title=self._localized(category, 'name') or category.name,
-                    icon_key=category.icon_key,
+                    icon_key=choose_icon_key(category.icon_key, infer_category_icon_key(self._localized(category, 'name') or category.name)),
                     tags=[
                         f'{skill.name} - {self._localized_years_label(skill.years_of_experience)}'
                         if skill.years_of_experience is not None
@@ -90,7 +91,7 @@ class PublicProfileRepositoryMixin:
                         {
                             'name': skill.name,
                             'years_of_experience': skill.years_of_experience,
-                            'icon_key': skill.icon_key,
+                            'icon_key': choose_icon_key(skill.icon_key, infer_skill_icon_key(skill.name, self._localized(category, 'name') or category.name)),
                         }
                         for skill in ordered_skills
                     ],
@@ -150,7 +151,7 @@ class PublicProfileRepositoryMixin:
                     platform=link.platform,
                     label=link.label,
                     url=link.url,
-                    icon_key=link.icon_key,
+                    icon_key=choose_icon_key(link.icon_key, infer_social_icon_key(link.platform, link.label)),
                     sort_order=link.sort_order,
                     is_visible=link.is_visible,
                 )
@@ -208,7 +209,7 @@ class PublicProfileRepositoryMixin:
                 value=link.url.replace('https://', '').replace('http://', ''),
                 href=link.url,
                 action_label=self._copy('contact_social_action_connect') if link.platform in {'github', 'linkedin'} else self._copy('contact_social_action_open'),
-                icon_key=link.icon_key,
+                icon_key=choose_icon_key(link.icon_key, infer_social_icon_key(link.platform, link.label)),
                 description=self._copy('contact_social_description_github') if link.platform == 'github' else (
                     self._copy('contact_social_description_linkedin') if link.platform == 'linkedin' else self._copy('contact_social_description_default')
                 ),

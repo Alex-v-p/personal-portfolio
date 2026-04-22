@@ -1,3 +1,5 @@
+import { resolveIconKey } from '@shared/icons';
+
 import { ContactMethod } from '../model/contact-method.model';
 import { Profile } from '../model/profile.model';
 
@@ -77,7 +79,7 @@ export const buildContactMethodsFromProfile = (profile: Profile): ContactMethod[
       value: link.url.replace(/^https?:\/\//, ''),
       href: link.url,
       actionLabel: ['github', 'linkedin'].includes(link.platform) ? 'Connect +' : 'Open',
-      iconKey: link.iconKey,
+      iconKey: resolveIconKey(link.iconKey) ?? resolveIconKey(link.platform) ?? resolveIconKey(link.label) ?? undefined,
       description:
         link.platform === 'github'
           ? 'Code samples, experiments, and longer-form project work.'

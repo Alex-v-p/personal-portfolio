@@ -7,6 +7,8 @@ describe('icon registry', () => {
     expect(normalizeIconKey(' Tailwind CSS ')).toBe('tailwind-css');
     expect(resolveIconKey('email')).toBe('mail');
     expect(resolveIconKey('tailwind')).toBe('tailwindcss');
+    expect(resolveIconKey('clipboard-search')).toBe('workflow');
+    expect(resolveIconKey('Data & AI')).toBe('brain');
     expect(resolveIconKey('x')).toBe('twitter');
   });
 
