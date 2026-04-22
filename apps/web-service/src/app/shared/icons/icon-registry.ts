@@ -411,7 +411,9 @@ export const normalizeIconKey = (value: string | null | undefined): string =>
     .trim()
     .toLowerCase()
     .replace(/[\s_]+/g, '-')
-    .replace(/[^a-z0-9-]/g, '');
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
 
 export const resolveIconKey = (value: string | null | undefined): IconKey | null => {
   const normalizedValue = normalizeIconKey(value);
