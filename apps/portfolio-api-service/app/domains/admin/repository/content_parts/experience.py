@@ -37,13 +37,16 @@ class AdminExperienceContentRepository:
         experience = Experience(
             organization_name=payload.organization_name,
             role_title=payload.role_title,
+            role_title_nl=self._normalize_optional_text(payload.role_title_nl),
             location=self._normalize_optional_text(payload.location),
             experience_type=payload.experience_type,
             start_date=self._parse_date(payload.start_date) or date.today(),
             end_date=self._parse_date(payload.end_date),
             is_current=payload.is_current,
             summary=payload.summary,
+            summary_nl=self._normalize_optional_text(payload.summary_nl),
             description_markdown=self._normalize_optional_text(payload.description_markdown),
+            description_markdown_nl=self._normalize_optional_text(payload.description_markdown_nl),
             logo_file_id=self._optional_uuid(payload.logo_file_id),
             sort_order=payload.sort_order,
         )
@@ -59,13 +62,16 @@ class AdminExperienceContentRepository:
             return None
         experience.organization_name = payload.organization_name
         experience.role_title = payload.role_title
+        experience.role_title_nl = self._normalize_optional_text(payload.role_title_nl)
         experience.location = self._normalize_optional_text(payload.location)
         experience.experience_type = payload.experience_type
         experience.start_date = self._parse_date(payload.start_date) or experience.start_date
         experience.end_date = self._parse_date(payload.end_date)
         experience.is_current = payload.is_current
         experience.summary = payload.summary
+        experience.summary_nl = self._normalize_optional_text(payload.summary_nl)
         experience.description_markdown = self._normalize_optional_text(payload.description_markdown)
+        experience.description_markdown_nl = self._normalize_optional_text(payload.description_markdown_nl)
         experience.logo_file_id = self._optional_uuid(payload.logo_file_id)
         experience.sort_order = payload.sort_order
         self._replace_experience_skill_links(experience, payload.skill_ids)

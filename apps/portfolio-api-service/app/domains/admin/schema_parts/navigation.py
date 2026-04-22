@@ -7,6 +7,7 @@ from app.schemas.base import ApiSchema
 
 class AdminNavigationItemUpsertIn(ApiSchema):
     label: str = Field(min_length=1, max_length=120)
+    label_nl: str | None = Field(default=None, max_length=120)
     route_path: str = Field(min_length=1, max_length=255)
     is_external: bool = False
     sort_order: int = 0
@@ -16,6 +17,7 @@ class AdminNavigationItemUpsertIn(ApiSchema):
 class AdminNavigationItemOut(ApiSchema):
     id: str
     label: str
+    label_nl: str | None = None
     route_path: str
     is_external: bool
     sort_order: int

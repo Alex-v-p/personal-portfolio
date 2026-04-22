@@ -6,6 +6,7 @@ from app.db.models import KnowledgeChunk, KnowledgeDocument
 from app.domains.retrieval.service.intent import source_multiplier
 from app.domains.retrieval.service.models import QueryIntent, RetrievedChunk
 from app.domains.retrieval.service.text import dot, excerpt, metadata_text, parse_vector
+from app.services.localization import DEFAULT_ASSISTANT_LOCALE, normalize_assistant_locale
 
 
 def score_chunk(
@@ -18,6 +19,7 @@ def score_chunk(
     intent: QueryIntent,
     page_path: str | None,
     source_type: str,
+    requested_locale: str,
 ) -> float:
     chunk_text = (chunk.chunk_text or '').lower()
     title = (document.title or '').lower()
@@ -57,6 +59,8 @@ def score_chunk(
         total *= 0.55
     if matched_tokens == 0 and semantic_score < 4.8:
         return 0.0
+
+    total *= _locale_multiplier(document=document, requested_locale=requested_locale)
     return total
 
 
@@ -77,7 +81,7 @@ def filter_ranked_results(results: list[RetrievedChunk], intent: QueryIntent, *,
     seen = set()
     background_count = 0
     for item in results:
-        key = (item.title, item.excerpt)
+        key = item.source_key or (item.title, item.excerpt)
         if key in seen:
             continue
 
@@ -102,10 +106,26 @@ def filter_ranked_results(results: list[RetrievedChunk], intent: QueryIntent, *,
 
 
 def build_retrieved_chunk(*, document: KnowledgeDocument, source_type: str, chunk: KnowledgeChunk, tokens: Iterable[str], score: float) -> RetrievedChunk:
+    metadata = document.metadata_json if isinstance(document.metadata_json, dict) else {}
+    source_id = str(document.source_id) if document.source_id is not None else document.title
     return RetrievedChunk(
         title=document.title,
         source_type=source_type,
         canonical_url=document.canonical_url,
         excerpt=excerpt(chunk.chunk_text, tokens),
         score=score,
+        locale=normalize_assistant_locale(metadata.get('locale') if isinstance(metadata.get('locale'), str) else None),
+        source_key=f'{source_type}:{source_id}',
     )
+
+
+def _locale_multiplier(*, document: KnowledgeDocument, requested_locale: str) -> float:
+    metadata = document.metadata_json if isinstance(document.metadata_json, dict) else {}
+    document_locale = normalize_assistant_locale(metadata.get('locale') if isinstance(metadata.get('locale'), str) else None)
+    normalized_requested = normalize_assistant_locale(requested_locale)
+
+    if document_locale == normalized_requested:
+        return 1.16
+    if document_locale == DEFAULT_ASSISTANT_LOCALE:
+        return 0.92
+    return 0.74

@@ -13,6 +13,9 @@ from app.domains.admin.schema_parts.assistant import (
     AdminAssistantKnowledgeRebuildIn,
     AdminAssistantKnowledgeRebuildOut,
     AdminAssistantKnowledgeStatusOut,
+    AdminTranslationDraftIn,
+    AdminTranslationDraftOut,
+    TranslationLocaleLiteral,
 )
 from app.domains.admin.schema_parts.async_tasks import (
     AdminAsyncTaskAcceptedOut,
@@ -78,6 +81,8 @@ __all__ = [
     'AdminAssistantKnowledgeRebuildIn',
     'AdminAssistantKnowledgeRebuildOut',
     'AdminAssistantKnowledgeStatusOut',
+    'AdminTranslationDraftIn',
+    'AdminTranslationDraftOut',
     'AdminAsyncTaskAcceptedOut',
     'AdminAsyncTaskStatusLiteral',
     'AdminAsyncTaskStatusOut',
@@ -135,4 +140,5 @@ __all__ = [
     'MediaVisibilityLiteral',
     'ProjectStateLiteral',
     'PublicationStatusLiteral',
+    'TranslationLocaleLiteral',
 ]

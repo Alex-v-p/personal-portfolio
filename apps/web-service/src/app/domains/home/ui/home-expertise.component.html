@@ -5,12 +5,12 @@
     </p>
 
     <div class="flex flex-wrap gap-3 pt-1">
-      <app-ui-link-button routerLink="/contact">Contact Me</app-ui-link-button>
-      <app-ui-link-button routerLink="/projects" appearance="ghost">View Projects</app-ui-link-button>
+      <app-ui-link-button routerLink="/contact">{{ 'common.actions.contactMe' | translate }}</app-ui-link-button>
+      <app-ui-link-button routerLink="/projects" appearance="ghost">{{ 'common.actions.viewProjects' | translate }}</app-ui-link-button>
     </div>
   </div>
 
-  <app-ui-section-title title="Expertise" description=""></app-ui-section-title>
+  <app-ui-section-title [title]="'pages.home.expertise.title' | translate" description=""></app-ui-section-title>
 
   <div class="pt-4 space-y-3">
     <app-ui-card *ngFor="let group of groups" class="block">

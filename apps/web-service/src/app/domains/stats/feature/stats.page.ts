@@ -1,7 +1,11 @@
-import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { NgFor, NgIf } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { distinctUntilChanged } from 'rxjs/operators';
 import { finalize, take } from 'rxjs/operators';
 
+import { TranslatePipe } from '@core/i18n/translate.pipe';
+import { I18nService } from '@core/i18n/i18n.service';
 import { UiButtonComponent } from '@shared/components/button/ui-button.component';
 import { UiCardComponent } from '@shared/components/card/ui-card.component';
 import { UiEmptyStateComponent } from '@shared/components/empty-state/ui-empty-state.component';
@@ -17,7 +21,7 @@ const PORTFOLIO_LIKED_STORAGE_KEY = 'portfolio.stats.liked';
 @Component({
   selector: 'app-stats-page',
   standalone: true,
-  imports: [NgFor, NgIf, UiButtonComponent, UiCardComponent, UiEmptyStateComponent, UiSkeletonComponent],
+  imports: [NgFor, NgIf, TranslatePipe, UiButtonComponent, UiCardComponent, UiEmptyStateComponent, UiSkeletonComponent],
   templateUrl: './stats.page.html'
 })
 export class StatsPageComponent implements OnInit {
@@ -25,6 +29,8 @@ export class StatsPageComponent implements OnInit {
   private readonly eventsApi = inject(PublicEventsApiService);
   private readonly siteTracking = inject(SiteTrackingService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private readonly i18n = inject(I18nService);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected contributionWeeks: number[][] = [];
   protected githubSummary: StatItem = this.createStatItem('github-summary', 'Public repos', '0');
@@ -43,7 +49,9 @@ export class StatsPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.hasLikedPortfolio = this.readLikeState();
-    this.loadStats();
+    this.i18n.localeChanges$.pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.loadStats();
+    });
   }
 
   protected loadStats(): void {
@@ -66,12 +74,12 @@ export class StatsPageComponent implements OnInit {
           this.contributionWeeks = Array.isArray(stats.contributionWeeks) ? stats.contributionWeeks : [];
           this.githubSummary = stats.githubSummary ?? this.githubSummary;
           this.latestGithubSnapshot = stats.latestGithubSnapshot ?? this.createEmptySnapshot();
-          this.portfolioViewsCard = this.findStat(stats.portfolioHighlights, 'highlight-total-views', 'Total views');
+          this.portfolioViewsCard = this.findStat(stats.portfolioHighlights, 'highlight-total-views', this.i18n.translate('pages.stats.cards.viewsLabel'));
           this.portfolioLikesCard = this.findStat(
             stats.portfolioHighlights,
             'highlight-portfolio-likes',
-            'Like counter',
-            'Love this portfolio'
+            this.i18n.translate('pages.stats.cards.likesLabel'),
+            this.i18n.translate('pages.stats.cards.likesAction')
           );
           this.portfolioStats = Array.isArray(stats.portfolioStats) ? stats.portfolioStats : [];
           this.monthLabels = Array.isArray(stats.monthLabels) ? stats.monthLabels : [];
@@ -79,7 +87,7 @@ export class StatsPageComponent implements OnInit {
         },
         error: () => {
           this.resetStats();
-          this.errorMessage = 'Stats could not be loaded from the portfolio API. Make sure the API or reverse proxy is running.';
+          this.errorMessage = this.i18n.translate('pages.stats.errors.load');
         }
       });
   }
@@ -121,7 +129,7 @@ export class StatsPageComponent implements OnInit {
           };
         },
         error: () => {
-          this.likeErrorMessage = 'Your like could not be saved right now. Please try again in a moment.';
+          this.likeErrorMessage = this.i18n.translate('pages.stats.errors.like');
         }
       });
   }
@@ -148,10 +156,10 @@ export class StatsPageComponent implements OnInit {
 
   protected get likesButtonLabel(): string {
     if (this.hasLikedPortfolio) {
-      return 'Thanks for the love';
+      return this.i18n.translate('pages.stats.cards.likesThanks');
     }
 
-    return this.isSubmittingLike ? 'Saving like…' : this.portfolioLikesCard.actionLabel || 'Love this portfolio';
+    return this.isSubmittingLike ? this.i18n.translate('pages.stats.cards.likesSaving') : this.portfolioLikesCard.actionLabel || this.i18n.translate('pages.stats.cards.likesAction');
   }
 
   protected getContributionCellClass(value: number): string {
@@ -168,20 +176,16 @@ export class StatsPageComponent implements OnInit {
     return `${base} ${tones[value] ?? tones[0]}`;
   }
 
-  protected trackByStatId(_: number, item: StatItem): string {
-    return item.id;
-  }
-
   protected trackByIndex(index: number): number {
     return index;
   }
 
   private resetStats(): void {
     this.contributionWeeks = [];
-    this.githubSummary = this.createStatItem('github-summary', 'Public repos', '0');
+    this.githubSummary = this.createStatItem('github-summary', this.i18n.translate('pages.stats.cards.reposLabel'), '0');
     this.latestGithubSnapshot = this.createEmptySnapshot();
-    this.portfolioViewsCard = this.createStatItem('highlight-total-views', 'Total views', '0');
-    this.portfolioLikesCard = this.createStatItem('highlight-portfolio-likes', 'Like counter', '0', 'Love this portfolio');
+    this.portfolioViewsCard = this.createStatItem('highlight-total-views', this.i18n.translate('pages.stats.cards.viewsLabel'), '0');
+    this.portfolioLikesCard = this.createStatItem('highlight-portfolio-likes', this.i18n.translate('pages.stats.cards.likesLabel'), '0', this.i18n.translate('pages.stats.cards.likesAction'));
     this.portfolioStats = [];
     this.monthLabels = [];
     this.weekdayLabels = [];

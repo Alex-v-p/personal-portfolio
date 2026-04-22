@@ -1,10 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { take } from 'rxjs/operators';
 
 import { AdminExperience, AdminMediaFile, AdminSkillOption } from '@domains/admin/model/admin.model';
 import { AdminExperienceForm, ScopedUploadForm } from '@domains/admin/model/forms/index';
 import { slugify } from '@domains/admin/shell/state/admin-page.utils';
+import { AdminOverviewApiService } from '@domains/admin/data/api/admin-overview-api.service';
+
+import { AdminLocalizedContentTabBase } from './admin-localized-content-tab.base';
 
 @Component({
   selector: 'app-admin-experience-tab',
@@ -12,7 +16,9 @@ import { slugify } from '@domains/admin/shell/state/admin-page.utils';
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-experience-tab.component.html'
 })
-export class AdminExperienceTabComponent {
+export class AdminExperienceTabComponent extends AdminLocalizedContentTabBase {
+  private readonly overviewApi = inject(AdminOverviewApiService);
+
   @Input({ required: true }) experiences: AdminExperience[] = [];
   @Input() selectedExperienceId: string | null = null;
   @Input({ required: true }) experienceForm!: AdminExperienceForm;
@@ -29,12 +35,14 @@ export class AdminExperienceTabComponent {
   @Output() readonly scopedFileSelected = new EventEmitter<{ event: Event; form: ScopedUploadForm }>();
   @Output() readonly experienceLogoUploadRequested = new EventEmitter<void>();
 
+
   selectExperience(experienceId: string): void {
     this.experienceSelected.emit(experienceId);
   }
 
   startNewExperience(): void {
     this.newExperienceStarted.emit();
+    this.resetLocalizedEditingState();
   }
 
   toggleExperienceSkill(skillId: string): void {
@@ -63,5 +71,32 @@ export class AdminExperienceTabComponent {
 
   buildExperienceFolder(): string {
     return `experience/${slugify(this.experienceForm.organizationName || this.experienceForm.roleTitle || 'experience')}`;
+  }
+
+  generateDutchDraft(): void {
+    this.beginDutchDraftGeneration();
+    this.overviewApi.generateTranslationDraft({
+      sourceLocale: 'en',
+      targetLocale: 'nl',
+      entityType: 'experience',
+      context: 'Translate an experience entry for a developer portfolio. Keep organization names and technology names unchanged where appropriate.',
+      fields: {
+        roleTitleNl: this.experienceForm.roleTitle,
+        summaryNl: this.experienceForm.summary,
+        descriptionMarkdownNl: this.experienceForm.descriptionMarkdown,
+      },
+    }).pipe(take(1)).subscribe({
+      next: (response) => {
+        this.applyTranslatedFields(this.experienceForm, response.translatedFields, {
+          roleTitleNl: 'roleTitleNl',
+          summaryNl: 'summaryNl',
+          descriptionMarkdownNl: 'descriptionMarkdownNl',
+        });
+        this.finishDutchDraftGeneration(response, 'Dutch draft generated from the English experience copy.');
+      },
+      error: (error) => {
+        this.failDutchDraftGeneration(error, 'Generating the Dutch experience draft failed.');
+      },
+    });
   }
 }

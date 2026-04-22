@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, shareReplay } from 'rxjs/operators';
@@ -29,6 +29,11 @@ export class PublicHttpService {
     this.responseCache.set(cacheKey, request$ as Observable<unknown>);
 
     return request$;
+  }
+
+
+  localeParams(locale: string): HttpParams {
+    return new HttpParams().set('locale', locale);
   }
 
   clearCachedRequest(cacheKey: string): void {

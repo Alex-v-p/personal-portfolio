@@ -16,6 +16,7 @@ class AdminNavigationContentRepository:
     def create_navigation_item(self, payload: AdminNavigationItemUpsertIn) -> AdminNavigationItemOut:
         item = NavigationItem(
             label=payload.label,
+            label_nl=self._normalize_optional_text(payload.label_nl),
             route_path=payload.route_path,
             is_external=payload.is_external,
             sort_order=payload.sort_order,
@@ -31,6 +32,7 @@ class AdminNavigationContentRepository:
         if item is None:
             return None
         item.label = payload.label
+        item.label_nl = self._normalize_optional_text(payload.label_nl)
         item.route_path = payload.route_path
         item.is_external = payload.is_external
         item.sort_order = payload.sort_order

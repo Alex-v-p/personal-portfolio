@@ -1,18 +1,14 @@
 <div class="mx-auto max-w-6xl space-y-8">
-  <p class="text-sm ui-text-muted">Home &gt; Projects</p>
+  <p class="text-sm ui-text-muted">{{ 'navigation.home' | translate }} &gt; {{ 'navigation.projects' | translate }}</p>
 
   <section class="ui-panel-soft p-6 sm:p-8 lg:p-10">
     <div class="space-y-8">
       <header class="space-y-4 text-center">
-        <h1 class="ui-title-section text-4xl">Projects</h1>
+        <h1 class="ui-title-section text-4xl">{{ 'pages.projects.title' | translate }}</h1>
         <div class="mx-auto h-3 w-full max-w-lg rounded-full" style="background: var(--ui-primary);"></div>
-        <!-- <p class="mx-auto max-w-2xl text-sm leading-6 ui-text-muted">
-          Browse the current project collection with search and technology filters.
-          This page now loads from the portfolio API instead of local mock files.
-        </p> -->
       </header>
 
-      <section *ngIf="isLoading" class="space-y-5" aria-label="Loading projects">
+      <section *ngIf="isLoading" class="space-y-5" [attr.aria-label]="'pages.projects.loading' | translate">
         <div class="ui-card-soft grid gap-4 p-4 md:grid-cols-[minmax(0,1fr)_20rem] md:items-end md:p-5">
           <div class="space-y-2">
             <app-ui-skeleton className="h-3 w-16 rounded-full"></app-ui-skeleton>
@@ -35,36 +31,36 @@
 
       <app-ui-empty-state
         *ngIf="!isLoading && errorMessage"
-        title="Could not load projects"
+        [title]="'pages.projects.empty.loadTitle' | translate"
         [description]="errorMessage"
         [hasActions]="true"
         tone="error"
       >
         <div actions>
-          <app-ui-button appearance="secondary" type="button" (click)="loadProjects()">Retry</app-ui-button>
+          <app-ui-button appearance="secondary" type="button" (click)="loadProjects()">{{ 'common.actions.retry' | translate }}</app-ui-button>
         </div>
       </app-ui-empty-state>
 
       <app-ui-empty-state
         *ngIf="!isLoading && !errorMessage && !hasProjects"
-        title="No projects are published yet"
-        description="Publish a project in the CMS to populate this page and its featured spotlight card."
+        [title]="'pages.projects.empty.noneTitle' | translate"
+        [description]="'pages.projects.empty.noneDescription' | translate"
       ></app-ui-empty-state>
 
       <ng-container *ngIf="!isLoading && !errorMessage && hasProjects">
         <section class="ui-card-soft grid gap-4 p-4 md:grid-cols-[minmax(0,1fr)_20rem] md:items-start md:p-5">
           <label class="block space-y-2">
-            <span class="ui-kicker">Search</span>
+            <span class="ui-kicker">{{ 'pages.projects.filters.searchLabel' | translate }}</span>
             <input
               [(ngModel)]="searchQuery"
               type="text"
-              placeholder="Search projects, descriptions, or tools"
+              [placeholder]="'pages.projects.filters.searchPlaceholder' | translate"
               class="ui-input rounded-full"
             />
           </label>
 
           <div class="relative space-y-2">
-            <span class="block ui-kicker">Technology filters</span>
+            <span class="block ui-kicker">{{ 'pages.projects.filters.technologiesLabel' | translate }}</span>
             <button
               type="button"
               (click)="toggleSkillMenu()"
@@ -80,13 +76,13 @@
               class="ui-panel absolute right-0 z-10 mt-2 w-full rounded-[1.5rem] p-4"
             >
               <div class="mb-4 flex items-center justify-between gap-3">
-                <p class="text-sm font-semibold ui-text-strong">Select technologies</p>
+                <p class="text-sm font-semibold ui-text-strong">{{ 'pages.projects.filters.selectTechnologies' | translate }}</p>
                 <button
                   type="button"
                   (click)="closeSkillMenu()"
                   class="text-sm font-medium ui-text-soft transition hover:[color:var(--ui-text)]"
                 >
-                  Done
+                  {{ 'common.actions.done' | translate }}
                 </button>
               </div>
 
@@ -110,25 +106,25 @@
               </div>
 
               <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-4" style="border-color: var(--ui-border-soft);">
-                <p class="text-xs ui-text-soft">Choose one or more technologies to narrow the project list.</p>
+                <p class="text-xs ui-text-soft">{{ 'pages.projects.filters.helper' | translate }}</p>
                 <button
                   type="button"
                   (click)="clearSkillFilters()"
                   class="text-sm font-semibold ui-text-muted transition hover:[color:var(--ui-text)]"
                 >
-                  Clear technologies
+                  {{ 'pages.projects.filters.clearTechnologies' | translate }}
                 </button>
               </div>
             </div>
           </div>
         </section>
 
-        <p class="text-center text-sm ui-text-muted">Showing {{ filteredProjects.length }} of {{ totalProjectCount }} projects</p>
+        <p class="text-center text-sm ui-text-muted">{{ 'pages.projects.summary' | translate:{ shown: filteredProjects.length, total: totalProjectCount } }}</p>
 
         <section *ngIf="featuredProject as spotlightProject" class="space-y-3">
           <div class="space-y-1">
-            <p class="ui-kicker">Featured project</p>
-            <h2 class="ui-title-card text-2xl">A highlighted project from the current collection</h2>
+            <p class="ui-kicker">{{ 'pages.projects.featured.kicker' | translate }}</p>
+            <h2 class="ui-title-card text-2xl">{{ 'pages.projects.featured.title' | translate }}</h2>
           </div>
 
           <app-project-card [project]="spotlightProject" [featured]="true"></app-project-card>
@@ -136,8 +132,7 @@
 
         <section class="space-y-3">
           <div>
-            <h2 class="ui-title-card text-2xl">Browse all projects</h2>
-            <!-- <p class="text-sm leading-6 ui-text-muted"></p> -->
+            <h2 class="ui-title-card text-2xl">{{ 'pages.projects.browseTitle' | translate }}</h2>
           </div>
 
           <div *ngIf="filteredProjects.length; else emptyResults" class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -147,12 +142,12 @@
 
         <ng-template #emptyResults>
           <app-ui-empty-state
-            title="No projects match those filters"
-            description="Try another search term or clear some technology filters to bring the rest of the portfolio projects back into view."
+            [title]="'pages.projects.empty.noMatchTitle' | translate"
+            [description]="'pages.projects.empty.noMatchDescription' | translate"
             [hasActions]="true"
           >
             <div actions>
-              <app-ui-button appearance="secondary" type="button" (click)="resetFilters()">Clear search and filters</app-ui-button>
+              <app-ui-button appearance="secondary" type="button" (click)="resetFilters()">{{ 'pages.projects.filters.reset' | translate }}</app-ui-button>
             </div>
           </app-ui-empty-state>
         </ng-template>

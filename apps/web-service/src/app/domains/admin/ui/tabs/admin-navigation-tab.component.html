@@ -56,11 +56,31 @@
       </div>
     </div>
 
-    <div class="mt-6 grid gap-5 lg:grid-cols-2">
-      <label class="space-y-2">
-        <span class="text-sm font-semibold text-stone-800">Label</span>
-        <input [(ngModel)]="navigationItemForm.label" name="navLabel" placeholder="Projects" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
-      </label>
+    <div class="mt-6 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p class="text-sm font-semibold text-stone-950">Localized label</p>
+          <p class="mt-1 text-xs leading-5 text-stone-500">Switch between English and Dutch while keeping the same route path and visibility settings.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <button type="button" (click)="generateDutchDraft()" [disabled]="isGeneratingDutchDraft" class="rounded-full border border-emerald-300 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 disabled:opacity-60">{{ isGeneratingDutchDraft ? 'Generating…' : 'Generate Dutch draft' }}</button>
+          <div class="inline-flex rounded-full border border-stone-300 bg-white p-1">
+            <button type="button" (click)="setContentLocale('en')" [ngClass]="contentLocale === 'en' ? 'bg-stone-900 text-white' : 'text-stone-700'" class="rounded-full px-4 py-2 text-sm font-semibold">English · required</button>
+            <button type="button" (click)="setContentLocale('nl')" [ngClass]="contentLocale === 'nl' ? 'bg-stone-900 text-white' : 'text-stone-700'" class="rounded-full px-4 py-2 text-sm font-semibold">Dutch · optional</button>
+          </div>
+        </div>
+      </div>
+      <p *ngIf="translationMessage" class="mt-4 rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm text-stone-700">{{ translationMessage }}</p>
+
+      <div class="mt-4 grid gap-5 lg:grid-cols-2">
+        <label *ngIf="contentLocale === 'en'" class="space-y-2">
+          <span class="text-sm font-semibold text-stone-800">Label</span>
+          <input [(ngModel)]="navigationItemForm.label" name="navLabel" placeholder="Projects" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
+        </label>
+        <label *ngIf="contentLocale === 'nl'" class="space-y-2">
+          <span class="text-sm font-semibold text-stone-800">Label (NL)</span>
+          <input [(ngModel)]="navigationItemForm.labelNl" name="navigationItemLabelNl" placeholder="Projecten" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
+        </label>
 
       <label class="space-y-2">
         <span class="text-sm font-semibold text-stone-800">Route path or URL</span>
@@ -89,6 +109,7 @@
         </label>
       </div>
     </div>
+  </div>
 
     <div class="mt-auto flex flex-wrap items-center justify-end gap-3 pt-6">
       <button type="button" (click)="startNewNavigationItem()" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700">Reset form</button>

@@ -5,8 +5,11 @@ export interface AdminProfileForm {
   firstName: string;
   lastName: string;
   headline: string;
+  headlineNl: string;
   shortIntro: string;
+  shortIntroNl: string;
   longBio: string;
+  longBioNl: string;
   location: string;
   email: string;
   phone: string;
@@ -14,8 +17,10 @@ export interface AdminProfileForm {
   heroImageFileId: string | null;
   resumeFileId: string | null;
   ctaPrimaryLabel: string;
+  ctaPrimaryLabelNl: string;
   ctaPrimaryUrl: string;
   ctaSecondaryLabel: string;
+  ctaSecondaryLabelNl: string;
   ctaSecondaryUrl: string;
   isPublic: boolean;
   socialLinks: AdminSocialLink[];
@@ -26,8 +31,11 @@ export function createEmptyProfileForm(): AdminProfileForm {
     firstName: '',
     lastName: '',
     headline: '',
+    headlineNl: '',
     shortIntro: '',
+    shortIntroNl: '',
     longBio: '',
+    longBioNl: '',
     location: '',
     email: '',
     phone: '',
@@ -35,8 +43,10 @@ export function createEmptyProfileForm(): AdminProfileForm {
     heroImageFileId: null,
     resumeFileId: null,
     ctaPrimaryLabel: '',
+    ctaPrimaryLabelNl: '',
     ctaPrimaryUrl: '',
     ctaSecondaryLabel: '',
+    ctaSecondaryLabelNl: '',
     ctaSecondaryUrl: '',
     isPublic: true,
     socialLinks: []
@@ -49,8 +59,11 @@ export function toProfileForm(profile: AdminProfile): AdminProfileForm {
     firstName: profile.firstName,
     lastName: profile.lastName,
     headline: profile.headline,
+    headlineNl: profile.headlineNl ?? '',
     shortIntro: profile.shortIntro,
+    shortIntroNl: profile.shortIntroNl ?? '',
     longBio: profile.longBio ?? '',
+    longBioNl: profile.longBioNl ?? '',
     location: profile.location ?? '',
     email: profile.email ?? '',
     phone: profile.phone ?? '',
@@ -58,8 +71,10 @@ export function toProfileForm(profile: AdminProfile): AdminProfileForm {
     heroImageFileId: profile.heroImageFileId ?? null,
     resumeFileId: profile.resumeFileId ?? null,
     ctaPrimaryLabel: profile.ctaPrimaryLabel ?? '',
+    ctaPrimaryLabelNl: profile.ctaPrimaryLabelNl ?? '',
     ctaPrimaryUrl: profile.ctaPrimaryUrl ?? '',
     ctaSecondaryLabel: profile.ctaSecondaryLabel ?? '',
+    ctaSecondaryLabelNl: profile.ctaSecondaryLabelNl ?? '',
     ctaSecondaryUrl: profile.ctaSecondaryUrl ?? '',
     isPublic: profile.isPublic,
     socialLinks: profile.socialLinks.map((link) => ({ ...link })),

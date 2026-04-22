@@ -1,4 +1,4 @@
-<section *ngIf="isLoading" class="space-y-10" aria-label="Loading homepage content">
+<section *ngIf="isLoading" class="space-y-10" [attr.aria-label]="'pages.home.loading' | translate">
   <div class="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
     <div class="space-y-4">
       <app-ui-skeleton className="h-7 w-28 rounded-full"></app-ui-skeleton>
@@ -34,20 +34,20 @@
 
 <app-ui-empty-state
   *ngIf="!isLoading && errorMessage"
-  title="Could not load homepage content"
+  [title]="'pages.home.empty.loadTitle' | translate"
   [description]="errorMessage"
   [hasActions]="true"
   tone="error"
 >
   <div actions>
-    <app-ui-button appearance="secondary" type="button" (click)="loadHome()">Retry</app-ui-button>
+    <app-ui-button appearance="secondary" type="button" (click)="loadHome()">{{ 'common.actions.retry' | translate }}</app-ui-button>
   </div>
 </app-ui-empty-state>
 
 <app-ui-empty-state
   *ngIf="!isLoading && !errorMessage && !hasHomepageContent"
-  title="Homepage content is not ready yet"
-  description="Publish hero, featured, and profile content in the CMS to populate the public homepage."
+  [title]="'pages.home.empty.notReadyTitle' | translate"
+  [description]="'pages.home.empty.notReadyDescription' | translate"
 ></app-ui-empty-state>
 
 <div *ngIf="!isLoading && !errorMessage && hasHomepageContent" class="space-y-14 lg:space-y-16">

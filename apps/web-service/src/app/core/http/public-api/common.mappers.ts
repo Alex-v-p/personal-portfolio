@@ -1,3 +1,4 @@
+import { AppLocale } from '@core/i18n/locales';
 import { ResolvedMedia } from '@domains/media/model/resolved-media.model';
 
 import { MediaApi } from './common.contracts';
@@ -18,7 +19,7 @@ export function normalizeMedia(media: MediaApi | null | undefined): ResolvedMedi
   };
 }
 
-export function formatDate(value: string | null | undefined): string {
+export function formatDate(value: string | null | undefined, locale: AppLocale = 'en'): string {
   if (!value) {
     return '';
   }
@@ -28,27 +29,43 @@ export function formatDate(value: string | null | undefined): string {
     return value;
   }
 
-  return parsed.toLocaleDateString('en-GB', {
+  return parsed.toLocaleDateString(resolveDateLocale(locale), {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
   });
 }
 
-export function formatPeriod(startDate: string, endDate?: string | null, isCurrent?: boolean): string {
-  const start = formatMonthYear(startDate);
-  const end = isCurrent ? 'Present' : endDate ? formatMonthYear(endDate) : 'Present';
+export function formatPeriod(startDate: string, endDate: string | null | undefined, locale: AppLocale, isCurrent?: boolean): string {
+  const start = formatMonthYear(startDate, locale);
+  const end = isCurrent ? presentLabel(locale) : endDate ? formatMonthYear(endDate, locale) : presentLabel(locale);
   return `${start} - ${end}`;
 }
 
-export function formatMonthYear(value: string): string {
+export function formatMonthYear(value: string, locale: AppLocale = 'en'): string {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) {
     return value;
   }
 
-  return parsed.toLocaleDateString('en-GB', {
+  return parsed.toLocaleDateString(resolveDateLocale(locale), {
     month: 'short',
     year: 'numeric',
   });
+}
+
+export function readingTimeLabel(readingTimeMinutes: number, locale: AppLocale): string {
+  if (readingTimeMinutes <= 0) {
+    return locale === 'nl' ? 'Concept' : 'Draft';
+  }
+
+  return locale === 'nl' ? `${readingTimeMinutes} min leestijd` : `${readingTimeMinutes} min read`;
+}
+
+export function presentLabel(locale: AppLocale): string {
+  return locale === 'nl' ? 'Nu' : 'Present';
+}
+
+function resolveDateLocale(locale: AppLocale): string {
+  return locale === 'nl' ? 'nl-BE' : 'en-GB';
 }

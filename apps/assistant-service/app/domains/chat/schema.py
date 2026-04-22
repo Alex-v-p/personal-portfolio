@@ -33,6 +33,7 @@ class ChatRequest(ApiSchema):
     site_session_id: str | None = Field(default=None, max_length=255, validation_alias=AliasChoices('site_session_id', 'siteSessionId'))
     visitor_id: str | None = Field(default=None, max_length=255, validation_alias=AliasChoices('visitor_id', 'visitorId'))
     page_path: str | None = Field(default=None, max_length=255, validation_alias=AliasChoices('page_path', 'pagePath'))
+    locale: str | None = Field(default=None, max_length=8)
 
 
 class ChatResponse(ApiSchema):
@@ -88,6 +89,7 @@ class KnowledgeStatusOut(ApiSchema):
     documents_by_source_type: dict[str, int] = Field(default_factory=dict, serialization_alias='documentsBySourceType')
     latest_updated_at: str | None = Field(default=None, serialization_alias='latestUpdatedAt')
 
+
 class AssistantHealthOut(ApiSchema):
     status: str
     mode: str
@@ -97,4 +99,3 @@ class AssistantHealthOut(ApiSchema):
     configured: bool
     detail: str
     checked_at: str = Field(serialization_alias='checkedAt')
-

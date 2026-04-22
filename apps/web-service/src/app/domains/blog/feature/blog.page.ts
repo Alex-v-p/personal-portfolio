@@ -1,8 +1,12 @@
 import { NgFor, NgIf } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { distinctUntilChanged } from 'rxjs/operators';
 import { finalize, take } from 'rxjs/operators';
 
+import { TranslatePipe } from '@core/i18n/translate.pipe';
+import { I18nService } from '@core/i18n/i18n.service';
 import { UiButtonComponent } from '@shared/components/button/ui-button.component';
 import { UiEmptyStateComponent } from '@shared/components/empty-state/ui-empty-state.component';
 import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.component';
@@ -18,12 +22,14 @@ interface CategoryFilterOption {
 @Component({
   selector: 'app-blog-page',
   standalone: true,
-  imports: [NgFor, NgIf, FormsModule, UiButtonComponent, UiEmptyStateComponent, UiSkeletonComponent, BlogCardComponent],
+  imports: [NgFor, NgIf, FormsModule, TranslatePipe, UiButtonComponent, UiEmptyStateComponent, UiSkeletonComponent, BlogCardComponent],
   templateUrl: './blog.page.html'
 })
 export class BlogPageComponent implements OnInit {
   private readonly blogApi = inject(PublicBlogApiService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private readonly i18n = inject(I18nService);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly pagerDots = [1, 2, 3];
 
@@ -35,7 +41,9 @@ export class BlogPageComponent implements OnInit {
   protected errorMessage = '';
 
   ngOnInit(): void {
-    this.loadPosts();
+    this.i18n.localeChanges$.pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.loadPosts();
+    });
   }
 
   protected loadPosts(): void {
@@ -57,7 +65,7 @@ export class BlogPageComponent implements OnInit {
         },
         error: () => {
           this.posts = [];
-          this.errorMessage = 'Blog posts could not be loaded from the portfolio API. Make sure the API or reverse proxy is running.';
+          this.errorMessage = this.i18n.translate('pages.blog.errors.load');
         }
       });
   }
@@ -84,10 +92,6 @@ export class BlogPageComponent implements OnInit {
     return this.selectedCategories.includes(category);
   }
 
-  protected clearSearch(): void {
-    this.searchQuery = '';
-  }
-
   protected resetFilters(): void {
     this.searchQuery = '';
     this.selectedCategories = [];
@@ -111,13 +115,9 @@ export class BlogPageComponent implements OnInit {
       }));
   }
 
-  protected get hasActiveFilters(): boolean {
-    return !!this.searchQuery.trim() || this.selectedCategories.length > 0;
-  }
-
   protected get categoryFilterLabel(): string {
     if (!this.selectedCategories.length) {
-      return 'All topics';
+      return this.i18n.translate('pages.blog.filters.allTopics');
     }
 
     if (this.selectedCategories.length === 1) {
@@ -128,7 +128,7 @@ export class BlogPageComponent implements OnInit {
       return this.selectedCategories.join(', ');
     }
 
-    return `${this.selectedCategories.length} topics selected`;
+    return this.i18n.translate('pages.blog.filters.selectedCount', { count: this.selectedCategories.length });
   }
 
   protected get filteredPosts(): BlogPostSummary[] {

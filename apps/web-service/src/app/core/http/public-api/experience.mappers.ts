@@ -1,17 +1,18 @@
+import { AppLocale } from '@core/i18n/locales';
 import { Experience } from '@domains/experience/model/experience.model';
 
 import { formatPeriod, normalizeMedia } from './common.mappers';
 import { ExperienceApi } from './experience.contracts';
 
-export function normalizeExperienceList(items: ExperienceApi[] | null | undefined): Experience[] {
+export function normalizeExperienceList(items: ExperienceApi[] | null | undefined, locale: AppLocale): Experience[] {
   if (!Array.isArray(items)) {
     return [];
   }
 
-  return items.map((item) => normalizeExperience(item));
+  return items.map((item) => normalizeExperience(item, locale));
 }
 
-export function normalizeExperience(item: ExperienceApi): Experience {
+export function normalizeExperience(item: ExperienceApi, locale: AppLocale): Experience {
   const title = item.roleTitle;
   const organization = item.organizationName;
   const location = item.location ?? '';
@@ -27,7 +28,7 @@ export function normalizeExperience(item: ExperienceApi): Experience {
     startDate: item.startDate,
     endDate: item.endDate ?? null,
     isCurrent: item.isCurrent,
-    period: formatPeriod(item.startDate, item.endDate, item.isCurrent),
+    period: formatPeriod(item.startDate, item.endDate, locale, item.isCurrent),
     summary: item.summary,
     descriptionMarkdown: item.descriptionMarkdown ?? undefined,
     logoFileId: item.logoFileId ?? null,

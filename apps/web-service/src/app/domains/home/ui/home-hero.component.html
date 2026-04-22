@@ -9,7 +9,7 @@
           <img
             *ngIf="profile.avatarUrl; else heroIdentityFallback"
             [src]="profile.avatarUrl"
-            [alt]="profile.name || 'Profile avatar'"
+            [alt]="profile.name || ('common.images.profileAvatar' | translate)"
             class="h-14 w-14 rounded-full border border-stone-300 object-cover shadow-sm"
           />
           <ng-template #heroIdentityFallback>
@@ -40,7 +40,7 @@
     </div>
 
     <div class="space-y-3">
-      <p class="text-sm font-semibold ui-text-muted">My Core Skills:</p>
+      <p class="text-sm font-semibold ui-text-muted">{{ 'pages.home.hero.coreSkills' | translate }}</p>
       <div class="flex flex-wrap gap-2">
         <app-ui-chip *ngFor="let skill of profile.skills">
           {{ skill }}
@@ -75,7 +75,7 @@
         <img
           *ngIf="profile.heroImageUrl || profile.avatarUrl; else heroFallback"
           [src]="profile.heroImageUrl || profile.avatarUrl"
-          [alt]="profile.name || 'Profile image'"
+          [alt]="profile.name || ('common.images.profileImage' | translate)"
           class="absolute inset-0 h-full w-full object-cover rounded-[0.35rem]"
         />
 
@@ -110,8 +110,8 @@
         target="_blank"
         rel="noreferrer noopener"
         class="ui-pill flex h-11 min-w-11 items-center justify-center rounded-md px-3 text-xs"
-        aria-label="Open CV"
-        title="CV"
+        [attr.aria-label]="'pages.home.hero.openCv' | translate"
+        [attr.title]="'pages.home.hero.cvShort' | translate"
       >
         CV
       </a>

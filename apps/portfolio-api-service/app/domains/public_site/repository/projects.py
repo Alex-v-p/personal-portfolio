@@ -49,14 +49,19 @@ class PublicProjectsRepositoryMixin:
             [link for link in project.skill_links if link.skill is not None],
             key=lambda item: (item.skill.sort_order, item.skill.name.lower()),
         )
+        title = self._localized(project, 'title') or project.title
+        teaser = self._localized(project, 'teaser') or project.teaser
+        summary = self._localized(project, 'summary') or project.summary
+        duration_label = self._localized(project, 'duration_label') or project.duration_label
+        status = self._localized(project, 'status') or project.status
         return ProjectSummaryOut(
             id=str(project.id),
             slug=project.slug,
-            title=project.title,
-            teaser=project.teaser,
-            summary=project.summary,
+            title=title,
+            teaser=teaser,
+            summary=summary,
             cover_image_file_id=str(project.cover_image_file_id) if project.cover_image_file_id else None,
-            cover_image=self._map_media(project.cover_image_file, alt=project.title),
+            cover_image=self._map_media(project.cover_image_file, alt=title),
             github_url=project.github_url,
             github_repo_owner=project.github_repo_owner,
             github_repo_name=project.github_repo_name,
@@ -64,8 +69,8 @@ class PublicProjectsRepositoryMixin:
             company_name=project.company_name,
             started_on=project.started_on.isoformat() if project.started_on else None,
             ended_on=project.ended_on.isoformat() if project.ended_on else None,
-            duration_label=project.duration_label,
-            status=project.status,
+            duration_label=duration_label,
+            status=status,
             state=project.state.value,
             is_featured=project.is_featured,
             sort_order=project.sort_order,
@@ -88,19 +93,20 @@ class PublicProjectsRepositoryMixin:
 
     def _map_project_detail(self, project: Project) -> ProjectDetailOut:
         summary = self._map_project_summary(project)
+        title = summary.title
         ordered_images = sorted(project.images, key=lambda item: (item.sort_order, str(item.id)))
         return ProjectDetailOut(
             **summary.model_dump(),
-            description_markdown=project.description_markdown,
+            description_markdown=self._localized(project, 'description_markdown') or project.description_markdown,
             images=[
                 ProjectImageOut(
                     id=str(image.id),
                     project_id=str(image.project_id),
                     image_file_id=str(image.image_file_id) if image.image_file_id else None,
-                    alt_text=image.alt_text,
+                    alt_text=self._localized(image, 'alt_text') or image.alt_text,
                     sort_order=image.sort_order,
                     is_cover=image.is_cover,
-                    image=self._map_media(image.image_file, alt=image.alt_text or project.title),
+                    image=self._map_media(image.image_file, alt=(self._localized(image, 'alt_text') or image.alt_text or title)),
                 )
                 for image in ordered_images
             ],

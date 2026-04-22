@@ -1,13 +1,17 @@
 export interface AdminSkillCategory {
   id: string;
   name: string;
+  nameNl?: string | null;
   description?: string | null;
+  descriptionNl?: string | null;
   sortOrder: number;
 }
 
 export interface AdminSkillCategoryUpsert {
   name: string;
+  nameNl?: string | null;
   description?: string | null;
+  descriptionNl?: string | null;
   sortOrder: number;
 }
 

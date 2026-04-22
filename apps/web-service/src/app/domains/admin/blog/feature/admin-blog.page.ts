@@ -81,16 +81,22 @@ export class AdminBlogPageComponent implements OnInit {
     const payload = {
       slug: this.blogPostForm.slug || null,
       title: this.blogPostForm.title,
+      titleNl: this.blogPostForm.titleNl || null,
       excerpt: this.blogPostForm.excerpt,
+      excerptNl: this.blogPostForm.excerptNl || null,
       contentMarkdown: this.blogPostForm.contentMarkdown,
+      contentMarkdownNl: this.blogPostForm.contentMarkdownNl || null,
       coverImageFileId: this.blogPostForm.coverImageFileId || null,
       coverImageAlt: this.blogPostForm.coverImageAlt || null,
+      coverImageAltNl: this.blogPostForm.coverImageAltNl || null,
       readingTimeMinutes: this.blogPostForm.readingTimeMinutes,
       status: this.blogPostForm.status,
       isFeatured: this.blogPostForm.isFeatured,
       publishedAt: this.blogPostForm.publishedAt || null,
       seoTitle: this.blogPostForm.seoTitle || null,
+      seoTitleNl: this.blogPostForm.seoTitleNl || null,
       seoDescription: this.blogPostForm.seoDescription || null,
+      seoDescriptionNl: this.blogPostForm.seoDescriptionNl || null,
       tagIds: [...this.blogPostForm.tagIds],
     };
 

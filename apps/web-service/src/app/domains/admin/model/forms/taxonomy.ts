@@ -3,7 +3,9 @@ import { AdminBlogTag, AdminSkillCategory, AdminSkillOption } from '@domains/adm
 export interface AdminSkillCategoryForm {
   id?: string | null;
   name: string;
+  nameNl: string;
   description: string;
+  descriptionNl: string;
   sortOrder: number;
 }
 
@@ -24,7 +26,7 @@ export interface AdminBlogTagForm {
 }
 
 export function createEmptySkillCategoryForm(): AdminSkillCategoryForm {
-  return { name: '', description: '', sortOrder: 0 };
+  return { name: '', nameNl: '', description: '', descriptionNl: '', sortOrder: 0 };
 }
 
 export function createEmptySkillForm(): AdminSkillForm {
@@ -36,7 +38,14 @@ export function createEmptyBlogTagForm(): AdminBlogTagForm {
 }
 
 export function toSkillCategoryForm(category: AdminSkillCategory): AdminSkillCategoryForm {
-  return { id: category.id, name: category.name, description: category.description ?? '', sortOrder: category.sortOrder };
+  return {
+    id: category.id,
+    name: category.name,
+    nameNl: category.nameNl ?? '',
+    description: category.description ?? '',
+    descriptionNl: category.descriptionNl ?? '',
+    sortOrder: category.sortOrder,
+  };
 }
 
 export function toSkillForm(skill: AdminSkillOption): AdminSkillForm {

@@ -33,17 +33,20 @@ class PublicExperienceRepositoryMixin:
 
     def _map_experience(self, item: Experience) -> ExperienceOut:
         ordered_skills = sorted([link.skill.name for link in item.skill_links if link.skill is not None])
+        role_title = self._localized(item, 'role_title') or item.role_title
+        summary = self._localized(item, 'summary') or item.summary
+        description_markdown = self._localized(item, 'description_markdown') or item.description_markdown
         return ExperienceOut(
             id=str(item.id),
             organization_name=item.organization_name,
-            role_title=item.role_title,
+            role_title=role_title,
             location=item.location,
             experience_type=item.experience_type,
             start_date=item.start_date.isoformat(),
             end_date=item.end_date.isoformat() if item.end_date else None,
             is_current=item.is_current,
-            summary=item.summary,
-            description_markdown=item.description_markdown,
+            summary=summary,
+            description_markdown=description_markdown,
             logo_file_id=str(item.logo_file_id) if item.logo_file_id else None,
             logo=self._map_media(item.logo_file, alt=item.organization_name),
             sort_order=item.sort_order,

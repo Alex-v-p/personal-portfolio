@@ -6,6 +6,7 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
+
 def test_chat_responds_with_retrieved_portfolio_content(tmp_path: Path) -> None:
     database_path = tmp_path / 'assistant-test.sqlite3'
     os.environ['DATABASE_URL'] = f'sqlite:///{database_path}'
@@ -33,7 +34,7 @@ def test_chat_responds_with_retrieved_portfolio_content(tmp_path: Path) -> None:
             canonical_url='/projects',
             content_markdown='Angular CMS with FastAPI and PostgreSQL.',
             content_platform='portfolio',
-            metadata_json={'skills': ['Angular', 'FastAPI']},
+            metadata_json={'skills': ['Angular', 'FastAPI'], 'locale': 'en'},
             created_at=now,
             updated_at=now,
         )
@@ -45,7 +46,7 @@ def test_chat_responds_with_retrieved_portfolio_content(tmp_path: Path) -> None:
                 chunk_index=0,
                 chunk_text='This project uses Angular on the frontend and FastAPI on the backend.',
                 embedding_vector=None,
-                metadata_json={'section': 'summary'},
+                metadata_json={'section': 'summary', 'locale': 'en'},
             )
         )
         session.commit()
@@ -53,13 +54,85 @@ def test_chat_responds_with_retrieved_portfolio_content(tmp_path: Path) -> None:
     from app.main import create_app
 
     with TestClient(create_app()) as client:
-        response = client.post('/api/chat/respond', json={'message': 'What does the portfolio use on the backend?'})
+        response = client.post('/api/chat/respond', json={'message': 'What does the portfolio use on the backend?', 'locale': 'en'})
         assert response.status_code == 200
         payload = response.json()
         assert payload['conversationId']
         assert 'FastAPI' in payload['message']
         assert payload['citations'][0]['title'] == 'Portfolio CMS Project'
+        assert payload['citations'][0]['canonicalUrl'] == '/en/projects'
 
+
+def test_chat_prefers_requested_locale_and_localizes_citations(tmp_path: Path) -> None:
+    database_path = tmp_path / 'assistant-locale.sqlite3'
+    os.environ['DATABASE_URL'] = f'sqlite:///{database_path}'
+    os.environ['ASSISTANT_PROVIDER_BACKEND'] = 'mock'
+
+    from app.core.config import get_settings
+    from app.db.models import Base, KnowledgeChunk, KnowledgeDocument, KnowledgeSourceType
+    from app.db.session import get_engine, get_session_factory
+
+    get_settings.cache_clear()
+    get_engine.cache_clear()
+    get_session_factory.cache_clear()
+
+    engine = get_engine()
+    Base.metadata.create_all(engine)
+
+    from sqlalchemy.orm import Session
+
+    now = datetime.now(timezone.utc)
+    with Session(engine) as session:
+        english_document = KnowledgeDocument(
+            source_type=KnowledgeSourceType.PROJECT,
+            source_id=None,
+            title='Portfolio CMS Project',
+            canonical_url='/projects',
+            content_markdown='Angular CMS with FastAPI and PostgreSQL.',
+            content_platform='portfolio',
+            metadata_json={'skills': ['Angular', 'FastAPI'], 'locale': 'en'},
+            created_at=now,
+            updated_at=now,
+        )
+        dutch_document = KnowledgeDocument(
+            source_type=KnowledgeSourceType.PROJECT,
+            source_id=None,
+            title='Portfolio CMS Project NL',
+            canonical_url='/projects',
+            content_markdown='Angular CMS met FastAPI en PostgreSQL.',
+            content_platform='portfolio',
+            metadata_json={'skills': ['Angular', 'FastAPI'], 'locale': 'nl'},
+            created_at=now,
+            updated_at=now,
+        )
+        session.add_all([english_document, dutch_document])
+        session.flush()
+        session.add_all([
+            KnowledgeChunk(
+                document_id=english_document.id,
+                chunk_index=0,
+                chunk_text='This project uses Angular on the frontend and FastAPI on the backend.',
+                embedding_vector=None,
+                metadata_json={'section': 'summary', 'locale': 'en'},
+            ),
+            KnowledgeChunk(
+                document_id=dutch_document.id,
+                chunk_index=0,
+                chunk_text='Dit project gebruikt Angular op de frontend en FastAPI op de backend.',
+                embedding_vector=None,
+                metadata_json={'section': 'summary', 'locale': 'nl'},
+            ),
+        ])
+        session.commit()
+
+    from app.main import create_app
+
+    with TestClient(create_app()) as client:
+        response = client.post('/api/chat/respond', json={'message': 'Wat gebruikt dit portfolio op de backend?', 'locale': 'nl', 'pagePath': '/nl/assistant'})
+        assert response.status_code == 200
+        payload = response.json()
+        assert payload['citations'][0]['canonicalUrl'] == '/nl/projects'
+        assert payload['citations'][0]['title'] == 'Portfolio CMS Project NL'
 
 
 def test_chat_is_rate_limited(tmp_path: Path) -> None:
@@ -131,7 +204,6 @@ def test_provider_daily_generation_cap_forces_fallback(tmp_path: Path, monkeypat
     assert "I couldn't find enough relevant indexed portfolio content" in second.json()['message']
 
 
-
 def test_chat_returns_async_task_when_redis_queue_is_available(tmp_path: Path, monkeypatch) -> None:
     database_path = tmp_path / 'assistant-async.sqlite3'
     os.environ['DATABASE_URL'] = f'sqlite:///{database_path}'
@@ -155,6 +227,7 @@ def test_chat_returns_async_task_when_redis_queue_is_available(tmp_path: Path, m
         def enqueue(self, task_type: str, payload: dict[str, object]) -> ChatTaskRecord:
             assert task_type == 'chat-response'
             assert payload['message'] == 'Tell me about the backend.'
+            assert payload['locale'] is None
             return ChatTaskRecord(task_id='chat-task-1', task_type=task_type, status='queued', submitted_at='2026-04-14T10:00:00+00:00')
 
     monkeypatch.setattr('app.api.routes.chat.get_chat_task_queue', lambda: FakeQueue())

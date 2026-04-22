@@ -113,9 +113,13 @@ def test_admin_can_create_update_and_delete_project(client: TestClient) -> None:
         headers=headers,
         json={
             'title': 'Admin created project',
+            'titleNl': 'Project aangemaakt in de CMS',
             'teaser': 'A project created from the admin CMS.',
+            'teaserNl': 'Een project aangemaakt vanuit de admin-CMS.',
             'summary': 'CMS project summary',
+            'summaryNl': 'CMS projectsamenvatting',
             'descriptionMarkdown': '## CMS body',
+            'descriptionMarkdownNl': '## CMS inhoud',
             'coverImageFileId': None,
             'githubUrl': 'https://github.com/shuzu/admin-created-project',
             'githubRepoOwner': 'shuzu',
@@ -125,7 +129,9 @@ def test_admin_can_create_update_and_delete_project(client: TestClient) -> None:
             'startedOn': '2026-01-01',
             'endedOn': None,
             'durationLabel': '2 weeks',
+            'durationLabelNl': '2 weken',
             'status': 'In progress',
+            'statusNl': 'Bezig',
             'state': 'published',
             'isFeatured': False,
             'sortOrder': 88,
@@ -136,6 +142,7 @@ def test_admin_can_create_update_and_delete_project(client: TestClient) -> None:
     assert create_response.status_code == 201
     created = create_response.json()
     assert created['slug'] == 'admin-created-project'
+    assert created['titleNl'] == 'Project aangemaakt in de CMS'
     assert created['skillIds'] == [skill_id]
 
     update_response = client.put(
@@ -144,9 +151,13 @@ def test_admin_can_create_update_and_delete_project(client: TestClient) -> None:
         json={
             'slug': 'admin-created-project-updated',
             'title': 'Admin created project updated',
+            'titleNl': 'Project bijgewerkt in de CMS',
             'teaser': 'Updated teaser',
+            'teaserNl': 'Bijgewerkte teaser',
             'summary': 'Updated summary',
+            'summaryNl': 'Bijgewerkte samenvatting',
             'descriptionMarkdown': 'Updated markdown',
+            'descriptionMarkdownNl': 'Bijgewerkte markdown',
             'coverImageFileId': None,
             'githubUrl': 'https://github.com/shuzu/admin-created-project-updated',
             'githubRepoOwner': 'shuzu',
@@ -156,7 +167,9 @@ def test_admin_can_create_update_and_delete_project(client: TestClient) -> None:
             'startedOn': '2026-01-01',
             'endedOn': '2026-01-20',
             'durationLabel': '3 weeks',
+            'durationLabelNl': '3 weken',
             'status': 'Completed',
+            'statusNl': 'Voltooid',
             'state': 'completed',
             'isFeatured': True,
             'sortOrder': 77,
@@ -167,6 +180,7 @@ def test_admin_can_create_update_and_delete_project(client: TestClient) -> None:
     assert update_response.status_code == 200
     updated = update_response.json()
     assert updated['slug'] == 'admin-created-project-updated'
+    assert updated['titleNl'] == 'Project bijgewerkt in de CMS'
     assert updated['isFeatured'] is True
 
     delete_response = client.delete(f"/api/admin/projects/{created['id']}", headers=headers)
@@ -213,6 +227,8 @@ def test_admin_can_manage_blog_posts(client: TestClient) -> None:
     assert create_response.status_code == 201
     created = create_response.json()
     assert created['slug'] == 'cms-launch-notes'
+    assert created['titleNl'] is None
+    assert created['coverImageAltNl'] is None
     assert 'Admin CMS' in created['tagNames']
     assert first_tag_id in created['tagIds']
 
@@ -230,22 +246,29 @@ def test_admin_can_manage_blog_posts(client: TestClient) -> None:
         json={
             'slug': 'cms-launch-notes-published',
             'title': 'CMS launch notes published',
+            'titleNl': 'CMS lanceringsnotities gepubliceerd',
             'excerpt': 'Published excerpt',
+            'excerptNl': 'Gepubliceerd uittreksel',
             'contentMarkdown': '# Published',
+            'contentMarkdownNl': '# Gepubliceerd',
             'coverImageFileId': None,
             'coverImageAlt': 'Published article cover',
+            'coverImageAltNl': 'Omslagafbeelding van het gepubliceerde artikel',
             'readingTimeMinutes': 5,
             'status': 'published',
             'isFeatured': True,
             'publishedAt': '2026-02-01T10:00:00+00:00',
             'seoTitle': 'Published CMS launch notes',
+            'seoTitleNl': 'Gepubliceerde CMS lanceringsnotities',
             'seoDescription': 'Published admin-created post',
+            'seoDescriptionNl': 'Gepubliceerde beheerpost',
             'tagIds': [first_tag_id, third_tag_id],
         },
     )
     assert update_response.status_code == 200
     updated = update_response.json()
     assert updated['status'] == 'published'
+    assert updated['titleNl'] == 'CMS lanceringsnotities gepubliceerd'
     assert updated['isFeatured'] is True
     assert 'Admin FastAPI' in updated['tagNames']
 
@@ -256,7 +279,7 @@ def test_admin_can_manage_taxonomy_experience_navigation_and_stats(client: TestC
     category_response = client.post(
         '/api/admin/skill-categories',
         headers=headers,
-        json={'name': 'Backend', 'description': 'Backend skills', 'sortOrder': 25},
+        json={'name': 'Backend', 'nameNl': 'Backend', 'description': 'Backend skills', 'descriptionNl': 'Backendvaardigheden', 'sortOrder': 25},
     )
     assert category_response.status_code == 201
     category_id = category_response.json()['id']
@@ -282,19 +305,23 @@ def test_admin_can_manage_taxonomy_experience_navigation_and_stats(client: TestC
         json={
             'organizationName': 'OpenAI',
             'roleTitle': 'Builder',
+            'roleTitleNl': 'Bouwer',
             'location': 'Remote',
             'experienceType': 'work',
             'startDate': '2026-01-01',
             'endDate': None,
             'isCurrent': True,
             'summary': 'Building portfolio CMS features',
+            'summaryNl': 'Portfolio CMS-functies bouwen',
             'descriptionMarkdown': 'Experience body',
+            'descriptionMarkdownNl': 'Ervaringsinhoud',
             'logoFileId': None,
             'sortOrder': 5,
             'skillIds': [skill_id],
         },
     )
     assert experience_response.status_code == 201
+    assert experience_response.json()['roleTitleNl'] == 'Bouwer'
     assert experience_response.json()['skills'][0]['id'] == skill_id
 
     navigation_response = client.post(
@@ -302,6 +329,7 @@ def test_admin_can_manage_taxonomy_experience_navigation_and_stats(client: TestC
         headers=headers,
         json={
             'label': 'Admin',
+            'labelNl': 'Beheer',
             'routePath': '/admin',
             'isExternal': False,
             'sortOrder': 99,
@@ -309,6 +337,7 @@ def test_admin_can_manage_taxonomy_experience_navigation_and_stats(client: TestC
         },
     )
     assert navigation_response.status_code == 201
+    assert navigation_response.json()['labelNl'] == 'Beheer'
     assert navigation_response.json()['routePath'] == '/admin'
 
     snapshot_response = client.post(
@@ -359,8 +388,11 @@ def test_admin_can_update_profile(client: TestClient) -> None:
             'firstName': 'Alex',
             'lastName': 'van Poppel',
             'headline': 'Software Engineer & CMS owner',
+            'headlineNl': 'Software Engineer & CMS-beheerder',
             'shortIntro': 'Updated intro from the admin profile editor.',
+            'shortIntroNl': 'Bijgewerkte intro vanuit de profiel-editor.',
             'longBio': 'Longer bio updated through the admin CMS.',
+            'longBioNl': 'Langere bio bijgewerkt via de admin-CMS.',
             'location': 'Belgium',
             'email': 'hello@shuzu.dev',
             'phone': profile['phone'],
@@ -368,8 +400,10 @@ def test_admin_can_update_profile(client: TestClient) -> None:
             'heroImageFileId': profile['heroImageFileId'],
             'resumeFileId': profile['resumeFileId'],
             'ctaPrimaryLabel': 'View resume',
+            'ctaPrimaryLabelNl': 'Bekijk cv',
             'ctaPrimaryUrl': 'media://resume',
             'ctaSecondaryLabel': 'Email me',
+            'ctaSecondaryLabelNl': 'Mail mij',
             'ctaSecondaryUrl': 'mailto:hello@shuzu.dev',
             'isPublic': True,
             'socialLinks': [
@@ -396,6 +430,8 @@ def test_admin_can_update_profile(client: TestClient) -> None:
     assert update_response.status_code == 200
     updated = update_response.json()
     assert updated['headline'] == 'Software Engineer & CMS owner'
+    assert updated['headlineNl'] == 'Software Engineer & CMS-beheerder'
+    assert updated['ctaPrimaryLabelNl'] == 'Bekijk cv'
     assert len(updated['socialLinks']) == 2
 
 

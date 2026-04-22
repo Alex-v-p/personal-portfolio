@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { take } from 'rxjs/operators';
 
 import { AdminBlogPost, AdminMediaFile, AdminReferenceData } from '@domains/admin/model/admin.model';
 import { renderMarkdownToHtml } from '@shared/utils/markdown.util';
@@ -17,6 +18,9 @@ import {
 import { AdminBlogPostForm, ScopedUploadForm } from '@domains/admin/model/forms/index';
 import { formatTagSummary, isImageMedia } from '@domains/admin/shell/state/admin-page.display.utils';
 import { matchesSearch, slugify, toggleSelection } from '@domains/admin/shell/state/admin-page.utils';
+import { AdminOverviewApiService } from '@domains/admin/data/api/admin-overview-api.service';
+
+import { AdminLocalizedContentTabBase } from './admin-localized-content-tab.base';
 
 @Component({
   selector: 'app-admin-blog-tab',
@@ -24,8 +28,9 @@ import { matchesSearch, slugify, toggleSelection } from '@domains/admin/shell/st
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-blog-tab.component.html'
 })
-export class AdminBlogTabComponent implements OnChanges {
+export class AdminBlogTabComponent extends AdminLocalizedContentTabBase implements OnChanges {
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private readonly overviewApi = inject(AdminOverviewApiService);
 
   @ViewChild('blogMarkdownEditor') private blogMarkdownEditor?: ElementRef<HTMLTextAreaElement>;
 
@@ -51,19 +56,38 @@ export class AdminBlogTabComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['selectedBlogPostId']) {
       this.blogMediaSearchTerm = '';
+      this.resetLocalizedEditingState();
     }
   }
 
+  protected get activeContentLocaleLabel(): string {
+    return this.contentLocale === 'nl' ? 'Dutch' : 'English';
+  }
+
+  protected get activeBlogContentMarkdown(): string {
+    return this.contentLocale === 'nl'
+      ? (this.blogPostForm.contentMarkdownNl || '')
+      : (this.blogPostForm.contentMarkdown || '');
+  }
+
+  protected set activeBlogContentMarkdown(value: string) {
+    if (this.contentLocale === 'nl') {
+      this.blogPostForm.contentMarkdownNl = value;
+      return;
+    }
+    this.blogPostForm.contentMarkdown = value;
+  }
+
   protected get renderedBlogContentPreview(): string {
-    return renderMarkdownToHtml(this.blogPostForm.contentMarkdown || '');
+    return renderMarkdownToHtml(this.activeBlogContentMarkdown);
   }
 
   protected get blogMarkdownWordCount(): number {
-    return countMarkdownWords(this.blogPostForm.contentMarkdown);
+    return countMarkdownWords(this.activeBlogContentMarkdown);
   }
 
   protected get suggestedBlogReadingTimeMinutes(): number {
-    return suggestReadingTimeMinutes(this.blogPostForm.contentMarkdown);
+    return suggestReadingTimeMinutes(this.activeBlogContentMarkdown);
   }
 
   protected get filteredBlogImageMediaFiles(): AdminMediaFile[] {
@@ -87,6 +111,7 @@ export class AdminBlogTabComponent implements OnChanges {
 
   protected startNewBlogPost(): void {
     this.newBlogPostStarted.emit();
+    this.resetLocalizedEditingState();
   }
 
   protected saveBlogPost(): void {
@@ -141,6 +166,39 @@ export class AdminBlogTabComponent implements OnChanges {
     this.updateBlogMarkdownSelection((content, selection) => insertImageTemplate(content, selection));
   }
 
+  protected generateDutchDraft(): void {
+    this.beginDutchDraftGeneration();
+    this.overviewApi.generateTranslationDraft({
+      sourceLocale: 'en',
+      targetLocale: 'nl',
+      entityType: 'blog-post',
+      context: 'Translate a technical portfolio blog post. Preserve markdown formatting, code blocks, links, alt text intent, and SEO tone.',
+      fields: {
+        titleNl: this.blogPostForm.title,
+        excerptNl: this.blogPostForm.excerpt,
+        contentMarkdownNl: this.blogPostForm.contentMarkdown,
+        coverImageAltNl: this.blogPostForm.coverImageAlt,
+        seoTitleNl: this.blogPostForm.seoTitle,
+        seoDescriptionNl: this.blogPostForm.seoDescription,
+      },
+    }).pipe(take(1)).subscribe({
+      next: (response) => {
+        this.applyTranslatedFields(this.blogPostForm, response.translatedFields, {
+          titleNl: 'titleNl',
+          excerptNl: 'excerptNl',
+          contentMarkdownNl: 'contentMarkdownNl',
+          coverImageAltNl: 'coverImageAltNl',
+          seoTitleNl: 'seoTitleNl',
+          seoDescriptionNl: 'seoDescriptionNl',
+        });
+        this.finishDutchDraftGeneration(response, 'Dutch draft generated from the English blog post.');
+      },
+      error: (error) => {
+        this.failDutchDraftGeneration(error, 'Generating the Dutch blog draft failed.');
+      },
+    });
+  }
+
   public insertImageFromMedia(media: AdminMediaFile): void {
     const url = media.resolvedAsset?.url ?? media.publicUrl ?? null;
     if (!url) {
@@ -150,7 +208,7 @@ export class AdminBlogTabComponent implements OnChanges {
 
     const markdown = this.buildBlogImageMarkdown(media, url);
     this.updateBlogMarkdownSelection((content, selection) => insertSnippet(content, selection, `\n${markdown}\n`));
-    this.statusMessageSet.emit('Image markdown inserted into the blog post.');
+    this.statusMessageSet.emit(`Image markdown inserted into the ${this.activeContentLocaleLabel.toLowerCase()} article body.`);
   }
 
   protected insertBlogImageFromMedia(media: AdminMediaFile): void {
@@ -161,14 +219,14 @@ export class AdminBlogTabComponent implements OnChanges {
     updater: (content: string, selection: { start: number; end: number }) => TextSelectionUpdate,
   ): void {
     const textarea = this.blogMarkdownEditor?.nativeElement;
-    const content = this.blogPostForm.contentMarkdown || '';
+    const content = this.activeBlogContentMarkdown;
     const selection = {
       start: textarea?.selectionStart ?? content.length,
       end: textarea?.selectionEnd ?? content.length,
     };
     const nextState = updater(content, selection);
 
-    this.blogPostForm.contentMarkdown = nextState.value;
+    this.activeBlogContentMarkdown = nextState.value;
     this.changeDetectorRef.detectChanges();
 
     if (!textarea) {

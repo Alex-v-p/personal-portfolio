@@ -9,6 +9,7 @@ from app.domains.retrieval.service.embedding import RetrievalEmbeddingClient
 from app.domains.retrieval.service.intent import infer_intent
 from app.domains.retrieval.service.ranking import build_retrieved_chunk, filter_ranked_results, score_chunk
 from app.domains.retrieval.service.text import is_smalltalk, normalize_text, tokenize
+from app.services.localization import detect_assistant_locale
 
 
 class KnowledgeRetrievalService:
@@ -17,7 +18,7 @@ class KnowledgeRetrievalService:
         self.settings = get_settings()
         self.embedding_client = RetrievalEmbeddingClient()
 
-    def search(self, query: str, *, page_path: str | None = None):
+    def search(self, query: str, *, page_path: str | None = None, locale: str | None = None):
         normalized_query = normalize_text(query)
         if is_smalltalk(normalized_query):
             return []
@@ -27,6 +28,7 @@ class KnowledgeRetrievalService:
         if not tokens and query_vector is None:
             return []
 
+        requested_locale = detect_assistant_locale(locale=locale, page_path=page_path)
         intent = infer_intent(query=query, page_path=page_path)
         documents = self.session.scalars(
             select(KnowledgeDocument).options(selectinload(KnowledgeDocument.chunks))
@@ -45,6 +47,7 @@ class KnowledgeRetrievalService:
                     intent=intent,
                     page_path=page_path,
                     source_type=source_type,
+                    requested_locale=requested_locale,
                 )
                 if score <= 0:
                     continue

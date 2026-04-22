@@ -4,6 +4,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, take } from 'rxjs/operators';
 
+import { AppLocale, SUPPORTED_LOCALES } from '@core/i18n/locales';
+import { I18nService } from '@core/i18n/i18n.service';
+import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { Profile } from '@domains/profile/model/profile.model';
 import { SiteShellData } from '@domains/profile/model/site-shell.model';
 import { PublicProfileApiService } from '@domains/profile/data/profile-api.service';
@@ -12,11 +15,12 @@ import { AssistantApiService } from '@domains/assistant/data/assistant-api.servi
 import { SiteTrackingService } from '@domains/site-activity/data/site-tracking.service';
 import { createEmptyProfile } from '@domains/profile/lib/profile-view.util';
 import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.component';
+import { SeoService } from '@shared/services/seo.service';
 
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [AsyncPipe, NgClass, NgFor, NgIf, RouterOutlet, RouterLink, RouterLinkActive, AssistantPanelComponent, UiSkeletonComponent],
+  imports: [AsyncPipe, NgClass, NgFor, NgIf, RouterOutlet, RouterLink, RouterLinkActive, AssistantPanelComponent, UiSkeletonComponent, TranslatePipe],
   templateUrl: './app-shell.component.html'
 })
 export class AppShellComponent implements OnInit {
@@ -26,7 +30,10 @@ export class AppShellComponent implements OnInit {
   private readonly siteTracking = inject(SiteTrackingService);
   private readonly assistant = inject(AssistantApiService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly seo = inject(SeoService);
+  private readonly i18n = inject(I18nService);
 
+  protected readonly locales = SUPPORTED_LOCALES;
   protected profile: Profile = createEmptyProfile();
   protected shellData: SiteShellData | null = null;
   protected isAdminRoute = false;
@@ -54,6 +61,8 @@ export class AppShellComponent implements OnInit {
       this.siteTracking.trackPageView(this.router.url);
     }
 
+    this.applyRouteSeo(this.router.url);
+
     this.router.events
       .pipe(
         filter(
@@ -73,6 +82,9 @@ export class AppShellComponent implements OnInit {
 
         if (event instanceof NavigationEnd) {
           this.isAdminRoute = event.urlAfterRedirects.startsWith('/admin');
+          void this.i18n.syncLocaleFromUrl(event.urlAfterRedirects);
+          this.rebuildNavigationLinks();
+          this.applyRouteSeo(event.urlAfterRedirects);
           if (!this.isAdminRoute) {
             this.siteTracking.trackPageView(event.urlAfterRedirects);
           }
@@ -88,15 +100,14 @@ export class AppShellComponent implements OnInit {
       next: (shell) => {
         this.shellData = shell;
         this.profile = shell.profile;
-        this.quickLinks = shell.navigation.filter((item) => item.isVisible).map((item) => ({
-          label: item.label,
-          path: item.routePath,
-          isExternal: item.isExternal,
-        }));
-        this.footerLinks = [...this.quickLinks];
+        this.rebuildNavigationLinks();
         this.changeDetectorRef.detectChanges();
       }
     });
+  }
+
+  protected get currentLocale(): AppLocale {
+    return this.i18n.currentLocale();
   }
 
   protected get showRouteSkeleton(): boolean {
@@ -125,7 +136,7 @@ export class AppShellComponent implements OnInit {
     const items: Array<{ label: string; href: string }> = [];
 
     if (this.profile.resumeUrl) {
-      items.push({ label: 'Resume', href: this.profile.resumeUrl });
+      items.push({ label: this.i18n.translate('shell.resources.resume'), href: this.profile.resumeUrl });
     }
 
     for (const link of this.profile.socialLinks ?? []) {
@@ -166,6 +177,35 @@ export class AppShellComponent implements OnInit {
     this.isAssistantOpen = false;
   }
 
+  protected async switchLocale(locale: AppLocale): Promise<void> {
+    if (locale === this.currentLocale || this.isAdminRoute) {
+      return;
+    }
+
+    await this.i18n.setLocale(locale);
+    const targetUrl = this.i18n.prefixPath(this.router.url, locale);
+    await this.router.navigateByUrl(targetUrl);
+  }
+
+  protected localeToggleClasses(locale: AppLocale): string {
+    const active = locale === this.currentLocale;
+
+    return [
+      'inline-flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200',
+      active
+        ? 'bg-[var(--ui-accent)] text-white shadow-sm'
+        : 'bg-transparent text-[var(--ui-text-muted)] hover:bg-white hover:text-[var(--ui-text)]'
+    ].join(' ');
+  }
+
+  protected localeFlag(locale: AppLocale): string {
+    return locale === 'en' ? '🇬🇧' : '🇧🇪';
+  }
+
+  protected localeAriaLabel(locale: AppLocale): string {
+    return locale === 'en' ? 'Switch to English' : 'Schakel naar Nederlands';
+  }
+
   protected get assistantButtonClasses(): string {
     const visibleState = this.shellChrome.assistantVisible ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0';
 
@@ -200,5 +240,59 @@ export class AppShellComponent implements OnInit {
     this.shellChrome.headerVisible = true;
     this.shellChrome.assistantVisible = true;
     this.lastScrollY = Math.max(currentScrollY, 0);
+  }
+
+  private rebuildNavigationLinks(): void {
+    const navigation = this.shellData?.navigation.filter((item) => item.isVisible) ?? [];
+
+    this.quickLinks = navigation.map((item) => ({
+      label: item.isExternal ? item.label : this.translateNavigationLabel(item.routePath, item.label),
+      path: item.isExternal ? item.routePath : this.i18n.prefixPath(item.routePath),
+      isExternal: item.isExternal,
+    }));
+    this.footerLinks = [...this.quickLinks];
+  }
+
+  private translateNavigationLabel(routePath: string, fallback: string): string {
+    const lookup: Record<string, string> = {
+      '/': 'navigation.home',
+      '/projects': 'navigation.projects',
+      '/blog': 'navigation.blog',
+      '/contact': 'navigation.contact',
+      '/stats': 'navigation.stats',
+      '/assistant': 'navigation.assistant',
+    };
+
+    const translationKey = lookup[routePath];
+    return translationKey ? this.i18n.translate(translationKey) : fallback;
+  }
+
+  private applyRouteSeo(url: string): void {
+    const snapshot = this.router.routerState.snapshot.root;
+    let current = snapshot;
+
+    while (current.firstChild) {
+      current = current.firstChild;
+    }
+
+    const seoData = current.data?.['seo'] as {
+      title?: string;
+      titleKey?: string;
+      description?: string;
+      descriptionKey?: string;
+      keywords?: string[];
+      keywordsKey?: string;
+      type?: 'website' | 'article' | 'profile';
+      noIndex?: boolean;
+    } | undefined;
+
+    if (!seoData) {
+      return;
+    }
+
+    this.seo.updatePage({
+      ...seoData,
+      path: url,
+    });
   }
 }

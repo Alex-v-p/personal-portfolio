@@ -1,6 +1,7 @@
 import { NgFor, NgIf } from '@angular/common';
 import { Component, Input } from '@angular/core';
 
+import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { UiCardComponent } from '@shared/components/card/ui-card.component';
 import { UiChipComponent } from '@shared/components/chip/ui-chip.component';
 import { HighlightChipComponent } from '@shared/components/highlight-chip/highlight-chip.component';
@@ -13,7 +14,7 @@ import { ProjectCardComponent } from '@domains/projects/ui/project-card.componen
 @Component({
   selector: 'app-home-featured-section',
   standalone: true,
-  imports: [NgFor, NgIf, UiCardComponent, UiChipComponent, HighlightChipComponent, UiLinkButtonComponent, UiSectionTitleComponent, ProjectCardComponent],
+  imports: [NgFor, NgIf, TranslatePipe, UiCardComponent, UiChipComponent, HighlightChipComponent, UiLinkButtonComponent, UiSectionTitleComponent, ProjectCardComponent],
   templateUrl: './home-featured.component.html'
 })
 export class HomeFeaturedSectionComponent {

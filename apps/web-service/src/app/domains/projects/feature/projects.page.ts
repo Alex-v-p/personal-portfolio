@@ -1,8 +1,12 @@
 import { NgFor, NgIf } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { distinctUntilChanged } from 'rxjs/operators';
 import { finalize, take } from 'rxjs/operators';
 
+import { I18nService } from '@core/i18n/i18n.service';
+import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { PublicProjectsApiService } from '@domains/projects/data/projects-api.service';
 import { UiButtonComponent } from '@shared/components/button/ui-button.component';
 import { UiEmptyStateComponent } from '@shared/components/empty-state/ui-empty-state.component';
@@ -18,12 +22,14 @@ interface SkillFilterOption {
 @Component({
   selector: 'app-projects-page',
   standalone: true,
-  imports: [NgFor, NgIf, FormsModule, UiButtonComponent, UiEmptyStateComponent, UiSkeletonComponent, ProjectCardComponent],
+  imports: [NgFor, NgIf, FormsModule, TranslatePipe, UiButtonComponent, UiEmptyStateComponent, UiSkeletonComponent, ProjectCardComponent],
   templateUrl: './projects.page.html'
 })
 export class ProjectsPageComponent implements OnInit {
   private readonly projectsApi = inject(PublicProjectsApiService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private readonly i18n = inject(I18nService);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected projects: ProjectSummary[] = [];
   protected searchQuery = '';
@@ -33,7 +39,9 @@ export class ProjectsPageComponent implements OnInit {
   protected errorMessage = '';
 
   ngOnInit(): void {
-    this.loadProjects();
+    this.i18n.localeChanges$.pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.loadProjects();
+    });
   }
 
   protected loadProjects(): void {
@@ -55,7 +63,7 @@ export class ProjectsPageComponent implements OnInit {
         },
         error: () => {
           this.projects = [];
-          this.errorMessage = 'Projects could not be loaded from the portfolio API. Make sure the API or reverse proxy is running.';
+          this.errorMessage = this.i18n.translate('pages.projects.errors.load');
         }
       });
   }
@@ -114,13 +122,9 @@ export class ProjectsPageComponent implements OnInit {
       }));
   }
 
-  protected get hasActiveFilters(): boolean {
-    return this.selectedSkillFilters.length > 0 || this.searchQuery.trim().length > 0;
-  }
-
   protected get skillFilterLabel(): string {
     if (!this.selectedSkillFilters.length) {
-      return 'All technologies';
+      return this.i18n.translate('pages.projects.filters.allTechnologies');
     }
 
     if (this.selectedSkillFilters.length === 1) {
@@ -131,11 +135,7 @@ export class ProjectsPageComponent implements OnInit {
       return this.selectedSkillFilters.join(', ');
     }
 
-    return `${this.selectedSkillFilters.length} technologies selected`;
-  }
-
-  protected clearSearch(): void {
-    this.searchQuery = '';
+    return this.i18n.translate('pages.projects.filters.selectedCount', { count: this.selectedSkillFilters.length });
   }
 
   protected get filteredProjects(): ProjectSummary[] {

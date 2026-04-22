@@ -13,6 +13,7 @@ class NavigationItem(Base):
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
     label: Mapped[str] = mapped_column(String(120), nullable=False)
+    label_nl: Mapped[str | None] = mapped_column(String(120))
     route_path: Mapped[str] = mapped_column(String(255), nullable=False)
     is_external: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)

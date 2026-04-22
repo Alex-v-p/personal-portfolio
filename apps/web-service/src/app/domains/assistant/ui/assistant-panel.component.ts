@@ -4,11 +4,13 @@ import { FormsModule } from '@angular/forms';
 
 import { AssistantApiService } from '@domains/assistant/data/assistant-api.service';
 import { AssistantAvailabilityState, AssistantChatState } from '@domains/assistant/model/assistant-chat.model';
+import { TranslatePipe } from '@core/i18n/translate.pipe';
+import { I18nService } from '@core/i18n/i18n.service';
 
 @Component({
   selector: 'app-assistant-panel',
   standalone: true,
-  imports: [NgIf, NgFor, NgClass, FormsModule, AsyncPipe],
+  imports: [NgIf, NgFor, NgClass, FormsModule, AsyncPipe, TranslatePipe],
   templateUrl: './assistant-panel.component.html'
 })
 export class AssistantPanelComponent {
@@ -16,15 +18,19 @@ export class AssistantPanelComponent {
   @Output() close = new EventEmitter<void>();
 
   private readonly assistant = inject(AssistantApiService);
+  private readonly i18n = inject(I18nService);
 
   protected readonly state$ = this.assistant.state$;
   protected readonly availability$ = this.assistant.availability$;
   protected draft = '';
-  protected readonly starterPrompts = [
-    'What projects are in this portfolio?',
-    'Which blog posts talk about AI or backend work?',
-    'What are Alex\'s specialities?',
-  ];
+
+  protected get starterPrompts(): string[] {
+    return [
+      this.i18n.translate('assistantPopup.starterPrompts.projects'),
+      this.i18n.translate('assistantPopup.starterPrompts.blog'),
+      this.i18n.translate('assistantPopup.starterPrompts.specialities'),
+    ];
+  }
 
   protected sendMessage(): void {
     const message = this.draft.trim();
@@ -94,21 +100,20 @@ export class AssistantPanelComponent {
     return 'ui-card-soft ui-text-muted';
   }
 
-
   protected getComposerRows(): number {
     return this.mode === 'page' ? 3 : 2;
   }
 
   protected getComposerHint(availability: AssistantAvailabilityState): string {
     if (availability.mode === 'fallback') {
-      return 'Model offline · replies will use indexed portfolio content only';
+      return this.i18n.translate('assistantPopup.composer.hints.fallback');
     }
     if (availability.mode === 'preview') {
-      return 'Preview mode · responses are coming from the local fallback formatter';
+      return this.i18n.translate('assistantPopup.composer.hints.preview');
     }
     if (availability.mode === 'offline') {
-      return 'Assistant unavailable · check the assistant service and local model';
+      return this.i18n.translate('assistantPopup.composer.hints.offline');
     }
-    return 'Enter sends · Shift+Enter adds a line';
+    return this.i18n.translate('assistantPopup.composer.hints.ready');
   }
 }

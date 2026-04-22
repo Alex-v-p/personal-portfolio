@@ -1,6 +1,8 @@
 import { NgFor, NgIf } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 
+import { TranslatePipe } from '@core/i18n/translate.pipe';
+import { I18nService } from '@core/i18n/i18n.service';
 import { UiCardComponent } from '@shared/components/card/ui-card.component';
 import { UiChipComponent } from '@shared/components/chip/ui-chip.component';
 import { HighlightChipComponent } from '@shared/components/highlight-chip/highlight-chip.component';
@@ -10,10 +12,12 @@ import { ProjectLink, ProjectSummary } from '@domains/projects/model/project-sum
 @Component({
   selector: 'app-project-card',
   standalone: true,
-  imports: [NgFor, NgIf, UiCardComponent, UiChipComponent, HighlightChipComponent, UiLinkButtonComponent],
+  imports: [NgFor, NgIf, TranslatePipe, UiCardComponent, UiChipComponent, HighlightChipComponent, UiLinkButtonComponent],
   templateUrl: './project-card.component.html'
 })
 export class ProjectCardComponent {
+  private readonly i18n = inject(I18nService);
+
   @Input({ required: true }) project!: ProjectSummary;
   @Input() featured = false;
 
@@ -29,13 +33,8 @@ export class ProjectCardComponent {
     return externalDemo ?? externalGithub ?? internalReadMore ?? this.project.links[0] ?? null;
   }
 
-
   protected get readMoreAction(): ProjectLink | null {
-    const externalDemo = this.project.links.find((link) => link.label.toLowerCase().includes('demo'));
-    const externalGithub = this.project.links.find((link) => link.label.toLowerCase().includes('github'));
-    const internalReadMore = this.project.links.find((link) => link.routerLink);
-
-    return externalDemo ?? externalGithub ?? internalReadMore ?? this.project.links[0] ?? null;
+    return this.primaryAction;
   }
 
   protected get extraActions(): ProjectLink[] {
@@ -50,6 +49,6 @@ export class ProjectCardComponent {
   }
 
   protected get placeholderLabel(): string {
-    return this.project.coverImageAlt || this.project.imageAlt || 'Project cover placeholder';
+    return this.project.coverImageAlt || this.project.imageAlt || this.i18n.translate('pages.projects.card.placeholder');
   }
 }

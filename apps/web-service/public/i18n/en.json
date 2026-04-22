@@ -1,0 +1,446 @@
+{
+  "seo": {
+    "defaults": {
+      "siteName": "Alex van Poppel Portfolio",
+      "description": "Applied Computer Science student and full-stack builder focused on practical web applications, software architecture, data projects, and self-hosting.",
+      "keywords": [
+        "Alex van Poppel",
+        "portfolio",
+        "Applied Computer Science",
+        "full-stack developer",
+        "web development",
+        "software architecture",
+        "data projects",
+        "self-hosting",
+        "Belgium"
+      ]
+    }
+  },
+  "routes": {
+    "home": {
+      "title": "Home",
+      "description": "Explore selected projects, experience, blog posts, and contact details from the portfolio of Alex van Poppel.",
+      "keywords": [
+        "Alex van Poppel",
+        "portfolio home",
+        "featured projects",
+        "experience",
+        "blog"
+      ]
+    },
+    "projects": {
+      "title": "Projects",
+      "description": "Browse practical software, web, and data projects built by Alex van Poppel, with technology filters and featured work.",
+      "keywords": [
+        "projects",
+        "portfolio projects",
+        "Angular",
+        "Laravel",
+        "Python",
+        "software projects"
+      ]
+    },
+    "blog": {
+      "title": "Blog posts",
+      "description": "Read notes on portfolio building, architecture, client workshops, hardware, and software lessons from current and past projects.",
+      "keywords": [
+        "blog",
+        "portfolio blog",
+        "architecture",
+        "analysis",
+        "hardware",
+        "software lessons"
+      ]
+    },
+    "blogPost": {
+      "title": "Blog post",
+      "description": "Read an article from the portfolio blog of Alex van Poppel.",
+      "keywords": [
+        "portfolio blog",
+        "article"
+      ]
+    },
+    "contact": {
+      "title": "Contact",
+      "description": "Use the contact form or public links to get in touch about internships, freelance work, collaboration, or portfolio questions.",
+      "keywords": [
+        "contact",
+        "internship",
+        "freelance",
+        "collaboration",
+        "email"
+      ]
+    },
+    "stats": {
+      "title": "Stats",
+      "description": "View GitHub contribution activity, portfolio views, and engagement metrics from the public portfolio.",
+      "keywords": [
+        "GitHub stats",
+        "portfolio views",
+        "engagement",
+        "contributions"
+      ]
+    },
+    "assistant": {
+      "title": "Portfolio Assistant",
+      "description": "Ask the portfolio assistant about projects, blog posts, experience, and the overall site.",
+      "keywords": [
+        "assistant",
+        "portfolio assistant",
+        "projects",
+        "blog",
+        "experience"
+      ]
+    }
+  },
+  "navigation": {
+    "home": "Home",
+    "projects": "Projects",
+    "blog": "Blog",
+    "contact": "Contact",
+    "stats": "Stats",
+    "assistant": "Assistant"
+  },
+  "common": {
+    "loading": {
+      "page": "Loading page content"
+    },
+    "actions": {
+      "retry": "Retry",
+      "done": "Done",
+      "readMore": "Read more",
+      "readArticle": "Read article",
+      "contactMe": "Contact me",
+      "viewProjects": "View projects"
+    },
+    "labels": {
+      "featured": "Featured"
+    },
+    "images": {
+      "profileAvatar": "Profile avatar",
+      "profileImage": "Profile image"
+    }
+  },
+  "shell": {
+    "profileAvatar": "Profile avatar",
+    "portfolioSuffix": "portfolio",
+    "quickLinks": "Quick links",
+    "resources": {
+      "title": "Resources",
+      "resume": "Resume"
+    },
+    "contact": {
+      "title": "Get in touch"
+    },
+    "language": {
+      "label": "Language",
+      "options": {
+        "en": "EN",
+        "nl": "NL"
+      }
+    },
+    "assistant": {
+      "toggle": "Toggle portfolio assistant",
+      "title": "Assistant",
+      "close": "Close assistant"
+    }
+  },
+  "pages": {
+    "home": {
+      "loading": "Loading homepage content",
+      "errors": {
+        "load": "Homepage content could not be loaded from the portfolio API. Make sure the API or reverse proxy is running."
+      },
+      "empty": {
+        "loadTitle": "Could not load homepage content",
+        "notReadyTitle": "Homepage content is not ready yet",
+        "notReadyDescription": "Publish hero, featured, and profile content in the CMS to populate the public homepage."
+      },
+      "hero": {
+        "coreSkills": "My core skills:",
+        "openCv": "Open CV",
+        "cvShort": "CV"
+      },
+      "featured": {
+        "title": "Featured"
+      },
+      "expertise": {
+        "title": "Expertise"
+      },
+      "experience": {
+        "title": "Experience",
+        "expand": "Expand experience details",
+        "collapse": "Collapse experience details"
+      },
+      "contactPreview": {
+        "title": "Let's connect"
+      }
+    },
+    "projects": {
+      "title": "Projects",
+      "loading": "Loading projects",
+      "summary": "Showing {{shown}} of {{total}} projects",
+      "errors": {
+        "load": "Projects could not be loaded from the portfolio API. Make sure the API or reverse proxy is running."
+      },
+      "empty": {
+        "loadTitle": "Could not load projects",
+        "noneTitle": "No projects are published yet",
+        "noneDescription": "Publish a project in the CMS to populate this page and its featured spotlight card.",
+        "noMatchTitle": "No projects match those filters",
+        "noMatchDescription": "Try another search term or clear some technology filters to bring the rest of the portfolio projects back into view."
+      },
+      "filters": {
+        "searchLabel": "Search",
+        "searchPlaceholder": "Search projects, descriptions, or tools",
+        "technologiesLabel": "Technology filters",
+        "selectTechnologies": "Select technologies",
+        "helper": "Choose one or more technologies to narrow the project list.",
+        "clearTechnologies": "Clear technologies",
+        "allTechnologies": "All technologies",
+        "selectedCount": "{{count}} technologies selected",
+        "reset": "Clear search and filters"
+      },
+      "featured": {
+        "kicker": "Featured project",
+        "title": "A highlighted project from the current collection"
+      },
+      "browseTitle": "Browse all projects",
+      "card": {
+        "placeholder": "Project cover placeholder"
+      }
+    },
+    "blog": {
+      "title": "Blog posts",
+      "loading": "Loading blog posts",
+      "summary": "Showing {{shown}} of {{total}} articles",
+      "actions": {
+        "allPosts": "All posts"
+      },
+      "errors": {
+        "load": "Blog posts could not be loaded from the portfolio API. Make sure the API or reverse proxy is running."
+      },
+      "empty": {
+        "loadTitle": "Could not load blog posts",
+        "noneTitle": "No blog posts are published yet",
+        "noneDescription": "Publish a blog post in the CMS to populate this page and its featured article slot.",
+        "noMatchTitle": "No blog posts match that search",
+        "noMatchDescription": "Try another keyword or switch back to a broader topic to browse the rest of the articles."
+      },
+      "filters": {
+        "searchLabel": "Search",
+        "searchPlaceholder": "Search titles, excerpts, tags, or markdown content",
+        "topicsLabel": "Topic filters",
+        "selectTopics": "Select topics",
+        "helper": "Choose one or more topics to narrow the article list.",
+        "clearTopics": "Clear topics",
+        "allTopics": "All topics",
+        "selectedCount": "{{count}} topics selected"
+      },
+      "featured": {
+        "kicker": "Featured article",
+        "title": "A highlighted post from the current collection"
+      },
+      "browseTitle": "Browse all posts",
+      "card": {
+        "placeholder": "Blog post cover placeholder"
+      }
+    },
+    "blogPost": {
+      "back": "← Back to blog",
+      "loading": "Loading article",
+      "share": "Share:",
+      "errors": {
+        "load": "This blog post could not be loaded from the portfolio API."
+      },
+      "empty": {
+        "loadTitle": "Could not load article"
+      }
+    },
+    "contact": {
+      "intro": "Whether you're reaching out about an internship, a project, or just want to talk tech, feel free to use whichever channel suits you best.",
+      "errors": {
+        "submit": "The message could not be sent to the portfolio API. Make sure the API or reverse proxy is running and try again.",
+        "profileLoad": "Contact details could not be loaded from the portfolio API. You can still use the form below."
+      },
+      "validation": {
+        "nameRequired": "Please share your name.",
+        "emailRequired": "Please share your email address.",
+        "subjectRequired": "Please add a subject.",
+        "messageRequired": "Please describe what you would like to discuss.",
+        "emailInvalid": "Please enter a valid email address.",
+        "nameMinLength": "Name should be at least 2 characters.",
+        "subjectMinLength": "Subject should be at least 4 characters.",
+        "messageMinLength": "Message should be at least 20 characters so there is enough context.",
+        "messageMaxLength": "Message should stay under 1200 characters."
+      },
+      "hero": {
+        "title": "Let’s work together"
+      },
+      "loading": {
+        "profile": "Loading contact details"
+      },
+      "empty": {
+        "loadTitle": "Could not load contact details",
+        "noDetailsTitle": "Contact details have not been published yet",
+        "noDetailsDescription": "You can still use the form, but the profile does not currently expose any public contact information."
+      },
+      "info": {
+        "kicker": "Contact info",
+        "title": "Start with the channel that feels easiest"
+      },
+      "form": {
+        "kicker": "Send a message",
+        "title": "Contact form",
+        "description": "I'm also open and available for discussing new opportunities! Send in a message and I'll get back to you as soon as possible.",
+        "fields": {
+          "name": {
+            "label": "Name",
+            "placeholder": "Your name"
+          },
+          "email": {
+            "label": "Email",
+            "placeholder": "your.email@example.com"
+          },
+          "subject": {
+            "label": "Subject",
+            "placeholder": "Internship, freelance project, collaboration idea..."
+          },
+          "website": {
+            "label": "Website"
+          },
+          "message": {
+            "label": "Message",
+            "placeholder": "Tell me what you have in mind."
+          }
+        },
+        "actions": {
+          "submit": "Send message",
+          "submitting": "Sending…",
+          "clear": "Clear form"
+        }
+      },
+      "success": {
+        "kicker": "Message sent",
+        "title": "Thanks, {{name}}.",
+        "description": "Your message about {{subject}} was sent to the portfolio API and stored successfully.",
+        "action": "Send another message"
+      },
+      "error": {
+        "kicker": "Submission failed",
+        "retry": "Retry submit",
+        "dismiss": "Dismiss"
+      },
+      "quick": {
+        "kicker": "Quick contact"
+      },
+      "more": {
+        "kicker": "More ways to connect"
+      }
+    },
+    "stats": {
+      "errors": {
+        "load": "Stats could not be loaded from the portfolio API. Make sure the API or reverse proxy is running.",
+        "like": "Your like could not be saved right now. Please try again in a moment."
+      },
+      "cards": {
+        "reposLabel": "Public repos",
+        "viewsLabel": "Total views",
+        "likesLabel": "Like counter",
+        "likesAction": "Love this portfolio",
+        "likesSaving": "Saving like…",
+        "likesThanks": "Thanks for the love"
+      },
+      "loading": "Loading stats",
+      "empty": {
+        "loadTitle": "Could not load stats",
+        "noDataTitle": "Stats are not available yet",
+        "noDataDescription": "Publish a GitHub snapshot or portfolio analytics summary to populate this page."
+      },
+      "github": {
+        "title": "GitHub Stats",
+        "description": "Insights and metrics about my GitHub portfolio.",
+        "boardTitle": "GitHub contribution board",
+        "boardDescription": "Last 12 months of commits and contribution activity.",
+        "snapshotLabel": "Snapshot",
+        "commitsLabel": "Commits",
+        "totalCommits": "{{count}} total commits",
+        "legendLess": "Less",
+        "legendMore": "More"
+      },
+      "portfolio": {
+        "title": "About this portfolio",
+        "description": "Insights and metrics about my portfolio website.",
+        "trafficKicker": "Portfolio traffic",
+        "feedbackKicker": "Portfolio feedback"
+      }
+    }
+  },
+  "assistantPopup": {
+    "header": {
+      "kicker": "Portfolio assistant",
+      "title": "Ask about the portfolio"
+    },
+    "actions": {
+      "retry": "Retry",
+      "newChat": "New chat",
+      "close": "Close assistant",
+      "send": "Send"
+    },
+    "availability": {
+      "checking": {
+        "label": "Checking availability",
+        "detail": "Looking up the assistant status and retrieving the latest portfolio context."
+      },
+      "ready": {
+        "label": "Ready",
+        "detail": "The assistant can answer with live portfolio context."
+      },
+      "fallback": {
+        "label": "Fallback mode",
+        "detail": "Live retrieval is limited right now, but the assistant can still answer from the available portfolio snapshot.",
+        "extra": "Answers may be less detailed until the full assistant stack is available again."
+      },
+      "preview": {
+        "label": "Preview mode",
+        "detail": "The assistant is running in preview mode with limited retrieval coverage."
+      },
+      "offline": {
+        "label": "Offline",
+        "detail": "The assistant service is unavailable right now.",
+        "extra": "You can still browse the portfolio manually or try again in a moment."
+      }
+    },
+    "empty": {
+      "intro": "Ask about projects, blog posts, experience, technologies, or what this portfolio includes.",
+      "promptsLabel": "Try one of these starter prompts:"
+    },
+    "starterPrompts": {
+      "projects": "Which projects best show Alex's strongest work?",
+      "blog": "What are the main themes in the blog posts?",
+      "specialities": "What technologies and specialties show up most often?"
+    },
+    "loading": "Thinking…",
+    "composer": {
+      "label": "Message the portfolio assistant",
+      "placeholder": "Ask a question about the portfolio…",
+      "placeholderOffline": "The assistant is currently offline.",
+      "hints": {
+        "ready": "Live portfolio context is available.",
+        "fallback": "Fallback mode is active. Answers may be shorter or less specific.",
+        "preview": "Preview mode is active.",
+        "offline": "The assistant is offline right now."
+      }
+    },
+    "errors": {
+      "offline": "The assistant is currently offline.",
+      "rateLimited": "The assistant is temporarily rate limited. Please try again in a moment.",
+      "temporarilyUnavailable": "The assistant is temporarily unavailable.",
+      "lostReply": "The reply could not be completed.",
+      "pollFailed": "The assistant reply could not be refreshed.",
+      "sendFailed": "The message could not be sent.",
+      "finishFailed": "The assistant reply ended unexpectedly.",
+      "timeout": "The assistant took too long to respond."
+    }
+  }
+}

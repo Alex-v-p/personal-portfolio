@@ -2,19 +2,19 @@
   <header class="flex items-start justify-between gap-4 border-b px-5 py-4" [ngClass]="mode === 'page' ? 'mb-6 rounded-[1.75rem] ui-card-soft' : ''" style="border-color: var(--ui-border-soft);">
     <div class="grid gap-2">
       <div class="flex items-center gap-2">
-        <p class="ui-kicker">Portfolio assistant</p>
+        <p class="ui-kicker">{{ 'assistantPopup.header.kicker' | translate }}</p>
         <ng-container *ngIf="availability$ | async as availability">
           <span class="ui-status-dot h-2.5 w-2.5 shadow-sm" [ngClass]="getAvailabilityDotClasses(availability.mode)" [attr.aria-label]="availability.label"></span>
         </ng-container>
       </div>
       <div>
-        <h2 class="ui-title-block">Have any questions? Ask away!</h2>
+        <h2 class="ui-title-block">{{ 'assistantPopup.header.title' | translate }}</h2>
       </div>
     </div>
     <div class="flex items-center gap-2">
-      <button *ngIf="(availability$ | async)?.mode !== 'ready'" type="button" (click)="refreshAvailability()" class="ui-btn ui-btn-secondary min-h-10 px-3 py-2 text-xs">Retry connection</button>
-      <button type="button" (click)="resetConversation()" class="ui-btn ui-btn-secondary min-h-10 px-3 py-2 text-xs">New chat</button>
-      <button *ngIf="mode === 'widget'" type="button" (click)="close.emit()" class="ui-icon-button" aria-label="Close assistant">×</button>
+      <button *ngIf="(availability$ | async)?.mode !== 'ready'" type="button" (click)="refreshAvailability()" class="ui-btn ui-btn-secondary min-h-10 px-3 py-2 text-xs">{{ 'assistantPopup.actions.retry' | translate }}</button>
+      <button type="button" (click)="resetConversation()" class="ui-btn ui-btn-secondary min-h-10 px-3 py-2 text-xs">{{ 'assistantPopup.actions.newChat' | translate }}</button>
+      <button *ngIf="mode === 'widget'" type="button" (click)="close.emit()" class="ui-icon-button" [attr.aria-label]="'assistantPopup.actions.close' | translate">×</button>
     </div>
   </header>
 
@@ -24,13 +24,13 @@
         <div class="mb-4 text-sm leading-6" [ngClass]="getStatusCardClasses(availability.mode)" *ngIf="availability.mode !== 'ready'">
           <p class="m-0 font-semibold">{{ availability.label }}</p>
           <p class="m-0 mt-1">{{ availability.detail }}</p>
-          <p *ngIf="availability.mode === 'fallback'" class="m-0 mt-2 text-xs font-medium">You can still ask questions, but replies may be shorter and less polished until the model comes back online.</p>
-          <p *ngIf="availability.mode === 'offline'" class="m-0 mt-2 text-xs font-medium">Messages are disabled until the assistant service is reachable again.</p>
+          <p *ngIf="availability.mode === 'fallback'" class="m-0 mt-2 text-xs font-medium">{{ 'assistantPopup.availability.fallback.extra' | translate }}</p>
+          <p *ngIf="availability.mode === 'offline'" class="m-0 mt-2 text-xs font-medium">{{ 'assistantPopup.availability.offline.extra' | translate }}</p>
         </div>
 
         <div *ngIf="!state.messages.length" class="grid gap-4 rounded-[1.5rem] border border-dashed p-5 text-sm ui-card-soft ui-text-muted" style="border-color: var(--ui-border);">
-          <p class="m-0 leading-6">Hi there! This is my own private LLM running locally on my homeLab server. It might not be as smart as the latest gpt or claude... But it can definitly answer some simple questions about my work and interests!</p>
-          <p class="m-0 leading-6">Here are a few prompts you could start with:</p>
+          <p class="m-0 leading-6">{{ 'assistantPopup.empty.intro' | translate }}</p>
+          <p class="m-0 leading-6">{{ 'assistantPopup.empty.promptsLabel' | translate }}</p>
           <div class="flex flex-wrap gap-2">
             <button *ngFor="let prompt of starterPrompts" type="button" (click)="submitStarter(prompt)" [disabled]="availability.mode === 'offline'" class="ui-btn ui-btn-secondary min-h-10 px-4 py-2 text-left text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50">
               {{ prompt }}
@@ -56,17 +56,17 @@
           </article>
 
           <article *ngIf="state.isLoading" class="ui-chat-bubble-assistant mr-auto max-w-[92%] px-4 py-3 text-sm ui-text-muted">
-            Thinking through the indexed portfolio content…
+            {{ 'assistantPopup.loading' | translate }}
           </article>
         </div>
       </div>
 
       <footer class="border-t px-5 py-4" style="border-color: var(--ui-border-soft);">
-        <label class="sr-only" for="assistantComposer">Assistant message</label>
-        <textarea id="assistantComposer" [(ngModel)]="draft" (keydown)="handleComposerKeydown($event)" [rows]="getComposerRows()" [disabled]="isComposerDisabled(state, availability)" [placeholder]="availability.mode === 'offline' ? 'Assistant unavailable right now…' : 'Have a question about projects, posts, or experience?'" class="ui-input w-full resize-none rounded-[1.5rem] min-h-[3.5rem] max-h-28 !py-3"></textarea>
+        <label class="sr-only" for="assistantComposer">{{ 'assistantPopup.composer.label' | translate }}</label>
+        <textarea id="assistantComposer" [(ngModel)]="draft" (keydown)="handleComposerKeydown($event)" [rows]="getComposerRows()" [disabled]="isComposerDisabled(state, availability)" [placeholder]="availability.mode === 'offline' ? ('assistantPopup.composer.placeholderOffline' | translate) : ('assistantPopup.composer.placeholder' | translate)" class="ui-input w-full resize-none rounded-[1.5rem] min-h-[3.5rem] max-h-28 !py-3"></textarea>
         <div class="mt-3 flex items-center justify-between gap-3">
           <p class="text-xs ui-text-soft">{{ getComposerHint(availability) }}</p>
-          <button type="button" (click)="sendMessage()" [disabled]="isComposerDisabled(state, availability) || !draft.trim()" class="ui-btn ui-btn-primary px-5 py-2 disabled:cursor-not-allowed disabled:opacity-60">Send</button>
+          <button type="button" (click)="sendMessage()" [disabled]="isComposerDisabled(state, availability) || !draft.trim()" class="ui-btn ui-btn-primary px-5 py-2 disabled:cursor-not-allowed disabled:opacity-60">{{ 'assistantPopup.actions.send' | translate }}</button>
         </div>
       </footer>
     </ng-container>

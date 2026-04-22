@@ -73,13 +73,13 @@ describe('PublicProjectsApiService', () => {
       secondResultLength = projects.length;
     });
 
-    const request = httpMock.expectOne('/api/public/projects');
+    const request = httpMock.expectOne((req) => req.url === '/api/public/projects' && req.params.get('locale') === 'en');
     expect(request.request.method).toBe('GET');
     request.flush({ items: [projectSummaryFixture] });
 
     expect(firstResultLength).toBe(1);
     expect(secondResultLength).toBe(1);
-    httpMock.expectNone('/api/public/projects');
+    httpMock.expectNone((req) => req.url === '/api/public/projects');
   });
 
   it('keeps detail responses cached per slug', () => {
@@ -93,15 +93,15 @@ describe('PublicProjectsApiService', () => {
       secondProjectTitle = project.title;
     });
 
-    const firstRequest = httpMock.expectOne('/api/public/projects/portfolio');
+    const firstRequest = httpMock.expectOne((req) => req.url === '/api/public/projects/portfolio' && req.params.get('locale') === 'en');
     firstRequest.flush(projectDetailFixture);
 
     expect(firstProjectTitle).toBe('Portfolio');
     expect(secondProjectTitle).toBe('Portfolio');
-    httpMock.expectNone('/api/public/projects/portfolio');
+    httpMock.expectNone((req) => req.url === '/api/public/projects/portfolio');
 
     service.getProjectBySlug('another-project').subscribe();
-    const secondRequest = httpMock.expectOne('/api/public/projects/another-project');
+    const secondRequest = httpMock.expectOne((req) => req.url === '/api/public/projects/another-project' && req.params.get('locale') === 'en');
     secondRequest.flush({ ...projectDetailFixture, id: 'project-2', slug: 'another-project', title: 'Another Project' });
   });
 
@@ -114,13 +114,13 @@ describe('PublicProjectsApiService', () => {
       },
     });
 
-    const failedRequest = httpMock.expectOne('/api/public/projects');
+    const failedRequest = httpMock.expectOne((req) => req.url === '/api/public/projects' && req.params.get('locale') === 'en');
     failedRequest.flush({ detail: 'Temporary outage' }, { status: 503, statusText: 'Service Unavailable' });
 
     expect(capturedErrorMessage).toBe('Temporary outage');
 
     service.getProjects().subscribe();
-    const retryRequest = httpMock.expectOne('/api/public/projects');
+    const retryRequest = httpMock.expectOne((req) => req.url === '/api/public/projects' && req.params.get('locale') === 'en');
     retryRequest.flush({ items: [] });
   });
 });

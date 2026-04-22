@@ -14,6 +14,7 @@ import {
   AssistantHealthResponse,
 } from '../model/assistant-chat.model';
 import { SiteTrackingService } from '@domains/site-activity/data/site-tracking.service';
+import { I18nService } from '@core/i18n/i18n.service';
 
 const ASSISTANT_STATE_STORAGE_KEY = 'portfolio.assistant.state';
 const ASSISTANT_SESSION_STORAGE_KEY = 'portfolio.assistant.session-id';
@@ -28,11 +29,12 @@ export class AssistantApiService {
   private readonly router = inject(Router);
   private readonly assistantApiBaseUrl = resolveAssistantApiBaseUrl();
   private readonly siteTracking = inject(SiteTrackingService);
+  private readonly i18n = inject(I18nService);
   private readonly stateSubject = new BehaviorSubject<AssistantChatState>(this.restoreState());
   private readonly availabilitySubject = new BehaviorSubject<AssistantAvailabilityState>({
     mode: 'checking',
-    label: 'Checking status',
-    detail: 'Checking whether the assistant model is reachable.',
+    label: this.translateOrFallback('assistantPopup.availability.checking.label', 'Checking availability'),
+    detail: this.translateOrFallback('assistantPopup.availability.checking.detail', 'Looking up the assistant status and retrieving the latest portfolio context.'),
     providerBackend: null,
     providerModel: null,
     checkedAt: null,
@@ -44,6 +46,7 @@ export class AssistantApiService {
   readonly availability$ = this.availabilitySubject.asObservable();
 
   constructor() {
+    this.i18n.localeChanges$.subscribe(() => this.relocalizeAvailability());
     this.refreshAvailability();
     timer(ASSISTANT_AVAILABILITY_POLL_MS, ASSISTANT_AVAILABILITY_POLL_MS)
       .pipe(switchMap(() => this.http.get<AssistantHealthResponse>(`${this.assistantApiBaseUrl}/health/status`)))
@@ -88,6 +91,7 @@ export class AssistantApiService {
       site_session_id: this.siteTracking.sessionId,
       visitor_id: this.siteTracking.visitorId,
       page_path: pagePath ?? this.router.url,
+      locale: this.i18n.currentLocale(),
     }).subscribe({
       next: (response) => {
         if (this.isTaskAccepted(response)) {
@@ -156,11 +160,11 @@ export class AssistantApiService {
             return;
           }
           if (task.status === 'failed') {
-            this.applyFailureMessage(task.errorMessage || 'The assistant could not finish that reply. Please try again in a moment.');
+            this.applyFailureMessage(task.errorMessage || this.translateOrFallback('assistantPopup.errors.finishFailed', 'The assistant reply ended unexpectedly.'));
             return;
           }
           if (pollCount >= ASSISTANT_MAX_TASK_POLLS) {
-            this.applyFailureMessage('That reply is taking longer than expected. Please try again in a moment.');
+            this.applyFailureMessage(this.translateOrFallback('assistantPopup.errors.timeout', 'The assistant took too long to respond.'));
           }
         },
         error: (error) => {
@@ -265,27 +269,60 @@ export class AssistantApiService {
   }
 
   private toAvailabilityState(response: AssistantHealthResponse): AssistantAvailabilityState {
-    const labelMap: Record<AssistantHealthResponse['mode'], string> = {
-      ready: 'Online',
-      fallback: 'Fallback mode',
-      preview: 'Preview mode',
-    };
-
     return {
       mode: response.mode,
-      label: labelMap[response.mode],
-      detail: response.detail,
+      label: this.localizedAvailabilityLabel(response.mode),
+      detail: this.localizedAvailabilityDetail(response.mode),
       providerBackend: response.providerBackend,
       providerModel: response.providerModel,
       checkedAt: response.checkedAt,
     };
   }
 
+  private relocalizeAvailability(): void {
+    const current = this.availabilitySnapshot;
+    this.availabilitySubject.next({
+      ...current,
+      label: this.localizedAvailabilityLabel(current.mode),
+      detail: this.localizedAvailabilityDetail(current.mode),
+    });
+  }
+
+  private localizedAvailabilityLabel(mode: AssistantAvailabilityState['mode']): string {
+    switch (mode) {
+      case 'checking':
+        return this.translateOrFallback('assistantPopup.availability.checking.label', 'Checking availability');
+      case 'ready':
+        return this.translateOrFallback('assistantPopup.availability.ready.label', 'Ready');
+      case 'fallback':
+        return this.translateOrFallback('assistantPopup.availability.fallback.label', 'Fallback mode');
+      case 'preview':
+        return this.translateOrFallback('assistantPopup.availability.preview.label', 'Preview mode');
+      default:
+        return this.translateOrFallback('assistantPopup.availability.offline.label', 'Offline');
+    }
+  }
+
+  private localizedAvailabilityDetail(mode: AssistantAvailabilityState['mode']): string {
+    switch (mode) {
+      case 'checking':
+        return this.translateOrFallback('assistantPopup.availability.checking.detail', 'Looking up the assistant status and retrieving the latest portfolio context.');
+      case 'ready':
+        return this.translateOrFallback('assistantPopup.availability.ready.detail', 'The assistant can answer with live portfolio context.');
+      case 'fallback':
+        return this.translateOrFallback('assistantPopup.availability.fallback.detail', 'Live retrieval is limited right now, but the assistant can still answer from the available portfolio snapshot.');
+      case 'preview':
+        return this.translateOrFallback('assistantPopup.availability.preview.detail', 'The assistant is running in preview mode with limited retrieval coverage.');
+      default:
+        return this.translateOrFallback('assistantPopup.availability.offline.detail', 'The assistant service is unavailable right now.');
+    }
+  }
+
   private markAvailabilityOffline(): void {
     this.availabilitySubject.next({
       mode: 'offline',
-      label: 'Offline',
-      detail: 'The assistant service could not be reached. Try again when the app and Ollama services are back online.',
+      label: this.translateOrFallback('assistantPopup.availability.offline.label', 'Offline'),
+      detail: this.translateOrFallback('assistantPopup.availability.offline.detail', 'The assistant service is unavailable right now.'),
       providerBackend: null,
       providerModel: null,
       checkedAt: new Date().toISOString(),
@@ -297,19 +334,19 @@ export class AssistantApiService {
     const detail = this.extractErrorDetail(httpError?.error);
 
     if (httpError?.status === 0) {
-      return 'The assistant is offline right now. Please try again once the assistant service and local Ollama model are available.';
+      return this.translateOrFallback('assistantPopup.errors.offline', 'The assistant is currently offline.');
     }
 
     if (httpError?.status === 429) {
-      return 'Too many assistant messages were sent in a short period. Please wait a moment before trying again.';
+      return detail ?? this.translateOrFallback('assistantPopup.errors.rateLimited', 'Too many assistant messages were sent in a short period. Please wait a moment before trying again.');
     }
 
     if ([502, 503, 504].includes(httpError?.status ?? 0)) {
-      return 'The assistant is temporarily unavailable. The local model or assistant worker may still be starting up.';
+      return detail ?? this.translateOrFallback('assistantPopup.errors.temporarilyUnavailable', 'The assistant is temporarily unavailable.');
     }
 
     if (httpError?.status === 404 && context === 'poll') {
-      return 'The assistant lost track of that reply while it was processing. Please send your message again.';
+      return detail ?? this.translateOrFallback('assistantPopup.errors.lostReply', 'The reply could not be completed.');
     }
 
     if (detail) {
@@ -317,8 +354,13 @@ export class AssistantApiService {
     }
 
     return context === 'poll'
-      ? 'Checking the assistant reply failed. Please try again in a moment.'
-      : 'The assistant could not answer that message right now. Please try again in a moment.';
+      ? this.translateOrFallback('assistantPopup.errors.pollFailed', 'The assistant reply could not be refreshed.')
+      : this.translateOrFallback('assistantPopup.errors.sendFailed', 'The message could not be sent.');
+  }
+
+  private translateOrFallback(key: string, fallback: string): string {
+    const translated = this.i18n.translate(key);
+    return translated === key ? fallback : translated;
   }
 
   private extractErrorDetail(value: unknown): string | null {

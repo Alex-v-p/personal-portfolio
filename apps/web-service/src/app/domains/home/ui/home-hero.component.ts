@@ -1,6 +1,7 @@
 import { NgFor, NgIf } from '@angular/common';
 import { Component, Input } from '@angular/core';
 
+import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { UiChipComponent } from '@shared/components/chip/ui-chip.component';
 import { UiLinkButtonComponent } from '@shared/components/link-button/ui-link-button.component';
 import { Profile } from '@domains/profile/model/profile.model';
@@ -9,7 +10,7 @@ import { SocialLink } from '@domains/profile/model/social-link.model';
 @Component({
   selector: 'app-home-hero-section',
   standalone: true,
-  imports: [NgFor, NgIf, UiChipComponent, UiLinkButtonComponent],
+  imports: [NgFor, NgIf, TranslatePipe, UiChipComponent, UiLinkButtonComponent],
   templateUrl: './home-hero.component.html'
 })
 export class HomeHeroSectionComponent {
