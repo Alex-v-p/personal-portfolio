@@ -188,8 +188,22 @@ export class AppShellComponent implements OnInit {
   }
 
   protected localeToggleClasses(locale: AppLocale): string {
-    const activeClasses = locale === this.currentLocale ? 'ui-btn-primary' : 'ui-btn-ghost';
-    return `ui-btn min-h-10 rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] ${activeClasses}`;
+    const active = locale === this.currentLocale;
+
+    return [
+      'inline-flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200',
+      active
+        ? 'bg-[var(--ui-accent)] text-white shadow-sm'
+        : 'bg-transparent text-[var(--ui-text-muted)] hover:bg-white hover:text-[var(--ui-text)]'
+    ].join(' ');
+  }
+
+  protected localeFlag(locale: AppLocale): string {
+    return locale === 'en' ? '🇬🇧' : '🇧🇪';
+  }
+
+  protected localeAriaLabel(locale: AppLocale): string {
+    return locale === 'en' ? 'Switch to English' : 'Schakel naar Nederlands';
   }
 
   protected get assistantButtonClasses(): string {
