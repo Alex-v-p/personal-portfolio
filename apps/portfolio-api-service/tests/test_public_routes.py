@@ -4,8 +4,9 @@ from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
-from app.db.models import BlogPost, EventType, MediaFile, MediaVisibility, Project, ProjectState, PublicationStatus, SiteEvent
+from app.db.models import BlogPost, EventType, MediaFile, MediaVisibility, Profile, Project, ProjectState, PublicationStatus, SiteEvent, Skill, SkillCategory, SocialLink
 from app.db.session import get_session_factory
 from infra.postgres.bootstrap.seed_content import BLOG_POST_ROWS, PROFILE_ROW, PROJECT_ROWS
 from infra.postgres.bootstrap.seed_data import GITHUB_SNAPSHOT, SITE_EVENT_ROWS
@@ -43,7 +44,10 @@ def test_get_profile_returns_media_and_derived_fields(client: TestClient) -> Non
     assert body['resume']['mimeType'] == 'application/pdf'
     assert body['skills']
     assert body['expertiseGroups']
+    assert body['expertiseGroups'][0]['iconKey']
+    assert 'iconKey' in body['expertiseGroups'][0]['skills'][0]
     assert body['socialLinks'][0]['platform'] == 'github'
+    assert 'iconKey' in body['socialLinks'][0]
 
 
 def test_get_navigation_returns_visible_items(client: TestClient) -> None:
@@ -61,6 +65,7 @@ def test_get_site_shell_returns_navigation_profile_and_contact_methods(client: T
     assert body['navigation']['items']
     assert body['profile']['firstName'] == PROFILE_ROW['first_name']
     assert body['contactMethods']
+    assert body['contactMethods'][0]['iconKey']
     assert body['footerText']
 
 
@@ -74,7 +79,54 @@ def test_get_home_returns_composed_public_sections(client: TestClient) -> None:
     assert body['featuredBlogPosts']
     assert 'contentMarkdown' not in body['featuredBlogPosts'][0]
     assert body['experiencePreview']
+    assert body['expertiseGroups'][0]['iconKey']
+    assert 'iconKey' in body['expertiseGroups'][0]['skills'][0]
     assert body['contactPreview']
+    assert body['contactPreview'][0]['iconKey']
+
+
+def test_public_profile_icon_keys_fall_back_for_missing_or_legacy_values(client: TestClient) -> None:
+    session_factory = get_session_factory()
+    with session_factory() as session:
+        frontend = session.scalar(select(SkillCategory).where(SkillCategory.name == 'Front-End'))
+        assert frontend is not None
+        frontend.icon_key = None
+
+        requirements = session.scalar(select(Skill).where(Skill.name == 'Requirements Analysis'))
+        assert requirements is not None
+        requirements.icon_key = 'clipboard-search'
+
+        github = session.scalar(select(SocialLink).where(SocialLink.platform == 'github'))
+        assert github is not None
+        github.icon_key = None
+
+        linkedin = session.scalar(select(SocialLink).where(SocialLink.platform == 'linkedin'))
+        assert linkedin is not None
+        linkedin.icon_key = 'linked-in'
+
+        profile = session.scalar(select(Profile).limit(1))
+        assert profile is not None
+        profile.phone = '+32 470 00 00 00'
+        session.commit()
+
+    response = client.get('/api/public/profile')
+    assert response.status_code == 200
+    body = response.json()
+    expertise_by_title = {group['title']: group for group in body['expertiseGroups']}
+    assert expertise_by_title['Front-End']['iconKey'] == 'code'
+    requirements_skill = next(skill for skill in expertise_by_title['Analysis & Collaboration']['skills'] if skill['name'] == 'Requirements Analysis')
+    assert requirements_skill['iconKey'] == 'workflow'
+    social_by_platform = {link['platform']: link for link in body['socialLinks']}
+    assert social_by_platform['github']['iconKey'] == 'github'
+    assert social_by_platform['linkedin']['iconKey'] == 'linkedin'
+
+    shell_response = client.get('/api/public/site-shell')
+    assert shell_response.status_code == 200
+    shell_body = shell_response.json()
+    contact_by_platform = {method['platform']: method for method in shell_body['contactMethods']}
+    assert contact_by_platform['phone']['iconKey'] == 'phone'
+    assert contact_by_platform['github']['iconKey'] == 'github'
+
 
 
 def test_list_projects_returns_project_summaries_with_embedded_media(client: TestClient) -> None:

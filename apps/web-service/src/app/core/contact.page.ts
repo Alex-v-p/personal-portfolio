@@ -1,13 +1,18 @@
 import { NgFor, NgIf } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { finalize, take } from 'rxjs/operators';
+import { Observable, forkJoin, of } from 'rxjs';
+import { catchError, distinctUntilChanged, finalize, take } from 'rxjs/operators';
 
+import { TranslatePipe } from '@core/i18n/translate.pipe';
+import { I18nService } from '@core/i18n/i18n.service';
 import { UiButtonComponent } from '@shared/components/button/ui-button.component';
 import { UiCardComponent } from '@shared/components/card/ui-card.component';
 import { UiChipComponent } from '@shared/components/chip/ui-chip.component';
 import { UiEmptyStateComponent } from '@shared/components/empty-state/ui-empty-state.component';
 import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.component';
+import { UiIconComponent } from '@shared/icons';
 import { ContactMessageDraft } from '@domains/contact/model/contact-message.model';
 import { ContactMethod } from '@domains/profile/model/contact-method.model';
 import { Profile } from '@domains/profile/model/profile.model';
@@ -21,7 +26,7 @@ type SubmissionState = 'idle' | 'submitting' | 'success' | 'error';
 @Component({
   selector: 'app-contact-page',
   standalone: true,
-  imports: [NgFor, NgIf, ReactiveFormsModule, UiButtonComponent, UiCardComponent, UiChipComponent, UiEmptyStateComponent, UiSkeletonComponent],
+  imports: [NgFor, NgIf, ReactiveFormsModule, TranslatePipe, UiButtonComponent, UiCardComponent, UiChipComponent, UiEmptyStateComponent, UiSkeletonComponent, UiIconComponent],
   templateUrl: './contact.page.html'
 })
 export class ContactPageComponent implements OnInit {
@@ -30,10 +35,12 @@ export class ContactPageComponent implements OnInit {
   private readonly profileApi = inject(PublicProfileApiService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly siteTracking = inject(SiteTrackingService);
+  private readonly i18n = inject(I18nService);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected profile: Profile = createEmptyProfile();
   protected contactMethods: ContactMethod[] = [];
-  
+
   protected readonly contactForm = this.formBuilder.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
@@ -50,7 +57,9 @@ export class ContactPageComponent implements OnInit {
   protected isLoadingProfile = true;
 
   ngOnInit(): void {
-    this.loadProfile();
+    this.i18n.localeChanges$.pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.loadProfile();
+    });
   }
 
   protected submit(): void {
@@ -89,7 +98,7 @@ export class ContactPageComponent implements OnInit {
         },
         error: (error) => {
           this.submissionState = 'error';
-          this.errorMessage = error?.error?.detail || 'The message could not be sent to the portfolio API. Make sure the API or reverse proxy is running and try again.';
+          this.errorMessage = error?.error?.detail || this.translateOrFallback('pages.contact.errors.submit', 'The message could not be sent to the portfolio API. Make sure the API or reverse proxy is running and try again.');
         }
       });
   }
@@ -110,24 +119,13 @@ export class ContactPageComponent implements OnInit {
     this.hasAttemptedSubmit = false;
   }
 
-  protected useTopic(label: string): void {
-    const subjectControl = this.contactForm.controls.subject;
-
-    if (!subjectControl.value.trim()) {
-      subjectControl.setValue(label);
-    }
-
-    subjectControl.markAsDirty();
-    subjectControl.markAsTouched();
-  }
-
   protected get messageLength(): number {
     return this.contactForm.controls.message.value.length;
   }
 
-protected get contactIntroText(): string {
-  return "Whether you're reaching out about an internship, a project, job opportunities, or just want to talk tech, feel free to reach out using whichever channel suits you best. I'm always open to a friendly conversation about software, AI, self-hosting, or potential opportunities where I can learn, contribute, and keep growing as a software engineer.";
-}
+  protected get contactIntroText(): string {
+    return this.i18n.translate('pages.contact.intro');
+  }
 
   protected get hasContactDetails(): boolean {
     return Boolean(this.contactMethods.length || this.profile.availability.length || this.profile.location);
@@ -153,18 +151,6 @@ protected get contactIntroText(): string {
     return !(method.href.startsWith('mailto:') || method.href.startsWith('tel:'));
   }
 
-  protected contactMethodMonogram(method: ContactMethod): string {
-    const lookup: Record<string, string> = {
-      email: 'EM',
-      phone: 'PH',
-      github: 'GH',
-      linkedin: 'LI',
-      location: 'LO',
-    };
-
-    return lookup[method.platform] ?? method.label.slice(0, 2).toUpperCase();
-  }
-
   protected showError(controlName: 'name' | 'email' | 'subject' | 'message'): boolean {
     const control = this.contactForm.controls[controlName];
     return control.invalid && (control.touched || this.hasAttemptedSubmit);
@@ -175,32 +161,32 @@ protected get contactIntroText(): string {
 
     if (control.hasError('required')) {
       const labels = {
-        name: 'Please share your name.',
-        email: 'Please share your email address.',
-        subject: 'Please add a subject.',
-        message: 'Please describe what you would like to discuss.'
+        name: 'pages.contact.validation.nameRequired',
+        email: 'pages.contact.validation.emailRequired',
+        subject: 'pages.contact.validation.subjectRequired',
+        message: 'pages.contact.validation.messageRequired'
       } as const;
 
-      return labels[controlName];
+      return this.i18n.translate(labels[controlName]);
     }
 
     if (control.hasError('email')) {
-      return 'Please enter a valid email address.';
+      return this.i18n.translate('pages.contact.validation.emailInvalid');
     }
 
     if (control.hasError('minlength')) {
       const labels = {
-        name: 'Name should be at least 2 characters.',
-        email: 'Please enter a valid email address.',
-        subject: 'Subject should be at least 4 characters.',
-        message: 'Message should be at least 20 characters so there is enough context.'
+        name: 'pages.contact.validation.nameMinLength',
+        email: 'pages.contact.validation.emailInvalid',
+        subject: 'pages.contact.validation.subjectMinLength',
+        message: 'pages.contact.validation.messageMinLength'
       } as const;
 
-      return labels[controlName];
+      return this.i18n.translate(labels[controlName]);
     }
 
     if (control.hasError('maxlength')) {
-      return 'Message should stay under 1200 characters.';
+      return this.i18n.translate('pages.contact.validation.messageMaxLength');
     }
 
     return '';
@@ -216,26 +202,48 @@ protected get contactIntroText(): string {
     this.profile = createEmptyProfile();
     this.contactMethods = [];
 
-    this.profileApi
-      .getProfile()
+    forkJoin({
+      profile: this.profileApi.getProfile().pipe(take(1)),
+      shell: this.getSiteShellSafely(),
+    })
       .pipe(
-        take(1),
         finalize(() => {
           this.isLoadingProfile = false;
           this.changeDetectorRef.detectChanges();
         })
       )
       .subscribe({
-        next: (profile) => {
+        next: ({ profile, shell }) => {
           this.profile = profile;
-          this.contactMethods = buildContactMethodsFromProfile(this.profile);
+          this.contactMethods = shell?.contactMethods?.length ? shell.contactMethods : buildContactMethodsFromProfile(profile);
         },
         error: () => {
           this.profile = createEmptyProfile();
           this.contactMethods = [];
-          this.profileErrorMessage = 'Contact details could not be loaded from the portfolio API. You can still use the form below.';
+          this.profileErrorMessage = this.translateOrFallback(
+            'pages.contact.errors.profileLoad',
+            'Contact details could not be loaded from the portfolio API. You can still use the form below.'
+          );
         }
       });
+  }
+
+  private getSiteShellSafely(): Observable<{ contactMethods: ContactMethod[] } | null> {
+    const profileApiWithSiteShell = this.profileApi as PublicProfileApiService & { getSiteShell?: () => Observable<{ contactMethods: ContactMethod[] }> };
+
+    if (typeof profileApiWithSiteShell.getSiteShell !== 'function') {
+      return of(null);
+    }
+
+    return profileApiWithSiteShell.getSiteShell().pipe(
+      take(1),
+      catchError(() => of(null))
+    );
+  }
+
+  private translateOrFallback(key: string, fallback: string): string {
+    const translated = this.i18n.translate(key);
+    return translated === key ? fallback : translated;
   }
 
   private buildDraft(): ContactMessageDraft {

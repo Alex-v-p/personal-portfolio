@@ -1,14 +1,12 @@
 <div class="mx-auto max-w-5xl space-y-8">
   <div class="space-y-3">
-    <p class="text-sm text-stone-600">Home &gt; Contact</p>
-    <h1 class="text-4xl font-semibold tracking-tight text-stone-950">Let’s work together</h1>
-    <!-- <p class="max-w-2xl text-base leading-7 text-stone-600">
-    </p> -->
+    <p class="text-sm text-stone-600">{{ 'navigation.home' | translate }} &gt; {{ 'routes.contact.title' | translate }}</p>
+    <h1 class="text-4xl font-semibold tracking-tight text-stone-950">{{ 'pages.contact.hero.title' | translate }}</h1>
   </div>
 
   <div class="grid gap-5 lg:grid-cols-[0.92fr_1.08fr] lg:items-stretch">
-    <app-ui-card [featured]="true" padding="lg" class="h-full">
-      <div *ngIf="isLoadingProfile" class="space-y-6" aria-label="Loading contact details">
+    <app-ui-card [featured]="true" padding="lg" class="hidden h-full lg:block">
+      <div *ngIf="isLoadingProfile" class="space-y-6" [attr.aria-label]="'pages.contact.loading.profile' | translate">
         <div class="space-y-3">
           <app-ui-skeleton className="h-4 w-28 rounded-full"></app-ui-skeleton>
           <app-ui-skeleton className="h-10 w-full max-w-sm rounded-3xl"></app-ui-skeleton>
@@ -31,13 +29,13 @@
       <div *ngIf="!isLoadingProfile" class="flex h-full flex-col gap-6">
         <div *ngIf="profileErrorMessage; else loadedContactDetails">
           <app-ui-empty-state
-            title="Could not load contact details"
+            [title]="'pages.contact.empty.loadTitle' | translate"
             [description]="profileErrorMessage"
             [hasActions]="true"
             tone="error"
           >
             <div actions>
-              <app-ui-button appearance="secondary" type="button" (click)="loadProfile()">Retry</app-ui-button>
+              <app-ui-button appearance="secondary" type="button" (click)="loadProfile()">{{ 'common.actions.retry' | translate }}</app-ui-button>
             </div>
           </app-ui-empty-state>
         </div>
@@ -45,22 +43,21 @@
         <ng-template #loadedContactDetails>
           <ng-container *ngIf="hasContactDetails; else emptyContactDetails">
             <div class="space-y-3">
-              <p class="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">Contact info</p>
-              <h2 class="text-3xl font-semibold tracking-tight text-stone-950">Start with the channel that feels easiest</h2>
+              <p class="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">{{ 'pages.contact.info.kicker' | translate }}</p>
+              <h2 class="text-3xl font-semibold tracking-tight text-stone-950">{{ 'pages.contact.info.title' | translate }}</h2>
               <p class="text-sm leading-7 text-stone-600">{{ contactIntroText }}</p>
             </div>
 
             <div *ngIf="profile.availability.length" class="flex flex-wrap gap-2">
               <app-ui-chip *ngFor="let item of profile.availability">{{ item }}</app-ui-chip>
             </div>
-
           </ng-container>
         </ng-template>
 
         <ng-template #emptyContactDetails>
           <app-ui-empty-state
-            title="Contact details have not been published yet"
-            description="You can still use the form, but the profile does not currently expose any public contact information."
+            [title]="'pages.contact.empty.noDetailsTitle' | translate"
+            [description]="'pages.contact.empty.noDetailsDescription' | translate"
           ></app-ui-empty-state>
         </ng-template>
       </div>
@@ -69,31 +66,29 @@
     <app-ui-card padding="lg" class="h-full">
       <div class="flex h-full flex-col gap-6">
         <div class="space-y-3">
-          <p class="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">Send a message</p>
-          <h2 class="text-3xl font-semibold tracking-tight text-stone-950">Contact form</h2>
-          <p class="text-sm leading-6 text-stone-600">I'm also open and available for discussing new opportunities! Send in a message and I'll get back to you as soon as possible.</p>
+          <p class="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">{{ 'pages.contact.form.kicker' | translate }}</p>
+          <h2 class="text-3xl font-semibold tracking-tight text-stone-950">{{ 'pages.contact.form.title' | translate }}</h2>
+          <p class="text-sm leading-6 text-stone-600">{{ 'pages.contact.form.description' | translate }}</p>
         </div>
 
         <div *ngIf="submissionState === 'success' && lastSubmittedMessage" class="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-5" role="status">
           <div class="space-y-3">
-            <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">Message sent</p>
-            <h3 class="text-xl font-semibold text-emerald-950">Thanks, {{ lastSubmittedMessage.name }}.</h3>
-            <p class="text-sm leading-6 text-emerald-900/80">
-              Your message about <span class="font-semibold">{{ lastSubmittedMessage.subject }}</span> was sent to the portfolio API and stored successfully.
-            </p>
+            <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">{{ 'pages.contact.success.kicker' | translate }}</p>
+            <h3 class="text-xl font-semibold text-emerald-950">{{ 'pages.contact.success.title' | translate:{ name: lastSubmittedMessage.name } }}</h3>
+            <p class="text-sm leading-6 text-emerald-900/80">{{ 'pages.contact.success.description' | translate:{ subject: lastSubmittedMessage.subject } }}</p>
             <div class="flex flex-wrap gap-3">
-              <app-ui-button appearance="secondary" type="button" (click)="startAnotherMessage()">Send another message</app-ui-button>
+              <app-ui-button appearance="secondary" type="button" (click)="startAnotherMessage()">{{ 'pages.contact.success.action' | translate }}</app-ui-button>
             </div>
           </div>
         </div>
 
         <div *ngIf="submissionState === 'error'" class="rounded-[1.5rem] border border-rose-200 bg-rose-50 p-5" role="alert">
           <div class="space-y-3">
-            <p class="text-sm font-semibold uppercase tracking-[0.18em] text-rose-700">Submission failed</p>
+            <p class="text-sm font-semibold uppercase tracking-[0.18em] text-rose-700">{{ 'pages.contact.error.kicker' | translate }}</p>
             <p class="text-sm leading-6 text-rose-900/80">{{ errorMessage }}</p>
             <div class="flex flex-wrap gap-3">
-              <app-ui-button appearance="secondary" type="button" (click)="submit()">Retry submit</app-ui-button>
-              <app-ui-button appearance="ghost" type="button" (click)="submissionState = 'idle'; errorMessage = ''">Dismiss</app-ui-button>
+              <app-ui-button appearance="secondary" type="button" (click)="submit()">{{ 'pages.contact.error.retry' | translate }}</app-ui-button>
+              <app-ui-button appearance="ghost" type="button" (click)="submissionState = 'idle'; errorMessage = ''">{{ 'pages.contact.error.dismiss' | translate }}</app-ui-button>
             </div>
           </div>
         </div>
@@ -101,54 +96,53 @@
         <form [formGroup]="contactForm" (ngSubmit)="submit()" class="space-y-5" novalidate>
           <div class="grid gap-5 sm:grid-cols-2">
             <label class="grid gap-2">
-              <span class="text-sm font-medium text-stone-700">Name</span>
+              <span class="text-sm font-medium text-stone-700">{{ 'pages.contact.form.fields.name.label' | translate }}</span>
               <input
                 type="text"
                 formControlName="name"
                 class="w-full rounded-2xl border bg-white px-4 py-3 outline-none transition focus:border-stone-500"
                 [class.border-rose-300]="showError('name')"
                 [class.border-stone-300]="!showError('name')"
-                placeholder="Your name"
+                [placeholder]="'pages.contact.form.fields.name.placeholder' | translate"
               />
               <span *ngIf="showError('name')" class="text-xs text-rose-600">{{ errorText('name') }}</span>
             </label>
 
             <label class="grid gap-2">
-              <span class="text-sm font-medium text-stone-700">Email</span>
+              <span class="text-sm font-medium text-stone-700">{{ 'pages.contact.form.fields.email.label' | translate }}</span>
               <input
                 type="email"
                 formControlName="email"
                 class="w-full rounded-2xl border bg-white px-4 py-3 outline-none transition focus:border-stone-500"
                 [class.border-rose-300]="showError('email')"
                 [class.border-stone-300]="!showError('email')"
-                placeholder="your.email@example.com"
+                [placeholder]="'pages.contact.form.fields.email.placeholder' | translate"
               />
               <span *ngIf="showError('email')" class="text-xs text-rose-600">{{ errorText('email') }}</span>
             </label>
           </div>
 
           <label class="grid gap-2">
-            <span class="text-sm font-medium text-stone-700">Subject</span>
+            <span class="text-sm font-medium text-stone-700">{{ 'pages.contact.form.fields.subject.label' | translate }}</span>
             <input
               type="text"
               formControlName="subject"
               class="w-full rounded-2xl border bg-white px-4 py-3 outline-none transition focus:border-stone-500"
               [class.border-rose-300]="showError('subject')"
               [class.border-stone-300]="!showError('subject')"
-              placeholder="Internship, freelance project, collaboration idea..."
+              [placeholder]="'pages.contact.form.fields.subject.placeholder' | translate"
             />
             <span *ngIf="showError('subject')" class="text-xs text-rose-600">{{ errorText('subject') }}</span>
           </label>
 
-
           <label class="sr-only" aria-hidden="true">
-            <span>Website</span>
+            <span>{{ 'pages.contact.form.fields.website.label' | translate }}</span>
             <input type="text" formControlName="website" tabindex="-1" autocomplete="off" />
           </label>
 
           <label class="grid gap-2">
             <div class="flex items-center justify-between gap-3">
-              <span class="text-sm font-medium text-stone-700">Message</span>
+              <span class="text-sm font-medium text-stone-700">{{ 'pages.contact.form.fields.message.label' | translate }}</span>
               <span class="text-xs text-stone-500">{{ messageLength }}/1200</span>
             </div>
             <textarea
@@ -157,20 +151,20 @@
               class="w-full rounded-2xl border bg-white px-4 py-3 outline-none transition focus:border-stone-500"
               [class.border-rose-300]="showError('message')"
               [class.border-stone-300]="!showError('message')"
-              placeholder="Tell me what you have in mind."
+              [placeholder]="'pages.contact.form.fields.message.placeholder' | translate"
             ></textarea>
             <span *ngIf="showError('message')" class="text-xs text-rose-600">{{ errorText('message') }}</span>
           </label>
 
           <div class="flex flex-wrap gap-3">
             <app-ui-button type="submit" [disabled]="isSubmitDisabled">
-              <span *ngIf="submissionState !== 'submitting'; else submittingLabel">Send message</span>
+              <span *ngIf="submissionState !== 'submitting'; else submittingLabel">{{ 'pages.contact.form.actions.submit' | translate }}</span>
             </app-ui-button>
 
-            <ng-template #submittingLabel>Sending…</ng-template>
+            <ng-template #submittingLabel>{{ 'pages.contact.form.actions.submitting' | translate }}</ng-template>
 
             <app-ui-button appearance="ghost" type="button" [disabled]="isSubmitDisabled" (click)="resetForm()">
-              Clear form
+              {{ 'pages.contact.form.actions.clear' | translate }}
             </app-ui-button>
           </div>
         </form>
@@ -180,9 +174,7 @@
 
   <div *ngIf="!isLoadingProfile && primaryContactMethods.length" class="space-y-4">
     <div class="space-y-2">
-      <p class="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">Quick contact</p>
-      <!-- <h2 class="text-2xl font-semibold tracking-tight text-stone-950">Start a conversation faster</h2> -->
-      <!-- <p class="max-w-3xl text-sm leading-7 text-stone-600">The fastest channels for direct outreach sit in their own section below the form, so the page feels more structured and easier to scan.</p> -->
+      <p class="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">{{ 'pages.contact.quick.kicker' | translate }}</p>
     </div>
 
     <div class="grid gap-4 md:grid-cols-2">
@@ -195,8 +187,8 @@
       >
         <div class="flex h-full flex-col gap-4">
           <div class="flex items-start gap-4">
-            <span class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--ui-accent-soft)] text-xs font-semibold tracking-[0.14em] text-[var(--ui-accent-strong)]">
-              {{ contactMethodMonogram(method) }}
+            <span class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--ui-accent-soft)] text-[var(--ui-accent-strong)]">
+              <app-ui-icon [name]="method.iconKey || method.platform" [fallbackText]="method.label" size="lg"></app-ui-icon>
             </span>
 
             <div class="min-w-0 flex-1 space-y-1">
@@ -217,9 +209,7 @@
 
   <div *ngIf="!isLoadingProfile && hasSupplementaryContactMethods" class="space-y-4">
     <div class="space-y-2">
-      <p class="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">More ways to connect</p>
-      <!-- <h2 class="text-2xl font-semibold tracking-tight text-stone-950">Other public links</h2> -->
-      <!-- <p class="max-w-2xl text-sm leading-6 text-stone-600">A cleaner overview of the public profiles and details that support the contact form.</p> -->
+      <p class="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">{{ 'pages.contact.more.kicker' | translate }}</p>
     </div>
 
     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -232,8 +222,8 @@
       >
         <div class="flex h-full flex-col gap-4">
           <div class="flex items-start gap-3">
-            <span class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--ui-accent-soft)] text-xs font-semibold tracking-[0.14em] text-[var(--ui-accent-strong)]">
-              {{ contactMethodMonogram(method) }}
+            <span class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--ui-accent-soft)] text-[var(--ui-accent-strong)]">
+              <app-ui-icon [name]="method.iconKey || method.platform" [fallbackText]="method.label" size="md"></app-ui-icon>
             </span>
 
             <div class="min-w-0 flex-1 space-y-1">

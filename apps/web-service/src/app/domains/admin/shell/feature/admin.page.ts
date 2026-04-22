@@ -672,6 +672,7 @@ export class AdminPageComponent implements OnInit, OnDestroy {
       nameNl: this.skillCategoryForm.nameNl || null,
       description: this.skillCategoryForm.description || null,
       descriptionNl: this.skillCategoryForm.descriptionNl || null,
+      iconKey: this.skillCategoryForm.iconKey || null,
       sortOrder: this.skillCategoryForm.sortOrder,
     };
     const request$ = this.selectedSkillCategoryId

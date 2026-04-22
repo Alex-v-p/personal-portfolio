@@ -11,10 +11,12 @@ export interface HeroAction {
 export interface ExpertiseSkill {
   name: string;
   yearsOfExperience?: number | null;
+  iconKey?: string;
 }
 
 export interface ExpertiseGroup {
   title: string;
+  iconKey?: string;
   tags: string[];
   skills: ExpertiseSkill[];
 }

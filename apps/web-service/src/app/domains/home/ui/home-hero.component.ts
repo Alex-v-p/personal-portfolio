@@ -4,13 +4,14 @@ import { Component, Input } from '@angular/core';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { UiChipComponent } from '@shared/components/chip/ui-chip.component';
 import { UiLinkButtonComponent } from '@shared/components/link-button/ui-link-button.component';
+import { UiIconComponent } from '@shared/icons';
 import { Profile } from '@domains/profile/model/profile.model';
 import { SocialLink } from '@domains/profile/model/social-link.model';
 
 @Component({
   selector: 'app-home-hero-section',
   standalone: true,
-  imports: [NgFor, NgIf, TranslatePipe, UiChipComponent, UiLinkButtonComponent],
+  imports: [NgFor, NgIf, TranslatePipe, UiChipComponent, UiLinkButtonComponent, UiIconComponent],
   templateUrl: './home-hero.component.html'
 })
 export class HomeHeroSectionComponent {
@@ -22,15 +23,27 @@ export class HomeHeroSectionComponent {
     return `${first}${last}`.toUpperCase() || 'AV';
   }
 
-  protected get socialButtons(): Array<{ label: string; mark: string; href: string; openInNewTab: boolean }> {
+  protected get socialButtons(): Array<{
+    label: string;
+    iconName: string;
+    fallbackText: string;
+    href: string;
+    openInNewTab: boolean;
+  }> {
     return (this.profile.socialLinks ?? [])
       .filter((link) => link.isVisible)
-      .map((link) => ({
-        label: link.label || this.formatPlatform(link.platform),
-        mark: this.getSocialMark(link),
-        href: this.getSocialHref(link),
-        openInNewTab: !this.getSocialHref(link).startsWith('mailto:')
-      }))
+      .map((link) => {
+        const href = this.getSocialHref(link);
+        const label = link.label || this.formatPlatform(link.platform);
+
+        return {
+          label,
+          iconName: link.iconKey || link.platform,
+          fallbackText: label,
+          href,
+          openInNewTab: !href.startsWith('mailto:')
+        };
+      })
       .filter((link) => Boolean(link.href));
   }
 
@@ -44,33 +57,6 @@ export class HomeHeroSectionComponent {
     }
 
     return '';
-  }
-
-  private getSocialMark(link: SocialLink): string {
-    const platform = (link.platform || '').trim().toLowerCase();
-
-    if (platform === 'github') {
-      return 'GH';
-    }
-
-    if (platform === 'linkedin') {
-      return 'LI';
-    }
-
-    if (platform === 'email') {
-      return 'EM';
-    }
-
-    if (platform === 'instagram') {
-      return 'IG';
-    }
-
-    if (platform === 'x' || platform === 'twitter') {
-      return 'X';
-    }
-
-    const source = (link.iconKey || link.label || link.platform || '').replace(/[^a-zA-Z0-9]/g, '');
-    return source.slice(0, 2).toUpperCase() || 'LK';
   }
 
   private formatPlatform(platform: string): string {

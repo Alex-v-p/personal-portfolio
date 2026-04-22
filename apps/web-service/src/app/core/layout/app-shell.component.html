@@ -155,12 +155,12 @@
           <a
             *ngFor="let item of socialLinks"
             [href]="item.href"
-            target="_blank"
-            rel="noreferrer noopener"
+            [attr.target]="item.openInNewTab ? '_blank' : null"
+            [attr.rel]="item.openInNewTab ? 'noreferrer noopener' : null"
             [attr.aria-label]="item.label"
             class="ui-social-icon"
           >
-            {{ item.mark }}
+            <app-ui-icon [name]="item.iconName" [fallbackText]="item.label" size="md"></app-ui-icon>
           </a>
         </div>
       </section>

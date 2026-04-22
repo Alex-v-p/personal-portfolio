@@ -26,10 +26,12 @@ export interface SkillApi {
 export interface ExpertiseSkillApi {
   name: string;
   yearsOfExperience?: number | null;
+  iconKey?: string | null;
 }
 
 export interface ExpertiseGroupApi {
   title: string;
+  iconKey?: string | null;
   tags: string[];
   skills?: ExpertiseSkillApi[] | null;
 }

@@ -22,6 +22,7 @@ class SkillCategory(Base):
     name_nl: Mapped[str | None] = mapped_column(String(120))
     description: Mapped[str | None] = mapped_column(Text)
     description_nl: Mapped[str | None] = mapped_column(Text)
+    icon_key: Mapped[str | None] = mapped_column(String(80))
     sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
     skills: Mapped[list[Skill]] = relationship(back_populates='category')

@@ -10,7 +10,8 @@ from app.core.config import get_settings
 from infra.postgres.bootstrap.bootstrap_core import initialize_database
 from infra.postgres.bootstrap.seed_content import BLOG_POST_ROWS, PROFILE_ROW, PROJECT_ROWS
 from infra.postgres.bootstrap.seed_ids import seed_uuid
-from app.db.models import BlogPost, BlogTag, MediaFile, Profile, Project, ProjectSkill, SocialLink, AdminUser
+from app.core.icon_keys import VALID_ICON_KEYS
+from app.db.models import AdminUser, BlogPost, BlogTag, MediaFile, Profile, Project, ProjectSkill, Skill, SkillCategory, SocialLink
 from infra.postgres.bootstrap.seed_data import MEDIA_FILES
 from app.db.session import get_session_factory, reset_database_caches
 
@@ -64,6 +65,14 @@ def test_initialize_database_creates_and_seeds_expected_content(tmp_path: Path) 
         assert session.scalar(select(func.count()).select_from(ProjectSkill)) > 0
         assert session.scalar(select(func.count()).select_from(BlogTag)) > 0
 
+        categories = session.scalars(select(SkillCategory).order_by(SkillCategory.sort_order.asc(), SkillCategory.name.asc())).all()
+        assert categories
+        category_icons = {category.name: category.icon_key for category in categories}
+        assert category_icons['Front-End'] == 'code'
+        assert category_icons['Back-End'] == 'server'
+        assert category_icons['Infrastructure & Tools'] == 'database'
+        assert category_icons['Languages'] == 'languages'
+
         profile = session.scalar(select(Profile))
         project = session.scalar(select(Project).limit(1))
         post = session.scalar(select(BlogPost).limit(1))
@@ -74,6 +83,25 @@ def test_initialize_database_creates_and_seeds_expected_content(tmp_path: Path) 
 
         assert initialize_database(auto_seed=True, recreate_on_drift=True, raise_on_error=True) is True
         assert session.scalar(select(func.count()).select_from(Project)) == len(PROJECT_ROWS)
+
+
+def test_seeded_icon_keys_use_supported_registry_values(tmp_path: Path) -> None:
+    database_path = tmp_path / 'seed-icons.sqlite3'
+    os.environ['DATABASE_URL'] = f'sqlite:///{database_path}'
+    reset_database_caches()
+    get_settings.cache_clear()
+
+    assert initialize_database(auto_seed=True, recreate_on_drift=True, raise_on_error=True) is True
+
+    session_factory = get_session_factory()
+    with session_factory() as session:
+        category_icon_keys = {icon_key for icon_key in session.scalars(select(SkillCategory.icon_key)).all() if icon_key}
+        skill_icon_keys = {icon_key for icon_key in session.scalars(select(Skill.icon_key)).all() if icon_key}
+        social_icon_keys = {icon_key for icon_key in session.scalars(select(SocialLink.icon_key)).all() if icon_key}
+
+    assert category_icon_keys <= VALID_ICON_KEYS
+    assert skill_icon_keys <= VALID_ICON_KEYS
+    assert social_icon_keys <= VALID_ICON_KEYS
 
 
 

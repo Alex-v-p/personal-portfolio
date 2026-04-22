@@ -27,6 +27,7 @@ class AdminTaxonomyRepository(AdminRepositorySupport):
             name_nl=self._normalize_optional_text(payload.name_nl),
             description=self._normalize_optional_text(payload.description),
             description_nl=self._normalize_optional_text(payload.description_nl),
+            icon_key=self._normalize_optional_text(payload.icon_key),
             sort_order=payload.sort_order,
         )
         self.session.add(category)
@@ -42,6 +43,7 @@ class AdminTaxonomyRepository(AdminRepositorySupport):
         category.name_nl = self._normalize_optional_text(payload.name_nl)
         category.description = self._normalize_optional_text(payload.description)
         category.description_nl = self._normalize_optional_text(payload.description_nl)
+        category.icon_key = self._normalize_optional_text(payload.icon_key)
         category.sort_order = payload.sort_order
         self.session.commit()
         self.session.refresh(category)

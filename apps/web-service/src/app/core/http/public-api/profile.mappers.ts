@@ -4,6 +4,7 @@ import { NavigationItem, SiteShellData } from '@domains/profile/model/site-shell
 import { SocialLink } from '@domains/profile/model/social-link.model';
 
 import { normalizeMedia } from './common.mappers';
+import { resolveIconKey } from '@shared/icons';
 import { ContactMethodApi, NavigationItemApi, ProfileApi, SiteShellApi, SocialLinkApi } from './profile.contracts';
 import { ExpertiseGroupApi, ExpertiseSkillApi } from './common.contracts';
 
@@ -29,7 +30,7 @@ export function normalizeSocialLinks(items: SocialLinkApi[] | null | undefined):
     platform: link.platform,
     label: link.label,
     url: link.url,
-    iconKey: link.iconKey ?? '',
+    iconKey: resolveIconKey(link.iconKey) ?? resolveIconKey(link.platform) ?? '',
     sortOrder: link.sortOrder,
     isVisible: link.isVisible,
   }));
@@ -47,7 +48,7 @@ export function normalizeContactMethods(items: ContactMethodApi[] | null | undef
     value: item.value,
     href: item.href,
     actionLabel: item.actionLabel,
-    iconKey: item.iconKey ?? undefined,
+    iconKey: resolveIconKey(item.iconKey) ?? resolveIconKey(item.platform) ?? resolveIconKey(item.label) ?? undefined,
     description: item.description ?? undefined,
     sortOrder: item.sortOrder,
     isVisible: item.isVisible,
@@ -62,6 +63,7 @@ export function normalizeExpertiseSkill(skill: ExpertiseSkillApi | null | undefi
   return {
     name: skill.name,
     yearsOfExperience: skill.yearsOfExperience ?? null,
+    iconKey: resolveIconKey(skill.iconKey) ?? resolveIconKey(skill.name) ?? undefined,
   };
 }
 
@@ -83,6 +85,7 @@ export function normalizeExpertiseGroups(items: ExpertiseGroupApi[] | null | und
 
     return {
       title: group.title,
+      iconKey: resolveIconKey(group.iconKey) ?? resolveIconKey(group.title) ?? undefined,
       tags: Array.isArray(group.tags) ? group.tags : [],
       skills: fallbackSkills,
     };
@@ -162,12 +165,13 @@ function parseExpertiseSkillFromTag(tag: string): ExpertiseSkill {
   const match = trimmedTag.match(/^(.*?)\s*[-·]\s*(\d+)y$/i);
 
   if (!match) {
-    return { name: trimmedTag, yearsOfExperience: null };
+    return { name: trimmedTag, yearsOfExperience: null, iconKey: undefined };
   }
 
   return {
     name: match[1].trim(),
     yearsOfExperience: Number.parseInt(match[2], 10) || null,
+    iconKey: undefined,
   };
 }
 

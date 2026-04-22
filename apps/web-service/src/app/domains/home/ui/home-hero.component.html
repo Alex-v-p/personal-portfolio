@@ -125,7 +125,7 @@
         [attr.aria-label]="link.label"
         [attr.title]="link.label"
       >
-        {{ link.mark }}
+        <app-ui-icon [name]="link.iconName" [fallbackText]="link.fallbackText" size="md"></app-ui-icon>
       </a>
     </div>
   </div>
