@@ -2,9 +2,8 @@ import { NgFor, NgIf } from '@angular/common';
 import { ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { forkJoin } from 'rxjs';
-import { distinctUntilChanged } from 'rxjs/operators';
-import { finalize, take } from 'rxjs/operators';
+import { Observable, forkJoin, of } from 'rxjs';
+import { catchError, distinctUntilChanged, finalize, take } from 'rxjs/operators';
 
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { I18nService } from '@core/i18n/i18n.service';
@@ -19,7 +18,7 @@ import { Profile } from '@domains/profile/model/profile.model';
 import { PublicContactApiService } from '@domains/contact/data/contact-api.service';
 import { PublicProfileApiService } from '@domains/profile/data/profile-api.service';
 import { SiteTrackingService } from '@domains/site-activity/data/site-tracking.service';
-import { createEmptyProfile } from '@domains/profile/lib/profile-view.util';
+import { buildContactMethodsFromProfile, createEmptyProfile } from '@domains/profile/lib/profile-view.util';
 
 type SubmissionState = 'idle' | 'submitting' | 'success' | 'error';
 
@@ -98,7 +97,7 @@ export class ContactPageComponent implements OnInit {
         },
         error: (error) => {
           this.submissionState = 'error';
-          this.errorMessage = error?.error?.detail || this.i18n.translate('pages.contact.errors.submit');
+          this.errorMessage = error?.error?.detail || this.translateOrFallback('pages.contact.errors.submit', 'The message could not be sent to the portfolio API. Make sure the API or reverse proxy is running and try again.');
         }
       });
   }
@@ -216,7 +215,7 @@ export class ContactPageComponent implements OnInit {
 
     forkJoin({
       profile: this.profileApi.getProfile().pipe(take(1)),
-      shell: this.profileApi.getSiteShell().pipe(take(1)),
+      shell: this.getSiteShellSafely(),
     })
       .pipe(
         finalize(() => {
@@ -227,14 +226,35 @@ export class ContactPageComponent implements OnInit {
       .subscribe({
         next: ({ profile, shell }) => {
           this.profile = profile;
-          this.contactMethods = shell.contactMethods;
+          this.contactMethods = shell?.contactMethods?.length ? shell.contactMethods : buildContactMethodsFromProfile(profile);
         },
         error: () => {
           this.profile = createEmptyProfile();
           this.contactMethods = [];
-          this.profileErrorMessage = this.i18n.translate('pages.contact.errors.profileLoad');
+          this.profileErrorMessage = this.translateOrFallback(
+            'pages.contact.errors.profileLoad',
+            'Contact details could not be loaded from the portfolio API. You can still use the form below.'
+          );
         }
       });
+  }
+
+  private getSiteShellSafely(): Observable<{ contactMethods: ContactMethod[] } | null> {
+    const profileApiWithSiteShell = this.profileApi as PublicProfileApiService & { getSiteShell?: () => Observable<{ contactMethods: ContactMethod[] }> };
+
+    if (typeof profileApiWithSiteShell.getSiteShell !== 'function') {
+      return of(null);
+    }
+
+    return profileApiWithSiteShell.getSiteShell().pipe(
+      take(1),
+      catchError(() => of(null))
+    );
+  }
+
+  private translateOrFallback(key: string, fallback: string): string {
+    const translated = this.i18n.translate(key);
+    return translated === key ? fallback : translated;
   }
 
   private buildDraft(): ContactMessageDraft {

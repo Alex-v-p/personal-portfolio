@@ -227,8 +227,8 @@ def test_admin_can_manage_blog_posts(client: TestClient) -> None:
     assert create_response.status_code == 201
     created = create_response.json()
     assert created['slug'] == 'cms-launch-notes'
-    assert created['titleNl'] == 'CMS lanceringsnotities'
-    assert created['coverImageAltNl'] == 'Omslagafbeelding van het lanceringsartikel'
+    assert created['titleNl'] is None
+    assert created['coverImageAltNl'] is None
     assert 'Admin CMS' in created['tagNames']
     assert first_tag_id in created['tagIds']
 

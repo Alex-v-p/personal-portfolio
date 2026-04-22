@@ -20,5 +20,5 @@ def test_knowledge_builder_generates_english_and_dutch_documents(client) -> None
     english_profile = next(document for document in profile_documents if document.metadata_json.get('locale') == 'en')
     dutch_profile = next(document for document in profile_documents if document.metadata_json.get('locale') == 'nl')
 
-    assert 'student software engineering and AI' in english_profile.content_markdown
-    assert 'student software engineering en AI' in dutch_profile.content_markdown
+    assert 'a software engineering and AI student' in english_profile.content_markdown
+    assert 'een student software engineering en AI' in dutch_profile.content_markdown
