@@ -1,8 +1,8 @@
 export const ICON_GROUPS = {
-  social: ['github', 'linkedin', 'twitter', 'instagram'],
-  contact: ['mail', 'phone', 'map-pin', 'globe'],
-  expertise: ['code', 'server', 'brain', 'database', 'workflow', 'languages'],
-  tech: ['angular', 'laravel', 'python', 'docker', 'git', 'typescript', 'tailwindcss', 'sql', 'kubernetes'],
+  social: ['github', 'linkedin', 'twitter', 'instagram', 'youtube', 'facebook', 'discord'],
+  contact: ['mail', 'phone', 'map-pin', 'globe', 'link', 'external-link'],
+  expertise: ['code', 'server', 'brain', 'database', 'workflow', 'languages', 'shield', 'cpu'],
+  tech: ['angular', 'laravel', 'python', 'docker', 'git', 'typescript', 'tailwindcss', 'sql', 'kubernetes', 'fastapi', 'csharp', 'pandas'],
 } as const;
 
 export type IconGroupKey = keyof typeof ICON_GROUPS;
@@ -76,6 +76,17 @@ export const ICON_ALIASES: Readonly<Record<string, IconKey>> = {
   'tailwind-css': 'tailwindcss',
   ts: 'typescript',
   x: 'twitter',
+  gh: 'github',
+  fb: 'facebook',
+  yt: 'youtube',
+  discordapp: 'discord',
+  url: 'link',
+  href: 'link',
+  external: 'external-link',
+  secure: 'shield',
+  security: 'shield',
+  cpu: 'cpu',
+  processor: 'cpu',
   'linked-in': 'linkedin',
   network: 'globe',
   networking: 'globe',

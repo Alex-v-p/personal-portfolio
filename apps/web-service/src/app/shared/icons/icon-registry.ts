@@ -18,14 +18,8 @@ export const ICON_REGISTRY: Readonly<Record<IconKey, IconDefinition>> = {
     label: 'GitHub',
     group: 'social',
     keywords: ['social', 'code', 'repository'],
-    svg: strokeIcon(`
-      <path d="M8 8.2 9.4 5.8 12 7.1 14.6 5.8 16 8.2" />
-      <path d="M8.3 16.8c-1.9-1.3-3.1-3.4-3.1-5.8 0-3.8 3.1-6.9 6.8-6.9s6.8 3.1 6.8 6.9c0 2.4-1.2 4.6-3.1 5.8" />
-      <circle cx="9.5" cy="10.6" r="0.6" fill="currentColor" stroke="none" />
-      <circle cx="14.5" cy="10.6" r="0.6" fill="currentColor" stroke="none" />
-      <path d="M9.5 13.6c0.9 0.7 1.7 1 2.5 1s1.6-0.3 2.5-1" />
-      <path d="M10.2 17v2" />
-      <path d="M13.8 17v2" />
+    svg: filledIcon(`
+      <path d="M12 3.25A8.75 8.75 0 0 0 3.25 12c0 3.94 2.6 7.28 6.17 8.46.45.08.61-.2.61-.45v-1.57c-2.5.54-3.03-1.06-3.03-1.06-.4-1.03-1-1.3-1-1.3-.82-.56.07-.55.07-.55.9.06 1.37.92 1.37.92.8 1.37 2.1.97 2.61.75.08-.58.31-.97.56-1.2-2-.23-4.1-1-4.1-4.45 0-.98.35-1.78.92-2.4-.09-.23-.4-1.14.09-2.38 0 0 .76-.24 2.48.92a8.4 8.4 0 0 1 4.52 0c1.72-1.16 2.48-.92 2.48-.92.49 1.24.18 2.15.09 2.38.57.62.92 1.42.92 2.4 0 3.46-2.11 4.21-4.12 4.44.32.28.61.84.61 1.7v2.53c0 .25.16.53.62.45A8.76 8.76 0 0 0 20.75 12 8.75 8.75 0 0 0 12 3.25Z" />
     `),
   },
   linkedin: {
@@ -60,6 +54,33 @@ export const ICON_REGISTRY: Readonly<Record<IconKey, IconDefinition>> = {
       <rect x="4.5" y="4.5" width="15" height="15" rx="4" />
       <circle cx="12" cy="12" r="3.25" />
       <circle cx="16.2" cy="7.8" r="0.75" fill="currentColor" stroke="none" />
+    `),
+  },
+  youtube: {
+    key: 'youtube',
+    label: 'YouTube',
+    group: 'social',
+    keywords: ['social', 'video', 'media'],
+    svg: filledIcon(`
+      <path d="M19.7 8.34a2.5 2.5 0 0 0-1.76-1.77C16.36 6.12 12 6.12 12 6.12s-4.36 0-5.94.45A2.5 2.5 0 0 0 4.3 8.34 26.3 26.3 0 0 0 3.88 12c0 1.22.14 2.44.42 3.66a2.5 2.5 0 0 0 1.76 1.77c1.58.45 5.94.45 5.94.45s4.36 0 5.94-.45a2.5 2.5 0 0 0 1.76-1.77c.28-1.22.42-2.44.42-3.66 0-1.22-.14-2.44-.42-3.66ZM10.38 14.88V9.12L15.3 12l-4.92 2.88Z" />
+    `),
+  },
+  facebook: {
+    key: 'facebook',
+    label: 'Facebook',
+    group: 'social',
+    keywords: ['social', 'meta', 'community'],
+    svg: filledIcon(`
+      <path d="M13.53 20.5v-7.02h2.36l.35-2.74h-2.71V9c0-.8.22-1.34 1.36-1.34h1.46V5.2c-.25-.03-1.12-.1-2.14-.1-2.12 0-3.57 1.3-3.57 3.68v2.06H8.25v2.74h2.39v7.02h2.89Z" />
+    `),
+  },
+  discord: {
+    key: 'discord',
+    label: 'Discord',
+    group: 'social',
+    keywords: ['social', 'chat', 'community'],
+    svg: filledIcon(`
+      <path d="M17.46 7.2A13.2 13.2 0 0 0 14.2 6.2l-.16.32a12.2 12.2 0 0 1 2.94 1.13 9.78 9.78 0 0 0-4.98-1.29 9.8 9.8 0 0 0-4.98 1.3 12.2 12.2 0 0 1 2.95-1.14l-.16-.32c-1.13.18-2.23.52-3.27 1.01C4.46 10.28 4 13.29 4.23 16.26a13.28 13.28 0 0 0 4 2.03l.5-.82c-.74-.28-1.44-.64-2.08-1.08l.18-.14c1.5.7 3.13 1.05 4.77 1.05 1.64 0 3.27-.36 4.78-1.06l.17.14c-.64.44-1.34.8-2.08 1.08l.5.82a13.25 13.25 0 0 0 4-2.03c.3-3.43-.5-6.41-2.51-9.06ZM9.82 14.34c-.77 0-1.4-.72-1.4-1.6 0-.89.62-1.6 1.4-1.6.78 0 1.41.71 1.4 1.6 0 .88-.62 1.6-1.4 1.6Zm4.36 0c-.77 0-1.4-.72-1.4-1.6 0-.89.62-1.6 1.4-1.6.78 0 1.41.71 1.4 1.6 0 .88-.62 1.6-1.4 1.6Z" />
     `),
   },
   mail: {
@@ -100,6 +121,28 @@ export const ICON_REGISTRY: Readonly<Record<IconKey, IconDefinition>> = {
       <circle cx="12" cy="12" r="8" />
       <path d="M4.5 12h15" />
       <path d="M12 4c2.2 2.2 3.5 5 3.5 8s-1.3 5.8-3.5 8c-2.2-2.2-3.5-5-3.5-8s1.3-5.8 3.5-8Z" />
+    `),
+  },
+  link: {
+    key: 'link',
+    label: 'Link',
+    group: 'contact',
+    keywords: ['contact', 'url', 'website'],
+    svg: strokeIcon(`
+      <path d="M10.2 13.8 8.3 15.7a3 3 0 1 1-4.2-4.2L6 9.6" />
+      <path d="m13.8 10.2 1.9-1.9a3 3 0 1 1 4.2 4.2L18 14.4" />
+      <path d="m8.8 15.2 6.4-6.4" />
+    `),
+  },
+  'external-link': {
+    key: 'external-link',
+    label: 'External link',
+    group: 'contact',
+    keywords: ['contact', 'url', 'external'],
+    svg: strokeIcon(`
+      <path d="M13 5.5h5.5V11" />
+      <path d="m18.5 5.5-7.6 7.6" />
+      <rect x="5" y="8.5" width="10.5" height="10.5" rx="2" />
     `),
   },
   code: {
@@ -179,6 +222,27 @@ export const ICON_REGISTRY: Readonly<Record<IconKey, IconDefinition>> = {
       <path d="M7.2 11.7h4.6" />
       <path d="M8.3 9.5c0.5 1.4 1.4 2.6 2.7 3.6" />
       <path d="M9.5 9.4v2.2" />
+    `),
+  },
+  shield: {
+    key: 'shield',
+    label: 'Shield',
+    group: 'expertise',
+    keywords: ['security', 'protection', 'iot'],
+    svg: strokeIcon(`
+      <path d="M12 3.8 18 6v4.5c0 3.4-2.3 6.5-6 7.7-3.7-1.2-6-4.3-6-7.7V6l6-2.2Z" />
+      <path d="m9.6 11.8 1.6 1.6 3.2-3.5" />
+    `),
+  },
+  cpu: {
+    key: 'cpu',
+    label: 'CPU',
+    group: 'expertise',
+    keywords: ['hardware', 'embedded', 'chip'],
+    svg: strokeIcon(`
+      <rect x="7" y="7" width="10" height="10" rx="2" />
+      <rect x="10" y="10" width="4" height="4" rx="0.8" />
+      <path d="M9.5 3.8v2.4M14.5 3.8v2.4M9.5 17.8v2.4M14.5 17.8v2.4M3.8 9.5h2.4M3.8 14.5h2.4M17.8 9.5h2.4M17.8 14.5h2.4" />
     `),
   },
   angular: {
@@ -293,6 +357,37 @@ export const ICON_REGISTRY: Readonly<Record<IconKey, IconDefinition>> = {
       <path d="M12 17.2v-2.8" />
       <path d="m5.9 13.7 2.4-1.4" />
       <path d="m5.9 6.7 2.4 1.4" />
+    `),
+  },
+  fastapi: {
+    key: 'fastapi',
+    label: 'FastAPI',
+    group: 'tech',
+    keywords: ['python', 'api', 'backend'],
+    svg: strokeIcon(`
+      <path d="M13.8 4.5 7.5 12h4.1L10.2 19.5 16.5 12h-4.1l1.4-7.5Z" />
+    `),
+  },
+  csharp: {
+    key: 'csharp',
+    label: 'C#',
+    group: 'tech',
+    keywords: ['dotnet', '.net', 'language'],
+    svg: strokeIcon(`
+      <path d="M14.2 7.2a5.1 5.1 0 1 0 0 9.6" />
+      <path d="M16.4 9.2v5.6M18.2 9.2v5.6M15.2 11h4.2M15.2 13h4.2" />
+    `),
+  },
+  pandas: {
+    key: 'pandas',
+    label: 'Pandas',
+    group: 'tech',
+    keywords: ['python', 'dataframe', 'data'],
+    svg: strokeIcon(`
+      <rect x="6.5" y="5" width="3" height="6" rx="0.8" />
+      <rect x="6.5" y="13" width="3" height="6" rx="0.8" />
+      <rect x="11.5" y="8" width="3" height="11" rx="0.8" />
+      <rect x="14.5" y="5" width="3" height="6" rx="0.8" />
     `),
   },
 };

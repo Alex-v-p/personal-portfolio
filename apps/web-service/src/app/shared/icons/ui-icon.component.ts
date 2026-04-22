@@ -37,15 +37,15 @@ export class UiIconComponent {
     const size = this.size;
 
     if (typeof size === 'number' && Number.isFinite(size)) {
-      return Math.max(12, size);
+      return Math.max(14, size);
     }
 
     const lookup = {
-      xs: 14,
-      sm: 16,
-      md: 20,
-      lg: 24,
-      xl: 32,
+      xs: 16,
+      sm: 20,
+      md: 24,
+      lg: 28,
+      xl: 36,
     } as const;
 
     switch (size) {
