@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.core.config import get_settings
 from app.db.models import AssistantConversation, AssistantMessage, AssistantRole
 from app.domains.chat.service.events import record_assistant_site_event
-from app.domains.chat.service.formatting import build_citations, build_context_blocks, build_fallback_answer, resolve_response_locale, serialize_recent_history
+from app.domains.chat.service.formatting import build_citations, build_context_blocks, build_conversational_answer, build_fallback_answer, resolve_response_locale, serialize_recent_history
 from app.domains.providers.client import ProviderClient
 from app.domains.retrieval.service.service import KnowledgeRetrievalService
 from app.services.rate_limit import provider_budget_guard
@@ -46,6 +46,19 @@ class ChatService:
     ) -> dict:
         conversation = self._get_or_create_conversation(conversation_id=conversation_id, session_id=session_id)
         response_locale = resolve_response_locale(locale=locale, page_path=page_path)
+        conversational_answer = build_conversational_answer(question=message, locale=response_locale)
+        if conversational_answer is not None:
+            return self._persist_and_return_response(
+                conversation=conversation,
+                user_message=message,
+                answer=conversational_answer,
+                citations=[],
+                site_session_id=site_session_id,
+                visitor_id=visitor_id,
+                page_path=page_path,
+                request=request,
+                used_fallback=False,
+            )
         history = serialize_recent_history(conversation, max_history_messages=self.settings.max_history_messages)
         retrieved = self.retrieval.search(message, page_path=page_path, locale=response_locale)
         citations = build_citations(retrieved, locale=response_locale)
@@ -122,6 +135,46 @@ class ChatService:
         )
         self.session.commit()
 
+        return {
+            'conversation_id': str(conversation.id),
+            'message': answer,
+            'provider_backend': self.settings.provider_backend,
+            'citations': citations,
+        }
+
+    def _persist_and_return_response(
+        self,
+        *,
+        conversation: AssistantConversation,
+        user_message: str,
+        answer: str,
+        citations: list,
+        site_session_id: str | None,
+        visitor_id: str | None,
+        page_path: str | None,
+        request: Request | None,
+        used_fallback: bool,
+    ) -> dict:
+        now = datetime.now(timezone.utc)
+        conversation.last_message_at = now
+        self.session.add(AssistantMessage(conversation_id=conversation.id, role=AssistantRole.USER, message_text=user_message))
+        self.session.add(AssistantMessage(conversation_id=conversation.id, role=AssistantRole.ASSISTANT, message_text=answer))
+        self.session.add(conversation)
+        record_assistant_site_event(
+            self.session,
+            visitor_id=visitor_id,
+            site_session_id=site_session_id,
+            page_path=page_path,
+            request=request,
+            conversation_id=str(conversation.id),
+            provider_backend=self.settings.provider_backend,
+            citations=citations,
+            question=user_message,
+            answer=answer,
+            used_fallback=used_fallback,
+            assistant_session_id=conversation.session_id,
+        )
+        self.session.commit()
         return {
             'conversation_id': str(conversation.id),
             'message': answer,

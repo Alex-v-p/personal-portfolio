@@ -20,6 +20,7 @@ from app.db.models import (
     AdminUser,
     BlogPost,
     BlogPostTag,
+    AssistantContextNote,
     BlogTag,
     EventType,
     Experience,
@@ -331,6 +332,50 @@ def _build_site_event_rows() -> list[dict]:
     return rows
 
 SITE_EVENT_ROWS = _build_site_event_rows()
+ASSISTANT_CONTEXT_NOTES = [
+    {
+        'id': 'assistant-note-overall-skills',
+        'title': 'Overall skills and strengths',
+        'title_nl': 'Algemene vaardigheden en sterktes',
+        'category': 'overall_skills',
+        'content_markdown': (
+            'Alex is strongest when a project combines practical software engineering with clear communication. '
+            'His strongest technical areas are Laravel, Livewire, Angular, TypeScript, Python, SQL, REST APIs, and AI/data coursework. '
+            'He is comfortable turning vague requirements into a usable prototype, explaining trade-offs to teammates, and iterating with feedback. '
+            'He is still actively learning and does not want the assistant to oversell him as a senior engineer; describe him as a motivated applied computer science student with hands-on project experience.'
+        ),
+        'content_markdown_nl': (
+            'Alex is het sterkst wanneer een project praktische softwareontwikkeling combineert met duidelijke communicatie. '
+            'Zijn sterkste technische domeinen zijn Laravel, Livewire, Angular, TypeScript, Python, SQL, REST API’s en AI/data-vakken. '
+            'Hij kan vage requirements omzetten naar een bruikbaar prototype, technische keuzes uitleggen aan teamleden en itereren op basis van feedback. '
+            'Hij leert nog actief bij en wil niet worden voorgesteld als senior engineer; beschrijf hem als een gemotiveerde student toegepaste informatica met praktische projectervaring.'
+        ),
+        'is_active': True,
+        'sort_order': 1,
+        'created_at': TIMESTAMP,
+        'updated_at': TIMESTAMP,
+    },
+    {
+        'id': 'assistant-note-working-style',
+        'title': 'Working style and communication',
+        'title_nl': 'Werkstijl en communicatie',
+        'category': 'working_style',
+        'content_markdown': (
+            'Alex prefers direct, practical communication and likes to make uncertainty explicit early. '
+            'In team projects he often helps structure requirements, keep the implementation understandable, and connect technical details with what the user actually needs. '
+            'He values realistic scope, clear next steps, and small working increments over flashy but fragile solutions.'
+        ),
+        'content_markdown_nl': (
+            'Alex verkiest directe, praktische communicatie en maakt onzekerheden graag vroeg duidelijk. '
+            'In teamprojecten helpt hij vaak met requirements structureren, de implementatie begrijpelijk houden en technische details koppelen aan wat de gebruiker echt nodig heeft. '
+            'Hij waardeert realistische scope, duidelijke vervolgstappen en kleine werkende verbeteringen meer dan opvallende maar fragiele oplossingen.'
+        ),
+        'is_active': True,
+        'sort_order': 2,
+        'created_at': TIMESTAMP,
+        'updated_at': TIMESTAMP,
+    },
+]
 
 
 def _seed_uuid(value: str | None) -> UUID | None:
@@ -402,12 +447,35 @@ def sync_admin_user(session: Session) -> None:
     session.commit()
 
 
+def _upsert_assistant_context_notes(session: Session) -> None:
+    for item in ASSISTANT_CONTEXT_NOTES:
+        payload = _with_uuid_fields(item, 'id')
+        existing = session.get(AssistantContextNote, payload['id'])
+        if existing is None:
+            session.add(AssistantContextNote(**payload))
+            continue
+        for field_name in (
+            'title',
+            'title_nl',
+            'content_markdown',
+            'content_markdown_nl',
+            'category',
+            'is_active',
+            'sort_order',
+            'updated_at',
+        ):
+            setattr(existing, field_name, payload[field_name])
+        session.add(existing)
+    session.flush()
+
+
 def seed_database(session: Session) -> None:
     try:
         _upsert_admin_user(session)
 
         already_seeded = session.scalar(select(Project.id).limit(1))
         if already_seeded:
+            _upsert_assistant_context_notes(session)
             session.commit()
             return
 
@@ -484,6 +552,7 @@ def seed_database(session: Session) -> None:
             SiteEvent(**_with_uuid_fields(item, 'id'))
             for item in SITE_EVENT_ROWS
         ])
+        _upsert_assistant_context_notes(session)
         session.flush()
 
         session.add_all([

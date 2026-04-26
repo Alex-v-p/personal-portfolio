@@ -2,6 +2,9 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import {
+  AdminAssistantContextNote,
+  AdminAssistantContextNotePayload,
+  AdminAssistantContextNotesList,
   AdminAssistantKnowledgeStatus,
   AdminAsyncTaskAccepted,
   AdminDashboardSummary,
@@ -26,6 +29,22 @@ export class AdminOverviewApiService {
 
   getAssistantKnowledgeStatus(): Observable<AdminAssistantKnowledgeStatus> {
     return this.adminHttp.http.get<AdminAssistantKnowledgeStatus>(this.adminHttp.adminUrl('assistant/knowledge'));
+  }
+
+  getAssistantContextNotes(): Observable<AdminAssistantContextNotesList> {
+    return this.adminHttp.http.get<AdminAssistantContextNotesList>(this.adminHttp.adminUrl('assistant/context-notes'));
+  }
+
+  createAssistantContextNote(payload: AdminAssistantContextNotePayload): Observable<AdminAssistantContextNote> {
+    return this.adminHttp.http.post<AdminAssistantContextNote>(this.adminHttp.adminUrl('assistant/context-notes'), payload);
+  }
+
+  updateAssistantContextNote(noteId: string, payload: AdminAssistantContextNotePayload): Observable<AdminAssistantContextNote> {
+    return this.adminHttp.http.put<AdminAssistantContextNote>(this.adminHttp.adminUrl(`assistant/context-notes/${noteId}`), payload);
+  }
+
+  deleteAssistantContextNote(noteId: string): Observable<void> {
+    return this.adminHttp.http.delete<void>(this.adminHttp.adminUrl(`assistant/context-notes/${noteId}`));
   }
 
   getSiteActivity(): Observable<AdminSiteActivity> {

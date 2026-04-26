@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
-import { AdminContactMessage, AdminDashboardSummary, AdminMediaFile } from '@domains/admin/model/admin.model';
+import { AdminAssistantContextNote, AdminContactMessage, AdminDashboardSummary, AdminMediaFile } from '@domains/admin/model/admin.model';
 
 @Component({
   selector: 'app-admin-overview-tab',
@@ -13,8 +13,9 @@ export class AdminOverviewTabComponent {
   @Input({ required: true }) dashboard!: AdminDashboardSummary;
   @Input({ required: true }) messages: AdminContactMessage[] = [];
   @Input({ required: true }) mediaFiles: AdminMediaFile[] = [];
+  @Input() assistantContextNotes: AdminAssistantContextNote[] = [];
 
-  @Output() readonly openTab = new EventEmitter<'media' | 'messages'>();
+  @Output() readonly openTab = new EventEmitter<'media' | 'messages' | 'assistant'>();
 
   get primaryKpis(): Array<{ label: string; value: number; hint: string }> {
     return [
@@ -23,6 +24,7 @@ export class AdminOverviewTabComponent {
       { label: 'Unread messages', value: this.dashboard.unreadMessages, hint: 'Inbox items waiting on review' },
       { label: 'Media files', value: this.dashboard.mediaFiles, hint: 'Assets ready for reuse' },
       { label: 'GitHub snapshots', value: this.dashboard.githubSnapshots, hint: 'Saved public stats snapshots' },
+      { label: 'Assistant notes', value: this.assistantContextNotes.length, hint: 'Private RAG notes in the CMS' },
     ];
   }
 
@@ -41,7 +43,7 @@ export class AdminOverviewTabComponent {
     return this.messages.filter((message) => !message.isRead).length;
   }
 
-  setActiveTab(tabId: 'media' | 'messages'): void {
+  setActiveTab(tabId: 'media' | 'messages' | 'assistant'): void {
     this.openTab.emit(tabId);
   }
 }

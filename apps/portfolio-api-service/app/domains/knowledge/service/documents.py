@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.db.models import (
     BlogPost,
     BlogPostTag,
+    AssistantContextNote,
     Experience,
     ExperienceSkill,
     KnowledgeDocument,
@@ -66,6 +67,14 @@ class KnowledgeDocumentBuilder:
         ).all()
         for post in blog_posts:
             documents.extend(self._build_blog_post_documents(post))
+
+        context_notes = self.session.scalars(
+            select(AssistantContextNote)
+            .where(AssistantContextNote.is_active.is_(True))
+            .order_by(AssistantContextNote.sort_order.asc(), AssistantContextNote.title.asc())
+        ).all()
+        for note in context_notes:
+            documents.extend(self._build_assistant_note_documents(note))
         return documents
 
     def _build_profile_documents(self, profile: Profile) -> list[KnowledgeDocument]:
@@ -145,7 +154,7 @@ class KnowledgeDocumentBuilder:
                     source_type=KnowledgeSourceType.PROJECT,
                     source_id=project.id,
                     title=title,
-                    canonical_url='/projects',
+                    canonical_url=project.github_url or '/projects',
                     content_markdown=content,
                     content_platform='portfolio',
                     metadata_json={
@@ -241,6 +250,40 @@ class KnowledgeDocumentBuilder:
                         'tags': tags,
                         'status': post.status.value,
                         'seo_title': seo_title,
+                    },
+                )
+            )
+        return documents
+
+    def _build_assistant_note_documents(self, note: AssistantContextNote) -> list[KnowledgeDocument]:
+        documents: list[KnowledgeDocument] = []
+        for locale in SUPPORTED_KNOWLEDGE_LOCALES:
+            title = self._localized(note, 'title', locale)
+            content_markdown = self._localized(note, 'content_markdown', locale)
+            if not title or not content_markdown:
+                continue
+            content = '\n\n'.join(
+                part
+                for part in [
+                    f'# {title}',
+                    f'Category: {note.category}',
+                    content_markdown,
+                ]
+                if part
+            )
+            documents.append(
+                KnowledgeDocument(
+                    id=uuid4(),
+                    source_type=KnowledgeSourceType.ASSISTANT_NOTE,
+                    source_id=note.id,
+                    title=title,
+                    canonical_url=None,
+                    content_markdown=content,
+                    content_platform='assistant_context',
+                    metadata_json={
+                        'locale': locale,
+                        'category': note.category,
+                        'visibility': 'assistant_only',
                     },
                 )
             )

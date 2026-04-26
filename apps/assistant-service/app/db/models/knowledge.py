@@ -14,7 +14,7 @@ class KnowledgeDocument(Base):
     __tablename__ = 'knowledge_documents'
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
-    source_type: Mapped[KnowledgeSourceType] = mapped_column(SqlEnum(KnowledgeSourceType, native_enum=False), nullable=False)
+    source_type: Mapped[KnowledgeSourceType] = mapped_column(SqlEnum(KnowledgeSourceType, native_enum=False, length=32), nullable=False)
     source_id: Mapped[UUID | None] = mapped_column(Uuid)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     canonical_url: Mapped[str | None] = mapped_column(String(500))

@@ -7,7 +7,7 @@ import { finalize, take } from 'rxjs/operators';
 import { AdminMessagesApiService } from '@domains/admin/data/api/admin-messages-api.service';
 import { AdminOverviewApiService } from '@domains/admin/data/api/admin-overview-api.service';
 import { AdminSessionService } from '@domains/admin/data/admin-session.service';
-import { AdminContactMessage, AdminDashboardSummary, AdminMediaFile } from '@domains/admin/model/admin.model';
+import { AdminAssistantContextNote, AdminContactMessage, AdminDashboardSummary, AdminMediaFile } from '@domains/admin/model/admin.model';
 import { AdminOverviewTabComponent } from '@domains/admin/ui/tabs/admin-overview-tab.component';
 
 @Component({
@@ -40,12 +40,13 @@ export class AdminOverviewPageComponent implements OnInit {
   };
   protected messages: AdminContactMessage[] = [];
   protected mediaFiles: AdminMediaFile[] = [];
+  protected assistantContextNotes: AdminAssistantContextNote[] = [];
 
   ngOnInit(): void {
     this.loadOverview();
   }
 
-  protected openTab(tabId: 'media' | 'messages'): void {
+  protected openTab(tabId: 'media' | 'messages' | 'assistant'): void {
     void this.router.navigate(['/admin', tabId]);
   }
 
@@ -57,6 +58,7 @@ export class AdminOverviewPageComponent implements OnInit {
       dashboard: this.overviewApi.getDashboardSummary(),
       referenceData: this.overviewApi.getReferenceData(),
       messages: this.messagesApi.getContactMessages(),
+      assistantContextNotes: this.overviewApi.getAssistantContextNotes(),
     })
       .pipe(
         take(1),
@@ -66,10 +68,11 @@ export class AdminOverviewPageComponent implements OnInit {
         }),
       )
       .subscribe({
-        next: ({ dashboard, referenceData, messages }) => {
+        next: ({ dashboard, referenceData, messages, assistantContextNotes }) => {
           this.dashboard = dashboard;
           this.mediaFiles = referenceData.mediaFiles;
           this.messages = messages.items;
+          this.assistantContextNotes = assistantContextNotes.items;
         },
         error: (error) => {
           if (error?.status === 401) {

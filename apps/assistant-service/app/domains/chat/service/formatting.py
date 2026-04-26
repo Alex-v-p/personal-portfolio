@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from app.domains.chat.schema import CitationOut
 from app.services.localization import detect_assistant_locale, locale_language_name, localize_internal_path
 
@@ -19,23 +21,62 @@ def resolve_response_locale(*, locale: str | None = None, page_path: str | None 
 
 def build_citations(retrieved, *, locale: str = 'en') -> list[CitationOut]:
     resolved_locale = resolve_response_locale(locale=locale)
-    return [
-        CitationOut(
-            title=item.title,
-            source_type=item.source_type,
-            canonical_url=localize_internal_path(item.canonical_url, resolved_locale),
-            excerpt=item.excerpt,
+    citations: list[CitationOut] = []
+    for item in retrieved:
+        citations.append(
+            CitationOut(
+                title=item.title,
+                source_type=item.source_type,
+                canonical_url=localize_internal_path(item.canonical_url, resolved_locale),
+                excerpt=item.excerpt,
+            )
         )
-        for item in retrieved
-    ]
+    return citations
 
 
 def build_context_blocks(retrieved, *, locale: str = 'en') -> list[str]:
     language = locale_language_name(resolve_response_locale(locale=locale))
-    return [
-        f'[{index + 1}] {item.title} ({item.source_type}, locale={language}, relevance={item.score:.2f})\n{item.excerpt}'
-        for index, item in enumerate(retrieved)
-    ]
+    blocks: list[str] = []
+    for index, item in enumerate(retrieved):
+        visibility_note = 'assistant-only private CMS note' if item.source_type == 'assistant_note' else item.source_type
+        blocks.append(
+            f'[{index + 1}] {item.title} ({visibility_note}, locale={language}, relevance={item.score:.2f})\n{item.excerpt}'
+        )
+    return blocks
+
+
+def build_conversational_answer(*, question: str, locale: str = 'en') -> str | None:
+    resolved_locale = resolve_response_locale(locale=locale)
+    normalized = _normalize(question)
+    if not normalized:
+        return _message(
+            resolved_locale,
+            en='Hi! I can help you explore Alex’s portfolio, projects, skills, experience, and blog posts.',
+            nl='Hoi! Ik kan je helpen om Alex’ portfolio, projecten, vaardigheden, ervaring en blogposts te verkennen.',
+        )
+
+    if normalized in _THANKS_PATTERNS:
+        return _message(
+            resolved_locale,
+            en='You’re welcome! Ask me anything about the portfolio whenever you like.',
+            nl='Graag gedaan! Vraag gerust iets over het portfolio wanneer je wilt.',
+        )
+
+    if normalized in _GREETING_PATTERNS or normalized in _HOW_ARE_YOU_PATTERNS:
+        return _message(
+            resolved_locale,
+            en='I’m doing well, thanks! I’m here as a guide for Alex’s portfolio. I can talk through his projects, skills, experience, blog posts, or what might make him a good fit for a role.',
+            nl='Met mij gaat het goed, bedankt! Ik ben hier als gids voor Alex’ portfolio. Ik kan helpen met zijn projecten, vaardigheden, ervaring, blogposts of waarom hij bij een rol zou kunnen passen.',
+        )
+
+    if any(phrase in normalized for phrase in _CAPABILITY_PHRASES):
+        return _message(
+            resolved_locale,
+            en='I can help you quickly understand Alex’s background: compare projects, summarize his strengths, point you to GitHub READMEs or blog posts, explain his tech stack, and answer recruiter-style questions using the portfolio content.',
+            nl='Ik kan je snel helpen Alex’ achtergrond te begrijpen: projecten vergelijken, zijn sterktes samenvatten, je naar GitHub-README’s of blogposts verwijzen, zijn techstack uitleggen en recruiter-achtige vragen beantwoorden op basis van de portfolio-inhoud.',
+        )
+
+    return None
 
 
 def build_fallback_answer(*, citations: list[CitationOut], locale: str = 'en') -> str:
@@ -43,24 +84,51 @@ def build_fallback_answer(*, citations: list[CitationOut], locale: str = 'en') -
     if resolved_locale == 'nl':
         if not citations:
             return (
-                'Ik kon nog niet genoeg relevante geïndexeerde portfolio-inhoud vinden om daar met vertrouwen op te antwoorden. '
-                'Probeer iets te vragen over projecten, ervaring, blogposts, skills of het portfolio in het algemeen.'
+                'Ik heb daar nog niet genoeg betrouwbare portfolio-informatie voor. '
+                'Je kunt me wel iets vragen over Alex’ projecten, ervaring, vaardigheden, blogposts of algemene profiel.'
             )
-
-        opening = 'Ik kon daar net geen volledig uitgewerkt antwoord op genereren, maar deze portfolio-onderdelen lijken het meest relevant.'
+        opening = 'Dit is het beste wat ik uit de portfolio-inhoud kan halen:'
     else:
         if not citations:
             return (
-                "I couldn't find enough relevant indexed portfolio content to answer that confidently yet. "
-                'Try asking about projects, experience, blog posts, skills, or the overall portfolio.'
+                "I don't have enough reliable portfolio information to answer that well yet. "
+                "You can ask me about Alex's projects, experience, skills, blog posts, or overall profile."
             )
-
-        opening = 'I could not generate a polished answer just now, but these portfolio sections look most relevant to that question.'
+        opening = 'Here is the best match I found in the portfolio content:'
 
     relevant = []
     for citation in citations[:3]:
         excerpt = citation.excerpt.strip()
         if len(excerpt) > 220:
             excerpt = excerpt[:217].rstrip() + '...'
-        relevant.append(f'- {citation.title} ({citation.source_type}): {excerpt}')
+        source_label = 'private assistant note' if citation.source_type == 'assistant_note' else citation.source_type.replace('_', ' ')
+        relevant.append(f'- {citation.title} ({source_label}): {excerpt}')
     return opening + '\n\n' + '\n'.join(relevant)
+
+
+def _normalize(text: str) -> str:
+    text = re.sub(r"[^a-zA-Z0-9' ]+", ' ', text.lower())
+    return re.sub(r'\s+', ' ', text).strip()
+
+
+def _message(locale: str, *, en: str, nl: str) -> str:
+    return nl if resolve_response_locale(locale=locale) == 'nl' else en
+
+
+_GREETING_PATTERNS = {
+    'hi', 'hello', 'hey', 'yo', 'good morning', 'good afternoon', 'good evening', 'hoi', 'hallo', 'hey daar',
+}
+
+_HOW_ARE_YOU_PATTERNS = {
+    'how are you', 'how are you doing', "how's it going", 'how is it going', 'are you ok', 'are you okay',
+    'hoe gaat het', 'hoe gaat het met je', 'alles goed', 'hoe is het',
+}
+
+_THANKS_PATTERNS = {
+    'thanks', 'thank you', 'thx', 'ty', 'bedankt', 'dank je', 'dankjewel', 'merci',
+}
+
+_CAPABILITY_PHRASES = {
+    'what can you do', 'what do you do', 'how can you help', 'help me with', 'who are you',
+    'wat kan je', 'wat kun je', 'waarmee kan je helpen', 'wie ben je',
+}
