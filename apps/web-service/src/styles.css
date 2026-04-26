@@ -196,6 +196,85 @@
 }
 
 @layer components {
+
+  .admin-sticky-sidebar {
+    position: static;
+    min-width: 0;
+  }
+
+  .admin-scroll-list {
+    min-height: 12rem;
+    max-height: min(38rem, calc(100vh - 17rem));
+    overflow-y: auto;
+    padding-right: 0.25rem;
+  }
+
+  .admin-main-editor {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .admin-markdown-editor,
+  .admin-code-editor {
+    min-height: 22rem;
+    width: 100%;
+    resize: vertical;
+    overflow: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    line-height: 1.7;
+    tab-size: 2;
+  }
+
+  .admin-markdown-editor--compact,
+  .admin-code-editor--compact {
+    min-height: 14rem;
+  }
+
+  .admin-markdown-editor--tall {
+    min-height: min(38rem, calc(100vh - 20rem));
+  }
+
+  .admin-markdown-preview {
+    min-height: 22rem;
+    max-height: min(42rem, calc(100vh - 18rem));
+    overflow-y: auto;
+  }
+
+  .admin-field-grid {
+    min-width: 0;
+  }
+
+  .admin-field-grid > *,
+  .admin-form-card,
+  .admin-form-card * {
+    min-width: 0;
+  }
+
+  .admin-object-key {
+    overflow-wrap: anywhere;
+  }
+
+  @media (min-width: 1280px) {
+    .admin-sticky-sidebar {
+      position: sticky;
+      top: 1.5rem;
+      max-height: calc(100vh - 3rem);
+      overflow: hidden;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .admin-markdown-editor,
+    .admin-code-editor {
+      min-height: 16rem;
+    }
+
+    .admin-markdown-editor--compact,
+    .admin-code-editor--compact {
+      min-height: 11rem;
+    }
+  }
+
   .ui-panel {
     border: 1px solid var(--ui-border);
     border-radius: var(--ui-radius-panel);
@@ -971,6 +1050,13 @@
     border-color: var(--ui-border-strong) !important;
     box-shadow: 0 0 0 3px var(--ui-focus-ring) !important;
     outline: none !important;
+  }
+
+
+  [data-skin="admin"] select {
+    max-width: 100%;
+    min-width: 0;
+    text-overflow: ellipsis;
   }
 
   [data-skin] input::placeholder,

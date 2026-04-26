@@ -44,7 +44,7 @@ export class AdminTaxonomyTabComponent extends AdminLocalizedContentTabBase {
   @Output() readonly blogTagDeleted = new EventEmitter<void>();
 
 
-  protected readonly skillCategoryIconGroups: readonly IconGroupKey[] = ['expertise', 'tech', 'contact'];
+  protected readonly skillCategoryIconGroups: readonly IconGroupKey[] = ['expertise', 'tech', 'contact', 'social'];
   protected readonly skillIconGroups: readonly IconGroupKey[] = ['tech', 'expertise', 'contact', 'social'];
 
 

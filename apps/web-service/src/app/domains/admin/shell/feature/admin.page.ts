@@ -1128,7 +1128,7 @@ export class AdminPageComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.isRefreshingGithub = false;
-        this.statusMessage = error?.error?.detail || 'Refreshing GitHub stats failed.';
+        this.statusMessage = this.extractAdminErrorMessage(error, 'Refreshing GitHub stats failed.');
       }
     });
   }
@@ -1153,7 +1153,7 @@ export class AdminPageComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           this.isRefreshingGithub = false;
-          this.statusMessage = error?.error?.detail || 'Checking GitHub refresh progress failed.';
+          this.statusMessage = this.extractAdminErrorMessage(error, 'Checking GitHub refresh progress failed.');
         }
       });
   }
@@ -1211,7 +1211,7 @@ export class AdminPageComponent implements OnInit, OnDestroy {
         this.loadCms();
       },
       error: (error) => {
-        this.statusMessage = error?.error?.detail || 'Saving the GitHub snapshot failed.';
+        this.statusMessage = this.extractAdminErrorMessage(error, 'Saving the GitHub snapshot failed.');
       }
     });
   }
@@ -1227,7 +1227,7 @@ export class AdminPageComponent implements OnInit, OnDestroy {
         this.loadCms();
       },
       error: (error) => {
-        this.statusMessage = error?.error?.detail || 'Deleting the GitHub snapshot failed.';
+        this.statusMessage = this.extractAdminErrorMessage(error, 'Deleting the GitHub snapshot failed.');
       }
     });
   }
@@ -1488,4 +1488,37 @@ export class AdminPageComponent implements OnInit, OnDestroy {
 
 
 
+
+
+  private extractAdminErrorMessage(error: unknown, fallbackMessage: string): string {
+    if (!error || typeof error !== 'object') {
+      return fallbackMessage;
+    }
+
+    const response = error as { error?: { detail?: unknown }; message?: unknown };
+    const detail = response.error?.detail;
+
+    if (typeof detail === 'string' && detail.trim()) {
+      return detail;
+    }
+
+    if (detail && typeof detail === 'object') {
+      const maybeMessage = (detail as { message?: unknown }).message;
+      if (typeof maybeMessage === 'string' && maybeMessage.trim()) {
+        return maybeMessage;
+      }
+
+      try {
+        return JSON.stringify(detail);
+      } catch {
+        return fallbackMessage;
+      }
+    }
+
+    if (typeof response.message === 'string' && response.message.trim()) {
+      return response.message;
+    }
+
+    return fallbackMessage;
+  }
 }

@@ -7,16 +7,23 @@ VALID_ICON_KEYS: frozenset[str] = frozenset({
     'linkedin',
     'twitter',
     'instagram',
+    'youtube',
+    'facebook',
+    'discord',
     'mail',
     'phone',
     'map-pin',
     'globe',
+    'link',
+    'external-link',
     'code',
     'server',
     'brain',
     'database',
     'workflow',
     'languages',
+    'shield',
+    'cpu',
     'angular',
     'laravel',
     'python',
@@ -26,6 +33,9 @@ VALID_ICON_KEYS: frozenset[str] = frozenset({
     'tailwindcss',
     'sql',
     'kubernetes',
+    'fastapi',
+    'csharp',
+    'pandas',
 })
 
 ICON_ALIASES: dict[str, str] = {
@@ -48,7 +58,6 @@ ICON_ALIASES: dict[str, str] = {
     'back-end': 'server',
     'backend': 'server',
     'api': 'server',
-    'fastapi': 'server',
     'proxmox': 'server',
     'network': 'globe',
     'networking': 'globe',
@@ -56,7 +65,6 @@ ICON_ALIASES: dict[str, str] = {
     'data-ai': 'brain',
     'machine-learning': 'brain',
     'ai': 'brain',
-    'pandas': 'database',
     'infrastructure-tools': 'database',
     'analysis-collaboration': 'workflow',
     'analysis-and-collaboration': 'workflow',
@@ -72,9 +80,19 @@ ICON_ALIASES: dict[str, str] = {
     'ts': 'typescript',
     'linked-in': 'linkedin',
     'x': 'twitter',
-    'csharp': 'code',
-    'c-sharp': 'code',
+    'fb': 'facebook',
+    'yt': 'youtube',
+    'discordapp': 'discord',
+    'url': 'link',
+    'href': 'link',
+    'external': 'external-link',
+    'secure': 'shield',
+    'security': 'shield',
+    'processor': 'cpu',
+    'fast-api': 'fastapi',
+    'c-sharp': 'csharp',
 }
+
 
 
 SOCIAL_PLATFORM_ICON_DEFAULTS: dict[str, str] = {
@@ -83,12 +101,16 @@ SOCIAL_PLATFORM_ICON_DEFAULTS: dict[str, str] = {
     'twitter': 'twitter',
     'x': 'twitter',
     'instagram': 'instagram',
+    'youtube': 'youtube',
+    'facebook': 'facebook',
+    'discord': 'discord',
     'email': 'mail',
     'phone': 'phone',
     'location': 'map-pin',
     'website': 'globe',
     'portfolio': 'globe',
 }
+
 
 
 CATEGORY_ICON_DEFAULTS: dict[str, str] = {
@@ -107,13 +129,17 @@ SKILL_ICON_DEFAULTS: dict[str, str] = {
     'tailwind': 'tailwindcss',
     'typescript': 'typescript',
     'laravel': 'laravel',
-    'fastapi': 'server',
+    'fastapi': 'fastapi',
     'sql': 'sql',
     'python': 'python',
     'machine-learning': 'brain',
-    'pandas': 'database',
+    'pandas': 'pandas',
     'git': 'git',
     'docker': 'docker',
+    'csharp': 'csharp',
+    'c-sharp': 'csharp',
+    'security': 'shield',
+    'iot': 'cpu',
     'networking-basics': 'globe',
     'proxmox': 'server',
     'kubernetes': 'kubernetes',
@@ -125,6 +151,7 @@ SKILL_ICON_DEFAULTS: dict[str, str] = {
     'english': 'languages',
     'portuguese': 'languages',
 }
+
 
 
 _non_alphanumeric_pattern = re.compile(r'[^a-z0-9-]')
