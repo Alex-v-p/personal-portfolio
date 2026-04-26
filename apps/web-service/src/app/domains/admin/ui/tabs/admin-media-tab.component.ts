@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { AdminDashboardSummary, AdminMediaFile } from '@domains/admin/model/admin.model';
 import { AdminMediaKind, isImageMedia, mediaFolder, mediaKindLabel } from '@domains/admin/shell/state/admin-page.display.utils';
+import { buildMarkdownDownloadLink } from '@shared/utils/markdown.util';
 
 @Component({
   selector: 'app-admin-media-tab',
@@ -91,6 +92,19 @@ export class AdminMediaTabComponent {
     }
     const rounded = value >= 10 || unitIndex === 0 ? Math.round(value) : Number(value.toFixed(1));
     return `${rounded} ${units[unitIndex]}`;
+  }
+
+  markdownDownloadSnippet(media: AdminMediaFile): string {
+    const url = media.resolvedAsset?.url ?? media.publicUrl ?? '';
+    return url ? buildMarkdownDownloadLink(`Download ${media.title || media.originalFilename || 'file'}`, url) : '';
+  }
+
+  async copyMarkdownDownloadSnippet(media: AdminMediaFile): Promise<void> {
+    const snippet = this.markdownDownloadSnippet(media);
+    if (!snippet || typeof navigator === 'undefined' || !navigator.clipboard) {
+      return;
+    }
+    await navigator.clipboard.writeText(snippet);
   }
 
   usageItems(media: AdminMediaFile): Array<{ label: string; count: number }> {

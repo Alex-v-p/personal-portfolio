@@ -140,8 +140,9 @@ PROJECT_ROWS = [{'company_name': 'Thomas More client project',
   'duration_label': '5 months',
   'duration_label_nl': '5 maanden',
   'ended_on': '2025-06-30',
-  'github_repo_name': None,
-  'github_url': None,
+  'gallery_image_file_ids': ['file-project-exchange-gallery-overview', 'file-project-exchange-gallery-workflow'],
+  'github_repo_name': 'internal-exchange-student-portal',
+  'github_url': 'https://github.com/Alex-v-p/internal-exchange-student-portal#readme',
   'id': 'project-internal-exchange-student-portal',
   'is_featured': False,
   'published_at': '2025-07-05T09:00:00Z',
@@ -159,9 +160,11 @@ PROJECT_ROWS = [{'company_name': 'Thomas More client project',
                 'teams, combineerde hun sterkste ideeën in één prototype en werkte de goedgekeurde oplossing daarna '
                 'iteratief uit met Scrum.',
   'teaser': 'A student portal for managing international exchanges and guiding students through the academic process '
-            'abroad.',
+            'abroad.'
+            '\n\n[Download project archive](https://github.com/Alex-v-p/internal-exchange-student-portal/archive/refs/heads/main.zip "download")',
   'teaser_nl': 'Een studentenportaal om internationale uitwisselingen te beheren en studenten door het academische '
-               'proces in het buitenland te begeleiden.',
+               'proces in het buitenland te begeleiden.'
+               '\n\n[Download projectarchief](https://github.com/Alex-v-p/internal-exchange-student-portal/archive/refs/heads/main.zip "download")',
   'title': 'Internal Exchange Student Portal',
   'title_nl': 'Intern portaal voor uitwisselingsstudenten',
   'updated_at': '2025-07-05T09:00:00Z'},
@@ -245,8 +248,9 @@ PROJECT_ROWS = [{'company_name': 'Thomas More client project',
   'duration_label': '3 months',
   'duration_label_nl': '3 maanden',
   'ended_on': '2024-07-31',
-  'github_repo_name': None,
-  'github_url': None,
+  'gallery_image_file_ids': ['file-project-iot-gallery-detection', 'file-project-iot-gallery-hardware'],
+  'github_repo_name': 'iot-security-system',
+  'github_url': 'https://github.com/Alex-v-p/iot-security-system#readme',
   'id': 'project-iot-security-system',
   'is_featured': True,
   'published_at': '2024-08-10T09:00:00Z',
@@ -263,9 +267,11 @@ PROJECT_ROWS = [{'company_name': 'Thomas More client project',
                 'waterpistool op hen richt en een rookeffect activeert wanneer iemand te dichtbij komt. Het was een '
                 'leuk concept, maar ook een serieuze oefening in systeemintegratie, timing en hardwarebeperkingen.',
   'teaser': 'A playful security prototype that combined computer vision, embedded control, and custom 3D-printed '
-            'hardware.',
+            'hardware.'
+            '\n\n[Download project archive](https://github.com/Alex-v-p/iot-security-system/archive/refs/heads/main.zip "download")',
   'teaser_nl': 'Een speels beveiligingsprototype dat computer vision, embedded aansturing en op maat geprinte hardware '
-               'combineerde.',
+               'combineerde.'
+               '\n\n[Download projectarchief](https://github.com/Alex-v-p/iot-security-system/archive/refs/heads/main.zip "download")',
   'title': 'IoT Security System',
   'title_nl': 'IoT-beveiligingssysteem',
   'updated_at': '2024-08-10T09:00:00Z'},
@@ -343,8 +349,9 @@ PROJECT_ROWS = [{'company_name': 'Thomas More client project',
   'duration_label': '2 months',
   'duration_label_nl': '2 maanden',
   'ended_on': '2025-04-30',
-  'github_repo_name': None,
-  'github_url': None,
+  'gallery_image_file_ids': ['file-project-laravel-gallery-home', 'file-project-laravel-gallery-projects'],
+  'github_repo_name': 'laravel-portfolio-website',
+  'github_url': 'https://github.com/Alex-v-p/laravel-portfolio-website#readme',
   'id': 'project-laravel-portfolio-website',
   'is_featured': False,
   'published_at': '2025-05-05T09:00:00Z',
@@ -360,8 +367,10 @@ PROJECT_ROWS = [{'company_name': 'Thomas More client project',
   'summary_nl': 'Dit was mijn vorige portfolio-website, gebouwd met de TALL-stack zodat ik mijn werk dynamischer kon '
                 'presenteren. Het gaf me een volledig end-to-end project van mezelf, van datamodellering en UI-werk '
                 'tot hosting op infrastructuur die ik zelf beheerde.',
-  'teaser': 'My earlier self-hosted portfolio, built to present projects, skills, and achievements in a dynamic way.',
-  'teaser_nl': 'Mijn eerdere zelfgehoste portfolio, gebouwd om projecten, skills en prestaties dynamisch te tonen.',
+  'teaser': 'My earlier self-hosted portfolio, built to present projects, skills, and achievements in a dynamic way.'
+            '\n\n[Download project archive](https://github.com/Alex-v-p/laravel-portfolio-website/archive/refs/heads/main.zip "download")',
+  'teaser_nl': 'Mijn eerdere zelfgehoste portfolio, gebouwd om projecten, skills en prestaties dynamisch te tonen.'
+               '\n\n[Download projectarchief](https://github.com/Alex-v-p/laravel-portfolio-website/archive/refs/heads/main.zip "download")',
   'title': 'Old Laravel Portfolio',
   'title_nl': 'Oude Laravel-portfolio',
   'updated_at': '2025-05-05T09:00:00Z'}]

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { take } from 'rxjs/operators';
 
 import { AdminBlogPost, AdminMediaFile, AdminReferenceData } from '@domains/admin/model/admin.model';
-import { renderMarkdownToHtml } from '@shared/utils/markdown.util';
+import { buildMarkdownDownloadLink, renderMarkdownToHtml } from '@shared/utils/markdown.util';
 import {
   countMarkdownWords,
   insertCodeBlock,
@@ -52,10 +52,12 @@ export class AdminBlogTabComponent extends AdminLocalizedContentTabBase implemen
   @Output() readonly statusMessageSet = new EventEmitter<string>();
 
   protected blogMediaSearchTerm = '';
+  protected blogDownloadMediaSearchTerm = '';
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['selectedBlogPostId']) {
       this.blogMediaSearchTerm = '';
+      this.blogDownloadMediaSearchTerm = '';
       this.resetLocalizedEditingState();
     }
   }
@@ -94,6 +96,12 @@ export class AdminBlogTabComponent extends AdminLocalizedContentTabBase implemen
     return [...this.referenceData.mediaFiles]
       .filter((media) => isImageMedia(media))
       .filter((media) => matchesSearch([media.title, media.altText, media.originalFilename, media.objectKey], this.blogMediaSearchTerm))
+      .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+  }
+
+  protected get filteredBlogDownloadMediaFiles(): AdminMediaFile[] {
+    return [...this.referenceData.mediaFiles]
+      .filter((media) => matchesSearch([media.title, media.altText, media.originalFilename, media.objectKey], this.blogDownloadMediaSearchTerm))
       .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
   }
 
@@ -213,6 +221,23 @@ export class AdminBlogTabComponent extends AdminLocalizedContentTabBase implemen
 
   protected insertBlogImageFromMedia(media: AdminMediaFile): void {
     this.insertImageFromMedia(media);
+  }
+
+  protected isBlogDownloadImage(media: AdminMediaFile): boolean {
+    return isImageMedia(media);
+  }
+
+  protected insertBlogDownloadFromMedia(media: AdminMediaFile): void {
+    const url = media.resolvedAsset?.url ?? media.publicUrl ?? null;
+    if (!url) {
+      this.statusMessageSet.emit('That media file does not have a usable URL yet.');
+      return;
+    }
+
+    const label = `Download ${media.title || media.originalFilename || 'file'}`;
+    const markdown = buildMarkdownDownloadLink(label, url);
+    this.updateBlogMarkdownSelection((content, selection) => insertSnippet(content, selection, `\n${markdown}\n`));
+    this.statusMessageSet.emit(`Download markdown inserted into the ${this.activeContentLocaleLabel.toLowerCase()} article body.`);
   }
 
   private updateBlogMarkdownSelection(

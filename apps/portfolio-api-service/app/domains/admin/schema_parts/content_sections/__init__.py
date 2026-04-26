@@ -9,6 +9,8 @@ from app.domains.admin.schema_parts.content_sections.experience import (
     AdminExperienceUpsertIn,
 )
 from app.domains.admin.schema_parts.content_sections.projects import (
+    AdminProjectImageIn,
+    AdminProjectImageOut,
     AdminProjectOut,
     AdminProjectsListOut,
     AdminProjectUpsertIn,
@@ -21,6 +23,8 @@ __all__ = [
     'AdminExperienceOut',
     'AdminExperiencesListOut',
     'AdminExperienceUpsertIn',
+    'AdminProjectImageIn',
+    'AdminProjectImageOut',
     'AdminProjectOut',
     'AdminProjectsListOut',
     'AdminProjectUpsertIn',

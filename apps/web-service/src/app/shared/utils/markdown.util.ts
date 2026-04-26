@@ -7,24 +7,57 @@ const escapeHtml = (value: string): string => value
 
 const isSafeUrl = (url: string): boolean => /^(https?:\/\/|mailto:|\/)/i.test(url.trim());
 
-const renderImage = (altText: string, url: string): string => {
+const isExternalUrl = (url: string): boolean => /^https?:\/\//i.test(url.trim());
+
+const splitMarkdownTarget = (rawTarget: string): { url: string; title: string } => {
+  const target = rawTarget.trim();
+  const titleMatch = target.match(/^(\S+)\s+(?:"([^"]+)"|&quot;([^&]+)&quot;)\s*$/);
+  if (titleMatch) {
+    return { url: titleMatch[1], title: titleMatch[2] ?? titleMatch[3] ?? '' };
+  }
+  return { url: target, title: '' };
+};
+
+const isDownloadLink = (label: string, url: string, title: string): boolean => {
+  const normalizedTitle = title.trim().toLowerCase();
+  const normalizedLabel = label.trim().toLowerCase();
+  return (
+    normalizedTitle === 'download' ||
+    normalizedTitle.includes('download') ||
+    normalizedLabel.startsWith('download ') ||
+    /[?&]download(?:=1|=true)?(?:&|$)/i.test(url)
+  );
+};
+
+const renderImage = (altText: string, rawTarget: string): string => {
+  const { url } = splitMarkdownTarget(rawTarget);
   const safeUrl = isSafeUrl(url) ? escapeHtml(url.trim()) : '#';
   const safeAltText = altText.trim();
   return `<img src="${safeUrl}" alt="${safeAltText}" loading="lazy" />`;
 };
 
+const renderLink = (label: string, rawTarget: string): string => {
+  const { url, title } = splitMarkdownTarget(rawTarget);
+  const safeUrl = isSafeUrl(url) ? escapeHtml(url.trim()) : '#';
+  const safeLabel = label.trim();
+  const externalAttrs = isExternalUrl(url) ? ' target="_blank" rel="noreferrer noopener"' : '';
+
+  if (isDownloadLink(label, url, title)) {
+    const downloadAttr = isExternalUrl(url) ? '' : ' download';
+    return `<a class="markdown-download" href="${safeUrl}"${externalAttrs}${downloadAttr}><span class="markdown-download__icon" aria-hidden="true">↓</span><span>${safeLabel}</span></a>`;
+  }
+
+  return `<a href="${safeUrl}"${externalAttrs}>${safeLabel}</a>`;
+};
+
 const renderInline = (value: string): string => {
   let text = escapeHtml(value);
 
-  text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_match, altText: string, url: string) => renderImage(altText, url));
+  text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_match, altText: string, target: string) => renderImage(altText, target));
   text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
   text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-  text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, label: string, url: string) => {
-    const safeUrl = isSafeUrl(url) ? escapeHtml(url.trim()) : '#';
-    const rel = safeUrl.startsWith('http') ? ' target="_blank" rel="noreferrer noopener"' : '';
-    return `<a href="${safeUrl}"${rel}>${label}</a>`;
-  });
+  text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, label: string, target: string) => renderLink(label, target));
 
   return text;
 };
@@ -46,6 +79,11 @@ const renderCodeBlock = (lines: string[]): string => `<pre><code>${escapeHtml(li
 
 const isOrderedListLine = (line: string): boolean => /^\d+\.\s+/.test(line);
 const isUnorderedListLine = (line: string): boolean => /^[-*]\s+/.test(line);
+
+export const buildMarkdownDownloadLink = (label: string, url: string): string => {
+  const safeLabel = label.replace(/[\r\n]+/g, ' ').replace(/\]/g, '\\]').trim() || 'Download file';
+  return `[${safeLabel}](${url.trim()} "download")`;
+};
 
 export const renderMarkdownToHtml = (markdown: string): string => {
   const lines = markdown.replace(/\r\n/g, '\n').trim().split('\n');

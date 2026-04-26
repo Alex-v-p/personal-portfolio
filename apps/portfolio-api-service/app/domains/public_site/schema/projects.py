@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Literal
 
+from pydantic import Field
+
 from app.schemas.base import ApiSchema
 
 from .common import PublicMediaAssetOut
@@ -53,11 +55,11 @@ class ProjectSummaryOut(ApiSchema):
     created_at: str
     updated_at: str
     skills: list[SkillSummaryOut]
+    images: list[ProjectImageOut] = Field(default_factory=list)
 
 
 class ProjectDetailOut(ProjectSummaryOut):
     description_markdown: str | None = None
-    images: list[ProjectImageOut]
 
 
 class ProjectsListOut(ApiSchema):

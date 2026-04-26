@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from app.db.models import Project
-from app.domains.admin.schema import AdminProjectOut
+from app.db.models import Project, ProjectImage
+from app.domains.admin.schema import AdminProjectImageOut, AdminProjectOut
 
 
 class AdminRepositoryProjectsMappingMixin:
     def _map_project(self, project: Project) -> AdminProjectOut:
         ordered_skills = sorted(project.skill_links, key=lambda link: (link.skill.sort_order, link.skill.name.lower()))
+        ordered_images = sorted(project.images, key=lambda image: (image.sort_order, str(image.id)))
 
         return AdminProjectOut(
             id=str(project.id),
@@ -40,4 +41,17 @@ class AdminRepositoryProjectsMappingMixin:
             updated_at=project.updated_at.isoformat(),
             skill_ids=[str(link.skill_id) for link in ordered_skills],
             skills=[self._map_skill(link.skill) for link in ordered_skills],
+            images=[self._map_project_image(image) for image in ordered_images],
+        )
+
+    def _map_project_image(self, image: ProjectImage) -> AdminProjectImageOut:
+        return AdminProjectImageOut(
+            id=str(image.id),
+            project_id=str(image.project_id),
+            image_file_id=str(image.image_file_id) if image.image_file_id else None,
+            alt_text=image.alt_text,
+            alt_text_nl=image.alt_text_nl,
+            sort_order=image.sort_order,
+            is_cover=image.is_cover,
+            image=self._map_media(image.image_file, alt=image.alt_text),
         )

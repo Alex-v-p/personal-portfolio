@@ -557,6 +557,7 @@ export class AdminPageComponent implements OnInit, OnDestroy {
       sortOrder: this.projectForm.sortOrder,
       publishedAt: this.projectForm.publishedAt || null,
       skillIds: [...this.projectForm.skillIds],
+      images: this.normalizedProjectGalleryImages(),
     };
     const request$ = this.selectedProjectId
       ? this.contentApi.updateProject(this.selectedProjectId, payload)
@@ -1289,6 +1290,7 @@ export class AdminPageComponent implements OnInit, OnDestroy {
   protected uploadProjectCover(): void {
     this.uploadScopedMedia('project-cover', this.projectUploadForm, this.buildProjectFolder(), (media) => {
       this.projectForm.coverImageFileId = media.id;
+      this.upsertProjectGalleryImage(media.id, media.altText || this.projectUploadForm.altText || media.title || media.originalFilename || this.projectForm.title, '', true);
     });
   }
 
@@ -1355,6 +1357,56 @@ export class AdminPageComponent implements OnInit, OnDestroy {
 
   protected buildExperienceFolder(): string {
     return buildExperienceMediaFolder(this.experienceForm.organizationName, this.experienceForm.roleTitle);
+  }
+
+  private upsertProjectGalleryImage(imageFileId: string, altText = '', altTextNl = '', makeCover = false): void {
+    const existing = this.projectForm.images.find((image) => image.imageFileId === imageFileId);
+    if (existing) {
+      existing.altText = existing.altText || altText;
+      existing.altTextNl = existing.altTextNl || altTextNl;
+      if (makeCover) {
+        this.projectForm.coverImageFileId = imageFileId;
+      }
+      return;
+    }
+
+    this.projectForm.images = [
+      ...this.projectForm.images,
+      {
+        imageFileId,
+        altText,
+        altTextNl,
+        sortOrder: this.projectForm.images.length,
+        isCover: makeCover,
+      },
+    ];
+
+    if (makeCover || !this.projectForm.coverImageFileId) {
+      this.projectForm.coverImageFileId = imageFileId;
+    }
+  }
+
+  private normalizedProjectGalleryImages(): Array<{ imageFileId: string | null; altText: string | null; altTextNl: string | null; sortOrder: number; isCover: boolean }> {
+    const coverImageFileId = this.projectForm.coverImageFileId;
+    const seen = new Set<string>();
+    return this.projectForm.images
+      .filter((image) => !!image.imageFileId)
+      .sort((left, right) => left.sortOrder - right.sortOrder)
+      .filter((image) => {
+        const imageFileId = image.imageFileId || '';
+        if (seen.has(imageFileId)) {
+          return false;
+        }
+        seen.add(imageFileId);
+        return true;
+      })
+      .map((image, index) => ({
+        imageFileId: image.imageFileId,
+        altText: image.altText || null,
+        altTextNl: image.altTextNl || null,
+        sortOrder: index,
+        isCover: !!coverImageFileId && image.imageFileId === coverImageFileId,
+      }));
   }
 
   private uploadScopedMedia(

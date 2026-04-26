@@ -109,6 +109,30 @@
               <p *ngIf="filteredBlogImageMediaFiles.length === 0" class="rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-4 py-5 text-sm text-stone-500">No matching images yet. Upload one on the left or clear the search.</p>
             </div>
           </div>
+
+          <div class="space-y-3 rounded-[1.25rem] border border-stone-200 bg-white p-4">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p class="text-sm font-semibold text-stone-950">Insert download link</p>
+                <p class="text-xs text-stone-500">Insert any media file as a markdown download button using <code>[Download file](url "download")</code>.</p>
+              </div>
+              <span class="rounded-full border border-stone-300 bg-stone-50 px-3 py-1 text-xs text-stone-500">{{ filteredBlogDownloadMediaFiles.length }} file{{ filteredBlogDownloadMediaFiles.length === 1 ? '' : 's' }}</span>
+            </div>
+            <input [(ngModel)]="blogDownloadMediaSearchTerm" name="blogDownloadMediaSearchTerm" placeholder="Search files by title, filename, or path" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" />
+            <div class="grid max-h-72 gap-2 overflow-y-auto pr-1">
+              <button *ngFor="let media of filteredBlogDownloadMediaFiles.slice(0, 16)" type="button" (click)="insertBlogDownloadFromMedia(media)" class="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-3 py-3 text-left transition hover:border-stone-300 hover:bg-stone-100">
+                <div class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border border-stone-200 bg-white text-[10px] font-semibold uppercase tracking-[0.12em] text-stone-400">
+                  <img *ngIf="media.resolvedAsset?.url && isBlogDownloadImage(media)" [src]="media.resolvedAsset?.url" [alt]="media.altText || media.title || media.originalFilename" class="h-full w-full object-cover" />
+                  <span *ngIf="!(media.resolvedAsset?.url && isBlogDownloadImage(media))">File</span>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-semibold text-stone-900">{{ media.title || media.originalFilename }}</p>
+                  <p class="truncate text-xs text-stone-500">{{ media.objectKey }}</p>
+                </div>
+              </button>
+              <p *ngIf="filteredBlogDownloadMediaFiles.length === 0" class="rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-4 py-5 text-sm text-stone-500">No matching files yet. Upload one in the media library or clear the search.</p>
+            </div>
+          </div>
         </div>
       </div>
       <label class="space-y-2"><span class="text-sm font-semibold">Status</span><select [(ngModel)]="blogPostForm.status" name="blogStatus" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"><option *ngFor="let status of referenceData.publicationStatuses" [ngValue]="status">{{ status }}</option></select></label>

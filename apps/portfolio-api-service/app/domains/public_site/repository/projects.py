@@ -13,6 +13,7 @@ class PublicProjectsRepositoryMixin:
             .options(
                 selectinload(Project.skill_links).selectinload(ProjectSkill.skill),
                 selectinload(Project.cover_image_file),
+                selectinload(Project.images).selectinload(ProjectImage.image_file),
             )
             .order_by(Project.sort_order.asc(), Project.title.asc())
         ).all()
@@ -38,6 +39,7 @@ class PublicProjectsRepositoryMixin:
             .options(
                 selectinload(Project.skill_links).selectinload(ProjectSkill.skill),
                 selectinload(Project.cover_image_file),
+                selectinload(Project.images).selectinload(ProjectImage.image_file),
             )
             .order_by(Project.is_featured.desc(), Project.sort_order.asc(), Project.title.asc())
             .limit(limit)
@@ -54,6 +56,8 @@ class PublicProjectsRepositoryMixin:
         summary = self._localized(project, 'summary') or project.summary
         duration_label = self._localized(project, 'duration_label') or project.duration_label
         status = self._localized(project, 'status') or project.status
+        ordered_images = sorted(project.images, key=lambda item: (item.sort_order, str(item.id)))
+
         return ProjectSummaryOut(
             id=str(project.id),
             slug=project.slug,
@@ -91,25 +95,24 @@ class PublicProjectsRepositoryMixin:
                 )
                 for link in ordered_skill_links
             ],
+            images=[self._map_project_image(image, title) for image in ordered_images],
         )
 
     def _map_project_detail(self, project: Project) -> ProjectDetailOut:
         summary = self._map_project_summary(project)
-        title = summary.title
-        ordered_images = sorted(project.images, key=lambda item: (item.sort_order, str(item.id)))
         return ProjectDetailOut(
             **summary.model_dump(),
             description_markdown=self._localized(project, 'description_markdown') or project.description_markdown,
-            images=[
-                ProjectImageOut(
-                    id=str(image.id),
-                    project_id=str(image.project_id),
-                    image_file_id=str(image.image_file_id) if image.image_file_id else None,
-                    alt_text=self._localized(image, 'alt_text') or image.alt_text,
-                    sort_order=image.sort_order,
-                    is_cover=image.is_cover,
-                    image=self._map_media(image.image_file, alt=(self._localized(image, 'alt_text') or image.alt_text or title)),
-                )
-                for image in ordered_images
-            ],
+        )
+
+    def _map_project_image(self, image: ProjectImage, fallback_alt: str) -> ProjectImageOut:
+        alt_text = self._localized(image, 'alt_text') or image.alt_text
+        return ProjectImageOut(
+            id=str(image.id),
+            project_id=str(image.project_id),
+            image_file_id=str(image.image_file_id) if image.image_file_id else None,
+            alt_text=alt_text,
+            sort_order=image.sort_order,
+            is_cover=image.is_cover,
+            image=self._map_media(image.image_file, alt=(alt_text or fallback_alt)),
         )

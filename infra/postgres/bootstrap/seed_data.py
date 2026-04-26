@@ -103,6 +103,112 @@ def _admin_user_seed() -> dict:
 
 MEDIA_FILES = [{'id': 'file-avatar-alex', 'bucket_name': 'portfolio', 'object_key': 'profiles/alex/avatar.jpg', 'original_filename': 'MaiHeroImage.jpg', 'stored_filename': 'avatar.jpg', 'mime_type': 'image/jpeg', 'file_size_bytes': 82905, 'checksum': '62576812ca7a883b018a325b110cd8395f9e60ee6a72841b3124d71a9acab970', 'public_url': None, 'alt_text': 'Profile avatar for Alex van Poppel', 'title': 'Profile avatar', 'description': 'Profile avatar used on the public portfolio.', 'visibility': 'public', 'created_at': 'TIMESTAMP', 'updated_at': 'TIMESTAMP'}, {'id': 'file-hero-portrait', 'bucket_name': 'portfolio', 'object_key': 'profiles/alex/hero.jpg', 'original_filename': 'FaceCoverImage.jpg', 'stored_filename': 'hero.jpg', 'mime_type': 'image/jpeg', 'file_size_bytes': 683051, 'checksum': 'e881eef4095c8b82d5940e7a905f9e277ddccaaf578593a2ea8bfee5da6b2ab4', 'public_url': None, 'alt_text': 'Hero image for Alex van Poppel', 'title': 'Hero image', 'description': 'Hero image displayed on the portfolio home page.', 'visibility': 'public', 'created_at': 'TIMESTAMP', 'updated_at': 'TIMESTAMP'}, {'id': 'file-resume', 'bucket_name': 'portfolio', 'object_key': 'profiles/alex/resume.pdf', 'original_filename': 'vanPoppel_AlexCV.pdf', 'stored_filename': 'resume.pdf', 'mime_type': 'application/pdf', 'file_size_bytes': 724706, 'checksum': 'c91dbbd6376acdaa330359eb5dd9fd788461378b2673fdcc5abd5d744a30d704', 'public_url': None, 'alt_text': 'Resume PDF for Alex van Poppel', 'title': 'Resume', 'description': 'Resume document for the portfolio profile.', 'visibility': 'public', 'created_at': 'TIMESTAMP', 'updated_at': 'TIMESTAMP'}, {'id': 'file-project-exchange-cover', 'bucket_name': 'portfolio', 'object_key': 'projects/internal-exchange-student-portal/cover.jpg', 'original_filename': 'ExchangePortalImage.jpg', 'stored_filename': 'cover.jpg', 'mime_type': 'image/jpeg', 'file_size_bytes': 331142, 'checksum': 'c0f49d7c81a69e39e43fcfb078653a14325b141e9566bb4d73b6b653d75e84c7', 'public_url': None, 'alt_text': 'Cover image for the exchange student portal project', 'title': 'Exchange portal cover', 'description': 'Cover image for the internal exchange student portal project.', 'visibility': 'public', 'created_at': 'TIMESTAMP', 'updated_at': 'TIMESTAMP'}, {'id': 'file-project-iot-cover', 'bucket_name': 'portfolio', 'object_key': 'projects/iot-security-system/cover.png', 'original_filename': 'securitySystemFlyer.png', 'stored_filename': 'cover.png', 'mime_type': 'image/png', 'file_size_bytes': 2505233, 'checksum': '8fdebc67b805dd3e4d2578586bb6a6f02d2113c0abdc3911838221134b2d6771', 'public_url': None, 'alt_text': 'Cover image for the IoT security system project', 'title': 'IoT security system cover', 'description': 'Cover image for the IoT security system project.', 'visibility': 'public', 'created_at': 'TIMESTAMP', 'updated_at': 'TIMESTAMP'}, {'id': 'file-project-laravel-portfolio-cover', 'bucket_name': 'portfolio', 'object_key': 'projects/laravel-portfolio/cover.jpg', 'original_filename': 'PortfolioHeadImage.jpg', 'stored_filename': 'cover.jpg', 'mime_type': 'image/jpeg', 'file_size_bytes': 235301, 'checksum': '8c72cdcae20281c74f0df0d30cebc32c1f7df8d0179ce965c0ed273e690ffb7c', 'public_url': None, 'alt_text': 'Cover image for the old Laravel portfolio project', 'title': 'Old Laravel portfolio cover', 'description': 'Cover image for the older Laravel portfolio project.', 'visibility': 'public', 'created_at': 'TIMESTAMP', 'updated_at': 'TIMESTAMP'}, {'id': 'file-blog-homelab-cover', 'bucket_name': 'portfolio', 'object_key': 'blog/my-homelab/cover.png', 'original_filename': 'HomelabDiagram.png', 'stored_filename': 'cover.png', 'mime_type': 'image/png', 'file_size_bytes': 302699, 'checksum': '5939ddebd2ba3a0cf81fdd0f313555ea356c149511e384cef879dcb8dc4cc279', 'public_url': None, 'alt_text': 'Diagram of the homelab setup', 'title': 'Homelab blog cover', 'description': 'Cover image for the homelab blog post.', 'visibility': 'public', 'created_at': 'TIMESTAMP', 'updated_at': 'TIMESTAMP'}, {'id': 'file-blog-mobilab-cover', 'bucket_name': 'portfolio', 'object_key': 'blog/mobilab-internship/cover.png', 'original_filename': 'SystemContainerC4.drawio.png', 'stored_filename': 'cover.png', 'mime_type': 'image/png', 'file_size_bytes': 162988, 'checksum': '6ad596b2e5564c8dba7d33e76ba675cc7c12c58c349f45caa1469075723a1e4f', 'public_url': None, 'alt_text': 'Container diagram for the MobiLab internship post', 'title': 'MobiLab internship blog cover', 'description': 'Cover image for the MobiLab internship blog post.', 'visibility': 'public', 'created_at': 'TIMESTAMP', 'updated_at': 'TIMESTAMP'}]
 
+MEDIA_FILES.extend([
+    {
+        'id': 'file-project-exchange-gallery-overview',
+        'bucket_name': 'portfolio',
+        'object_key': 'projects/internal-exchange-student-portal/gallery-overview.jpg',
+        'original_filename': 'gallery-overview.jpg',
+        'stored_filename': 'gallery-overview.jpg',
+        'mime_type': 'image/jpeg',
+        'file_size_bytes': 178702,
+        'checksum': '7071cbb5f7fdfacbbfdafe5fbfac951fb8a0edbb89c32a036fcce35c06389cce',
+        'public_url': None,
+        'alt_text': 'Exchange portal gallery overview',
+        'title': 'Exchange portal gallery overview',
+        'description': 'Additional gallery image for the internal exchange student portal project.',
+        'visibility': 'public',
+        'created_at': 'TIMESTAMP',
+        'updated_at': 'TIMESTAMP',
+    },
+    {
+        'id': 'file-project-exchange-gallery-workflow',
+        'bucket_name': 'portfolio',
+        'object_key': 'projects/internal-exchange-student-portal/gallery-workflow.jpg',
+        'original_filename': 'gallery-workflow.jpg',
+        'stored_filename': 'gallery-workflow.jpg',
+        'mime_type': 'image/jpeg',
+        'file_size_bytes': 160490,
+        'checksum': '003f04725696d841e08ac24c8c4cbe2f655140aab8cff630e772f6fa8eab5651',
+        'public_url': None,
+        'alt_text': 'Exchange portal workflow preview',
+        'title': 'Exchange portal workflow preview',
+        'description': 'Additional gallery image for the internal exchange student portal project.',
+        'visibility': 'public',
+        'created_at': 'TIMESTAMP',
+        'updated_at': 'TIMESTAMP',
+    },
+    {
+        'id': 'file-project-iot-gallery-detection',
+        'bucket_name': 'portfolio',
+        'object_key': 'projects/iot-security-system/gallery-detection.jpg',
+        'original_filename': 'gallery-detection.jpg',
+        'stored_filename': 'gallery-detection.jpg',
+        'mime_type': 'image/jpeg',
+        'file_size_bytes': 130507,
+        'checksum': 'efa344dea72e146e7b49e62edb1c614ca59a22e7d7cb0accd5d51039cf6c2481',
+        'public_url': None,
+        'alt_text': 'IoT security detection preview',
+        'title': 'IoT security detection preview',
+        'description': 'Additional gallery image for the IoT security system project.',
+        'visibility': 'public',
+        'created_at': 'TIMESTAMP',
+        'updated_at': 'TIMESTAMP',
+    },
+    {
+        'id': 'file-project-iot-gallery-hardware',
+        'bucket_name': 'portfolio',
+        'object_key': 'projects/iot-security-system/gallery-hardware.jpg',
+        'original_filename': 'gallery-hardware.jpg',
+        'stored_filename': 'gallery-hardware.jpg',
+        'mime_type': 'image/jpeg',
+        'file_size_bytes': 129152,
+        'checksum': '7e1ac056af23ead1b2fbb164d35da92031f250fcb8aa821c423be40d0fcc7903',
+        'public_url': None,
+        'alt_text': 'IoT security hardware preview',
+        'title': 'IoT security hardware preview',
+        'description': 'Additional gallery image for the IoT security system project.',
+        'visibility': 'public',
+        'created_at': 'TIMESTAMP',
+        'updated_at': 'TIMESTAMP',
+    },
+    {
+        'id': 'file-project-laravel-gallery-home',
+        'bucket_name': 'portfolio',
+        'object_key': 'projects/laravel-portfolio/gallery-home.jpg',
+        'original_filename': 'gallery-home.jpg',
+        'stored_filename': 'gallery-home.jpg',
+        'mime_type': 'image/jpeg',
+        'file_size_bytes': 125890,
+        'checksum': 'f17b0d09c1a82612b5996a815353be7bba7d5da8b5aab9c69600294489e86723',
+        'public_url': None,
+        'alt_text': 'Old Laravel portfolio homepage preview',
+        'title': 'Old Laravel portfolio homepage preview',
+        'description': 'Additional gallery image for the old Laravel portfolio project.',
+        'visibility': 'public',
+        'created_at': 'TIMESTAMP',
+        'updated_at': 'TIMESTAMP',
+    },
+    {
+        'id': 'file-project-laravel-gallery-projects',
+        'bucket_name': 'portfolio',
+        'object_key': 'projects/laravel-portfolio/gallery-projects.jpg',
+        'original_filename': 'gallery-projects.jpg',
+        'stored_filename': 'gallery-projects.jpg',
+        'mime_type': 'image/jpeg',
+        'file_size_bytes': 126944,
+        'checksum': '9cacc0d22e10821a0429bf4e9180049c0dc068e0c067d2456d0c6701ebdcc5c2',
+        'public_url': None,
+        'alt_text': 'Old Laravel portfolio projects preview',
+        'title': 'Old Laravel portfolio projects preview',
+        'description': 'Additional gallery image for the old Laravel portfolio project.',
+        'visibility': 'public',
+        'created_at': 'TIMESTAMP',
+        'updated_at': 'TIMESTAMP',
+    },
+])
+
+
 SOCIAL_LINKS = [{'id': 'social-github', 'profile_id': 'profile-alex-van-poppel', 'platform': 'github', 'label': 'GitHub', 'url': 'https://github.com/Alex-v-p', 'icon_key': 'github', 'sort_order': 1, 'is_visible': True}, {'id': 'social-linkedin', 'profile_id': 'profile-alex-van-poppel', 'platform': 'linkedin', 'label': 'LinkedIn', 'url': 'https://www.linkedin.com/in/alex-v-p/', 'icon_key': 'linkedin', 'sort_order': 2, 'is_visible': True}]
 
 SKILL_CATEGORIES = [{'description': 'UI and browser-facing development',
@@ -440,6 +546,17 @@ def seed_database(session: Session) -> None:
                     is_cover=True,
                 )
             )
+            for gallery_index, gallery_image_file_id in enumerate(project.get('gallery_image_file_ids', []), start=1):
+                session.add(
+                    ProjectImage(
+                        project_id=_seed_uuid(project['id']),
+                        image_file_id=_seed_uuid(gallery_image_file_id),
+                        alt_text=f"{project['title']} gallery image {gallery_index}",
+                        alt_text_nl=f"{project.get('title_nl') or project['title']} galerijafbeelding {gallery_index}",
+                        sort_order=gallery_index,
+                        is_cover=False,
+                    )
+                )
             for skill_name in PROJECT_SKILL_NAMES_BY_PROJECT_SLUG.get(project['slug'], []):
                 skill_id = skill_name_to_id.get(skill_name)
                 if skill_id:

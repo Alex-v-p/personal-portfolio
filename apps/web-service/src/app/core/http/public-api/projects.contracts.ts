@@ -36,6 +36,7 @@ export interface ProjectSummaryApi {
   createdAt: string;
   updatedAt: string;
   skills: SkillApi[];
+  images?: ProjectImageApi[] | null;
 }
 
 export interface ProjectDetailApi extends ProjectSummaryApi {

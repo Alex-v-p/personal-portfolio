@@ -1,6 +1,25 @@
 import { ResolvedMedia } from '@domains/media/model/resolved-media.model';
 import { AdminSkillOption } from './taxonomy-admin.model';
 
+export interface AdminProjectImage {
+  id: string;
+  projectId: string;
+  imageFileId?: string | null;
+  altText?: string | null;
+  altTextNl?: string | null;
+  sortOrder: number;
+  isCover: boolean;
+  image?: ResolvedMedia | null;
+}
+
+export interface AdminProjectImageUpsert {
+  imageFileId?: string | null;
+  altText?: string | null;
+  altTextNl?: string | null;
+  sortOrder: number;
+  isCover: boolean;
+}
+
 export interface AdminProject {
   id: string;
   slug: string;
@@ -33,6 +52,7 @@ export interface AdminProject {
   updatedAt: string;
   skillIds: string[];
   skills: AdminSkillOption[];
+  images: AdminProjectImage[];
 }
 
 export interface AdminProjectUpsert {
@@ -62,4 +82,5 @@ export interface AdminProjectUpsert {
   sortOrder: number;
   publishedAt?: string | null;
   skillIds: string[];
+  images: AdminProjectImageUpsert[];
 }

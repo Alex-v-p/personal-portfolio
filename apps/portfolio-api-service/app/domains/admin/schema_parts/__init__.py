@@ -42,6 +42,8 @@ from app.domains.admin.schema_parts.content import (
     AdminExperienceOut,
     AdminExperiencesListOut,
     AdminExperienceUpsertIn,
+    AdminProjectImageIn,
+    AdminProjectImageOut,
     AdminProjectOut,
     AdminProjectsListOut,
     AdminProjectUpsertIn,
