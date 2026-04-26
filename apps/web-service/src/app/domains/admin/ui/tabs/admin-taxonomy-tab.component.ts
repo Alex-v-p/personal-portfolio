@@ -56,6 +56,20 @@ export class AdminTaxonomyTabComponent extends AdminLocalizedContentTabBase {
     return categoryName(this.referenceData.skillCategories, categoryId);
   }
 
+  skillMetricLabel(skill: { yearsOfExperience?: number | null; proficiencyLabel?: string | null; proficiencyLabelNl?: string | null }): string {
+    const explicitLabel = skill.proficiencyLabel || skill.proficiencyLabelNl;
+
+    if (explicitLabel) {
+      return explicitLabel;
+    }
+
+    if (skill.yearsOfExperience !== null && skill.yearsOfExperience !== undefined) {
+      return `${skill.yearsOfExperience} year${skill.yearsOfExperience === 1 ? '' : 's'}`;
+    }
+
+    return 'No metric';
+  }
+
   selectSkillCategory(categoryId: string): void {
     this.skillCategorySelected.emit(categoryId);
   }

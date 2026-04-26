@@ -111,7 +111,7 @@
         </span>
         <span class="min-w-0">
           <span class="block font-semibold text-stone-950">{{ skill.name }}</span>
-          <span class="block text-xs text-stone-500">{{ skill.iconKey || 'No icon selected' }} · {{ categoryName(skill.categoryId) }} · {{ skill.yearsOfExperience ?? 0 }} years</span>
+          <span class="block text-xs text-stone-500">{{ skill.iconKey || 'No icon selected' }} · {{ categoryName(skill.categoryId) }} · {{ skillMetricLabel(skill) }}</span>
         </span>
       </button>
     </div>
@@ -139,6 +139,21 @@
           <span class="text-sm font-semibold text-stone-800">Sort order</span>
           <input [(ngModel)]="skillForm.sortOrder" name="skillSortOrder" type="number" placeholder="10" class="w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm" />
         </label>
+      </div>
+
+      <div class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
+        <p class="text-sm font-semibold text-stone-950">Optional proficiency label</p>
+        <p class="mt-1 text-xs leading-5 text-stone-500">Use this for languages or learning states. When present, it is shown instead of years on public expertise chips.</p>
+        <div class="mt-4 grid gap-4">
+          <label class="space-y-2">
+            <span class="text-sm font-semibold text-stone-800">Label shown on English pages</span>
+            <input [(ngModel)]="skillForm.proficiencyLabel" name="skillProficiencyLabel" placeholder="C1 · Professional working proficiency" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
+          </label>
+          <label class="space-y-2">
+            <span class="text-sm font-semibold text-stone-800">Label shown on Dutch pages</span>
+            <input [(ngModel)]="skillForm.proficiencyLabelNl" name="skillProficiencyLabelNl" placeholder="C1 · Professionele werkvaardigheid" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
+          </label>
+        </div>
       </div>
 
       <div class="space-y-2">

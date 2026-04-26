@@ -25,27 +25,47 @@ export class ProjectCardComponent {
     return this.project.tags.slice(0, this.featured ? 5 : 4);
   }
 
-  protected get primaryAction(): ProjectLink | null {
-    const externalDemo = this.project.links.find((link) => link.label.toLowerCase().includes('demo'));
-    const externalGithub = this.project.links.find((link) => link.label.toLowerCase().includes('github'));
-    const internalReadMore = this.project.links.find((link) => link.routerLink);
-
-    return externalDemo ?? externalGithub ?? internalReadMore ?? this.project.links[0] ?? null;
-  }
-
   protected get readMoreAction(): ProjectLink | null {
-    return this.primaryAction;
+    return this.project.links.find((link) => link.routerLink) ?? {
+      label: this.i18n.translate('common.actions.readMore'),
+      routerLink: ['/projects', this.project.slug],
+    };
   }
 
-  protected get extraActions(): ProjectLink[] {
-    return this.project.links
-      .filter((link) => link !== this.readMoreAction)
-      .filter((link) => (link.label ?? '').trim().length > 0)
-      .slice(0, this.featured ? 1 : 0);
+  protected get demoAction(): ProjectLink | null {
+    const directDemoUrl = this.project.demoUrl?.trim();
+    const linkedDemo = this.project.links.find((link) => this.isDemoLink(link));
+    const externalProjectLink = this.project.links.find((link) => this.isNonRepositoryExternalLink(link));
+    const href = directDemoUrl || linkedDemo?.href?.trim() || externalProjectLink?.href?.trim();
+
+    if (!href) {
+      return null;
+    }
+
+    return {
+      label: this.i18n.translate('common.actions.liveDemo'),
+      href,
+    };
   }
 
-  protected get secondaryActions(): ProjectLink[] {
-    return this.project.links.filter((link) => link !== this.primaryAction).slice(0, this.featured ? 2 : 1);
+  private isDemoLink(link: ProjectLink): boolean {
+    const href = link.href?.trim();
+    if (!href) {
+      return false;
+    }
+
+    const label = (link.label ?? '').toLowerCase();
+    return label.includes('demo') || label.includes('live') || href === this.project.demoUrl;
+  }
+
+  private isNonRepositoryExternalLink(link: ProjectLink): boolean {
+    const href = link.href?.trim();
+    if (!href) {
+      return false;
+    }
+
+    const label = (link.label ?? '').toLowerCase();
+    return !label.includes('github') && href !== this.project.githubUrl;
   }
 
   protected get placeholderLabel(): string {

@@ -83,6 +83,8 @@ class PublicProjectsRepositoryMixin:
                     category_id=str(link.skill.category_id),
                     name=link.skill.name,
                     years_of_experience=link.skill.years_of_experience,
+                    proficiency_label=self._localized_skill_proficiency(link.skill),
+                    display_label=self._skill_metric_label(link.skill),
                     icon_key=link.skill.icon_key,
                     sort_order=link.skill.sort_order,
                     is_highlighted=link.skill.is_highlighted,

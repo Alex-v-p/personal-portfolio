@@ -18,6 +18,8 @@ export interface SkillApi {
   categoryId: string;
   name: string;
   yearsOfExperience?: number | null;
+  proficiencyLabel?: string | null;
+  displayLabel?: string | null;
   iconKey?: string | null;
   sortOrder: number;
   isHighlighted: boolean;
@@ -26,6 +28,8 @@ export interface SkillApi {
 export interface ExpertiseSkillApi {
   name: string;
   yearsOfExperience?: number | null;
+  proficiencyLabel?: string | null;
+  displayLabel?: string | null;
   iconKey?: string | null;
 }
 

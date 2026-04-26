@@ -48,6 +48,7 @@ PROFILE_ROW = {'avatar_file_id': 'file-avatar-alex',
                 'dit goed werken, en hoe houd ik het later ook goed werkend?',
  'phone': '+32 472 31 34 79',
  'resume_file_id': 'file-resume',
+ 'resume_file_id_nl': 'file-resume',
  'short_intro': 'I am a Software Development student at Thomas More in Geel who enjoys building applications that are '
                 'useful in practice, from full-stack web platforms to AI experiments and the infrastructure needed to '
                 'host them.',

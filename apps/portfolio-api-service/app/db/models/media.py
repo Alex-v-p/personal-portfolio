@@ -54,6 +54,11 @@ class MediaFile(TimestampMixin, Base):
         foreign_keys='Profile.resume_file_id',
         back_populates='resume_file',
     )
+    profile_resume_nl_for: Mapped[list[Profile]] = relationship(
+        'Profile',
+        foreign_keys='Profile.resume_file_id_nl',
+        back_populates='resume_file_nl',
+    )
     experience_logo_for: Mapped[list[Experience]] = relationship(
         'Experience',
         foreign_keys='Experience.logo_file_id',

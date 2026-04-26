@@ -33,6 +33,7 @@ export class AdminProfilePageComponent implements OnInit {
   protected profileAvatarUploadForm: ScopedUploadForm = createEmptyScopedUploadForm();
   protected profileHeroUploadForm: ScopedUploadForm = createEmptyScopedUploadForm();
   protected profileResumeUploadForm: ScopedUploadForm = createEmptyScopedUploadForm();
+  protected profileResumeNlUploadForm: ScopedUploadForm = createEmptyScopedUploadForm();
   protected uploadInProgressKey: string | null = null;
 
   ngOnInit(): void {
@@ -70,6 +71,7 @@ export class AdminProfilePageComponent implements OnInit {
       avatarFileId: this.profileForm.avatarFileId || null,
       heroImageFileId: this.profileForm.heroImageFileId || null,
       resumeFileId: this.profileForm.resumeFileId || null,
+      resumeFileIdNl: this.profileForm.resumeFileIdNl || null,
       ctaPrimaryLabel: this.profileForm.ctaPrimaryLabel || null,
       ctaPrimaryLabelNl: this.profileForm.ctaPrimaryLabelNl || null,
       ctaPrimaryUrl: this.profileForm.ctaPrimaryUrl || null,
@@ -116,6 +118,12 @@ export class AdminProfilePageComponent implements OnInit {
   protected uploadProfileResume(): void {
     this.uploadScopedMedia('profile-resume', this.profileResumeUploadForm, (media) => {
       this.profileForm.resumeFileId = media.id;
+    });
+  }
+
+  protected uploadProfileResumeNl(): void {
+    this.uploadScopedMedia('profile-resume-nl', this.profileResumeNlUploadForm, (media) => {
+      this.profileForm.resumeFileIdNl = media.id;
     });
   }
 

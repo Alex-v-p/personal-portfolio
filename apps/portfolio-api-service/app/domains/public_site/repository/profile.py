@@ -61,6 +61,7 @@ class PublicProfileRepositoryMixin:
                 selectinload(Profile.avatar_file),
                 selectinload(Profile.hero_image_file),
                 selectinload(Profile.resume_file),
+                selectinload(Profile.resume_file_nl),
             )
             .where(Profile.is_public.is_(True))
             .order_by(Profile.updated_at.desc())
@@ -81,16 +82,13 @@ class PublicProfileRepositoryMixin:
                 ExpertiseGroupOut(
                     title=self._localized(category, 'name') or category.name,
                     icon_key=choose_icon_key(category.icon_key, infer_category_icon_key(self._localized(category, 'name') or category.name)),
-                    tags=[
-                        f'{skill.name} - {self._localized_years_label(skill.years_of_experience)}'
-                        if skill.years_of_experience is not None
-                        else skill.name
-                        for skill in ordered_skills
-                    ],
+                    tags=[self._format_skill_tag(skill) for skill in ordered_skills],
                     skills=[
                         {
                             'name': skill.name,
                             'years_of_experience': skill.years_of_experience,
+                            'proficiency_label': self._localized_skill_proficiency(skill),
+                            'display_label': self._skill_metric_label(skill),
                             'icon_key': choose_icon_key(skill.icon_key, infer_skill_icon_key(skill.name, self._localized(category, 'name') or category.name)),
                         }
                         for skill in ordered_skills
@@ -98,6 +96,29 @@ class PublicProfileRepositoryMixin:
                 )
             )
         return groups
+
+
+    def _localized_resume_file(self, profile: Profile):
+        if self.locale == 'nl' and profile.resume_file_nl is not None:
+            return profile.resume_file_nl
+        return profile.resume_file
+
+    def _localized_skill_proficiency(self, skill: Skill) -> str | None:
+        if self.locale == 'nl' and skill.proficiency_label_nl:
+            return skill.proficiency_label_nl
+        return skill.proficiency_label
+
+    def _skill_metric_label(self, skill: Skill) -> str | None:
+        proficiency = self._localized_skill_proficiency(skill)
+        if proficiency:
+            return proficiency
+        if skill.years_of_experience is not None:
+            return self._localized_years_label(skill.years_of_experience)
+        return None
+
+    def _format_skill_tag(self, skill: Skill) -> str:
+        metric = self._skill_metric_label(skill)
+        return f'{skill.name} - {metric}' if metric else skill.name
 
     def _get_highlighted_skill_names(self) -> list[str]:
         skills = self.session.scalars(
@@ -116,7 +137,8 @@ class PublicProfileRepositoryMixin:
         cta_secondary_label = self._localized(profile, 'cta_secondary_label') or profile.cta_secondary_label
         intro_paragraphs = [part for part in [long_bio] if part]
         expertise_groups = self._get_expertise_groups()
-        resume_url = self.media_resolver.resolve(profile.resume_file)
+        localized_resume_file = self._localized_resume_file(profile)
+        resume_url = self.media_resolver.resolve(localized_resume_file)
         primary_cta_url = profile.cta_primary_url
         if primary_cta_url == 'media://resume' or (primary_cta_url and primary_cta_url.startswith('/assets/')):
             primary_cta_url = resume_url
@@ -135,10 +157,11 @@ class PublicProfileRepositoryMixin:
             phone=profile.phone,
             avatar_file_id=str(profile.avatar_file_id) if profile.avatar_file_id else None,
             hero_image_file_id=str(profile.hero_image_file_id) if profile.hero_image_file_id else None,
-            resume_file_id=str(profile.resume_file_id) if profile.resume_file_id else None,
+            resume_file_id=str(localized_resume_file.id) if localized_resume_file else None,
+            resume_file_id_nl=str(profile.resume_file_id_nl) if profile.resume_file_id_nl else None,
             avatar=self._map_media(profile.avatar_file, alt=f'{full_name} {self._copy("avatar_suffix")}'),
             hero_image=self._map_media(profile.hero_image_file, alt=f'{full_name} {self._copy("hero_image_suffix")}'),
-            resume=self._map_media(profile.resume_file, alt=f'{full_name} {self._copy("resume_suffix")}'),
+            resume=self._map_media(localized_resume_file, alt=f'{full_name} {self._copy("resume_suffix")}'),
             cta_primary_label=cta_primary_label,
             cta_primary_url=primary_cta_url,
             cta_secondary_label=cta_secondary_label,

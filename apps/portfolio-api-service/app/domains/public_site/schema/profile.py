@@ -33,6 +33,8 @@ class NavigationListOut(ApiSchema):
 class ExpertiseSkillOut(ApiSchema):
     name: str
     years_of_experience: int | None = None
+    proficiency_label: str | None = None
+    display_label: str | None = None
     icon_key: str | None = None
 
 
@@ -69,6 +71,7 @@ class ProfileOut(ApiSchema):
     avatar_file_id: str | None = None
     hero_image_file_id: str | None = None
     resume_file_id: str | None = None
+    resume_file_id_nl: str | None = None
     avatar: PublicMediaAssetOut | None = None
     hero_image: PublicMediaAssetOut | None = None
     resume: PublicMediaAssetOut | None = None

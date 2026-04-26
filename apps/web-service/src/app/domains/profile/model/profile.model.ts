@@ -11,6 +11,8 @@ export interface HeroAction {
 export interface ExpertiseSkill {
   name: string;
   yearsOfExperience?: number | null;
+  proficiencyLabel?: string | null;
+  displayLabel?: string | null;
   iconKey?: string;
 }
 
@@ -41,6 +43,7 @@ export interface Profile {
   avatarFileId?: string | null;
   heroImageFileId?: string | null;
   resumeFileId?: string | null;
+  resumeFileIdNl?: string | null;
   avatarUrl?: string;
   heroImageUrl?: string;
   resumeUrl?: string;

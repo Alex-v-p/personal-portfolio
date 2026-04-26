@@ -29,6 +29,8 @@ class AdminSkillOut(ApiSchema):
     category_id: str
     name: str
     years_of_experience: int | None = None
+    proficiency_label: str | None = None
+    proficiency_label_nl: str | None = None
     icon_key: str | None = None
     sort_order: int
     is_highlighted: bool
@@ -38,6 +40,8 @@ class AdminSkillUpsertIn(ApiSchema):
     category_id: str
     name: str = Field(min_length=1, max_length=120)
     years_of_experience: int | None = Field(default=None, ge=0, le=80)
+    proficiency_label: str | None = Field(default=None, max_length=80)
+    proficiency_label_nl: str | None = Field(default=None, max_length=80)
     icon_key: str | None = Field(default=None, max_length=80)
     sort_order: int = 0
     is_highlighted: bool = False

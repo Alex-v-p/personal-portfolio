@@ -230,6 +230,7 @@ export class AdminPageComponent implements OnInit, OnDestroy {
   protected profileAvatarUploadForm: ScopedUploadForm = createEmptyScopedUploadForm();
   protected profileHeroUploadForm: ScopedUploadForm = createEmptyScopedUploadForm();
   protected profileResumeUploadForm: ScopedUploadForm = createEmptyScopedUploadForm();
+  protected profileResumeNlUploadForm: ScopedUploadForm = createEmptyScopedUploadForm();
   protected uploadInProgressKey: string | null = null;
   protected mediaSearchTerm = '';
   protected mediaVisibilityFilter: 'all' | 'public' | 'private' | 'signed' = 'all';
@@ -724,6 +725,8 @@ export class AdminPageComponent implements OnInit, OnDestroy {
       categoryId: this.skillForm.categoryId,
       name: this.skillForm.name,
       yearsOfExperience: this.skillForm.yearsOfExperience,
+      proficiencyLabel: this.skillForm.proficiencyLabel || null,
+      proficiencyLabelNl: this.skillForm.proficiencyLabelNl || null,
       iconKey: this.skillForm.iconKey || null,
       sortOrder: this.skillForm.sortOrder,
       isHighlighted: this.skillForm.isHighlighted,
@@ -948,6 +951,7 @@ export class AdminPageComponent implements OnInit, OnDestroy {
       avatarFileId: this.profileForm.avatarFileId || null,
       heroImageFileId: this.profileForm.heroImageFileId || null,
       resumeFileId: this.profileForm.resumeFileId || null,
+      resumeFileIdNl: this.profileForm.resumeFileIdNl || null,
       ctaPrimaryLabel: this.profileForm.ctaPrimaryLabel || null,
       ctaPrimaryLabelNl: this.profileForm.ctaPrimaryLabelNl || null,
       ctaPrimaryUrl: this.profileForm.ctaPrimaryUrl || null,
@@ -1328,6 +1332,12 @@ export class AdminPageComponent implements OnInit, OnDestroy {
   protected uploadProfileResume(): void {
     this.uploadScopedMedia('profile-resume', this.profileResumeUploadForm, this.buildProfileFolder(), (media) => {
       this.profileForm.resumeFileId = media.id;
+    });
+  }
+
+  protected uploadProfileResumeNl(): void {
+    this.uploadScopedMedia('profile-resume-nl', this.profileResumeNlUploadForm, this.buildProfileFolder(), (media) => {
+      this.profileForm.resumeFileIdNl = media.id;
     });
   }
 

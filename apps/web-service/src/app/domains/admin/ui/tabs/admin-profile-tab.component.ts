@@ -27,6 +27,7 @@ export class AdminProfileTabComponent extends AdminLocalizedContentTabBase {
   @Input({ required: true }) profileAvatarUploadForm!: ScopedUploadForm;
   @Input({ required: true }) profileHeroUploadForm!: ScopedUploadForm;
   @Input({ required: true }) profileResumeUploadForm!: ScopedUploadForm;
+  @Input({ required: true }) profileResumeNlUploadForm!: ScopedUploadForm;
   @Input() uploadInProgressKey: string | null = null;
 
   @Output() readonly socialLinkAdded = new EventEmitter<void>();
@@ -36,6 +37,7 @@ export class AdminProfileTabComponent extends AdminLocalizedContentTabBase {
   @Output() readonly profileAvatarUploadRequested = new EventEmitter<void>();
   @Output() readonly profileHeroUploadRequested = new EventEmitter<void>();
   @Output() readonly profileResumeUploadRequested = new EventEmitter<void>();
+  @Output() readonly profileResumeNlUploadRequested = new EventEmitter<void>();
 
   protected readonly socialIconGroups: readonly IconGroupKey[] = ['social', 'contact'];
 
@@ -66,6 +68,10 @@ export class AdminProfileTabComponent extends AdminLocalizedContentTabBase {
 
   uploadProfileResume(): void {
     this.profileResumeUploadRequested.emit();
+  }
+
+  uploadProfileResumeNl(): void {
+    this.profileResumeNlUploadRequested.emit();
   }
 
   buildProfileFolder(): string {

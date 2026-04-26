@@ -49,6 +49,15 @@
         >
           {{ 'common.actions.readMore' | translate }}
         </app-ui-link-button>
+          <app-ui-link-button
+            *ngIf="demoAction as demo"
+            [routerLink]="null"
+            [href]="demo.href ?? null"
+            [openInNewTab]="true"
+            appearance="ghost"
+          >
+            {{ 'common.actions.liveDemo' | translate }}
+          </app-ui-link-button>
       </div>
     </div>
   </div>
@@ -90,7 +99,16 @@
             [openInNewTab]="!!readMoreAction.href"
             appearance="ghost"
           >
-            Read more
+            {{ 'common.actions.readMore' | translate }}
+          </app-ui-link-button>
+          <app-ui-link-button
+            *ngIf="demoAction as demo"
+            [routerLink]="null"
+            [href]="demo.href ?? null"
+            [openInNewTab]="true"
+            appearance="ghost"
+          >
+            {{ 'common.actions.liveDemo' | translate }}
           </app-ui-link-button>
         </div>
       </div>

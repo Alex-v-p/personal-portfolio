@@ -155,6 +155,13 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    overflow-x: clip;
+  }
+
+  @supports not (overflow-x: clip) {
+    html {
+      overflow-x: hidden;
+    }
   }
 
   body {
@@ -428,8 +435,9 @@
     background: rgba(248, 244, 246, 0.94);
     padding: 0.25rem 0.75rem;
     font-size: 0.82rem;
+    max-width: 100%;
     font-weight: 600;
-    white-space: nowrap;
+    white-space: normal;
     color: var(--ui-text-muted);
   }
 

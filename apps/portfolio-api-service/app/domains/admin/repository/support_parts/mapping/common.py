@@ -11,6 +11,8 @@ class AdminRepositoryMappingCommonMixin:
             category_id=str(skill.category_id),
             name=skill.name,
             years_of_experience=skill.years_of_experience,
+            proficiency_label=skill.proficiency_label,
+            display_label=skill.proficiency_label or (f'{skill.years_of_experience}y' if skill.years_of_experience is not None else None),
             icon_key=skill.icon_key,
             sort_order=skill.sort_order,
             is_highlighted=skill.is_highlighted,

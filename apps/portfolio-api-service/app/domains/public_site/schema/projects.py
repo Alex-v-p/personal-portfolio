@@ -12,6 +12,8 @@ class SkillSummaryOut(ApiSchema):
     category_id: str
     name: str
     years_of_experience: int | None = None
+    proficiency_label: str | None = None
+    display_label: str | None = None
     icon_key: str | None = None
     sort_order: int
     is_highlighted: bool

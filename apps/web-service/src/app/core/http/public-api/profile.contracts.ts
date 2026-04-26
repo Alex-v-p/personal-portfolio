@@ -46,6 +46,7 @@ export interface ProfileApi {
   avatarFileId?: string | null;
   heroImageFileId?: string | null;
   resumeFileId?: string | null;
+  resumeFileIdNl?: string | null;
   avatar?: MediaApi | null;
   heroImage?: MediaApi | null;
   resume?: MediaApi | null;

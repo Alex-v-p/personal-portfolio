@@ -10,6 +10,7 @@ describe('icon registry', () => {
     expect(resolveIconKey('clipboard-search')).toBe('workflow');
     expect(resolveIconKey('Data & AI')).toBe('brain');
     expect(resolveIconKey('x')).toBe('twitter');
+    expect(resolveIconKey('linked-in')).toBe('linkedin');
   });
 
   it('returns icon definitions for supported keys', () => {

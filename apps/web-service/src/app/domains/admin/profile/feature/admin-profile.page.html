@@ -24,6 +24,7 @@
     [profileAvatarUploadForm]="profileAvatarUploadForm"
     [profileHeroUploadForm]="profileHeroUploadForm"
     [profileResumeUploadForm]="profileResumeUploadForm"
+    [profileResumeNlUploadForm]="profileResumeNlUploadForm"
     [uploadInProgressKey]="uploadInProgressKey"
     (socialLinkAdded)="addSocialLink()"
     (socialLinkRemoved)="removeSocialLink($event)"
@@ -31,6 +32,7 @@
     (scopedFileSelected)="onScopedFileSelected($event.event, $event.form)"
     (profileAvatarUploadRequested)="uploadProfileAvatar()"
     (profileHeroUploadRequested)="uploadProfileHero()"
-    (profileResumeUploadRequested)="uploadProfileResume()">
+    (profileResumeUploadRequested)="uploadProfileResume()"
+    (profileResumeNlUploadRequested)="uploadProfileResumeNl()">
   </app-admin-profile-tab>
 </div>

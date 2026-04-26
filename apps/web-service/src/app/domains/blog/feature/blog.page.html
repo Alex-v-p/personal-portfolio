@@ -46,7 +46,7 @@
       ></app-ui-empty-state>
 
       <ng-container *ngIf="!isLoading && !errorMessage && hasPosts">
-        <section class="ui-card-soft grid gap-4 p-4 md:grid-cols-[minmax(0,1fr)_20rem] md:items-start md:p-5">
+        <section class="ui-card-soft grid gap-4 overflow-visible p-4 md:grid-cols-[minmax(0,1fr)_20rem] md:items-start md:p-5">
           <label class="block space-y-2">
             <span class="ui-kicker">{{ 'pages.blog.filters.searchLabel' | translate }}</span>
             <input
@@ -57,21 +57,21 @@
             />
           </label>
 
-          <div class="relative space-y-2">
+          <div class="relative min-w-0 space-y-2">
             <span class="block ui-kicker">{{ 'pages.blog.filters.topicsLabel' | translate }}</span>
             <button
               type="button"
               (click)="toggleCategoryMenu()"
-              class="ui-btn ui-btn-secondary flex min-h-12 w-full items-center justify-between gap-3 rounded-full px-4 py-3 text-left text-sm"
+              class="ui-btn ui-btn-secondary flex min-h-12 w-full min-w-0 items-center justify-between gap-3 rounded-full px-4 py-3 text-left text-sm"
               [attr.aria-expanded]="isCategoryMenuOpen"
             >
-              <span class="pr-3">{{ categoryFilterLabel }}</span>
+              <span class="min-w-0 flex-1 truncate pr-3">{{ categoryFilterLabel }}</span>
               <span class="text-lg leading-none ui-text-soft">{{ isCategoryMenuOpen ? '−' : '+' }}</span>
             </button>
 
             <div
               *ngIf="isCategoryMenuOpen"
-              class="ui-panel absolute right-0 z-10 mt-2 w-full rounded-[1.5rem] p-4"
+              class="ui-panel static mt-2 w-full rounded-[1.5rem] p-4 md:absolute md:right-0 md:z-30 md:max-h-[min(28rem,calc(100vh-12rem))] md:w-[min(28rem,calc(100vw-3rem))] md:overflow-y-auto"
             >
               <div class="mb-4 flex items-center justify-between gap-3">
                 <p class="text-sm font-semibold ui-text-strong">{{ 'pages.blog.filters.selectTopics' | translate }}</p>
@@ -84,12 +84,12 @@
                 </button>
               </div>
 
-              <div class="grid gap-2 sm:grid-cols-2">
+              <div class="grid max-h-[18rem] gap-2 overflow-y-auto pr-1 sm:grid-cols-2 md:max-h-none md:overflow-visible md:pr-0">
                 <label
                   *ngFor="let category of availableCategoryFilters"
-                  class="ui-card-soft flex cursor-pointer items-center justify-between gap-3 rounded-2xl px-3 py-3 transition hover:[border-color:var(--ui-border)] hover:[background:var(--ui-surface-soft)]"
+                  class="ui-card-soft flex min-w-0 cursor-pointer items-center justify-between gap-3 rounded-2xl px-3 py-3 transition hover:[border-color:var(--ui-border)] hover:[background:var(--ui-surface-soft)]"
                 >
-                  <span class="flex items-center gap-3">
+                  <span class="flex min-w-0 items-center gap-3">
                     <input
                       type="checkbox"
                       [checked]="isCategorySelected(category.name)"
@@ -97,7 +97,7 @@
                       class="h-4 w-4 rounded"
                       style="accent-color: var(--ui-primary);"
                     />
-                    <span class="text-sm font-medium ui-text-muted">{{ category.name }}</span>
+                    <span class="min-w-0 break-words text-sm font-medium ui-text-muted">{{ category.name }}</span>
                   </span>
                   <span class="text-xs font-semibold ui-text-soft">{{ category.articleCount }}</span>
                 </label>
