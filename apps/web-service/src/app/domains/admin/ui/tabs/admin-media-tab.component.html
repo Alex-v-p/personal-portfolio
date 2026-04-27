@@ -111,8 +111,16 @@
             <div class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3"><dt class="text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">Created</dt><dd class="mt-1 text-stone-800">{{ media.createdAt | date:'medium' }}</dd></div>
           </dl>
 
-          <a *ngIf="media.resolvedAsset?.url" [href]="media.resolvedAsset?.url" target="_blank" rel="noreferrer" class="inline-flex min-h-11 items-center justify-center rounded-full border border-stone-300 px-4 text-sm font-semibold text-stone-700 transition hover:border-stone-400 hover:bg-stone-50">Open file</a>
-          <button type="button" (click)="deleteSelectedMediaFile()" [disabled]="isDeletingMediaFile(media.id) || !media.canDelete" class="inline-flex min-h-11 items-center justify-center rounded-full border border-rose-300 px-4 text-sm font-semibold text-rose-700 disabled:cursor-not-allowed disabled:opacity-60">{{ isDeletingMediaFile(media.id) ? 'Deleting…' : media.canDelete ? 'Delete media file' : 'File still in use' }}</button>
+          <div *ngIf="markdownDownloadSnippet(media) as downloadSnippet" class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm">
+            <p class="text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">Markdown download snippet</p>
+            <code class="mt-2 block break-all rounded-xl bg-white px-3 py-2 text-xs text-stone-700">{{ downloadSnippet }}</code>
+          </div>
+
+          <div class="flex flex-wrap gap-3">
+            <a *ngIf="media.resolvedAsset?.url" [href]="media.resolvedAsset?.url" target="_blank" rel="noreferrer" class="inline-flex min-h-11 items-center justify-center rounded-full border border-stone-300 px-4 text-sm font-semibold text-stone-700 transition hover:border-stone-400 hover:bg-stone-50">Open file</a>
+            <button *ngIf="markdownDownloadSnippet(media)" type="button" (click)="copyMarkdownDownloadSnippet(media)" class="inline-flex min-h-11 items-center justify-center rounded-full border border-stone-300 px-4 text-sm font-semibold text-stone-700 transition hover:border-stone-400 hover:bg-stone-50">Copy download markdown</button>
+            <button type="button" (click)="deleteSelectedMediaFile()" [disabled]="isDeletingMediaFile(media.id) || !media.canDelete" class="inline-flex min-h-11 items-center justify-center rounded-full border border-rose-300 px-4 text-sm font-semibold text-rose-700 disabled:cursor-not-allowed disabled:opacity-60">{{ isDeletingMediaFile(media.id) ? 'Deleting…' : media.canDelete ? 'Delete media file' : 'File still in use' }}</button>
+          </div>
         </div>
       </ng-container>
     </aside>

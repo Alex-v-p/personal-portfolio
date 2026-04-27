@@ -7,6 +7,25 @@ from app.schemas.base import ApiSchema
 from app.domains.public_site.schema import PublicMediaAssetOut, SkillSummaryOut
 
 
+class AdminProjectImageIn(ApiSchema):
+    image_file_id: str | None = None
+    alt_text: str | None = Field(default=None, max_length=255)
+    alt_text_nl: str | None = Field(default=None, max_length=255)
+    sort_order: int = 0
+    is_cover: bool = False
+
+
+class AdminProjectImageOut(ApiSchema):
+    id: str
+    project_id: str
+    image_file_id: str | None = None
+    alt_text: str | None = None
+    alt_text_nl: str | None = None
+    sort_order: int
+    is_cover: bool
+    image: PublicMediaAssetOut | None = None
+
+
 class AdminProjectUpsertIn(ApiSchema):
     slug: str | None = Field(default=None, max_length=160)
     title: str = Field(min_length=1, max_length=255)
@@ -34,6 +53,7 @@ class AdminProjectUpsertIn(ApiSchema):
     sort_order: int = 0
     published_at: str | None = None
     skill_ids: list[str] = Field(default_factory=list)
+    images: list[AdminProjectImageIn] = Field(default_factory=list)
 
 
 class AdminProjectOut(ApiSchema):
@@ -68,6 +88,7 @@ class AdminProjectOut(ApiSchema):
     updated_at: str
     skill_ids: list[str]
     skills: list[SkillSummaryOut]
+    images: list[AdminProjectImageOut]
 
 
 class AdminProjectsListOut(ApiSchema):
@@ -75,4 +96,4 @@ class AdminProjectsListOut(ApiSchema):
     total: int
 
 
-__all__ = ['AdminProjectOut', 'AdminProjectUpsertIn', 'AdminProjectsListOut']
+__all__ = ['AdminProjectImageIn', 'AdminProjectImageOut', 'AdminProjectOut', 'AdminProjectUpsertIn', 'AdminProjectsListOut']

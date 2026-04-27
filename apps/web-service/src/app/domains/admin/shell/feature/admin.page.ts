@@ -230,6 +230,7 @@ export class AdminPageComponent implements OnInit, OnDestroy {
   protected profileAvatarUploadForm: ScopedUploadForm = createEmptyScopedUploadForm();
   protected profileHeroUploadForm: ScopedUploadForm = createEmptyScopedUploadForm();
   protected profileResumeUploadForm: ScopedUploadForm = createEmptyScopedUploadForm();
+  protected profileResumeNlUploadForm: ScopedUploadForm = createEmptyScopedUploadForm();
   protected uploadInProgressKey: string | null = null;
   protected mediaSearchTerm = '';
   protected mediaVisibilityFilter: 'all' | 'public' | 'private' | 'signed' = 'all';
@@ -556,6 +557,7 @@ export class AdminPageComponent implements OnInit, OnDestroy {
       sortOrder: this.projectForm.sortOrder,
       publishedAt: this.projectForm.publishedAt || null,
       skillIds: [...this.projectForm.skillIds],
+      images: this.normalizedProjectGalleryImages(),
     };
     const request$ = this.selectedProjectId
       ? this.contentApi.updateProject(this.selectedProjectId, payload)
@@ -724,6 +726,8 @@ export class AdminPageComponent implements OnInit, OnDestroy {
       categoryId: this.skillForm.categoryId,
       name: this.skillForm.name,
       yearsOfExperience: this.skillForm.yearsOfExperience,
+      proficiencyLabel: this.skillForm.proficiencyLabel || null,
+      proficiencyLabelNl: this.skillForm.proficiencyLabelNl || null,
       iconKey: this.skillForm.iconKey || null,
       sortOrder: this.skillForm.sortOrder,
       isHighlighted: this.skillForm.isHighlighted,
@@ -948,6 +952,7 @@ export class AdminPageComponent implements OnInit, OnDestroy {
       avatarFileId: this.profileForm.avatarFileId || null,
       heroImageFileId: this.profileForm.heroImageFileId || null,
       resumeFileId: this.profileForm.resumeFileId || null,
+      resumeFileIdNl: this.profileForm.resumeFileIdNl || null,
       ctaPrimaryLabel: this.profileForm.ctaPrimaryLabel || null,
       ctaPrimaryLabelNl: this.profileForm.ctaPrimaryLabelNl || null,
       ctaPrimaryUrl: this.profileForm.ctaPrimaryUrl || null,
@@ -1123,7 +1128,7 @@ export class AdminPageComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.isRefreshingGithub = false;
-        this.statusMessage = error?.error?.detail || 'Refreshing GitHub stats failed.';
+        this.statusMessage = this.extractAdminErrorMessage(error, 'Refreshing GitHub stats failed.');
       }
     });
   }
@@ -1148,7 +1153,7 @@ export class AdminPageComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           this.isRefreshingGithub = false;
-          this.statusMessage = error?.error?.detail || 'Checking GitHub refresh progress failed.';
+          this.statusMessage = this.extractAdminErrorMessage(error, 'Checking GitHub refresh progress failed.');
         }
       });
   }
@@ -1206,7 +1211,7 @@ export class AdminPageComponent implements OnInit, OnDestroy {
         this.loadCms();
       },
       error: (error) => {
-        this.statusMessage = error?.error?.detail || 'Saving the GitHub snapshot failed.';
+        this.statusMessage = this.extractAdminErrorMessage(error, 'Saving the GitHub snapshot failed.');
       }
     });
   }
@@ -1222,7 +1227,7 @@ export class AdminPageComponent implements OnInit, OnDestroy {
         this.loadCms();
       },
       error: (error) => {
-        this.statusMessage = error?.error?.detail || 'Deleting the GitHub snapshot failed.';
+        this.statusMessage = this.extractAdminErrorMessage(error, 'Deleting the GitHub snapshot failed.');
       }
     });
   }
@@ -1285,6 +1290,7 @@ export class AdminPageComponent implements OnInit, OnDestroy {
   protected uploadProjectCover(): void {
     this.uploadScopedMedia('project-cover', this.projectUploadForm, this.buildProjectFolder(), (media) => {
       this.projectForm.coverImageFileId = media.id;
+      this.upsertProjectGalleryImage(media.id, media.altText || this.projectUploadForm.altText || media.title || media.originalFilename || this.projectForm.title, '', true);
     });
   }
 
@@ -1331,6 +1337,12 @@ export class AdminPageComponent implements OnInit, OnDestroy {
     });
   }
 
+  protected uploadProfileResumeNl(): void {
+    this.uploadScopedMedia('profile-resume-nl', this.profileResumeNlUploadForm, this.buildProfileFolder(), (media) => {
+      this.profileForm.resumeFileIdNl = media.id;
+    });
+  }
+
   protected buildProjectFolder(): string {
     return buildProjectMediaFolder(this.projectForm.slug || this.projectForm.title);
   }
@@ -1345,6 +1357,56 @@ export class AdminPageComponent implements OnInit, OnDestroy {
 
   protected buildExperienceFolder(): string {
     return buildExperienceMediaFolder(this.experienceForm.organizationName, this.experienceForm.roleTitle);
+  }
+
+  private upsertProjectGalleryImage(imageFileId: string, altText = '', altTextNl = '', makeCover = false): void {
+    const existing = this.projectForm.images.find((image) => image.imageFileId === imageFileId);
+    if (existing) {
+      existing.altText = existing.altText || altText;
+      existing.altTextNl = existing.altTextNl || altTextNl;
+      if (makeCover) {
+        this.projectForm.coverImageFileId = imageFileId;
+      }
+      return;
+    }
+
+    this.projectForm.images = [
+      ...this.projectForm.images,
+      {
+        imageFileId,
+        altText,
+        altTextNl,
+        sortOrder: this.projectForm.images.length,
+        isCover: makeCover,
+      },
+    ];
+
+    if (makeCover || !this.projectForm.coverImageFileId) {
+      this.projectForm.coverImageFileId = imageFileId;
+    }
+  }
+
+  private normalizedProjectGalleryImages(): Array<{ imageFileId: string | null; altText: string | null; altTextNl: string | null; sortOrder: number; isCover: boolean }> {
+    const coverImageFileId = this.projectForm.coverImageFileId;
+    const seen = new Set<string>();
+    return this.projectForm.images
+      .filter((image) => !!image.imageFileId)
+      .sort((left, right) => left.sortOrder - right.sortOrder)
+      .filter((image) => {
+        const imageFileId = image.imageFileId || '';
+        if (seen.has(imageFileId)) {
+          return false;
+        }
+        seen.add(imageFileId);
+        return true;
+      })
+      .map((image, index) => ({
+        imageFileId: image.imageFileId,
+        altText: image.altText || null,
+        altTextNl: image.altTextNl || null,
+        sortOrder: index,
+        isCover: !!coverImageFileId && image.imageFileId === coverImageFileId,
+      }));
   }
 
   private uploadScopedMedia(
@@ -1426,4 +1488,37 @@ export class AdminPageComponent implements OnInit, OnDestroy {
 
 
 
+
+
+  private extractAdminErrorMessage(error: unknown, fallbackMessage: string): string {
+    if (!error || typeof error !== 'object') {
+      return fallbackMessage;
+    }
+
+    const response = error as { error?: { detail?: unknown }; message?: unknown };
+    const detail = response.error?.detail;
+
+    if (typeof detail === 'string' && detail.trim()) {
+      return detail;
+    }
+
+    if (detail && typeof detail === 'object') {
+      const maybeMessage = (detail as { message?: unknown }).message;
+      if (typeof maybeMessage === 'string' && maybeMessage.trim()) {
+        return maybeMessage;
+      }
+
+      try {
+        return JSON.stringify(detail);
+      } catch {
+        return fallbackMessage;
+      }
+    }
+
+    if (typeof response.message === 'string' && response.message.trim()) {
+      return response.message;
+    }
+
+    return fallbackMessage;
+  }
 }

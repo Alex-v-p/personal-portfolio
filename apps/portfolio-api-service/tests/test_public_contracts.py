@@ -21,7 +21,7 @@ EXPECTED_PROJECT_SUMMARY_KEYS = {
     'id', 'slug', 'title', 'teaser', 'summary', 'coverImageFileId', 'coverImage',
     'githubUrl', 'githubRepoOwner', 'githubRepoName', 'demoUrl', 'companyName', 'startedOn', 'endedOn',
     'durationLabel', 'status', 'state', 'isFeatured', 'sortOrder', 'publishedAt', 'createdAt', 'updatedAt',
-    'skills'
+    'skills', 'images'
 }
 EXPECTED_PROJECT_DETAIL_KEYS = EXPECTED_PROJECT_SUMMARY_KEYS | {'descriptionMarkdown', 'images'}
 EXPECTED_BLOG_POST_SUMMARY_KEYS = {

@@ -12,7 +12,7 @@ from app.db.models.enums import (
 )
 from app.db.models.experience import Experience, ExperienceSkill
 from app.db.models.github import GithubContributionDay, GithubSnapshot
-from app.db.models.knowledge import KnowledgeChunk, KnowledgeDocument
+from app.db.models.knowledge import AssistantContextNote, KnowledgeChunk, KnowledgeDocument
 from app.db.models.media import MediaFile
 from app.db.models.navigation import NavigationItem
 from app.db.models.profile import Profile, SocialLink
@@ -38,6 +38,7 @@ __all__ = [
     'ContactMessage',
     'AssistantConversation',
     'AssistantMessage',
+    'AssistantContextNote',
     'KnowledgeDocument',
     'KnowledgeChunk',
     'MediaFile',

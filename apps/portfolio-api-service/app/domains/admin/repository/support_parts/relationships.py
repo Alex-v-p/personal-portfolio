@@ -40,27 +40,66 @@ class AdminRepositoryRelationshipsMixin:
         self.session.flush()
 
     def _sync_cover_project_image(self, project: Project) -> None:
+        self._replace_project_images(project, [])
 
-        cover_image = next((image for image in project.images if image.is_cover), None)
-        if project.cover_image_file_id is None:
-            if cover_image is not None:
-                project.images.remove(cover_image)
-            return
+    def _replace_project_images(self, project: Project, images_payload) -> None:
+        """Replace the project gallery while keeping the selected cover image as the first gallery item."""
+        cover_file_id = project.cover_image_file_id
+        cover_payload = None
+        gallery_payloads = []
+        seen_file_ids: set[str] = set()
 
-        if cover_image is None:
+        for image_payload in images_payload or []:
+            image_file_id = self._optional_uuid(getattr(image_payload, 'image_file_id', None))
+            if image_file_id is None:
+                continue
+            image_file_key = str(image_file_id)
+            if image_file_key in seen_file_ids:
+                continue
+            seen_file_ids.add(image_file_key)
+
+            if bool(getattr(image_payload, 'is_cover', False)) or (cover_file_id is not None and image_file_id == cover_file_id):
+                cover_payload = image_payload
+                cover_file_id = image_file_id
+                continue
+
+            gallery_payloads.append(image_payload)
+
+        if cover_file_id is not None:
+            project.cover_image_file_id = cover_file_id
+
+        project.images.clear()
+        self.session.flush()
+
+        sort_order = 0
+        if project.cover_image_file_id is not None:
             project.images.append(
                 ProjectImage(
                     image_file_id=project.cover_image_file_id,
-                    alt_text=f'{project.title} cover image',
-                    sort_order=0,
+                    alt_text=(self._normalize_optional_text(getattr(cover_payload, 'alt_text', None)) if cover_payload else None) or f'{project.title} cover image',
+                    alt_text_nl=self._normalize_optional_text(getattr(cover_payload, 'alt_text_nl', None)) if cover_payload else None,
+                    sort_order=sort_order,
                     is_cover=True,
                 )
             )
-            return
+            sort_order += 1
 
-        cover_image.image_file_id = project.cover_image_file_id
-        cover_image.alt_text = cover_image.alt_text or f'{project.title} cover image'
-        cover_image.sort_order = 0
+        for image_payload in sorted(gallery_payloads, key=lambda item: getattr(item, 'sort_order', 0)):
+            image_file_id = self._optional_uuid(getattr(image_payload, 'image_file_id', None))
+            if image_file_id is None or image_file_id == project.cover_image_file_id:
+                continue
+            project.images.append(
+                ProjectImage(
+                    image_file_id=image_file_id,
+                    alt_text=self._normalize_optional_text(getattr(image_payload, 'alt_text', None)),
+                    alt_text_nl=self._normalize_optional_text(getattr(image_payload, 'alt_text_nl', None)),
+                    sort_order=sort_order,
+                    is_cover=False,
+                )
+            )
+            sort_order += 1
+
+        self.session.flush()
 
     def _replace_blog_post_tags(self, post: BlogPost, tag_ids: list[str]) -> None:
         parsed_tag_ids = [self._required_uuid(tag_id) for tag_id in tag_ids if tag_id]

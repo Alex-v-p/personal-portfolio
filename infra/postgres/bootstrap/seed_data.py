@@ -20,6 +20,7 @@ from app.db.models import (
     AdminUser,
     BlogPost,
     BlogPostTag,
+    AssistantContextNote,
     BlogTag,
     EventType,
     Experience,
@@ -103,6 +104,112 @@ def _admin_user_seed() -> dict:
 
 MEDIA_FILES = [{'id': 'file-avatar-alex', 'bucket_name': 'portfolio', 'object_key': 'profiles/alex/avatar.jpg', 'original_filename': 'MaiHeroImage.jpg', 'stored_filename': 'avatar.jpg', 'mime_type': 'image/jpeg', 'file_size_bytes': 82905, 'checksum': '62576812ca7a883b018a325b110cd8395f9e60ee6a72841b3124d71a9acab970', 'public_url': None, 'alt_text': 'Profile avatar for Alex van Poppel', 'title': 'Profile avatar', 'description': 'Profile avatar used on the public portfolio.', 'visibility': 'public', 'created_at': 'TIMESTAMP', 'updated_at': 'TIMESTAMP'}, {'id': 'file-hero-portrait', 'bucket_name': 'portfolio', 'object_key': 'profiles/alex/hero.jpg', 'original_filename': 'FaceCoverImage.jpg', 'stored_filename': 'hero.jpg', 'mime_type': 'image/jpeg', 'file_size_bytes': 683051, 'checksum': 'e881eef4095c8b82d5940e7a905f9e277ddccaaf578593a2ea8bfee5da6b2ab4', 'public_url': None, 'alt_text': 'Hero image for Alex van Poppel', 'title': 'Hero image', 'description': 'Hero image displayed on the portfolio home page.', 'visibility': 'public', 'created_at': 'TIMESTAMP', 'updated_at': 'TIMESTAMP'}, {'id': 'file-resume', 'bucket_name': 'portfolio', 'object_key': 'profiles/alex/resume.pdf', 'original_filename': 'vanPoppel_AlexCV.pdf', 'stored_filename': 'resume.pdf', 'mime_type': 'application/pdf', 'file_size_bytes': 724706, 'checksum': 'c91dbbd6376acdaa330359eb5dd9fd788461378b2673fdcc5abd5d744a30d704', 'public_url': None, 'alt_text': 'Resume PDF for Alex van Poppel', 'title': 'Resume', 'description': 'Resume document for the portfolio profile.', 'visibility': 'public', 'created_at': 'TIMESTAMP', 'updated_at': 'TIMESTAMP'}, {'id': 'file-project-exchange-cover', 'bucket_name': 'portfolio', 'object_key': 'projects/internal-exchange-student-portal/cover.jpg', 'original_filename': 'ExchangePortalImage.jpg', 'stored_filename': 'cover.jpg', 'mime_type': 'image/jpeg', 'file_size_bytes': 331142, 'checksum': 'c0f49d7c81a69e39e43fcfb078653a14325b141e9566bb4d73b6b653d75e84c7', 'public_url': None, 'alt_text': 'Cover image for the exchange student portal project', 'title': 'Exchange portal cover', 'description': 'Cover image for the internal exchange student portal project.', 'visibility': 'public', 'created_at': 'TIMESTAMP', 'updated_at': 'TIMESTAMP'}, {'id': 'file-project-iot-cover', 'bucket_name': 'portfolio', 'object_key': 'projects/iot-security-system/cover.png', 'original_filename': 'securitySystemFlyer.png', 'stored_filename': 'cover.png', 'mime_type': 'image/png', 'file_size_bytes': 2505233, 'checksum': '8fdebc67b805dd3e4d2578586bb6a6f02d2113c0abdc3911838221134b2d6771', 'public_url': None, 'alt_text': 'Cover image for the IoT security system project', 'title': 'IoT security system cover', 'description': 'Cover image for the IoT security system project.', 'visibility': 'public', 'created_at': 'TIMESTAMP', 'updated_at': 'TIMESTAMP'}, {'id': 'file-project-laravel-portfolio-cover', 'bucket_name': 'portfolio', 'object_key': 'projects/laravel-portfolio/cover.jpg', 'original_filename': 'PortfolioHeadImage.jpg', 'stored_filename': 'cover.jpg', 'mime_type': 'image/jpeg', 'file_size_bytes': 235301, 'checksum': '8c72cdcae20281c74f0df0d30cebc32c1f7df8d0179ce965c0ed273e690ffb7c', 'public_url': None, 'alt_text': 'Cover image for the old Laravel portfolio project', 'title': 'Old Laravel portfolio cover', 'description': 'Cover image for the older Laravel portfolio project.', 'visibility': 'public', 'created_at': 'TIMESTAMP', 'updated_at': 'TIMESTAMP'}, {'id': 'file-blog-homelab-cover', 'bucket_name': 'portfolio', 'object_key': 'blog/my-homelab/cover.png', 'original_filename': 'HomelabDiagram.png', 'stored_filename': 'cover.png', 'mime_type': 'image/png', 'file_size_bytes': 302699, 'checksum': '5939ddebd2ba3a0cf81fdd0f313555ea356c149511e384cef879dcb8dc4cc279', 'public_url': None, 'alt_text': 'Diagram of the homelab setup', 'title': 'Homelab blog cover', 'description': 'Cover image for the homelab blog post.', 'visibility': 'public', 'created_at': 'TIMESTAMP', 'updated_at': 'TIMESTAMP'}, {'id': 'file-blog-mobilab-cover', 'bucket_name': 'portfolio', 'object_key': 'blog/mobilab-internship/cover.png', 'original_filename': 'SystemContainerC4.drawio.png', 'stored_filename': 'cover.png', 'mime_type': 'image/png', 'file_size_bytes': 162988, 'checksum': '6ad596b2e5564c8dba7d33e76ba675cc7c12c58c349f45caa1469075723a1e4f', 'public_url': None, 'alt_text': 'Container diagram for the MobiLab internship post', 'title': 'MobiLab internship blog cover', 'description': 'Cover image for the MobiLab internship blog post.', 'visibility': 'public', 'created_at': 'TIMESTAMP', 'updated_at': 'TIMESTAMP'}]
 
+MEDIA_FILES.extend([
+    {
+        'id': 'file-project-exchange-gallery-overview',
+        'bucket_name': 'portfolio',
+        'object_key': 'projects/internal-exchange-student-portal/gallery-overview.jpg',
+        'original_filename': 'gallery-overview.jpg',
+        'stored_filename': 'gallery-overview.jpg',
+        'mime_type': 'image/jpeg',
+        'file_size_bytes': 178702,
+        'checksum': '7071cbb5f7fdfacbbfdafe5fbfac951fb8a0edbb89c32a036fcce35c06389cce',
+        'public_url': None,
+        'alt_text': 'Exchange portal gallery overview',
+        'title': 'Exchange portal gallery overview',
+        'description': 'Additional gallery image for the internal exchange student portal project.',
+        'visibility': 'public',
+        'created_at': 'TIMESTAMP',
+        'updated_at': 'TIMESTAMP',
+    },
+    {
+        'id': 'file-project-exchange-gallery-workflow',
+        'bucket_name': 'portfolio',
+        'object_key': 'projects/internal-exchange-student-portal/gallery-workflow.jpg',
+        'original_filename': 'gallery-workflow.jpg',
+        'stored_filename': 'gallery-workflow.jpg',
+        'mime_type': 'image/jpeg',
+        'file_size_bytes': 160490,
+        'checksum': '003f04725696d841e08ac24c8c4cbe2f655140aab8cff630e772f6fa8eab5651',
+        'public_url': None,
+        'alt_text': 'Exchange portal workflow preview',
+        'title': 'Exchange portal workflow preview',
+        'description': 'Additional gallery image for the internal exchange student portal project.',
+        'visibility': 'public',
+        'created_at': 'TIMESTAMP',
+        'updated_at': 'TIMESTAMP',
+    },
+    {
+        'id': 'file-project-iot-gallery-detection',
+        'bucket_name': 'portfolio',
+        'object_key': 'projects/iot-security-system/gallery-detection.jpg',
+        'original_filename': 'gallery-detection.jpg',
+        'stored_filename': 'gallery-detection.jpg',
+        'mime_type': 'image/jpeg',
+        'file_size_bytes': 130507,
+        'checksum': 'efa344dea72e146e7b49e62edb1c614ca59a22e7d7cb0accd5d51039cf6c2481',
+        'public_url': None,
+        'alt_text': 'IoT security detection preview',
+        'title': 'IoT security detection preview',
+        'description': 'Additional gallery image for the IoT security system project.',
+        'visibility': 'public',
+        'created_at': 'TIMESTAMP',
+        'updated_at': 'TIMESTAMP',
+    },
+    {
+        'id': 'file-project-iot-gallery-hardware',
+        'bucket_name': 'portfolio',
+        'object_key': 'projects/iot-security-system/gallery-hardware.jpg',
+        'original_filename': 'gallery-hardware.jpg',
+        'stored_filename': 'gallery-hardware.jpg',
+        'mime_type': 'image/jpeg',
+        'file_size_bytes': 129152,
+        'checksum': '7e1ac056af23ead1b2fbb164d35da92031f250fcb8aa821c423be40d0fcc7903',
+        'public_url': None,
+        'alt_text': 'IoT security hardware preview',
+        'title': 'IoT security hardware preview',
+        'description': 'Additional gallery image for the IoT security system project.',
+        'visibility': 'public',
+        'created_at': 'TIMESTAMP',
+        'updated_at': 'TIMESTAMP',
+    },
+    {
+        'id': 'file-project-laravel-gallery-home',
+        'bucket_name': 'portfolio',
+        'object_key': 'projects/laravel-portfolio/gallery-home.jpg',
+        'original_filename': 'gallery-home.jpg',
+        'stored_filename': 'gallery-home.jpg',
+        'mime_type': 'image/jpeg',
+        'file_size_bytes': 125890,
+        'checksum': 'f17b0d09c1a82612b5996a815353be7bba7d5da8b5aab9c69600294489e86723',
+        'public_url': None,
+        'alt_text': 'Old Laravel portfolio homepage preview',
+        'title': 'Old Laravel portfolio homepage preview',
+        'description': 'Additional gallery image for the old Laravel portfolio project.',
+        'visibility': 'public',
+        'created_at': 'TIMESTAMP',
+        'updated_at': 'TIMESTAMP',
+    },
+    {
+        'id': 'file-project-laravel-gallery-projects',
+        'bucket_name': 'portfolio',
+        'object_key': 'projects/laravel-portfolio/gallery-projects.jpg',
+        'original_filename': 'gallery-projects.jpg',
+        'stored_filename': 'gallery-projects.jpg',
+        'mime_type': 'image/jpeg',
+        'file_size_bytes': 126944,
+        'checksum': '9cacc0d22e10821a0429bf4e9180049c0dc068e0c067d2456d0c6701ebdcc5c2',
+        'public_url': None,
+        'alt_text': 'Old Laravel portfolio projects preview',
+        'title': 'Old Laravel portfolio projects preview',
+        'description': 'Additional gallery image for the old Laravel portfolio project.',
+        'visibility': 'public',
+        'created_at': 'TIMESTAMP',
+        'updated_at': 'TIMESTAMP',
+    },
+])
+
+
 SOCIAL_LINKS = [{'id': 'social-github', 'profile_id': 'profile-alex-van-poppel', 'platform': 'github', 'label': 'GitHub', 'url': 'https://github.com/Alex-v-p', 'icon_key': 'github', 'sort_order': 1, 'is_visible': True}, {'id': 'social-linkedin', 'profile_id': 'profile-alex-van-poppel', 'platform': 'linkedin', 'label': 'LinkedIn', 'url': 'https://www.linkedin.com/in/alex-v-p/', 'icon_key': 'linkedin', 'sort_order': 2, 'is_visible': True}]
 
 SKILL_CATEGORIES = [{'description': 'UI and browser-facing development',
@@ -148,7 +255,7 @@ SKILL_CATEGORIES = [{'description': 'UI and browser-facing development',
   'name_nl': 'Talen',
   'sort_order': 6}]
 
-SKILLS = [{'id': 'skill-angular', 'category_id': 'cat-frontend', 'name': 'Angular', 'years_of_experience': 1, 'icon_key': 'angular', 'sort_order': 1, 'is_highlighted': True, 'created_at': 'TIMESTAMP'}, {'id': 'skill-tailwind', 'category_id': 'cat-frontend', 'name': 'Tailwind CSS', 'years_of_experience': 2, 'icon_key': 'tailwindcss', 'sort_order': 2, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-typescript', 'category_id': 'cat-frontend', 'name': 'TypeScript', 'years_of_experience': 1, 'icon_key': 'typescript', 'sort_order': 3, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-laravel', 'category_id': 'cat-backend', 'name': 'Laravel', 'years_of_experience': 2, 'icon_key': 'laravel', 'sort_order': 1, 'is_highlighted': True, 'created_at': 'TIMESTAMP'}, {'id': 'skill-fastapi', 'category_id': 'cat-backend', 'name': 'FastAPI', 'years_of_experience': 3, 'icon_key': 'server', 'sort_order': 2, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-sql', 'category_id': 'cat-backend', 'name': 'SQL', 'years_of_experience': 4, 'icon_key': 'sql', 'sort_order': 3, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-csharp', 'category_id': 'cat-backend', 'name': 'C#', 'years_of_experience': 1, 'icon_key': 'code', 'sort_order': 4, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-python', 'category_id': 'cat-data', 'name': 'Python', 'years_of_experience': 5, 'icon_key': 'python', 'sort_order': 1, 'is_highlighted': True, 'created_at': 'TIMESTAMP'}, {'id': 'skill-ml', 'category_id': 'cat-data', 'name': 'Machine Learning', 'years_of_experience': 2, 'icon_key': 'brain', 'sort_order': 2, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-pandas', 'category_id': 'cat-data', 'name': 'Pandas', 'years_of_experience': 2, 'icon_key': 'database', 'sort_order': 3, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-git', 'category_id': 'cat-tools', 'name': 'Git', 'years_of_experience': 5, 'icon_key': 'git', 'sort_order': 1, 'is_highlighted': True, 'created_at': 'TIMESTAMP'}, {'id': 'skill-docker', 'category_id': 'cat-tools', 'name': 'Docker', 'years_of_experience': 2, 'icon_key': 'docker', 'sort_order': 2, 'is_highlighted': True, 'created_at': 'TIMESTAMP'}, {'id': 'skill-networking-basics', 'category_id': 'cat-tools', 'name': 'Networking Basics', 'years_of_experience': 3, 'icon_key': 'globe', 'sort_order': 3, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-proxmox', 'category_id': 'cat-tools', 'name': 'Proxmox', 'years_of_experience': None, 'icon_key': 'server', 'sort_order': 4, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-kubernetes', 'category_id': 'cat-tools', 'name': 'Kubernetes', 'years_of_experience': None, 'icon_key': 'kubernetes', 'sort_order': 5, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-req-analysis', 'category_id': 'cat-analysis', 'name': 'Requirements Analysis', 'years_of_experience': 2, 'icon_key': 'workflow', 'sort_order': 1, 'is_highlighted': True, 'created_at': 'TIMESTAMP'}, {'id': 'skill-uml', 'category_id': 'cat-analysis', 'name': 'UML', 'years_of_experience': 2, 'icon_key': 'workflow', 'sort_order': 2, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-prototyping', 'category_id': 'cat-analysis', 'name': 'Prototyping', 'years_of_experience': 2, 'icon_key': 'workflow', 'sort_order': 3, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-team-leadership', 'category_id': 'cat-analysis', 'name': 'Team Leadership', 'years_of_experience': 3, 'icon_key': 'workflow', 'sort_order': 4, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-dutch', 'category_id': 'cat-languages', 'name': 'Dutch', 'years_of_experience': None, 'icon_key': 'languages', 'sort_order': 1, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-english', 'category_id': 'cat-languages', 'name': 'English', 'years_of_experience': None, 'icon_key': 'languages', 'sort_order': 2, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-portuguese', 'category_id': 'cat-languages', 'name': 'Portuguese', 'years_of_experience': None, 'icon_key': 'languages', 'sort_order': 3, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}]
+SKILLS = [{'id': 'skill-angular', 'category_id': 'cat-frontend', 'name': 'Angular', 'years_of_experience': 1, 'icon_key': 'angular', 'sort_order': 1, 'is_highlighted': True, 'created_at': 'TIMESTAMP'}, {'id': 'skill-tailwind', 'category_id': 'cat-frontend', 'name': 'Tailwind CSS', 'years_of_experience': 2, 'icon_key': 'tailwindcss', 'sort_order': 2, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-typescript', 'category_id': 'cat-frontend', 'name': 'TypeScript', 'years_of_experience': 1, 'icon_key': 'typescript', 'sort_order': 3, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-laravel', 'category_id': 'cat-backend', 'name': 'Laravel', 'years_of_experience': 2, 'icon_key': 'laravel', 'sort_order': 1, 'is_highlighted': True, 'created_at': 'TIMESTAMP'}, {'id': 'skill-fastapi', 'category_id': 'cat-backend', 'name': 'FastAPI', 'years_of_experience': 3, 'icon_key': 'server', 'sort_order': 2, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-sql', 'category_id': 'cat-backend', 'name': 'SQL', 'years_of_experience': 4, 'icon_key': 'sql', 'sort_order': 3, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-csharp', 'category_id': 'cat-backend', 'name': 'C#', 'years_of_experience': 1, 'icon_key': 'code', 'sort_order': 4, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-python', 'category_id': 'cat-data', 'name': 'Python', 'years_of_experience': 5, 'icon_key': 'python', 'sort_order': 1, 'is_highlighted': True, 'created_at': 'TIMESTAMP'}, {'id': 'skill-ml', 'category_id': 'cat-data', 'name': 'Machine Learning', 'years_of_experience': 2, 'icon_key': 'brain', 'sort_order': 2, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-pandas', 'category_id': 'cat-data', 'name': 'Pandas', 'years_of_experience': 2, 'icon_key': 'database', 'sort_order': 3, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-git', 'category_id': 'cat-tools', 'name': 'Git', 'years_of_experience': 5, 'icon_key': 'git', 'sort_order': 1, 'is_highlighted': True, 'created_at': 'TIMESTAMP'}, {'id': 'skill-docker', 'category_id': 'cat-tools', 'name': 'Docker', 'years_of_experience': 2, 'icon_key': 'docker', 'sort_order': 2, 'is_highlighted': True, 'created_at': 'TIMESTAMP'}, {'id': 'skill-networking-basics', 'category_id': 'cat-tools', 'name': 'Networking Basics', 'years_of_experience': 3, 'icon_key': 'globe', 'sort_order': 3, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-proxmox', 'category_id': 'cat-tools', 'name': 'Proxmox', 'years_of_experience': None, 'icon_key': 'server', 'sort_order': 4, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-kubernetes', 'category_id': 'cat-tools', 'name': 'Kubernetes', 'years_of_experience': None, 'icon_key': 'kubernetes', 'sort_order': 5, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-req-analysis', 'category_id': 'cat-analysis', 'name': 'Requirements Analysis', 'years_of_experience': 2, 'icon_key': 'workflow', 'sort_order': 1, 'is_highlighted': True, 'created_at': 'TIMESTAMP'}, {'id': 'skill-uml', 'category_id': 'cat-analysis', 'name': 'UML', 'years_of_experience': 2, 'icon_key': 'workflow', 'sort_order': 2, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-prototyping', 'category_id': 'cat-analysis', 'name': 'Prototyping', 'years_of_experience': 2, 'icon_key': 'workflow', 'sort_order': 3, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-team-leadership', 'category_id': 'cat-analysis', 'name': 'Team Leadership', 'years_of_experience': 3, 'icon_key': 'workflow', 'sort_order': 4, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-dutch', 'category_id': 'cat-languages', 'name': 'Dutch', 'years_of_experience': None, 'proficiency_label': 'Native', 'proficiency_label_nl': 'Moedertaal', 'icon_key': 'languages', 'sort_order': 1, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-english', 'category_id': 'cat-languages', 'name': 'English', 'years_of_experience': None, 'proficiency_label': 'C1 · Professional working proficiency', 'proficiency_label_nl': 'C1 · Professionele werkvaardigheid', 'icon_key': 'languages', 'sort_order': 2, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}, {'id': 'skill-portuguese', 'category_id': 'cat-languages', 'name': 'Portuguese', 'years_of_experience': None, 'proficiency_label': 'Learning', 'proficiency_label_nl': 'Aan het leren', 'icon_key': 'languages', 'sort_order': 3, 'is_highlighted': False, 'created_at': 'TIMESTAMP'}]
 
 EXPERIENCES = [{'id': 'experience-thomas-more', 'organization_name': 'Thomas More', 'role_title': 'Applied Computer Science Student', 'role_title_nl': 'Student Toegepaste Informatica', 'location': 'Kleinhoefstraat 4, 2440 Geel', 'experience_type': 'Bachelor degree', 'start_date': '2022-09-01', 'end_date': None, 'is_current': True, 'summary': 'Bachelor programme focused on software engineering, AI, and practical application development.', 'summary_nl': 'Bacheloropleiding met focus op software engineering, AI en praktische applicatieontwikkeling.', 'description_markdown': '- Built software from scratch and learned how to maintain and extend existing applications.\n- Worked on customer-oriented projects involving analysis, communication, and iterative delivery.\n- Gained experience with software engineering fundamentals, functional programming, Linux, and DevOps ideas.\n- Practised turning rough requirements into prototypes and working solutions.', 'description_markdown_nl': '- Software vanaf nul gebouwd en geleerd hoe je bestaande applicaties onderhoudt en uitbreidt.\n- Gewerkt aan klantgerichte projecten met analyse, communicatie en iteratieve oplevering.\n- Ervaring opgedaan met software engineering fundamentals, functioneel programmeren, Linux en DevOps-ideeën.\n- Geoefend in het vertalen van ruwe requirements naar prototypes en werkende oplossingen.', 'logo_file_id': None, 'sort_order': 1, 'created_at': 'TIMESTAMP', 'updated_at': 'TIMESTAMP'}, {'id': 'experience-self-hosting', 'organization_name': 'Self-hosting and Homelab', 'role_title': 'Personal Hobby', 'role_title_nl': 'Persoonlijke hobby', 'location': 'Lommel, Belgium', 'experience_type': 'Personal project', 'start_date': '2024-03-01', 'end_date': None, 'is_current': True, 'summary': 'Ongoing hands-on learning through self-hosting, infrastructure experiments, and running personal tools.', 'summary_nl': 'Doorlopend praktijkgericht leren via self-hosting, infrastructuurexperimenten en het draaien van persoonlijke tools.', 'description_markdown': '- Built a personal homelab and NAS to learn more about infrastructure, Linux, and systems design.\n- Hosted portfolio projects and private tools for personal use.\n- Experimented with Docker, reverse proxies, networking, and deployment workflows.\n- Used the setup to deepen my practical understanding of maintenance, routing, and self-hosting.', 'description_markdown_nl': '- Een persoonlijk homelab en NAS gebouwd om meer te leren over infrastructuur, Linux en systeemontwerp.\n- Portfolio-projecten en privétools voor persoonlijk gebruik gehost.\n- Geëxperimenteerd met Docker, reverse proxies, netwerken en deploymentworkflows.\n- De setup gebruikt om mijn praktische inzicht in onderhoud, routing en self-hosting te verdiepen.', 'logo_file_id': None, 'sort_order': 2, 'created_at': 'TIMESTAMP', 'updated_at': 'TIMESTAMP'}, {'id': 'experience-provil', 'organization_name': 'Provil Institute', 'role_title': 'Industrial ICT Student', 'role_title_nl': 'Student industriële ICT', 'location': 'Duinenstraat 1, 3920 Lommel', 'experience_type': 'ICT diploma', 'start_date': '2021-09-01', 'end_date': '2022-06-30', 'is_current': False, 'summary': 'Early ICT training that laid the foundation for my programming and database knowledge.', 'summary_nl': 'Vroege ICT-opleiding die de basis legde voor mijn programmeer- en databankkennis.', 'description_markdown': '- Learned the absolute basics of programming and databases.\n- Built my first small projects in Python and SQL.\n- Developed the groundwork that later supported my studies at Thomas More.', 'description_markdown_nl': '- De absolute basis van programmeren en databanken geleerd.\n- Mijn eerste kleine projecten gebouwd in Python en SQL.\n- De basis gelegd die later mijn studies aan Thomas More ondersteunde.', 'logo_file_id': None, 'sort_order': 3, 'created_at': 'TIMESTAMP', 'updated_at': 'TIMESTAMP'}]
 
@@ -225,6 +332,50 @@ def _build_site_event_rows() -> list[dict]:
     return rows
 
 SITE_EVENT_ROWS = _build_site_event_rows()
+ASSISTANT_CONTEXT_NOTES = [
+    {
+        'id': 'assistant-note-overall-skills',
+        'title': 'Overall skills and strengths',
+        'title_nl': 'Algemene vaardigheden en sterktes',
+        'category': 'overall_skills',
+        'content_markdown': (
+            'Alex is strongest when a project combines practical software engineering with clear communication. '
+            'His strongest technical areas are Laravel, Livewire, Angular, TypeScript, Python, SQL, REST APIs, and AI/data coursework. '
+            'He is comfortable turning vague requirements into a usable prototype, explaining trade-offs to teammates, and iterating with feedback. '
+            'He is still actively learning and does not want the assistant to oversell him as a senior engineer; describe him as a motivated applied computer science student with hands-on project experience.'
+        ),
+        'content_markdown_nl': (
+            'Alex is het sterkst wanneer een project praktische softwareontwikkeling combineert met duidelijke communicatie. '
+            'Zijn sterkste technische domeinen zijn Laravel, Livewire, Angular, TypeScript, Python, SQL, REST API’s en AI/data-vakken. '
+            'Hij kan vage requirements omzetten naar een bruikbaar prototype, technische keuzes uitleggen aan teamleden en itereren op basis van feedback. '
+            'Hij leert nog actief bij en wil niet worden voorgesteld als senior engineer; beschrijf hem als een gemotiveerde student toegepaste informatica met praktische projectervaring.'
+        ),
+        'is_active': True,
+        'sort_order': 1,
+        'created_at': TIMESTAMP,
+        'updated_at': TIMESTAMP,
+    },
+    {
+        'id': 'assistant-note-working-style',
+        'title': 'Working style and communication',
+        'title_nl': 'Werkstijl en communicatie',
+        'category': 'working_style',
+        'content_markdown': (
+            'Alex prefers direct, practical communication and likes to make uncertainty explicit early. '
+            'In team projects he often helps structure requirements, keep the implementation understandable, and connect technical details with what the user actually needs. '
+            'He values realistic scope, clear next steps, and small working increments over flashy but fragile solutions.'
+        ),
+        'content_markdown_nl': (
+            'Alex verkiest directe, praktische communicatie en maakt onzekerheden graag vroeg duidelijk. '
+            'In teamprojecten helpt hij vaak met requirements structureren, de implementatie begrijpelijk houden en technische details koppelen aan wat de gebruiker echt nodig heeft. '
+            'Hij waardeert realistische scope, duidelijke vervolgstappen en kleine werkende verbeteringen meer dan opvallende maar fragiele oplossingen.'
+        ),
+        'is_active': True,
+        'sort_order': 2,
+        'created_at': TIMESTAMP,
+        'updated_at': TIMESTAMP,
+    },
+]
 
 
 def _seed_uuid(value: str | None) -> UUID | None:
@@ -296,12 +447,35 @@ def sync_admin_user(session: Session) -> None:
     session.commit()
 
 
+def _upsert_assistant_context_notes(session: Session) -> None:
+    for item in ASSISTANT_CONTEXT_NOTES:
+        payload = _with_uuid_fields(item, 'id')
+        existing = session.get(AssistantContextNote, payload['id'])
+        if existing is None:
+            session.add(AssistantContextNote(**payload))
+            continue
+        for field_name in (
+            'title',
+            'title_nl',
+            'content_markdown',
+            'content_markdown_nl',
+            'category',
+            'is_active',
+            'sort_order',
+            'updated_at',
+        ):
+            setattr(existing, field_name, payload[field_name])
+        session.add(existing)
+    session.flush()
+
+
 def seed_database(session: Session) -> None:
     try:
         _upsert_admin_user(session)
 
         already_seeded = session.scalar(select(Project.id).limit(1))
         if already_seeded:
+            _upsert_assistant_context_notes(session)
             session.commit()
             return
 
@@ -343,6 +517,7 @@ def seed_database(session: Session) -> None:
                 avatar_file_id=_seed_uuid(PROFILE_ROW['avatar_file_id']),
                 hero_image_file_id=_seed_uuid(PROFILE_ROW['hero_image_file_id']),
                 resume_file_id=_seed_uuid(PROFILE_ROW['resume_file_id']),
+                resume_file_id_nl=_seed_uuid(PROFILE_ROW.get('resume_file_id_nl') or PROFILE_ROW['resume_file_id']),
                 cta_primary_label=PROFILE_ROW['cta_primary_label'],
                 cta_primary_label_nl=PROFILE_ROW.get('cta_primary_label_nl'),
                 cta_primary_url=PROFILE_ROW['cta_primary_url'],
@@ -377,6 +552,7 @@ def seed_database(session: Session) -> None:
             SiteEvent(**_with_uuid_fields(item, 'id'))
             for item in SITE_EVENT_ROWS
         ])
+        _upsert_assistant_context_notes(session)
         session.flush()
 
         session.add_all([
@@ -439,6 +615,17 @@ def seed_database(session: Session) -> None:
                     is_cover=True,
                 )
             )
+            for gallery_index, gallery_image_file_id in enumerate(project.get('gallery_image_file_ids', []), start=1):
+                session.add(
+                    ProjectImage(
+                        project_id=_seed_uuid(project['id']),
+                        image_file_id=_seed_uuid(gallery_image_file_id),
+                        alt_text=f"{project['title']} gallery image {gallery_index}",
+                        alt_text_nl=f"{project.get('title_nl') or project['title']} galerijafbeelding {gallery_index}",
+                        sort_order=gallery_index,
+                        is_cover=False,
+                    )
+                )
             for skill_name in PROJECT_SKILL_NAMES_BY_PROJECT_SLUG.get(project['slug'], []):
                 skill_id = skill_name_to_id.get(skill_name)
                 if skill_id:

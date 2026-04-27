@@ -23,6 +23,7 @@ class KnowledgeSourceType(str, Enum):
     PROJECT = 'project'
     BLOG_POST = 'blog_post'
     EXPERIENCE = 'experience'
+    ASSISTANT_NOTE = 'assistant_note'
 
 
 class MediaVisibility(str, Enum):

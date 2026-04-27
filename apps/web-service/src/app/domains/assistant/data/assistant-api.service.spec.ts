@@ -80,6 +80,12 @@ describe('AssistantApiService', () => {
       providerBackend: 'mock',
       citations: [
         {
+          title: 'Private strengths note',
+          sourceType: 'assistant_note',
+          canonicalUrl: null,
+          excerpt: 'Private assistant guidance.',
+        },
+        {
           title: 'Portfolio CMS Project',
           sourceType: 'project',
           canonicalUrl: '/projects/personal-portfolio',
@@ -93,6 +99,7 @@ describe('AssistantApiService', () => {
     expect(service.snapshot.conversationId).toBe('conversation-1');
     expect(service.snapshot.messages).toHaveLength(2);
     expect(service.snapshot.messages[1]).toMatchObject({ role: 'assistant', text: 'The backend uses FastAPI.' });
+    expect(service.snapshot.messages[1].citations.map((citation) => citation.sourceType)).toEqual(['project']);
 
     const persistedState = JSON.parse(sessionStorage.getItem('portfolio.assistant.state') ?? '{}') as { conversationId?: string };
     expect(persistedState.conversationId).toBe('conversation-1');

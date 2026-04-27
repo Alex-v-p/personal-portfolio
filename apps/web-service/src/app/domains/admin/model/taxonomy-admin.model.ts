@@ -22,6 +22,8 @@ export interface AdminSkillOption {
   categoryId: string;
   name: string;
   yearsOfExperience?: number | null;
+  proficiencyLabel?: string | null;
+  proficiencyLabelNl?: string | null;
   iconKey?: string | null;
   sortOrder: number;
   isHighlighted: boolean;
@@ -31,6 +33,8 @@ export interface AdminSkillUpsert {
   categoryId: string;
   name: string;
   yearsOfExperience?: number | null;
+  proficiencyLabel?: string | null;
+  proficiencyLabelNl?: string | null;
   iconKey?: string | null;
   sortOrder: number;
   isHighlighted: boolean;

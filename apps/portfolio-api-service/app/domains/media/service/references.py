@@ -20,6 +20,7 @@ class AdminMediaReferenceService:
             (Profile, Profile.avatar_file_id, 'profile_avatar_count'),
             (Profile, Profile.hero_image_file_id, 'profile_hero_count'),
             (Profile, Profile.resume_file_id, 'profile_resume_count'),
+            (Profile, Profile.resume_file_id_nl, 'profile_resume_count'),
             (Experience, Experience.logo_file_id, 'experience_logo_count'),
             (Project, Project.cover_image_file_id, 'project_cover_count'),
             (ProjectImage, ProjectImage.image_file_id, 'project_gallery_image_count'),
@@ -31,7 +32,8 @@ class AdminMediaReferenceService:
             for media_id, count in self.session.execute(statement).all():
                 if media_id is None:
                     continue
-                setattr(usage_map[media_id], attribute, int(count))
+                current_count = getattr(usage_map[media_id], attribute)
+                setattr(usage_map[media_id], attribute, current_count + int(count))
         return dict(usage_map)
 
     def get_usage_for_media(self, media_file: MediaFile) -> MediaReferenceSummary:

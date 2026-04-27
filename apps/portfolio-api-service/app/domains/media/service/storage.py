@@ -63,5 +63,13 @@ class AdminMediaStorageService:
             checksum=checksum,
         )
 
+    def download_object(self, *, bucket_name: str, object_key: str) -> bytes:
+        response = self.client.get_object(bucket_name=bucket_name, object_name=object_key)
+        try:
+            return response.read()
+        finally:
+            response.close()
+            response.release_conn()
+
     def delete_object(self, *, bucket_name: str, object_key: str) -> None:
         self.client.remove_object(bucket_name=bucket_name, object_name=object_key)

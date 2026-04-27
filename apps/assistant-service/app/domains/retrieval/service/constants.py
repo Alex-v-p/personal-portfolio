@@ -5,5 +5,6 @@ _STOP_WORDS = {
 }
 
 _SMALLTALK_PATTERNS = {
-    'hi', 'hello', 'hey', 'yo', 'good morning', 'good afternoon', 'good evening', 'thanks', 'thank you'
+    'hi', 'hello', 'hey', 'yo', 'good morning', 'good afternoon', 'good evening', 'thanks', 'thank you',
+    'how are you', 'how are you doing', "how's it going", 'how is it going', 'hoe gaat het', 'alles goed',
 }

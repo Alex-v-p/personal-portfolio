@@ -45,7 +45,7 @@
               <div class="min-w-0 flex-1">
                 <p class="whitespace-pre-wrap text-sm leading-6">{{ message.text }}</p>
                 <div *ngIf="message.citations.length" class="mt-3 grid gap-2">
-                  <a *ngFor="let citation of message.citations" [attr.href]="citation.canonicalUrl || null" [attr.target]="citation.canonicalUrl ? '_self' : null" class="ui-card-soft rounded-2xl px-3 py-2 text-xs ui-text-muted no-underline transition hover:[border-color:var(--ui-border-strong)] hover:[color:var(--ui-text)]">
+                  <a *ngFor="let citation of message.citations" [attr.href]="citation.canonicalUrl || null" [attr.target]="getCitationTarget(citation.canonicalUrl)" [attr.rel]="isExternalCitationUrl(citation.canonicalUrl) ? 'noreferrer noopener' : null" class="ui-card-soft rounded-2xl px-3 py-2 text-xs ui-text-muted no-underline transition hover:[border-color:var(--ui-border-strong)] hover:[color:var(--ui-text)]">
                     <span class="font-semibold ui-text-strong">{{ citation.title }}</span>
                     <span class="ml-2 uppercase tracking-[0.16em] ui-text-soft">{{ citation.sourceType }}</span>
                     <span class="mt-1 block leading-5">{{ citation.excerpt }}</span>

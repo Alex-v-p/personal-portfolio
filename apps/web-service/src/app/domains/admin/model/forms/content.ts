@@ -1,5 +1,13 @@
 import { AdminBlogPost, AdminExperience, AdminProject } from '@domains/admin/model/admin.model';
 
+export interface AdminProjectGalleryImageForm {
+  imageFileId: string | null;
+  altText: string;
+  altTextNl: string;
+  sortOrder: number;
+  isCover: boolean;
+}
+
 export interface AdminProjectForm {
   id?: string | null;
   slug: string;
@@ -28,6 +36,7 @@ export interface AdminProjectForm {
   sortOrder: number;
   publishedAt: string;
   skillIds: string[];
+  images: AdminProjectGalleryImageForm[];
 }
 
 export interface AdminBlogPostForm {
@@ -99,7 +108,8 @@ export function createEmptyProjectForm(): AdminProjectForm {
     isFeatured: false,
     sortOrder: 0,
     publishedAt: '',
-    skillIds: []
+    skillIds: [],
+    images: []
   };
 }
 
@@ -176,6 +186,13 @@ export function toProjectForm(project: AdminProject): AdminProjectForm {
     sortOrder: project.sortOrder,
     publishedAt: project.publishedAt?.slice(0, 16) ?? '',
     skillIds: [...project.skillIds],
+    images: (project.images ?? []).map((image, index) => ({
+      imageFileId: image.imageFileId ?? null,
+      altText: image.altText ?? image.image?.alt ?? '',
+      altTextNl: image.altTextNl ?? '',
+      sortOrder: typeof image.sortOrder === 'number' ? image.sortOrder : index,
+      isCover: image.isCover || image.imageFileId === project.coverImageFileId,
+    })),
   };
 }
 

@@ -26,9 +26,11 @@ export interface AdminProfile {
   avatarFileId?: string | null;
   heroImageFileId?: string | null;
   resumeFileId?: string | null;
+  resumeFileIdNl?: string | null;
   avatar?: ResolvedMedia | null;
   heroImage?: ResolvedMedia | null;
   resume?: ResolvedMedia | null;
+  resumeNl?: ResolvedMedia | null;
   ctaPrimaryLabel?: string | null;
   ctaPrimaryLabelNl?: string | null;
   ctaPrimaryUrl?: string | null;
@@ -56,6 +58,7 @@ export interface AdminProfileUpdate {
   avatarFileId?: string | null;
   heroImageFileId?: string | null;
   resumeFileId?: string | null;
+  resumeFileIdNl?: string | null;
   ctaPrimaryLabel?: string | null;
   ctaPrimaryLabelNl?: string | null;
   ctaPrimaryUrl?: string | null;

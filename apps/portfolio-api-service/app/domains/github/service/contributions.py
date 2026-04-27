@@ -4,7 +4,7 @@ from datetime import date, timedelta
 import json
 import re
 from typing import Any, Callable
-from urllib import parse, request, error
+from urllib import error, parse, request
 
 from app.core.config import get_settings
 from app.domains.github.service.models import GithubStatsSyncError, SyncedGithubContributionDay
@@ -20,7 +20,7 @@ _SVG_DAY_PATTERN = re.compile(
     r'data-date="(?P<date>[0-9]{4}-[0-9]{2}-[0-9]{2})"[^>]*data-count="(?P<count>[0-9]+)"[^>]*data-level="(?P<level>[0-4])"'
 )
 _TOOLTIP_DAY_PATTERN = re.compile(
-    r'(?P<count>[0-9]+) contribution[s]? on (?P<month>[A-Za-z]+) (?P<day>[0-9]{1,2})(?:st|nd|rd|th)'
+    r'(?P<count>[0-9]+|No) contribution[s]? on (?P<month>[A-Za-z]+) (?P<day>[0-9]{1,2})(?:st|nd|rd|th)'
 )
 _MONTHS = {
     'January': 1,
@@ -83,7 +83,8 @@ def parse_tooltip_contribution_days(html: str, *, from_date: str, to_date: str) 
         if contribution_date < window_start or contribution_date > window_end:
             continue
 
-        count = max(int(match.group('count')), 0)
+        raw_count = match.group('count')
+        count = 0 if raw_count == 'No' else max(int(raw_count), 0)
         parsed.append(
             SyncedGithubContributionDay(
                 date=contribution_date.isoformat(),
@@ -137,6 +138,36 @@ def normalize_contribution_day_window(
     return normalized
 
 
+def _summarize_graphql_errors(errors: Any) -> str:
+    if not isinstance(errors, list):
+        return str(errors)
+
+    messages: list[str] = []
+    for entry in errors:
+        if isinstance(entry, dict):
+            message = entry.get('message')
+            if isinstance(message, str) and message.strip():
+                messages.append(message.strip())
+        elif isinstance(entry, str) and entry.strip():
+            messages.append(entry.strip())
+
+    return '; '.join(messages) if messages else str(errors)
+
+
+def _format_graphql_http_error(status_code: int, detail: str) -> str:
+    normalized_detail = detail.strip()
+    if status_code == 401:
+        return 'GitHub GraphQL authentication failed. Check that GITHUB_API_TOKEN is valid.'
+    if status_code == 403:
+        lowered = normalized_detail.lower()
+        if 'rate limit' in lowered:
+            return 'GitHub GraphQL rate limit was reached. Wait for the reset or use a token with available quota.'
+        return f'GitHub GraphQL access was forbidden. Check token scopes, SSO authorization, rate limits, and profile visibility. Detail: {normalized_detail}'
+    if status_code == 404:
+        return 'GitHub GraphQL endpoint returned 404. Check network access and the configured GitHub API endpoint.'
+    return f'GitHub GraphQL request failed with HTTP {status_code}: {normalized_detail}'
+
+
 class GithubContributionSyncClient:
     def __init__(self) -> None:
         self.settings = get_settings()
@@ -178,9 +209,11 @@ class GithubContributionSyncClient:
             'https://api.github.com/graphql',
             data=body,
             headers={
+                'Accept': 'application/vnd.github+json',
                 'Authorization': f'Bearer {token}',
                 'Content-Type': 'application/json',
-                'User-Agent': 'portfolio-api-service',
+                'User-Agent': 'Mozilla/5.0 (compatible; portfolio-api-service/1.0; +https://github.com)',
+                'X-GitHub-Api-Version': '2022-11-28',
             },
             method='POST',
         )
@@ -189,16 +222,26 @@ class GithubContributionSyncClient:
                 payload = json.loads(response.read().decode('utf-8'))
         except error.HTTPError as exc:
             detail = exc.read().decode('utf-8', errors='ignore')
-            raise GithubStatsSyncError(f'GitHub GraphQL request failed: {exc.code} {detail or exc.reason}') from exc
+            raise GithubStatsSyncError(_format_graphql_http_error(exc.code, detail or exc.reason)) from exc
         except error.URLError as exc:
-            raise GithubStatsSyncError(f'GitHub GraphQL request failed: {exc.reason}') from exc
+            raise GithubStatsSyncError(f'GitHub GraphQL request failed before a response was received: {exc.reason}') from exc
+        except json.JSONDecodeError as exc:
+            raise GithubStatsSyncError('GitHub GraphQL returned invalid JSON.') from exc
 
-        if payload.get('errors'):
-            raise GithubStatsSyncError(f"GitHub GraphQL returned errors: {payload['errors']}")
+        errors = payload.get('errors')
+        if errors:
+            message = _summarize_graphql_errors(errors)
+            if 'Could not resolve to a User' in message or 'Could not resolve to a user' in message:
+                raise GithubStatsSyncError('GitHub username not found in GraphQL. Check the configured username.')
+            raise GithubStatsSyncError(f'GitHub GraphQL returned errors: {message}')
 
-        calendar = (((payload.get('data') or {}).get('user') or {}).get('contributionsCollection') or {}).get('contributionCalendar')
+        user_payload = (payload.get('data') or {}).get('user')
+        if user_payload is None:
+            raise GithubStatsSyncError('GitHub username not found in GraphQL. Check the configured username.')
+
+        calendar = ((user_payload.get('contributionsCollection') or {}).get('contributionCalendar'))
         if not isinstance(calendar, dict):
-            raise GithubStatsSyncError('GitHub GraphQL contribution calendar was missing from the response.')
+            raise GithubStatsSyncError('GitHub GraphQL contribution calendar was missing from the response. Check token access and GitHub profile availability.')
 
         contribution_days: list[SyncedGithubContributionDay] = []
         for week in calendar.get('weeks') or []:
@@ -215,12 +258,13 @@ class GithubContributionSyncClient:
                     )
                 )
 
-        contribution_days.sort(key=lambda item: item.date)
-        return contribution_days, {
+        normalized_days = normalize_contribution_day_window(contribution_days, from_date=from_date, to_date=to_date)
+        return normalized_days, {
             'source': 'graphql',
             'from': from_date,
             'to': to_date,
             'totalContributions': max(int(calendar.get('totalContributions') or 0), 0),
+            'days': len(normalized_days),
         }
 
     def fetch_public(
@@ -234,27 +278,45 @@ class GithubContributionSyncClient:
     ) -> tuple[list[SyncedGithubContributionDay], dict[str, Any]]:
         query = parse.urlencode({'from': from_date, 'to': to_date})
         url = f'https://github.com/users/{parse.quote(username)}/contributions?{query}'
+        fetch_errors: list[str] = []
 
-        svg = svg_fetcher(url)
-        days = parse_svg_contribution_days(svg)
-        if days:
-            normalized_days = normalize_contribution_day_window(days, from_date=from_date, to_date=to_date)
-            return normalized_days, {
-                'source': 'public-profile-svg',
-                'from': from_date,
-                'to': to_date,
-                'totalContributions': sum(day.count for day in normalized_days),
-            }
+        try:
+            svg_or_html = svg_fetcher(url)
+            days = parse_svg_contribution_days(svg_or_html)
+            if days:
+                normalized_days = normalize_contribution_day_window(days, from_date=from_date, to_date=to_date)
+                return normalized_days, {
+                    'source': 'public-profile-svg',
+                    'from': from_date,
+                    'to': to_date,
+                    'totalContributions': sum(day.count for day in normalized_days),
+                    'days': len(normalized_days),
+                }
+        except GithubStatsSyncError as exc:
+            fetch_errors.append(str(exc))
 
         fallback_fetcher = html_fetcher or svg_fetcher
-        html = fallback_fetcher(url)
+        try:
+            html = fallback_fetcher(url)
+        except GithubStatsSyncError as exc:
+            fetch_errors.append(str(exc))
+            error_suffix = f" Details: {' | '.join(fetch_errors)}" if fetch_errors else ''
+            raise GithubStatsSyncError(
+                'GitHub public contribution scraping failed. Use a valid GITHUB_API_TOKEN for the most reliable full-year contribution calendar.'
+                + error_suffix
+            ) from exc
+
         days = parse_tooltip_contribution_days(html, from_date=from_date, to_date=to_date)
         if not days:
-            raise GithubStatsSyncError('GitHub contribution graph could not be parsed from the public profile response.')
+            error_suffix = f" Details: {' | '.join(fetch_errors)}" if fetch_errors else ''
+            raise GithubStatsSyncError(
+                'GitHub contribution graph could not be parsed from the public profile response. The profile may be private, the markup may have changed, or GitHub may have blocked scraping. Configure GITHUB_API_TOKEN to use GraphQL instead.'
+                + error_suffix
+            )
 
         if len(days) < 84:
             raise GithubStatsSyncError(
-                'GitHub only exposed a weekly contribution summary during public scraping. Configure GITHUB_API_TOKEN so the CMS refresh can use the GraphQL contribution calendar and import the full daily board.'
+                'GitHub only exposed an incomplete contribution summary during public scraping. Configure GITHUB_API_TOKEN so the CMS refresh can use the GraphQL contribution calendar and import the full daily board.'
             )
 
         normalized_days = normalize_contribution_day_window(days, from_date=from_date, to_date=to_date)
@@ -263,4 +325,5 @@ class GithubContributionSyncClient:
             'from': from_date,
             'to': to_date,
             'totalContributions': sum(day.count for day in normalized_days),
+            'days': len(normalized_days),
         }

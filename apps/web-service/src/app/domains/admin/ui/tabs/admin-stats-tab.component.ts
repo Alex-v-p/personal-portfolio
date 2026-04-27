@@ -39,6 +39,27 @@ export class AdminStatsTabComponent {
     return this.selectedSnapshot?.contributionDays.length ?? 0;
   }
 
+
+
+  get selectedContributionSource(): string | null {
+    const summary = this.selectedSnapshot?.rawPayload?.['contributionSummary'];
+    if (!summary || typeof summary !== 'object') {
+      return null;
+    }
+    const source = (summary as Record<string, unknown>)['source'];
+    return typeof source === 'string' && source.trim() ? source : null;
+  }
+
+  get selectedRefreshWarning(): string | null {
+    const summary = this.selectedSnapshot?.rawPayload?.['contributionSummary'];
+    if (!summary || typeof summary !== 'object') {
+      return null;
+    }
+    const record = summary as Record<string, unknown>;
+    const warning = record['warning'] ?? record['graphqlWarning'];
+    return typeof warning === 'string' && warning.trim() ? warning : null;
+  }
+
   get statsKpis(): Array<{ label: string; value: string | number; hint: string }> {
     return [
       { label: 'Snapshots', value: this.githubSnapshots.length, hint: 'Saved GitHub records' },

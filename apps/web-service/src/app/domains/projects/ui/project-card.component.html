@@ -1,15 +1,36 @@
 <app-ui-card *ngIf="featured; else defaultCard" [featured]="true" padding="none">
   <div class="grid h-full gap-0 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
     <div class="relative overflow-hidden lg:min-h-[24rem]">
-      <img
-        *ngIf="project.coverImageUrl; else featuredProjectFallback"
-        [src]="project.coverImageUrl"
-        [alt]="project.coverImageAlt"
-        class="h-full w-full object-cover"
-      />
+      <ng-container *ngIf="currentGalleryImage as image; else featuredProjectFallback">
+        <img
+          [src]="image.url"
+          [alt]="image.alt || project.coverImageAlt || project.title"
+          class="h-full min-h-[18rem] w-full object-cover transition duration-300 lg:min-h-full"
+        />
+
+        <ng-container *ngIf="hasMultipleGalleryImages">
+          <button
+            type="button"
+            (click)="showPreviousGalleryImage($event)"
+            class="project-gallery-side-button project-gallery-side-button-left"
+            [attr.aria-label]="'Previous image for ' + project.title"
+          >
+            <span aria-hidden="true">‹</span>
+          </button>
+          <button
+            type="button"
+            (click)="showNextGalleryImage($event)"
+            class="project-gallery-side-button project-gallery-side-button-right"
+            [attr.aria-label]="'Next image for ' + project.title"
+          >
+            <span aria-hidden="true">›</span>
+          </button>
+          <span class="project-gallery-counter">{{ galleryCounterLabel }}</span>
+        </ng-container>
+      </ng-container>
 
       <ng-template #featuredProjectFallback>
-        <div class="ui-media-placeholder ui-media-fallback flex h-full items-end p-5 text-xs font-semibold uppercase tracking-[0.16em]">
+        <div class="ui-media-placeholder ui-media-fallback flex h-full min-h-[18rem] items-end p-5 text-xs font-semibold uppercase tracking-[0.16em] lg:min-h-full">
           <span class="max-w-[18ch]">{{ placeholderLabel }}</span>
         </div>
       </ng-template>
@@ -30,24 +51,35 @@
 
         <div class="space-y-3">
           <h2 class="ui-title-card text-3xl leading-[1.08]">{{ project.title }}</h2>
-          <p class="max-w-[42ch] text-sm leading-7 ui-text-muted">{{ project.shortDescription }}</p>
+          <div class="project-card-markdown" [innerHTML]="renderedTeaserHtml"></div>
         </div>
 
         <div class="flex flex-wrap gap-2">
           <app-highlight-chip *ngFor="let tag of displayedTags" [label]="tag"></app-highlight-chip>
         </div>
 
-        <p class="max-w-[42ch] text-sm leading-7 ui-text-muted">{{ project.highlight }}</p>
+        <div class="space-y-1">
+          <div class="project-card-markdown project-card-markdown-featured max-w-[42ch]" [innerHTML]="renderedFeaturedSummaryHtml"></div>
+        </div>
       </div>
 
       <div class="flex flex-wrap gap-3 pt-1">
         <app-ui-link-button
-          *ngIf="readMoreAction"
-          [routerLink]="readMoreAction.routerLink ?? '/projects'"
-          [href]="readMoreAction.href ?? null"
-          [openInNewTab]="!!readMoreAction.href"
+          *ngIf="readMoreAction as readMore"
+          [routerLink]="readMore.routerLink ?? null"
+          [href]="readMore.href ?? null"
+          [openInNewTab]="!!readMore.href"
         >
           {{ 'common.actions.readMore' | translate }}
+        </app-ui-link-button>
+        <app-ui-link-button
+          *ngIf="demoAction as demo"
+          [routerLink]="null"
+          [href]="demo.href ?? null"
+          [openInNewTab]="true"
+          appearance="ghost"
+        >
+          {{ 'common.actions.liveDemo' | translate }}
         </app-ui-link-button>
       </div>
     </div>
@@ -58,7 +90,30 @@
   <app-ui-card padding="none">
     <div class="flex h-full flex-col">
       <div class="relative overflow-hidden">
-        <img *ngIf="project.coverImageUrl; else defaultProjectFallback" [src]="project.coverImageUrl" [alt]="project.coverImageAlt" class="aspect-[16/10] w-full object-cover" />
+        <ng-container *ngIf="currentGalleryImage as image; else defaultProjectFallback">
+          <img [src]="image.url" [alt]="image.alt || project.coverImageAlt || project.title" class="aspect-[16/10] w-full object-cover transition duration-300" />
+
+          <ng-container *ngIf="hasMultipleGalleryImages">
+            <button
+              type="button"
+              (click)="showPreviousGalleryImage($event)"
+              class="project-gallery-side-button project-gallery-side-button-left project-gallery-side-button-small"
+              [attr.aria-label]="'Previous image for ' + project.title"
+            >
+              <span aria-hidden="true">‹</span>
+            </button>
+            <button
+              type="button"
+              (click)="showNextGalleryImage($event)"
+              class="project-gallery-side-button project-gallery-side-button-right project-gallery-side-button-small"
+              [attr.aria-label]="'Next image for ' + project.title"
+            >
+              <span aria-hidden="true">›</span>
+            </button>
+            <span class="project-gallery-counter project-gallery-counter-small">{{ galleryCounterLabel }}</span>
+          </ng-container>
+        </ng-container>
+
         <ng-template #defaultProjectFallback>
           <div class="ui-media-placeholder ui-media-fallback relative flex aspect-[16/10] items-end p-4 text-[0.7rem] font-semibold uppercase tracking-[0.14em]">
             <span class="max-w-[16ch]">{{ placeholderLabel }}</span>
@@ -75,7 +130,7 @@
 
         <div class="space-y-2">
           <h3 class="ui-title-card text-2xl leading-[1.12]">{{ project.title }}</h3>
-          <p class="text-sm leading-6 ui-text-muted">{{ project.shortDescription }}</p>
+          <div class="project-card-markdown" [innerHTML]="renderedTeaserHtml"></div>
         </div>
 
         <div class="flex flex-wrap gap-2">
@@ -84,13 +139,22 @@
 
         <div class="mt-auto flex flex-wrap gap-3 pt-1">
           <app-ui-link-button
-            *ngIf="readMoreAction"
-            [routerLink]="readMoreAction.routerLink ?? '/projects'"
-            [href]="readMoreAction.href ?? null"
-            [openInNewTab]="!!readMoreAction.href"
+            *ngIf="readMoreAction as readMore"
+            [routerLink]="readMore.routerLink ?? null"
+            [href]="readMore.href ?? null"
+            [openInNewTab]="!!readMore.href"
             appearance="ghost"
           >
-            Read more
+            {{ 'common.actions.readMore' | translate }}
+          </app-ui-link-button>
+          <app-ui-link-button
+            *ngIf="demoAction as demo"
+            [routerLink]="null"
+            [href]="demo.href ?? null"
+            [openInNewTab]="true"
+            appearance="ghost"
+          >
+            {{ 'common.actions.liveDemo' | translate }}
           </app-ui-link-button>
         </div>
       </div>

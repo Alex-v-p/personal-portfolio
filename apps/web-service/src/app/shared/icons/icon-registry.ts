@@ -27,12 +27,10 @@ export const ICON_REGISTRY: Readonly<Record<IconKey, IconDefinition>> = {
     label: 'LinkedIn',
     group: 'social',
     keywords: ['social', 'professional', 'network'],
-    svg: strokeIcon(`
-      <rect x="4.5" y="4.5" width="15" height="15" rx="3" />
-      <circle cx="8.1" cy="9" r="0.75" fill="currentColor" stroke="none" />
-      <path d="M8.1 11.1v4.2" />
-      <path d="M11.4 15.3v-4.2" />
-      <path d="M11.4 12.3c0.6-0.8 1.3-1.2 2.3-1.2 1.7 0 2.8 1.1 2.8 3v3.2" />
+    svg: filledIcon(`
+      <circle cx="6.8" cy="6.4" r="1.55" />
+      <path d="M5.35 9.35h2.9v9.15h-2.9V9.35Z" />
+      <path d="M10.2 9.35h2.78v1.25h0.04c0.38-0.72 1.33-1.48 2.75-1.48 2.95 0 3.49 1.94 3.49 4.46v4.92h-2.9v-4.36c0-1.04-0.02-2.38-1.45-2.38-1.45 0-1.68 1.14-1.68 2.31v4.43h-2.9V9.35Z" />
     `),
   },
   twitter: {

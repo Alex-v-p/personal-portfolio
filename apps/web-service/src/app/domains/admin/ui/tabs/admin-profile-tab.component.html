@@ -111,7 +111,7 @@
     </label>
   </section>
 
-  <div class="grid gap-6 xl:grid-cols-3">
+  <div class="grid gap-6 xl:grid-cols-2 2xl:grid-cols-4">
     <div class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4 space-y-3">
       <div>
         <p class="text-sm font-semibold text-stone-950">Avatar upload</p>
@@ -142,16 +142,30 @@
 
     <div class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4 space-y-3">
       <div>
-        <p class="text-sm font-semibold text-stone-950">Resume upload</p>
-        <p class="text-xs text-stone-500">This can be linked from your primary CTA or kept as a downloadable asset.</p>
+        <p class="text-sm font-semibold text-stone-950">English/default CV upload</p>
+        <p class="text-xs text-stone-500">Used by English pages and as the fallback when a localized CV is missing.</p>
       </div>
-      <input [(ngModel)]="profileResumeUploadForm.title" name="profileResumeUploadTitle" placeholder="Resume title" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
+      <input [(ngModel)]="profileResumeUploadForm.title" name="profileResumeUploadTitle" placeholder="English CV title" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
       <input [(ngModel)]="profileResumeUploadForm.altText" name="profileResumeUploadAltText" placeholder="Alt text" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
       <textarea [(ngModel)]="profileResumeUploadForm.description" name="profileResumeUploadDescription" rows="2" placeholder="Optional note" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea>
       <select [(ngModel)]="profileResumeUploadForm.visibility" name="profileResumeUploadVisibility" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"><option [ngValue]="'public'">public</option><option [ngValue]="'private'">private</option><option [ngValue]="'signed'">signed</option></select>
       <input type="file" (change)="onScopedFileSelected($event, profileResumeUploadForm)" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
-      <button type="button" (click)="uploadProfileResume()" [disabled]="uploadInProgressKey === 'profile-resume'" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Upload and select resume</button>
-      <select [(ngModel)]="profileForm.resumeFileId" name="profileResumeFileId" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"><option [ngValue]="null">No resume selected</option><option *ngFor="let media of mediaFiles" [ngValue]="media.id">{{ media.title || media.originalFilename }} · {{ media.objectKey }}</option></select>
+      <button type="button" (click)="uploadProfileResume()" [disabled]="uploadInProgressKey === 'profile-resume'" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Upload and select English CV</button>
+      <select [(ngModel)]="profileForm.resumeFileId" name="profileResumeFileId" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"><option [ngValue]="null">No English/default CV selected</option><option *ngFor="let media of mediaFiles" [ngValue]="media.id">{{ media.title || media.originalFilename }} · {{ media.objectKey }}</option></select>
+    </div>
+
+    <div class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4 space-y-3">
+      <div>
+        <p class="text-sm font-semibold text-stone-950">Dutch CV upload</p>
+        <p class="text-xs text-stone-500">Used by Dutch pages. Leave empty to fall back to the English/default CV.</p>
+      </div>
+      <input [(ngModel)]="profileResumeNlUploadForm.title" name="profileResumeNlUploadTitle" placeholder="Dutch CV title" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
+      <input [(ngModel)]="profileResumeNlUploadForm.altText" name="profileResumeNlUploadAltText" placeholder="Alt text" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
+      <textarea [(ngModel)]="profileResumeNlUploadForm.description" name="profileResumeNlUploadDescription" rows="2" placeholder="Optional note" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea>
+      <select [(ngModel)]="profileResumeNlUploadForm.visibility" name="profileResumeNlUploadVisibility" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"><option [ngValue]="'public'">public</option><option [ngValue]="'private'">private</option><option [ngValue]="'signed'">signed</option></select>
+      <input type="file" (change)="onScopedFileSelected($event, profileResumeNlUploadForm)" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" />
+      <button type="button" (click)="uploadProfileResumeNl()" [disabled]="uploadInProgressKey === 'profile-resume-nl'" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Upload and select Dutch CV</button>
+      <select [(ngModel)]="profileForm.resumeFileIdNl" name="profileResumeNlFileId" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"><option [ngValue]="null">Use English/default CV</option><option *ngFor="let media of mediaFiles" [ngValue]="media.id">{{ media.title || media.originalFilename }} · {{ media.objectKey }}</option></select>
     </div>
   </div>
 

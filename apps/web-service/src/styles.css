@@ -155,6 +155,13 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    overflow-x: clip;
+  }
+
+  @supports not (overflow-x: clip) {
+    html {
+      overflow-x: hidden;
+    }
   }
 
   body {
@@ -189,6 +196,85 @@
 }
 
 @layer components {
+
+  .admin-sticky-sidebar {
+    position: static;
+    min-width: 0;
+  }
+
+  .admin-scroll-list {
+    min-height: 12rem;
+    max-height: min(38rem, calc(100vh - 17rem));
+    overflow-y: auto;
+    padding-right: 0.25rem;
+  }
+
+  .admin-main-editor {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .admin-markdown-editor,
+  .admin-code-editor {
+    min-height: 22rem;
+    width: 100%;
+    resize: vertical;
+    overflow: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    line-height: 1.7;
+    tab-size: 2;
+  }
+
+  .admin-markdown-editor--compact,
+  .admin-code-editor--compact {
+    min-height: 14rem;
+  }
+
+  .admin-markdown-editor--tall {
+    min-height: min(38rem, calc(100vh - 20rem));
+  }
+
+  .admin-markdown-preview {
+    min-height: 22rem;
+    max-height: min(42rem, calc(100vh - 18rem));
+    overflow-y: auto;
+  }
+
+  .admin-field-grid {
+    min-width: 0;
+  }
+
+  .admin-field-grid > *,
+  .admin-form-card,
+  .admin-form-card * {
+    min-width: 0;
+  }
+
+  .admin-object-key {
+    overflow-wrap: anywhere;
+  }
+
+  @media (min-width: 1280px) {
+    .admin-sticky-sidebar {
+      position: sticky;
+      top: 1.5rem;
+      max-height: calc(100vh - 3rem);
+      overflow: hidden;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .admin-markdown-editor,
+    .admin-code-editor {
+      min-height: 16rem;
+    }
+
+    .admin-markdown-editor--compact,
+    .admin-code-editor--compact {
+      min-height: 11rem;
+    }
+  }
+
   .ui-panel {
     border: 1px solid var(--ui-border);
     border-radius: var(--ui-radius-panel);
@@ -428,8 +514,9 @@
     background: rgba(248, 244, 246, 0.94);
     padding: 0.25rem 0.75rem;
     font-size: 0.82rem;
+    max-width: 100%;
     font-weight: 600;
-    white-space: nowrap;
+    white-space: normal;
     color: var(--ui-text-muted);
   }
 
@@ -673,6 +760,137 @@
     background: var(--ui-danger-bg);
   }
 
+
+  .project-gallery-button {
+    display: inline-flex;
+    height: 2rem;
+    width: 2rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--ui-border);
+    border-radius: 9999px;
+    background: var(--ui-surface-strong);
+    color: var(--ui-text);
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1;
+    transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
+  }
+
+  .project-gallery-button:hover {
+    border-color: var(--ui-border-strong);
+    background: var(--ui-surface-muted);
+    transform: translateY(-1px);
+  }
+
+  .project-gallery-button:focus-visible,
+  .project-gallery-dot:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--ui-focus-ring);
+  }
+
+  .project-gallery-button-small {
+    height: 1.65rem;
+    width: 1.65rem;
+    font-size: 1rem;
+  }
+
+  .project-gallery-dot {
+    height: 0.55rem;
+    width: 0.55rem;
+    flex: 0 0 auto;
+    border-radius: 9999px;
+    background: rgba(120, 101, 117, 0.32);
+    transition: background-color 160ms ease, transform 160ms ease, width 160ms ease;
+  }
+
+  .project-gallery-dot-active {
+    width: 1.35rem;
+    background: var(--ui-primary);
+  }
+
+  .project-gallery-dot-small {
+    height: 0.45rem;
+    width: 0.45rem;
+  }
+
+  .project-gallery-dot-small.project-gallery-dot-active {
+    width: 1rem;
+  }
+
+  .project-card-markdown {
+    color: var(--ui-text-muted);
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
+
+  .project-card-markdown > * + * {
+    margin-top: 0.7rem;
+  }
+
+  .project-card-markdown p {
+    margin: 0;
+  }
+
+  .project-card-markdown a:not(.markdown-download) {
+    color: var(--ui-text);
+    font-weight: 650;
+    text-decoration: underline;
+    text-underline-offset: 0.2rem;
+  }
+
+  .project-card-markdown a.markdown-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    max-width: 100%;
+    border: 1px solid var(--ui-border);
+    border-radius: 9999px;
+    background: var(--ui-surface-strong);
+    padding: 0.65rem 0.85rem;
+    color: var(--ui-text);
+    font-weight: 700;
+    line-height: 1.25;
+    text-decoration: none;
+    box-shadow: var(--ui-shadow-card);
+    transition: border-color 160ms ease, transform 160ms ease, background 160ms ease;
+  }
+
+  .project-card-markdown a.markdown-download:hover {
+    border-color: var(--ui-border-strong);
+    background: var(--ui-surface-muted);
+    transform: translateY(-1px);
+  }
+
+  .project-card-markdown .markdown-download__icon {
+    display: inline-flex;
+    height: 1.4rem;
+    width: 1.4rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: var(--ui-primary);
+    color: var(--ui-primary-contrast);
+    font-size: 0.85rem;
+    line-height: 1;
+  }
+
+  .project-cover-gallery {
+    scrollbar-width: thin;
+    scrollbar-color: var(--ui-border-strong) transparent;
+  }
+
+  .project-cover-gallery::-webkit-scrollbar {
+    height: 0.4rem;
+  }
+
+  .project-cover-gallery::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: var(--ui-border-strong);
+  }
+
   .blog-markdown {
     color: var(--ui-text-muted);
     font-size: 0.95rem;
@@ -771,6 +989,44 @@
     text-underline-offset: 0.2rem;
   }
 
+  .blog-markdown a.markdown-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    max-width: 100%;
+    margin-top: 0.25rem;
+    border: 1px solid var(--ui-border);
+    border-radius: 9999px;
+    background: var(--ui-surface-strong);
+    padding: 0.75rem 1rem;
+    color: var(--ui-text);
+    font-weight: 700;
+    line-height: 1.25;
+    text-decoration: none;
+    box-shadow: var(--ui-shadow-card);
+    transition: border-color 160ms ease, transform 160ms ease, background 160ms ease;
+  }
+
+  .blog-markdown a.markdown-download:hover {
+    border-color: var(--ui-border-strong);
+    background: var(--ui-surface-muted);
+    transform: translateY(-1px);
+  }
+
+  .blog-markdown .markdown-download__icon {
+    display: inline-flex;
+    height: 1.65rem;
+    width: 1.65rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: var(--ui-primary);
+    color: var(--ui-primary-contrast);
+    font-size: 0.95rem;
+    line-height: 1;
+  }
+
   .blog-markdown hr {
     border: 0;
     border-top: 1px solid var(--ui-border-soft);
@@ -794,6 +1050,13 @@
     border-color: var(--ui-border-strong) !important;
     box-shadow: 0 0 0 3px var(--ui-focus-ring) !important;
     outline: none !important;
+  }
+
+
+  [data-skin="admin"] select {
+    max-width: 100%;
+    min-width: 0;
+    text-overflow: ellipsis;
   }
 
   [data-skin] input::placeholder,
@@ -869,4 +1132,145 @@
   [data-skin] [class*='rounded-[2rem]'][class*='border'] {
     border-color: var(--ui-border-soft) !important;
   }
+}
+
+.project-gallery-side-button {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: inline-grid;
+  place-items: center;
+  height: 2.45rem;
+  width: 2.45rem;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--ui-text);
+  font-size: 1.55rem;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 12px 24px rgba(73, 52, 69, 0.16);
+  transform: translateY(-50%);
+  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+  backdrop-filter: blur(10px);
+}
+
+.project-gallery-side-button > span {
+  display: grid;
+  place-items: center;
+  width: 1em;
+  height: 1em;
+  line-height: 1;
+  transform: translateY(-0.08em);
+}
+
+.project-gallery-side-button:hover {
+  border-color: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.92);
+  transform: translateY(-50%) scale(1.03);
+  box-shadow: 0 14px 30px rgba(73, 52, 69, 0.2);
+}
+
+.project-gallery-side-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ui-focus-ring), 0 14px 30px rgba(73, 52, 69, 0.2);
+}
+
+.project-gallery-side-button-left {
+  left: 0.75rem;
+}
+
+.project-gallery-side-button-right {
+  right: 0.75rem;
+}
+
+.project-gallery-side-button-small {
+  height: 2.05rem;
+  width: 2.05rem;
+  font-size: 1.25rem;
+}
+
+.project-gallery-counter {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 0.75rem;
+  z-index: 2;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.76);
+  padding: 0.25rem 0.55rem;
+  color: var(--ui-text);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 8px 18px rgba(73, 52, 69, 0.12);
+  backdrop-filter: blur(10px);
+}
+
+.project-gallery-counter-small {
+  bottom: 0.55rem;
+  right: 0.55rem;
+  font-size: 0.66rem;
+}
+
+.project-card-markdown-featured {
+  color: var(--ui-text-muted);
+  font-size: 0.95rem;
+}
+
+/* Phase 2 cleanup: make markdown download links read like compact action chips. */
+.project-card-markdown a.markdown-download,
+.blog-markdown a.markdown-download {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
+  border: 1px solid var(--ui-border);
+  border-radius: 9999px;
+  background: transparent;
+  padding: 0.48rem 0.72rem;
+  color: var(--ui-text);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  box-shadow: none;
+  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.project-card-markdown a.markdown-download:hover,
+.blog-markdown a.markdown-download:hover {
+  border-color: var(--ui-border-strong);
+  background: var(--ui-accent-soft);
+  color: var(--ui-accent-strong);
+  transform: translateY(-1px);
+}
+
+.project-card-markdown .markdown-download__icon,
+.blog-markdown .markdown-download__icon {
+  display: inline-flex;
+  height: 1.15rem;
+  width: 1.15rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--ui-accent-soft);
+  color: var(--ui-accent-strong);
+  font-size: 0.78rem;
+  line-height: 1;
+}
+
+.blog-markdown a.markdown-download {
+  font-size: 0.95rem;
+  padding: 0.58rem 0.85rem;
+}
+
+.blog-markdown .markdown-download__icon {
+  height: 1.25rem;
+  width: 1.25rem;
+  font-size: 0.82rem;
 }

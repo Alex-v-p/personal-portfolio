@@ -163,6 +163,7 @@ export class HomePageComponent implements OnInit {
       imageAlt: '',
       coverImageAlt: '',
       coverImageFileId: null,
+      galleryImages: [],
       highlight: '',
       sortOrder: 0,
       links: []

@@ -15,6 +15,8 @@ export interface AdminSkillForm {
   categoryId: string;
   name: string;
   yearsOfExperience: number | null;
+  proficiencyLabel: string;
+  proficiencyLabelNl: string;
   iconKey: string;
   sortOrder: number;
   isHighlighted: boolean;
@@ -31,7 +33,7 @@ export function createEmptySkillCategoryForm(): AdminSkillCategoryForm {
 }
 
 export function createEmptySkillForm(): AdminSkillForm {
-  return { categoryId: '', name: '', yearsOfExperience: null, iconKey: '', sortOrder: 0, isHighlighted: false };
+  return { categoryId: '', name: '', yearsOfExperience: null, proficiencyLabel: '', proficiencyLabelNl: '', iconKey: '', sortOrder: 0, isHighlighted: false };
 }
 
 export function createEmptyBlogTagForm(): AdminBlogTagForm {
@@ -56,6 +58,8 @@ export function toSkillForm(skill: AdminSkillOption): AdminSkillForm {
     categoryId: skill.categoryId,
     name: skill.name,
     yearsOfExperience: skill.yearsOfExperience ?? null,
+    proficiencyLabel: skill.proficiencyLabel ?? '',
+    proficiencyLabelNl: skill.proficiencyLabelNl ?? '',
     iconKey: skill.iconKey ?? '',
     sortOrder: skill.sortOrder,
     isHighlighted: skill.isHighlighted,

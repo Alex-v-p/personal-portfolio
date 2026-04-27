@@ -19,9 +19,11 @@ export function normalizeProjectSummary(project: ProjectSummaryApi, locale: AppL
   const coverImage = normalizeMedia(project.coverImage);
   const coverAlt = coverImage?.alt ?? project.title;
   const tags = orderedSkills.map((skill) => skill.name);
+  const galleryImages = (project.images ?? []).map((image) => normalizeMedia(image.image)).filter((item): item is ResolvedMedia => item !== null);
   const links: ProjectLink[] = [];
 
   if (project.githubUrl) {
+    links.push({ label: locale === 'nl' ? 'Meer lezen' : 'Read more', href: project.githubUrl });
     links.push({ label: 'GitHub', href: project.githubUrl });
   }
 
@@ -29,7 +31,6 @@ export function normalizeProjectSummary(project: ProjectSummaryApi, locale: AppL
     links.unshift({ label: locale === 'nl' ? 'Live demo' : 'Live Demo', href: project.demoUrl });
   }
 
-  links.push({ label: locale === 'nl' ? 'Meer lezen' : 'Read more', routerLink: ['/projects', project.slug] });
 
   return {
     id: project.id,
@@ -50,7 +51,8 @@ export function normalizeProjectSummary(project: ProjectSummaryApi, locale: AppL
     imageAlt: coverAlt,
     coverImageAlt: coverAlt,
     coverImageFileId: project.coverImageFileId ?? null,
-    coverImageUrl: coverImage?.url ?? undefined,
+    coverImageUrl: coverImage?.url ?? galleryImages[0]?.url ?? undefined,
+    galleryImages,
     highlight: project.summary ?? project.teaser,
     githubUrl: project.githubUrl ?? undefined,
     githubRepoName: project.githubRepoName ?? undefined,

@@ -199,6 +199,11 @@ export const routes: Routes = [
         title: 'Admin Assistant',
       },
       {
+        path: 'backup',
+        loadComponent: () => import('@domains/admin/backup/feature/admin-backup.page').then((module) => module.AdminBackupPageComponent),
+        title: 'Admin Backup',
+      },
+      {
         path: 'activity',
         loadComponent: () => import('@domains/admin/activity/feature/admin-activity.page').then((module) => module.AdminActivityPageComponent),
         title: 'Admin Activity',

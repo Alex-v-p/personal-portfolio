@@ -16,6 +16,7 @@ export interface AdminProfileForm {
   avatarFileId: string | null;
   heroImageFileId: string | null;
   resumeFileId: string | null;
+  resumeFileIdNl: string | null;
   ctaPrimaryLabel: string;
   ctaPrimaryLabelNl: string;
   ctaPrimaryUrl: string;
@@ -42,6 +43,7 @@ export function createEmptyProfileForm(): AdminProfileForm {
     avatarFileId: null,
     heroImageFileId: null,
     resumeFileId: null,
+    resumeFileIdNl: null,
     ctaPrimaryLabel: '',
     ctaPrimaryLabelNl: '',
     ctaPrimaryUrl: '',
@@ -70,6 +72,7 @@ export function toProfileForm(profile: AdminProfile): AdminProfileForm {
     avatarFileId: profile.avatarFileId ?? null,
     heroImageFileId: profile.heroImageFileId ?? null,
     resumeFileId: profile.resumeFileId ?? null,
+    resumeFileIdNl: profile.resumeFileIdNl ?? null,
     ctaPrimaryLabel: profile.ctaPrimaryLabel ?? '',
     ctaPrimaryLabelNl: profile.ctaPrimaryLabelNl ?? '',
     ctaPrimaryUrl: profile.ctaPrimaryUrl ?? '',

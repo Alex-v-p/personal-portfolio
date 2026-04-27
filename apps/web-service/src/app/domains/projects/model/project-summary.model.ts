@@ -1,3 +1,5 @@
+import { ResolvedMedia } from '@domains/media/model/resolved-media.model';
+
 export interface ProjectLink {
   label: string;
   href?: string;
@@ -26,6 +28,7 @@ export interface ProjectSummary {
   coverImageAlt: string;
   coverImageFileId?: string | null;
   coverImageUrl?: string;
+  galleryImages: ResolvedMedia[];
   highlight: string;
   githubUrl?: string;
   githubRepoName?: string;

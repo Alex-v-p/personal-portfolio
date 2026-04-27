@@ -63,6 +63,17 @@ export class AssistantPanelComponent {
       this.sendMessage();
     }
   }
+  protected isExternalCitationUrl(url: string | null | undefined): boolean {
+    return !!url && /^https?:\/\//i.test(url);
+  }
+
+  protected getCitationTarget(url: string | null | undefined): string | null {
+    if (!url) {
+      return null;
+    }
+    return this.isExternalCitationUrl(url) ? '_blank' : '_self';
+  }
+
 
   protected isComposerDisabled(state: AssistantChatState, availability: AssistantAvailabilityState): boolean {
     return state.isLoading || availability.mode === 'offline';

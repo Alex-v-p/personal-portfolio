@@ -15,3 +15,31 @@ export interface AdminTranslationDraftResponse {
   providerModel?: string | null;
   warnings: string[];
 }
+
+export interface AdminAssistantContextNote {
+  id: string;
+  title: string;
+  titleNl?: string | null;
+  contentMarkdown: string;
+  contentMarkdownNl?: string | null;
+  category: string;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminAssistantContextNotesList {
+  items: AdminAssistantContextNote[];
+  total: number;
+}
+
+export interface AdminAssistantContextNotePayload {
+  title: string;
+  titleNl?: string | null;
+  contentMarkdown: string;
+  contentMarkdownNl?: string | null;
+  category: string;
+  isActive: boolean;
+  sortOrder: number;
+}

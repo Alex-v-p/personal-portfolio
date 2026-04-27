@@ -31,6 +31,7 @@ class AdminProfileUpdateIn(ApiSchema):
     avatar_file_id: str | None = None
     hero_image_file_id: str | None = None
     resume_file_id: str | None = None
+    resume_file_id_nl: str | None = None
     cta_primary_label: str | None = Field(default=None, max_length=120)
     cta_primary_label_nl: str | None = Field(default=None, max_length=120)
     cta_primary_url: str | None = Field(default=None, max_length=500)
@@ -67,9 +68,11 @@ class AdminProfileOut(ApiSchema):
     avatar_file_id: str | None = None
     hero_image_file_id: str | None = None
     resume_file_id: str | None = None
+    resume_file_id_nl: str | None = None
     avatar: PublicMediaAssetOut | None = None
     hero_image: PublicMediaAssetOut | None = None
     resume: PublicMediaAssetOut | None = None
+    resume_nl: PublicMediaAssetOut | None = None
     cta_primary_label: str | None = None
     cta_primary_label_nl: str | None = None
     cta_primary_url: str | None = None

@@ -69,6 +69,8 @@ class AdminTaxonomyRepository(AdminRepositorySupport):
             category_id=self._required_uuid(payload.category_id),
             name=payload.name.strip(),
             years_of_experience=payload.years_of_experience,
+            proficiency_label=self._normalize_optional_text(payload.proficiency_label),
+            proficiency_label_nl=self._normalize_optional_text(payload.proficiency_label_nl),
             icon_key=self._normalize_optional_text(payload.icon_key),
             sort_order=payload.sort_order,
             is_highlighted=payload.is_highlighted,
@@ -85,6 +87,8 @@ class AdminTaxonomyRepository(AdminRepositorySupport):
         skill.category_id = self._required_uuid(payload.category_id)
         skill.name = payload.name.strip()
         skill.years_of_experience = payload.years_of_experience
+        skill.proficiency_label = self._normalize_optional_text(payload.proficiency_label)
+        skill.proficiency_label_nl = self._normalize_optional_text(payload.proficiency_label_nl)
         skill.icon_key = self._normalize_optional_text(payload.icon_key)
         skill.sort_order = payload.sort_order
         skill.is_highlighted = payload.is_highlighted

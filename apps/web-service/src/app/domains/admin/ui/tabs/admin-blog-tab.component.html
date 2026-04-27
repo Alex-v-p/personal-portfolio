@@ -1,13 +1,13 @@
 <section class="grid gap-6 xl:grid-cols-[22rem_minmax(0,1fr)] 2xl:grid-cols-[24rem_minmax(0,1fr)] items-start">
-  <aside class="rounded-[2rem] border border-stone-300 bg-white p-5 shadow-[0_20px_45px_rgba(40,31,20,0.08)] xl:sticky xl:top-6">
+  <aside class="admin-sticky-sidebar rounded-[2rem] border border-stone-300 bg-white p-5 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
     <div class="flex items-center justify-between gap-4"><h2 class="text-lg font-semibold text-stone-950">Blog posts</h2><button type="button" (click)="startNewBlogPost()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">New</button></div>
-    <div class="mt-5 grid gap-3 min-h-[18rem] max-h-[calc(100vh-17rem)] overflow-y-auto pr-1">
+    <div class="admin-scroll-list mt-5 grid gap-3">
       <button *ngFor="let post of blogPosts" type="button" (click)="selectBlogPost(post.id)" [ngClass]="post.id === selectedBlogPostId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-[1.5rem] border p-4 text-left transition">
         <p class="text-sm font-semibold text-stone-950">{{ post.title }}</p><p class="mt-1 text-sm text-stone-600">{{ post.status }} · {{ formatTagSummary(post) }}</p><p class="mt-2 text-xs text-stone-500">{{ post.slug }}</p>
       </button>
     </div>
   </aside>
-  <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] lg:p-7 2xl:p-8">
+  <article class="admin-main-editor rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] lg:p-7 2xl:p-8">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><h2 class="text-xl font-semibold text-stone-950">{{ selectedBlogPostId ? 'Edit blog post' : 'Create blog post' }}</h2><button *ngIf="selectedBlogPostId" type="button" (click)="deleteBlogPost()" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700">Delete</button></div>
 <section class="mt-6 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
       <div class="flex flex-wrap items-start justify-between gap-4">
@@ -22,7 +22,7 @@
       </div>
       <p *ngIf="translationMessage" class="mt-4 rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm text-stone-700">{{ translationMessage }}</p>
     </section>
-    <div class="mt-6 grid gap-4 lg:grid-cols-2">
+    <div class="admin-field-grid mt-6 grid gap-4 lg:grid-cols-2">
       <label *ngIf="contentLocale === 'en'" class="space-y-2"><span class="text-sm font-semibold">Title</span><input [(ngModel)]="blogPostForm.title" name="blogTitle" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
       <label *ngIf="contentLocale === 'nl'" class="space-y-2"><span class="text-sm font-semibold">Title (NL)</span><input [(ngModel)]="blogPostForm.titleNl" name="blogPostTitleNlTop" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
       <label class="space-y-2"><span class="text-sm font-semibold">Slug</span><input [(ngModel)]="blogPostForm.slug" name="blogSlug" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
@@ -59,14 +59,14 @@
         <div class="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.85fr)] 2xl:grid-cols-[minmax(0,1.45fr)_minmax(24rem,0.8fr)]">
           <label class="space-y-2">
             <span class="text-sm font-semibold">Content markdown{{ contentLocale === 'nl' ? " (NL)" : "" }}</span>
-            <textarea #blogMarkdownEditor [(ngModel)]="activeBlogContentMarkdown" name="blogMarkdown" rows="18" class="min-h-[26rem] w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm font-mono"></textarea>
+            <textarea #blogMarkdownEditor [(ngModel)]="activeBlogContentMarkdown" name="blogMarkdown" rows="18" class="admin-markdown-editor admin-markdown-editor--tall w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm font-mono"></textarea>
           </label>
           <div class="space-y-2">
             <div class="flex items-center justify-between gap-3">
               <span class="text-sm font-semibold text-stone-950">Live preview</span>
               <span class="text-xs text-stone-500">Matches the public {{ activeContentLocaleLabel.toLowerCase() }} blog renderer</span>
             </div>
-            <div class="min-h-[26rem] rounded-2xl border border-stone-300 bg-white px-5 py-4">
+            <div class="admin-markdown-preview rounded-2xl border border-stone-300 bg-white px-5 py-4">
               <div class="blog-markdown" [innerHTML]="renderedBlogContentPreview"></div>
             </div>
           </div>
@@ -103,10 +103,34 @@
                 </div>
                 <div class="min-w-0 flex-1">
                   <p class="truncate text-sm font-semibold text-stone-900">{{ media.title || media.originalFilename }}</p>
-                  <p class="truncate text-xs text-stone-500">{{ media.objectKey }}</p>
+                  <p class="admin-object-key text-xs text-stone-500">{{ media.objectKey }}</p>
                 </div>
               </button>
               <p *ngIf="filteredBlogImageMediaFiles.length === 0" class="rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-4 py-5 text-sm text-stone-500">No matching images yet. Upload one on the left or clear the search.</p>
+            </div>
+          </div>
+
+          <div class="space-y-3 rounded-[1.25rem] border border-stone-200 bg-white p-4">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p class="text-sm font-semibold text-stone-950">Insert download link</p>
+                <p class="text-xs text-stone-500">Insert any media file as a markdown download button using <code>[Download file](url "download")</code>.</p>
+              </div>
+              <span class="rounded-full border border-stone-300 bg-stone-50 px-3 py-1 text-xs text-stone-500">{{ filteredBlogDownloadMediaFiles.length }} file{{ filteredBlogDownloadMediaFiles.length === 1 ? '' : 's' }}</span>
+            </div>
+            <input [(ngModel)]="blogDownloadMediaSearchTerm" name="blogDownloadMediaSearchTerm" placeholder="Search files by title, filename, or path" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" />
+            <div class="grid max-h-72 gap-2 overflow-y-auto pr-1">
+              <button *ngFor="let media of filteredBlogDownloadMediaFiles.slice(0, 16)" type="button" (click)="insertBlogDownloadFromMedia(media)" class="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-3 py-3 text-left transition hover:border-stone-300 hover:bg-stone-100">
+                <div class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border border-stone-200 bg-white text-[10px] font-semibold uppercase tracking-[0.12em] text-stone-400">
+                  <img *ngIf="media.resolvedAsset?.url && isBlogDownloadImage(media)" [src]="media.resolvedAsset?.url" [alt]="media.altText || media.title || media.originalFilename" class="h-full w-full object-cover" />
+                  <span *ngIf="!(media.resolvedAsset?.url && isBlogDownloadImage(media))">File</span>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-semibold text-stone-900">{{ media.title || media.originalFilename }}</p>
+                  <p class="admin-object-key text-xs text-stone-500">{{ media.objectKey }}</p>
+                </div>
+              </button>
+              <p *ngIf="filteredBlogDownloadMediaFiles.length === 0" class="rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-4 py-5 text-sm text-stone-500">No matching files yet. Upload one in the media library or clear the search.</p>
             </div>
           </div>
         </div>

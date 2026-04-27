@@ -139,7 +139,7 @@ def test_list_projects_returns_project_summaries_with_embedded_media(client: Tes
     assert project['coverImage']['url'].startswith('http://media.example.test/portfolio/projects/')
     assert project['skills'][0]['name']
     assert 'descriptionMarkdown' not in project
-    assert 'images' not in project
+    assert project['images']
     assert 'tags' not in project
 
 

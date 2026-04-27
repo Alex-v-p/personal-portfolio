@@ -30,6 +30,7 @@ class Profile(TimestampMixin, Base):
     avatar_file_id: Mapped[UUID | None] = mapped_column(Uuid, ForeignKey('media_files.id', ondelete='SET NULL'))
     hero_image_file_id: Mapped[UUID | None] = mapped_column(Uuid, ForeignKey('media_files.id', ondelete='SET NULL'))
     resume_file_id: Mapped[UUID | None] = mapped_column(Uuid, ForeignKey('media_files.id', ondelete='SET NULL'))
+    resume_file_id_nl: Mapped[UUID | None] = mapped_column(Uuid, ForeignKey('media_files.id', ondelete='SET NULL'))
     cta_primary_label: Mapped[str | None] = mapped_column(String(120))
     cta_primary_label_nl: Mapped[str | None] = mapped_column(String(120))
     cta_primary_url: Mapped[str | None] = mapped_column(String(500))
@@ -52,6 +53,11 @@ class Profile(TimestampMixin, Base):
         'MediaFile',
         foreign_keys='Profile.resume_file_id',
         back_populates='profile_resume_for',
+    )
+    resume_file_nl: Mapped[MediaFile | None] = relationship(
+        'MediaFile',
+        foreign_keys='Profile.resume_file_id_nl',
+        back_populates='profile_resume_nl_for',
     )
     social_links: Mapped[list[SocialLink]] = relationship(
         back_populates='profile', cascade='all, delete-orphan', order_by='SocialLink.sort_order'

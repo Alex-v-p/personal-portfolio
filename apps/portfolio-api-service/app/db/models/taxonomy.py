@@ -38,6 +38,8 @@ class Skill(Base):
     category_id: Mapped[UUID] = mapped_column(Uuid, ForeignKey('skill_categories.id', ondelete='RESTRICT'), nullable=False)
     name: Mapped[str] = mapped_column(String(120), nullable=False, unique=True)
     years_of_experience: Mapped[int | None] = mapped_column(Integer)
+    proficiency_label: Mapped[str | None] = mapped_column(String(80))
+    proficiency_label_nl: Mapped[str | None] = mapped_column(String(80))
     icon_key: Mapped[str | None] = mapped_column(String(80))
     sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     is_highlighted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

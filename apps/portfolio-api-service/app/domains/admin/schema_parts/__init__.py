@@ -13,10 +13,14 @@ from app.domains.admin.schema_parts.assistant import (
     AdminAssistantKnowledgeRebuildIn,
     AdminAssistantKnowledgeRebuildOut,
     AdminAssistantKnowledgeStatusOut,
+    AdminAssistantContextNoteOut,
+    AdminAssistantContextNoteUpsertIn,
+    AdminAssistantContextNotesListOut,
     AdminTranslationDraftIn,
     AdminTranslationDraftOut,
     TranslationLocaleLiteral,
 )
+from app.domains.admin.schema_parts.backup import AdminBackupImportOut
 from app.domains.admin.schema_parts.async_tasks import (
     AdminAsyncTaskAcceptedOut,
     AdminAsyncTaskStatusLiteral,
@@ -42,6 +46,8 @@ from app.domains.admin.schema_parts.content import (
     AdminExperienceOut,
     AdminExperiencesListOut,
     AdminExperienceUpsertIn,
+    AdminProjectImageIn,
+    AdminProjectImageOut,
     AdminProjectOut,
     AdminProjectsListOut,
     AdminProjectUpsertIn,
@@ -81,8 +87,12 @@ __all__ = [
     'AdminAssistantKnowledgeRebuildIn',
     'AdminAssistantKnowledgeRebuildOut',
     'AdminAssistantKnowledgeStatusOut',
+    'AdminAssistantContextNoteOut',
+    'AdminAssistantContextNoteUpsertIn',
+    'AdminAssistantContextNotesListOut',
     'AdminTranslationDraftIn',
     'AdminTranslationDraftOut',
+    'AdminBackupImportOut',
     'AdminAsyncTaskAcceptedOut',
     'AdminAsyncTaskStatusLiteral',
     'AdminAsyncTaskStatusOut',
@@ -141,4 +151,6 @@ __all__ = [
     'ProjectStateLiteral',
     'PublicationStatusLiteral',
     'TranslationLocaleLiteral',
+    'AdminProjectImageIn',
+    'AdminProjectImageOut',
 ]

@@ -67,7 +67,7 @@ class AdminProjectContentRepository:
         self.session.add(project)
         self.session.flush()
         self._replace_project_skill_links(project, payload.skill_ids)
-        self._sync_cover_project_image(project)
+        self._replace_project_images(project, payload.images)
         self.session.commit()
         return self.get_project(project.id)  # type: ignore[return-value]
 
@@ -102,7 +102,7 @@ class AdminProjectContentRepository:
         project.sort_order = payload.sort_order
         project.published_at = self._parse_datetime(payload.published_at) or project.published_at
         self._replace_project_skill_links(project, payload.skill_ids)
-        self._sync_cover_project_image(project)
+        self._replace_project_images(project, payload.images)
         self.session.commit()
         return self.get_project(project_id)
 

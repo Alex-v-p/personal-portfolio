@@ -77,6 +77,22 @@ class Settings(BaseSettings):
         default=10,
         validation_alias=AliasChoices('ASSISTANT_MAX_HISTORY_MESSAGES', 'MAX_HISTORY_MESSAGES'),
     )
+    conversation_summary_enabled: bool = Field(
+        default=True,
+        validation_alias=AliasChoices('ASSISTANT_CONVERSATION_SUMMARY_ENABLED', 'CONVERSATION_SUMMARY_ENABLED'),
+    )
+    conversation_summary_trigger_messages: int = Field(
+        default=8,
+        validation_alias=AliasChoices('ASSISTANT_CONVERSATION_SUMMARY_TRIGGER_MESSAGES', 'CONVERSATION_SUMMARY_TRIGGER_MESSAGES'),
+    )
+    conversation_summary_source_messages: int = Field(
+        default=16,
+        validation_alias=AliasChoices('ASSISTANT_CONVERSATION_SUMMARY_SOURCE_MESSAGES', 'CONVERSATION_SUMMARY_SOURCE_MESSAGES'),
+    )
+    conversation_summary_max_chars: int = Field(
+        default=1600,
+        validation_alias=AliasChoices('ASSISTANT_CONVERSATION_SUMMARY_MAX_CHARS', 'CONVERSATION_SUMMARY_MAX_CHARS'),
+    )
     admin_access_token_expire_minutes: int = Field(
         default=480,
         validation_alias=AliasChoices('ADMIN_ACCESS_TOKEN_EXPIRE_MINUTES', 'ASSISTANT_ADMIN_ACCESS_TOKEN_EXPIRE_MINUTES'),

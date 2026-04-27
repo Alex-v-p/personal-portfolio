@@ -44,7 +44,7 @@ export class AdminTaxonomyTabComponent extends AdminLocalizedContentTabBase {
   @Output() readonly blogTagDeleted = new EventEmitter<void>();
 
 
-  protected readonly skillCategoryIconGroups: readonly IconGroupKey[] = ['expertise', 'tech', 'contact'];
+  protected readonly skillCategoryIconGroups: readonly IconGroupKey[] = ['expertise', 'tech', 'contact', 'social'];
   protected readonly skillIconGroups: readonly IconGroupKey[] = ['tech', 'expertise', 'contact', 'social'];
 
 
@@ -54,6 +54,20 @@ export class AdminTaxonomyTabComponent extends AdminLocalizedContentTabBase {
 
   categoryName(categoryId: string): string {
     return categoryName(this.referenceData.skillCategories, categoryId);
+  }
+
+  skillMetricLabel(skill: { yearsOfExperience?: number | null; proficiencyLabel?: string | null; proficiencyLabelNl?: string | null }): string {
+    const explicitLabel = skill.proficiencyLabel || skill.proficiencyLabelNl;
+
+    if (explicitLabel) {
+      return explicitLabel;
+    }
+
+    if (skill.yearsOfExperience !== null && skill.yearsOfExperience !== undefined) {
+      return `${skill.yearsOfExperience} year${skill.yearsOfExperience === 1 ? '' : 's'}`;
+    }
+
+    return 'No metric';
   }
 
   selectSkillCategory(categoryId: string): void {

@@ -24,10 +24,18 @@ export class HomeExpertiseSectionComponent {
       return group.skills;
     }
 
-    return (group.tags ?? []).map((tag) => ({ name: tag, yearsOfExperience: null }));
+    return (group.tags ?? []).map((tag) => ({ name: tag, yearsOfExperience: null, displayLabel: null, proficiencyLabel: null }));
   }
 
   protected formatSkillLabel(skill: ExpertiseSkill): string {
+    if (skill.displayLabel) {
+      return `${skill.name} - ${skill.displayLabel}`;
+    }
+
+    if (skill.proficiencyLabel) {
+      return `${skill.name} - ${skill.proficiencyLabel}`;
+    }
+
     return skill.yearsOfExperience && skill.yearsOfExperience > 0
       ? `${skill.name} - ${skill.yearsOfExperience}y`
       : skill.name;

@@ -63,6 +63,8 @@ export function normalizeExpertiseSkill(skill: ExpertiseSkillApi | null | undefi
   return {
     name: skill.name,
     yearsOfExperience: skill.yearsOfExperience ?? null,
+    proficiencyLabel: skill.proficiencyLabel ?? null,
+    displayLabel: skill.displayLabel ?? skill.proficiencyLabel ?? null,
     iconKey: resolveIconKey(skill.iconKey) ?? resolveIconKey(skill.name) ?? undefined,
   };
 }
@@ -137,6 +139,7 @@ export function normalizeProfile(profile: ProfileApi): Profile {
     avatarFileId: profile.avatarFileId ?? null,
     heroImageFileId: profile.heroImageFileId ?? null,
     resumeFileId: profile.resumeFileId ?? null,
+    resumeFileIdNl: profile.resumeFileIdNl ?? null,
     avatarUrl: normalizeMedia(profile.avatar)?.url ?? '',
     heroImageUrl: normalizeMedia(profile.heroImage)?.url ?? '',
     resumeUrl: normalizeMedia(profile.resume)?.url ?? '',
@@ -165,12 +168,26 @@ function parseExpertiseSkillFromTag(tag: string): ExpertiseSkill {
   const match = trimmedTag.match(/^(.*?)\s*[-·]\s*(\d+)y$/i);
 
   if (!match) {
-    return { name: trimmedTag, yearsOfExperience: null, iconKey: undefined };
+    const labelMatch = trimmedTag.match(/^(.*?)\s*[-·]\s*(.+)$/);
+
+    if (labelMatch) {
+      return {
+        name: labelMatch[1].trim(),
+        yearsOfExperience: null,
+        proficiencyLabel: labelMatch[2].trim(),
+        displayLabel: labelMatch[2].trim(),
+        iconKey: undefined,
+      };
+    }
+
+    return { name: trimmedTag, yearsOfExperience: null, proficiencyLabel: null, displayLabel: null, iconKey: undefined };
   }
 
   return {
     name: match[1].trim(),
     yearsOfExperience: Number.parseInt(match[2], 10) || null,
+    proficiencyLabel: null,
+    displayLabel: `${match[2]}y`,
     iconKey: undefined,
   };
 }

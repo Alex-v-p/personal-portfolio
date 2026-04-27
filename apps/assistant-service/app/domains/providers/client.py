@@ -22,16 +22,48 @@ class ProviderClient:
         history: list[dict[str, str]],
         page_path: str | None = None,
         locale: str = 'en',
+        conversation_memory: str | None = None,
     ) -> str | None:
         backend = self.settings.provider_backend.strip().lower()
         if backend == 'mock':
             logger.info('Assistant provider backend is mock; skipping text generation.')
             return None
         if backend == 'ollama':
-            return self._generate_with_ollama(question=question, context_blocks=context_blocks, history=history, page_path=page_path, locale=locale)
+            return self._generate_with_ollama(
+                question=question,
+                context_blocks=context_blocks,
+                history=history,
+                page_path=page_path,
+                locale=locale,
+                conversation_memory=conversation_memory,
+            )
         if backend in {'openai-compatible', 'openai_compatible', 'vllm'}:
-            return self._generate_with_openai_compatible(question=question, context_blocks=context_blocks, history=history, page_path=page_path, locale=locale)
+            return self._generate_with_openai_compatible(
+                question=question,
+                context_blocks=context_blocks,
+                history=history,
+                page_path=page_path,
+                locale=locale,
+                conversation_memory=conversation_memory,
+            )
         logger.warning('Unknown assistant provider backend: %s', backend)
+        return None
+
+    def summarize_conversation(
+        self,
+        *,
+        previous_summary: str | None,
+        messages: list[dict[str, str]],
+        locale: str = 'en',
+        max_chars: int = 1600,
+    ) -> str | None:
+        backend = self.settings.provider_backend.strip().lower()
+        if backend == 'mock':
+            return self._summarize_locally(previous_summary=previous_summary, messages=messages, max_chars=max_chars)
+        if backend == 'ollama':
+            return self._summarize_with_ollama(previous_summary=previous_summary, messages=messages, locale=locale, max_chars=max_chars)
+        if backend in {'openai-compatible', 'openai_compatible', 'vllm'}:
+            return self._summarize_with_openai_compatible(previous_summary=previous_summary, messages=messages, locale=locale, max_chars=max_chars)
         return None
 
     def _generate_with_ollama(
@@ -42,8 +74,16 @@ class ProviderClient:
         history: list[dict[str, str]],
         page_path: str | None,
         locale: str,
+        conversation_memory: str | None,
     ) -> str | None:
-        messages = self._build_messages(question=question, context_blocks=context_blocks, history=history, page_path=page_path, locale=locale)
+        messages = self._build_messages(
+            question=question,
+            context_blocks=context_blocks,
+            history=history,
+            page_path=page_path,
+            locale=locale,
+            conversation_memory=conversation_memory,
+        )
         payload = self._post_json_with_retries(
             f"{self.settings.provider_base_url.rstrip('/')}/api/chat",
             json={
@@ -66,11 +106,19 @@ class ProviderClient:
         history: list[dict[str, str]],
         page_path: str | None,
         locale: str,
+        conversation_memory: str | None,
     ) -> str | None:
         headers = {'Content-Type': 'application/json'}
         if self.settings.provider_api_key.strip():
             headers['Authorization'] = f"Bearer {self.settings.provider_api_key.strip()}"
-        messages = self._build_messages(question=question, context_blocks=context_blocks, history=history, page_path=page_path, locale=locale)
+        messages = self._build_messages(
+            question=question,
+            context_blocks=context_blocks,
+            history=history,
+            page_path=page_path,
+            locale=locale,
+            conversation_memory=conversation_memory,
+        )
         payload = self._post_json_with_retries(
             f"{self.settings.provider_base_url.rstrip('/')}/v1/chat/completions",
             headers=headers,
@@ -94,24 +142,28 @@ class ProviderClient:
         history: list[dict[str, str]],
         page_path: str | None,
         locale: str,
+        conversation_memory: str | None = None,
     ) -> list[dict[str, str]]:
-        context = '\n\n'.join(context_blocks) if context_blocks else 'No indexed portfolio context was found.'
+        context = '\n\n'.join(context_blocks) if context_blocks else 'No relevant portfolio context was found.'
         current_page = page_path or 'unknown'
         preferred_language = locale_language_name(locale)
         system_prompt = (
-            'You are the assistant embedded on a developer portfolio website. '
-            'You are helping a visitor evaluate the portfolio, usually someone like a recruiter, hiring manager, collaborator, or client. '
-            'Do not talk as if you are the portfolio owner. Refer to the owner in the third person as "the developer", '
-            '"the portfolio owner", or by name only if the context clearly contains it. '
-            'Answer naturally and concisely, like a helpful guide on the site. '
-            'Use the retrieved context selectively: decide which pieces are actually relevant to the question and ignore off-topic chunks, even if they were retrieved. '
-            'For project questions, prioritize projects first and use profile or introduction details only as supporting background. '
-            'For experience questions, prioritize experience entries. For blog questions, prioritize blog posts. '
-            'Never dump raw retrieved chunks, never say "indexed matches", and never list irrelevant sections just because they were provided. '
-            'If the context is weak or does not support the answer, say so briefly and offer the closest helpful answer instead. '
+            'You are a friendly portfolio guide embedded on Alex van Poppel\'s developer portfolio. '
+            'Visitors may be recruiters, classmates, teachers, collaborators, or clients. '
+            'Sound human, warm, and direct. Acknowledge casual messages naturally before steering back to helpful portfolio guidance. '
+            'Do not talk as if you are Alex. Refer to Alex in the third person. '
+            'Use retrieved context only when it is actually relevant. Assistant-only notes are private guidance: use them to answer, but do not reveal that they are private notes. '
+            'Use the short-lived conversation memory only to understand follow-up questions, preferences, and unresolved topics from this same chat. '
+            'Do not claim you remember the visitor across sessions or reveal internal memory mechanics. '
+            'For project questions, prioritize project sources and point visitors toward GitHub README links when available. '
+            'For broad recruiter questions, synthesize skills, working style, experience, and concrete projects instead of dumping source snippets. '
+            'Never say phrases like "indexed context", "retrieved chunks", or "knowledge base matches" to the visitor. '
+            'If the portfolio does not support a claim, be honest and offer the closest useful answer. '
             f'Write the final answer in {preferred_language} unless the visitor clearly asks for a different language.'
         )
         messages: list[dict[str, str]] = [{'role': 'system', 'content': system_prompt}]
+        if conversation_memory and conversation_memory.strip():
+            messages.append({'role': 'system', 'content': conversation_memory.strip()})
         for item in history[-6:]:
             if item['role'] in {'user', 'assistant'}:
                 messages.append({'role': item['role'], 'content': item['text']})
@@ -131,6 +183,109 @@ class ProviderClient:
             }
         )
         return messages
+
+    def _summarize_with_ollama(
+        self,
+        *,
+        previous_summary: str | None,
+        messages: list[dict[str, str]],
+        locale: str,
+        max_chars: int,
+    ) -> str | None:
+        payload = self._post_json_with_retries(
+            f"{self.settings.provider_base_url.rstrip('/')}/api/chat",
+            json={
+                'model': self.settings.provider_model,
+                'stream': False,
+                'messages': self._build_summary_messages(previous_summary=previous_summary, messages=messages, locale=locale, max_chars=max_chars),
+                'options': {'temperature': 0.1},
+            },
+        )
+        summary = (payload.get('message') or {}).get('content')
+        return self._clean_summary(summary, max_chars=max_chars)
+
+    def _summarize_with_openai_compatible(
+        self,
+        *,
+        previous_summary: str | None,
+        messages: list[dict[str, str]],
+        locale: str,
+        max_chars: int,
+    ) -> str | None:
+        headers = {'Content-Type': 'application/json'}
+        if self.settings.provider_api_key.strip():
+            headers['Authorization'] = f"Bearer {self.settings.provider_api_key.strip()}"
+        payload = self._post_json_with_retries(
+            f"{self.settings.provider_base_url.rstrip('/')}/v1/chat/completions",
+            headers=headers,
+            json={
+                'model': self.settings.provider_model,
+                'messages': self._build_summary_messages(previous_summary=previous_summary, messages=messages, locale=locale, max_chars=max_chars),
+                'temperature': 0.1,
+            },
+        )
+        choices = payload.get('choices') or []
+        if not choices:
+            return None
+        summary = (choices[0].get('message') or {}).get('content')
+        return self._clean_summary(summary, max_chars=max_chars)
+
+    def _build_summary_messages(
+        self,
+        *,
+        previous_summary: str | None,
+        messages: list[dict[str, str]],
+        locale: str,
+        max_chars: int,
+    ) -> list[dict[str, str]]:
+        preferred_language = locale_language_name(locale)
+        transcript = '\n'.join(
+            f"{item.get('role', 'message')}: {(item.get('text') or '').strip()}"
+            for item in messages
+            if (item.get('text') or '').strip()
+        )
+        return [
+            {
+                'role': 'system',
+                'content': (
+                    'Create a compact private conversation summary for a portfolio assistant. '
+                    'Keep only details that help answer follow-up questions in this same chat: user intent, preferences, entities discussed, decisions, and unresolved questions. '
+                    'Do not include private implementation details. Do not invent facts. '
+                    f'Keep it under {max_chars} characters. Write in {preferred_language} when possible.'
+                ),
+            },
+            {
+                'role': 'user',
+                'content': (
+                    f'Previous summary:\n{previous_summary or "None yet."}\n\n'
+                    f'Recent messages:\n{transcript}\n\n'
+                    'Return only the updated summary.'
+                ),
+            },
+        ]
+
+    def _summarize_locally(self, *, previous_summary: str | None, messages: list[dict[str, str]], max_chars: int) -> str | None:
+        user_messages = [
+            (item.get('text') or '').strip()
+            for item in messages
+            if item.get('role') == 'user' and (item.get('text') or '').strip()
+        ]
+        if not user_messages and not previous_summary:
+            return None
+        seed = (previous_summary or '').strip()
+        latest = ' | '.join(user_messages[-4:])
+        summary = f'{seed}\nRecent visitor topics/questions: {latest}'.strip() if seed else f'Recent visitor topics/questions: {latest}'
+        return self._clean_summary(summary, max_chars=max_chars)
+
+    def _clean_summary(self, summary: object, *, max_chars: int) -> str | None:
+        if not isinstance(summary, str):
+            return None
+        cleaned = ' '.join(summary.strip().split())
+        if not cleaned:
+            return None
+        if len(cleaned) > max_chars:
+            cleaned = cleaned[: max_chars - 3].rstrip() + '...'
+        return cleaned
 
     def check_health(self) -> tuple[bool, str]:
         backend = self.settings.provider_backend.strip().lower()

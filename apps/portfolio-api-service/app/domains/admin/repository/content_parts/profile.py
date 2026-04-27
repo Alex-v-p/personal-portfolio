@@ -15,6 +15,7 @@ class AdminProfileContentRepository:
                 selectinload(Profile.avatar_file),
                 selectinload(Profile.hero_image_file),
                 selectinload(Profile.resume_file),
+                selectinload(Profile.resume_file_nl),
                 selectinload(Profile.social_links),
             )
             .order_by(Profile.updated_at.desc())
@@ -44,6 +45,7 @@ class AdminProfileContentRepository:
         profile.avatar_file_id = self._optional_uuid(payload.avatar_file_id)
         profile.hero_image_file_id = self._optional_uuid(payload.hero_image_file_id)
         profile.resume_file_id = self._optional_uuid(payload.resume_file_id)
+        profile.resume_file_id_nl = self._optional_uuid(payload.resume_file_id_nl)
         profile.cta_primary_label = self._normalize_optional_text(payload.cta_primary_label)
         profile.cta_primary_label_nl = self._normalize_optional_text(payload.cta_primary_label_nl)
         profile.cta_primary_url = self._normalize_optional_text(payload.cta_primary_url)

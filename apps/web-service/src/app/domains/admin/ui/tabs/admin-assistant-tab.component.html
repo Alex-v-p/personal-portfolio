@@ -1,53 +1,145 @@
-    <section class="grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-      <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] sm:p-8">
-        <div class="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Knowledge index</p>
-            <h2 class="mt-1 text-xl font-semibold text-stone-950">Assistant retrieval groundwork</h2>
-            <p class="mt-2 max-w-2xl text-sm leading-6 text-stone-600">The assistant searches the indexed portfolio content stored in <code>knowledge_documents</code> and <code>knowledge_chunks</code>. Rebuild this index whenever profile, projects, blog posts, or experience content changes.</p>
+<section class="grid gap-6 xl:grid-cols-[22rem_minmax(0,1fr)] 2xl:grid-cols-[24rem_minmax(0,1fr)] items-start">
+  <aside class="admin-sticky-sidebar rounded-[2rem] border border-stone-300 bg-white p-5 shadow-[0_20px_45px_rgba(40,31,20,0.08)]">
+    <div class="flex items-center justify-between gap-4">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">CMS notes</p>
+        <h2 class="text-lg font-semibold text-stone-950">Assistant-only notes</h2>
+        <p class="mt-1 text-xs leading-5 text-stone-500">Private context for the public assistant. These notes are not shown as public pages.</p>
+      </div>
+      <button type="button" (click)="startNewContextNote()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">New</button>
+    </div>
+
+    <div class="mt-5 rounded-[1.5rem] border border-amber-200 bg-amber-50 p-4 text-xs leading-5 text-amber-900">
+      After editing notes, use <span class="font-semibold">Save & rebuild</span> so the assistant can use them immediately.
+    </div>
+
+    <div class="mt-5 space-y-2">
+      <p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Start from template</p>
+      <div class="flex flex-wrap gap-2">
+        <button *ngFor="let preset of notePresets" type="button" (click)="usePreset(preset)" class="rounded-full border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 transition hover:border-stone-400 hover:bg-stone-50">{{ preset.label }}</button>
+      </div>
+    </div>
+
+    <div *ngIf="isLoadingContextNotes" class="mt-5 rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm text-stone-500">Loading notes…</div>
+    <div *ngIf="!isLoadingContextNotes" class="admin-scroll-list mt-5 grid gap-3">
+      <button *ngFor="let note of contextNotes" type="button" (click)="selectContextNote(note)" [ngClass]="note.id === selectedContextNoteId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-[1.5rem] border p-4 text-left transition">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <p class="truncate text-sm font-semibold text-stone-950">{{ note.title }}</p>
+            <p class="mt-1 text-xs uppercase tracking-[0.12em] text-stone-500">{{ note.category }}</p>
           </div>
-          <button type="button" (click)="rebuildAssistantKnowledge()" [disabled]="isRebuildingAssistantKnowledge" class="rounded-full bg-stone-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-60">{{ isRebuildingAssistantKnowledge ? 'Rebuilding…' : 'Rebuild knowledge index' }}</button>
+          <span [ngClass]="note.isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-stone-100 text-stone-500 border-stone-200'" class="rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em]">{{ note.isActive ? 'Active' : 'Off' }}</span>
         </div>
+      </button>
+      <p *ngIf="!contextNotes.length" class="rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50 p-4 text-sm text-stone-500">No assistant-only notes yet. Create one for overall skills, FAQs, working style, or recruiter-facing background.</p>
+    </div>
+  </aside>
 
-        <div class="mt-6 grid gap-4 sm:grid-cols-3">
-          <article class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5">
-            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Documents</p>
-            <p class="mt-3 text-3xl font-semibold text-stone-950">{{ assistantKnowledgeStatus.totalDocuments }}</p>
-            <p class="mt-2 text-sm text-stone-600">Source records synced into assistant documents.</p>
-          </article>
-          <article class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5">
-            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Chunks</p>
-            <p class="mt-3 text-3xl font-semibold text-stone-950">{{ assistantKnowledgeStatus.totalChunks }}</p>
-            <p class="mt-2 text-sm text-stone-600">Retrieval-sized content blocks the assistant can search.</p>
-          </article>
-          <article class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5">
-            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Last rebuild</p>
-            <p class="mt-3 text-lg font-semibold text-stone-950">{{ assistantKnowledgeStatus.latestUpdatedAt ? (assistantKnowledgeStatus.latestUpdatedAt | date:'medium') : 'Not indexed yet' }}</p>
-            <p class="mt-2 text-sm text-stone-600">Useful for checking whether the assistant is fresh after CMS edits.</p>
-          </article>
-        </div>
+  <article class="admin-main-editor rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] lg:p-7 2xl:p-8">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Private assistant context</p>
+        <h2 class="mt-1 text-xl font-semibold text-stone-950">{{ selectedContextNoteId ? 'Edit assistant note' : 'Create assistant note' }}</h2>
+        <p class="mt-2 max-w-3xl text-sm leading-6 text-stone-600">
+          Store broad skills, working style, availability, recruiter FAQs, and careful phrasing here. Active notes are indexed for RAG after a rebuild.
+        </p>
+      </div>
+      <button *ngIf="selectedContextNoteId" type="button" (click)="deleteContextNote()" [disabled]="isSavingContextNote" class="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700 disabled:opacity-50">Delete</button>
+    </div>
+
+    <div *ngIf="contextNoteMessage" class="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{{ contextNoteMessage }}</div>
+    <div *ngIf="contextNoteError" class="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{{ contextNoteError }}</div>
+
+    <div class="mt-6 grid gap-4 lg:grid-cols-2">
+      <label class="space-y-2">
+        <span class="text-sm font-semibold">Title</span>
+        <input [(ngModel)]="contextNoteForm.title" name="assistantContextTitle" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" placeholder="Overall skills and strengths" />
+      </label>
+      <label class="space-y-2">
+        <span class="text-sm font-semibold">Title (NL)</span>
+        <input [(ngModel)]="contextNoteForm.titleNl" name="assistantContextTitleNl" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" placeholder="Algemene vaardigheden en sterktes" />
+      </label>
+      <label class="space-y-2">
+        <span class="text-sm font-semibold">Category</span>
+        <select [(ngModel)]="contextNoteForm.category" name="assistantContextCategory" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm">
+          <option *ngFor="let category of contextCategories" [ngValue]="category.value">{{ category.label }}</option>
+        </select>
+      </label>
+      <label class="space-y-2">
+        <span class="text-sm font-semibold">Sort order</span>
+        <input [(ngModel)]="contextNoteForm.sortOrder" name="assistantContextSortOrder" type="number" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" />
+      </label>
+      <label class="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm lg:col-span-2">
+        <input [(ngModel)]="contextNoteForm.isActive" name="assistantContextActive" type="checkbox" class="h-4 w-4" />
+        Index this note during assistant knowledge rebuilds
+      </label>
+      <label class="space-y-2 lg:col-span-2">
+        <span class="text-sm font-semibold">Assistant note markdown</span>
+        <textarea [(ngModel)]="contextNoteForm.contentMarkdown" name="assistantContextMarkdown" class="admin-markdown-editor w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" placeholder="Facts, guidance, overall skills, and careful phrasing the assistant may use."></textarea>
+      </label>
+      <label class="space-y-2 lg:col-span-2">
+        <span class="text-sm font-semibold">Assistant note markdown (NL)</span>
+        <textarea [(ngModel)]="contextNoteForm.contentMarkdownNl" name="assistantContextMarkdownNl" class="admin-markdown-editor w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" placeholder="Nederlandse versie voor Nederlandstalige antwoorden."></textarea>
+      </label>
+    </div>
+
+    <div class="mt-6 flex flex-wrap justify-end gap-3">
+      <button type="button" (click)="generateDutchContextDraft()" [disabled]="isGeneratingDutchDraft" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold">{{ isGeneratingDutchDraft ? 'Generating…' : 'Generate Dutch draft' }}</button>
+      <button type="button" (click)="startNewContextNote()" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold">Reset</button>
+      <button type="button" (click)="saveContextNote()" [disabled]="isSavingContextNote" class="rounded-full border border-stone-900 px-5 py-2 text-sm font-semibold text-stone-900 disabled:opacity-50">{{ isSavingContextNote ? 'Saving…' : 'Save note' }}</button>
+      <button type="button" (click)="saveContextNoteAndRebuild()" [disabled]="isSavingContextNote || isRebuildingAssistantKnowledge" class="rounded-full bg-stone-900 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50">{{ isSavingContextNote || isRebuildingAssistantKnowledge ? 'Working…' : 'Save & rebuild' }}</button>
+    </div>
+  </article>
+</section>
+
+<section class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+  <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] sm:p-8">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Knowledge index</p>
+        <h2 class="mt-1 text-xl font-semibold text-stone-950">Assistant retrieval groundwork</h2>
+        <p class="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
+          The assistant searches public portfolio content plus active assistant notes. Rebuild this index whenever profile, projects, blog posts, experience entries, or private notes change.
+        </p>
+      </div>
+      <button type="button" (click)="rebuildAssistantKnowledge()" [disabled]="isRebuildingAssistantKnowledge" class="rounded-full bg-stone-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-60">{{ isRebuildingAssistantKnowledge ? 'Rebuilding…' : 'Rebuild knowledge index' }}</button>
+    </div>
+
+    <div class="mt-6 grid gap-4 sm:grid-cols-3">
+      <article class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Documents</p>
+        <p class="mt-3 text-3xl font-semibold text-stone-950">{{ assistantKnowledgeStatus.totalDocuments }}</p>
+        <p class="mt-2 text-sm text-stone-600">Source records synced into assistant documents.</p>
       </article>
-
-      <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] sm:p-8">
-        <h2 class="text-xl font-semibold text-stone-950">Indexed source coverage</h2>
-        <p class="mt-2 text-sm leading-6 text-stone-600">These counts show how many portfolio records are searchable by source type.</p>
-
-        <div class="mt-6 grid gap-3" *ngIf="assistantKnowledgeStatus.totalDocuments; else noKnowledgeDocs">
-          <article *ngFor="let item of assistantKnowledgeStatus.documentsBySourceType | keyvalue" class="flex items-center justify-between rounded-[1.5rem] border border-stone-200 bg-stone-50 px-4 py-4">
-            <div>
-              <p class="text-sm font-semibold text-stone-950">{{ item.key }}</p>
-              <p class="text-xs uppercase tracking-[0.16em] text-stone-500">searchable source type</p>
-            </div>
-            <p class="text-2xl font-semibold text-stone-950">{{ item.value }}</p>
-          </article>
-        </div>
-
-        <ng-template #noKnowledgeDocs>
-          <div class="mt-6 rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50 p-5 text-sm leading-6 text-stone-600">No assistant knowledge documents have been indexed yet. Use the rebuild action to generate them from the current portfolio content.</div>
-        </ng-template>
+      <article class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Chunks</p>
+        <p class="mt-3 text-3xl font-semibold text-stone-950">{{ assistantKnowledgeStatus.totalChunks }}</p>
+        <p class="mt-2 text-sm text-stone-600">Retrieval-sized content blocks the assistant can search.</p>
       </article>
-    </section>
+      <article class="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Last rebuild</p>
+        <p class="mt-3 text-lg font-semibold text-stone-950">{{ assistantKnowledgeStatus.latestUpdatedAt ? (assistantKnowledgeStatus.latestUpdatedAt | date:'medium') : 'Not indexed yet' }}</p>
+        <p class="mt-2 text-sm text-stone-600">Check whether the assistant is fresh after CMS edits.</p>
+      </article>
+    </div>
+  </article>
 
+  <article class="rounded-[2rem] border border-stone-300 bg-white p-6 shadow-[0_20px_45px_rgba(40,31,20,0.08)] sm:p-8">
+    <h2 class="text-xl font-semibold text-stone-950">Indexed source coverage</h2>
+    <p class="mt-2 text-sm leading-6 text-stone-600">These counts show how many portfolio records are searchable by source type. <code>assistant_note</code> means private CMS guidance that is indexed but not exposed through the public API.</p>
 
+    <div class="mt-6 grid gap-3" *ngIf="assistantKnowledgeStatus.totalDocuments; else noKnowledgeDocs">
+      <article *ngFor="let item of assistantKnowledgeStatus.documentsBySourceType | keyvalue" class="flex items-center justify-between rounded-[1.5rem] border border-stone-200 bg-stone-50 px-4 py-4">
+        <div>
+          <p class="text-sm font-semibold text-stone-950">{{ item.key }}</p>
+          <p class="text-xs uppercase tracking-[0.16em] text-stone-500">searchable source type</p>
+        </div>
+        <p class="text-2xl font-semibold text-stone-950">{{ item.value }}</p>
+      </article>
+    </div>
 
-
+    <ng-template #noKnowledgeDocs>
+      <div class="mt-6 rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50 p-5 text-sm leading-6 text-stone-600">No assistant knowledge documents have been indexed yet. Use the rebuild action to generate them from the current portfolio content.</div>
+    </ng-template>
+  </article>
+</section>
