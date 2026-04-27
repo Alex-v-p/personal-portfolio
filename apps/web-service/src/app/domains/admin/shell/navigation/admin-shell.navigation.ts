@@ -14,6 +14,7 @@ export const ADMIN_SHELL_NAV_ITEMS: AdminShellNavItem[] = [
   { path: 'stats', label: 'GitHub / Stats' },
   { path: 'assistant', label: 'Assistant notes' },
   { path: 'media', label: 'Media' },
+  { path: 'backup', label: 'Backup' },
   { path: 'taxonomy', label: 'Taxonomy' },
   { path: 'activity', label: 'Activity' },
   { path: 'admins', label: 'Admin users' },

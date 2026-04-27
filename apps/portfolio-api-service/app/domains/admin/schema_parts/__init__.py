@@ -20,6 +20,7 @@ from app.domains.admin.schema_parts.assistant import (
     AdminTranslationDraftOut,
     TranslationLocaleLiteral,
 )
+from app.domains.admin.schema_parts.backup import AdminBackupImportOut
 from app.domains.admin.schema_parts.async_tasks import (
     AdminAsyncTaskAcceptedOut,
     AdminAsyncTaskStatusLiteral,
@@ -91,6 +92,7 @@ __all__ = [
     'AdminAssistantContextNotesListOut',
     'AdminTranslationDraftIn',
     'AdminTranslationDraftOut',
+    'AdminBackupImportOut',
     'AdminAsyncTaskAcceptedOut',
     'AdminAsyncTaskStatusLiteral',
     'AdminAsyncTaskStatusOut',
