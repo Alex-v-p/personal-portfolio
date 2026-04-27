@@ -17,6 +17,10 @@ branch_labels = None
 depends_on = None
 
 
+def _is_sqlite() -> bool:
+    return op.get_bind().dialect.name == 'sqlite'
+
+
 def upgrade() -> None:
     op.create_table(
         'assistant_context_notes',
@@ -33,9 +37,13 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint('id'),
     )
     op.create_index('ix_assistant_context_notes_active_sort', 'assistant_context_notes', ['is_active', 'sort_order'])
-    op.alter_column('assistant_context_notes', 'category', server_default=None)
-    op.alter_column('assistant_context_notes', 'is_active', server_default=None)
-    op.alter_column('assistant_context_notes', 'sort_order', server_default=None)
+    # SQLite cannot alter column defaults without recreating the table. The
+    # temporary test database can safely keep these defaults, while Postgres
+    # production keeps the stricter no-default schema.
+    if not _is_sqlite():
+        op.alter_column('assistant_context_notes', 'category', server_default=None)
+        op.alter_column('assistant_context_notes', 'is_active', server_default=None)
+        op.alter_column('assistant_context_notes', 'sort_order', server_default=None)
 
 
 def downgrade() -> None:

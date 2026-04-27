@@ -17,7 +17,16 @@ branch_labels = None
 depends_on = None
 
 
+def _is_sqlite() -> bool:
+    return op.get_bind().dialect.name == 'sqlite'
+
+
 def upgrade() -> None:
+    if _is_sqlite():
+        # SQLite does not enforce VARCHAR length here and cannot alter column
+        # types directly. Skipping this keeps migration smoke tests portable.
+        return
+
     # SQLAlchemy's non-native Enum used the maximum length of the original
     # enum names (10 chars: EXPERIENCE). The new ASSISTANT_NOTE enum name is
     # longer, so widen the storage column before assistant-only notes are
@@ -32,6 +41,9 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    if _is_sqlite():
+        return
+
     # Remove assistant-note documents first so shrinking the column cannot fail.
     op.execute("DELETE FROM knowledge_chunks WHERE metadata ->> 'source_type' = 'assistant_note'")
     op.execute("DELETE FROM knowledge_documents WHERE source_type = 'ASSISTANT_NOTE'")

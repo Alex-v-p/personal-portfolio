@@ -17,16 +17,23 @@ branch_labels = None
 depends_on = None
 
 
+def _is_sqlite() -> bool:
+    return op.get_bind().dialect.name == 'sqlite'
+
+
 def upgrade() -> None:
     op.add_column('profiles', sa.Column('resume_file_id_nl', sa.Uuid(), nullable=True))
-    op.create_foreign_key(
-        'fk_profiles_resume_file_id_nl_media_files',
-        'profiles',
-        'media_files',
-        ['resume_file_id_nl'],
-        ['id'],
-        ondelete='SET NULL',
-    )
+    # SQLite cannot add foreign-key constraints to an existing table with ALTER TABLE.
+    # The test suite runs migrations against SQLite, while production uses Postgres.
+    if not _is_sqlite():
+        op.create_foreign_key(
+            'fk_profiles_resume_file_id_nl_media_files',
+            'profiles',
+            'media_files',
+            ['resume_file_id_nl'],
+            ['id'],
+            ondelete='SET NULL',
+        )
 
     op.add_column('skills', sa.Column('proficiency_label', sa.String(length=80), nullable=True))
     op.add_column('skills', sa.Column('proficiency_label_nl', sa.String(length=80), nullable=True))
@@ -69,5 +76,6 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_column('skills', 'proficiency_label_nl')
     op.drop_column('skills', 'proficiency_label')
-    op.drop_constraint('fk_profiles_resume_file_id_nl_media_files', 'profiles', type_='foreignkey')
+    if not _is_sqlite():
+        op.drop_constraint('fk_profiles_resume_file_id_nl_media_files', 'profiles', type_='foreignkey')
     op.drop_column('profiles', 'resume_file_id_nl')

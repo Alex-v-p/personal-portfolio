@@ -130,14 +130,14 @@ def build_fallback_answer(*, citations: list[CitationOut], locale: str = 'en') -
     if resolved_locale == 'nl':
         if not citations:
             return (
-                'Ik heb daar nog niet genoeg betrouwbare portfolio-informatie voor. '
-                'Je kunt me wel iets vragen over Alex’ projecten, ervaring, vaardigheden, blogposts of algemene profiel.'
+                'Ik kon nog niet genoeg relevante portfolio-informatie vinden om dat goed te beantwoorden. '
+                'Je kunt me wel iets vragen over Alex zijn projecten, ervaring, vaardigheden, blogposts of algemene profiel.'
             )
         opening = 'Dit is het beste wat ik uit de portfolio-inhoud kan halen:'
     else:
         if not citations:
             return (
-                "I don't have enough reliable portfolio information to answer that well yet. "
+                "I couldn't find enough relevant indexed portfolio content to answer that confidently yet. "
                 "You can ask me about Alex's projects, experience, skills, blog posts, or overall profile."
             )
         opening = 'Here is the best match I found in the portfolio content:'

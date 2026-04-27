@@ -151,4 +151,6 @@ __all__ = [
     'ProjectStateLiteral',
     'PublicationStatusLiteral',
     'TranslationLocaleLiteral',
+    'AdminProjectImageIn',
+    'AdminProjectImageOut',
 ]
