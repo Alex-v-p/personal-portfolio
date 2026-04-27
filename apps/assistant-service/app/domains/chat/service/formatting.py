@@ -22,6 +22,43 @@ def serialize_recent_history(conversation, *, max_history_messages: int) -> list
     ]
 
 
+def build_conversation_memory_block(conversation, *, locale: str = 'en') -> str | None:
+    summary = (getattr(conversation, 'conversation_summary', None) or '').strip()
+    if not summary:
+        return None
+    language = locale_language_name(resolve_response_locale(locale=locale))
+    return (
+        'Short-lived conversation memory for this same visitor chat. '
+        'Use it only to understand follow-up questions and preferences; do not present it as permanent memory. '
+        f'Preferred language: {language}.\n{summary}'
+    )
+
+
+def build_contextual_retrieval_query(
+    *,
+    question: str,
+    conversation,
+    max_history_messages: int,
+    max_chars: int = 1400,
+) -> str:
+    """Add lightweight chat context to ambiguous retrieval queries without sending the full transcript."""
+    parts = [question.strip()]
+
+    summary = (getattr(conversation, 'conversation_summary', None) or '').strip()
+    if summary:
+        parts.append('Conversation summary: ' + summary)
+
+    recent_history = serialize_recent_history(conversation, max_history_messages=max_history_messages)
+    recent_user_turns = [item['text'].strip() for item in recent_history if item.get('role') == 'user' and item.get('text')]
+    if recent_user_turns:
+        parts.append('Recent visitor questions: ' + ' | '.join(recent_user_turns[-3:]))
+
+    query = '\n\n'.join(part for part in parts if part)
+    if len(query) > max_chars:
+        query = query[: max_chars - 3].rstrip() + '...'
+    return query
+
+
 def resolve_response_locale(*, locale: str | None = None, page_path: str | None = None) -> str:
     return detect_assistant_locale(locale=locale, page_path=page_path)
 
@@ -113,6 +150,13 @@ def build_fallback_answer(*, citations: list[CitationOut], locale: str = 'en') -
         source_label = citation.source_type.replace('_', ' ')
         relevant.append(f'- {citation.title} ({source_label}): {excerpt}')
     return opening + '\n\n' + '\n'.join(relevant)
+
+
+def trim_conversation_summary(summary: str, *, max_chars: int) -> str:
+    normalized = re.sub(r'\s+', ' ', summary).strip()
+    if len(normalized) <= max_chars:
+        return normalized
+    return normalized[: max_chars - 3].rstrip() + '...'
 
 
 def _normalize(text: str) -> str:
