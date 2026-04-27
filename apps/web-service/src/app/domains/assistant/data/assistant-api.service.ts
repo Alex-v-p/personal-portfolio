@@ -181,7 +181,7 @@ export class AssistantApiService {
       role: 'assistant',
       text: response.message,
       createdAt: new Date().toISOString(),
-      citations: response.citations ?? [],
+      citations: this.toPublicCitations(response.citations ?? []),
       tone: 'default',
     };
     this.patchState({
@@ -233,6 +233,7 @@ export class AssistantApiService {
         messages: Array.isArray(parsed.messages)
           ? parsed.messages.map((message) => ({
               ...message,
+              citations: this.toPublicCitations(message.citations ?? []),
               tone: message.tone === 'error' ? 'error' : 'default',
             }))
           : [],
@@ -327,6 +328,10 @@ export class AssistantApiService {
       providerModel: null,
       checkedAt: new Date().toISOString(),
     });
+  }
+
+  private toPublicCitations(citations: AssistantChatMessage['citations']): AssistantChatMessage['citations'] {
+    return citations.filter((citation) => citation.sourceType?.toLowerCase() !== 'assistant_note');
   }
 
   private toFriendlyErrorMessage(error: unknown, context: 'send' | 'poll'): string {

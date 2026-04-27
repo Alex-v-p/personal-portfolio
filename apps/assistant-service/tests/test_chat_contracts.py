@@ -72,3 +72,32 @@ def test_chat_endpoint_accepts_camel_case_request_and_returns_frontend_contract(
     assert body['providerBackend'] == 'mock'
     assert 'FastAPI' in body['message']
     assert {'title', 'sourceType', 'canonicalUrl', 'excerpt'} <= set(body['citations'][0])
+
+
+def test_private_assistant_notes_are_used_as_context_but_not_returned_as_citations() -> None:
+    from app.domains.chat.service.formatting import build_citations, build_context_blocks
+    from app.domains.retrieval.service.models import RetrievedChunk
+
+    retrieved = [
+        RetrievedChunk(
+            title='Overall skills and strengths',
+            source_type='assistant_note',
+            canonical_url=None,
+            excerpt='Alex is strongest when a project combines practical software engineering and clear communication.',
+            score=0.94,
+        ),
+        RetrievedChunk(
+            title='Portfolio project',
+            source_type='project',
+            canonical_url='https://github.com/shuzu/portfolio#readme',
+            excerpt='A project using Angular and FastAPI.',
+            score=0.88,
+        ),
+    ]
+
+    context_blocks = build_context_blocks(retrieved, locale='en')
+    citations = build_citations(retrieved, locale='en')
+
+    assert any('Alex is strongest' in block for block in context_blocks)
+    assert all(citation.source_type != 'assistant_note' for citation in citations)
+    assert [citation.source_type for citation in citations] == ['project']

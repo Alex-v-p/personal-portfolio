@@ -6,6 +6,13 @@ from app.domains.chat.schema import CitationOut
 from app.services.localization import detect_assistant_locale, locale_language_name, localize_internal_path
 
 
+PRIVATE_CITATION_SOURCE_TYPES = {'assistant_note'}
+
+
+def is_public_citation_source(source_type: str | None) -> bool:
+    return (source_type or '').strip().lower() not in PRIVATE_CITATION_SOURCE_TYPES
+
+
 def serialize_recent_history(conversation, *, max_history_messages: int) -> list[dict[str, str]]:
     messages = sorted(conversation.messages, key=lambda item: item.created_at)
     recent = messages[-max_history_messages:]
@@ -23,6 +30,8 @@ def build_citations(retrieved, *, locale: str = 'en') -> list[CitationOut]:
     resolved_locale = resolve_response_locale(locale=locale)
     citations: list[CitationOut] = []
     for item in retrieved:
+        if not is_public_citation_source(item.source_type):
+            continue
         citations.append(
             CitationOut(
                 title=item.title,
@@ -38,7 +47,7 @@ def build_context_blocks(retrieved, *, locale: str = 'en') -> list[str]:
     language = locale_language_name(resolve_response_locale(locale=locale))
     blocks: list[str] = []
     for index, item in enumerate(retrieved):
-        visibility_note = 'assistant-only private CMS note' if item.source_type == 'assistant_note' else item.source_type
+        visibility_note = 'background guidance' if item.source_type == 'assistant_note' else item.source_type
         blocks.append(
             f'[{index + 1}] {item.title} ({visibility_note}, locale={language}, relevance={item.score:.2f})\n{item.excerpt}'
         )
@@ -101,7 +110,7 @@ def build_fallback_answer(*, citations: list[CitationOut], locale: str = 'en') -
         excerpt = citation.excerpt.strip()
         if len(excerpt) > 220:
             excerpt = excerpt[:217].rstrip() + '...'
-        source_label = 'private assistant note' if citation.source_type == 'assistant_note' else citation.source_type.replace('_', ' ')
+        source_label = citation.source_type.replace('_', ' ')
         relevant.append(f'- {citation.title} ({source_label}): {excerpt}')
     return opening + '\n\n' + '\n'.join(relevant)
 
