@@ -17,13 +17,19 @@
 
         <div
           *ngIf="featuredBlogPost.coverImageUrl; else featuredFallback"
-          class=" overflow-hidden"
+          class="overflow-hidden"
         >
-          <img
-            [src]="featuredBlogPost.coverImageUrl"
-            [alt]="featuredBlogPost.coverImageAlt"
-            class="aspect-[16/8.5] w-full object-cover"
-          />
+          <a
+            [routerLink]="featuredBlogArticleRouterLink"
+            class="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
+            [attr.aria-label]="featuredBlogImageAriaLabel"
+          >
+            <img
+              [src]="featuredBlogPost.coverImageUrl"
+              [alt]="featuredBlogPost.coverImageAlt"
+              class="aspect-[16/8.5] w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+            />
+          </a>
         </div>
 
         <ng-template #featuredFallback>
@@ -48,7 +54,12 @@
         <div class="space-y-4 px-6 pb-6 pt-5">
           <div class="space-y-3">
             <h3 class="text-[2rem] font-semibold leading-[1.08] tracking-tight text-stone-950">
-              {{ featuredBlogPost.title }}
+              <a
+                [routerLink]="featuredBlogArticleRouterLink"
+                class="transition hover:text-[var(--ui-accent)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
+              >
+                {{ featuredBlogPost.title }}
+              </a>
             </h3>
 
             <p class="lg:max-w-[46ch] text-sm leading-6 text-stone-600">

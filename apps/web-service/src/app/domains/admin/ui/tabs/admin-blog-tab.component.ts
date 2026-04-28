@@ -208,7 +208,7 @@ export class AdminBlogTabComponent extends AdminLocalizedContentTabBase implemen
   }
 
   public insertImageFromMedia(media: AdminMediaFile): void {
-    const url = media.resolvedAsset?.url ?? media.publicUrl ?? null;
+    const url = media.resolvedAsset?.downloadUrl ?? media.resolvedAsset?.url ?? media.publicUrl ?? null;
     if (!url) {
       this.statusMessageSet.emit('That media file does not have a usable URL yet.');
       return;
@@ -228,7 +228,7 @@ export class AdminBlogTabComponent extends AdminLocalizedContentTabBase implemen
   }
 
   protected insertBlogDownloadFromMedia(media: AdminMediaFile): void {
-    const url = media.resolvedAsset?.url ?? media.publicUrl ?? null;
+    const url = media.resolvedAsset?.downloadUrl ?? media.resolvedAsset?.url ?? media.publicUrl ?? null;
     if (!url) {
       this.statusMessageSet.emit('That media file does not have a usable URL yet.');
       return;

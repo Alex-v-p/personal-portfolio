@@ -112,7 +112,9 @@
       "readArticle": "Artikel lezen",
       "contactMe": "Contacteer me",
       "viewProjects": "Projecten bekijken",
-      "liveDemo": "Bekijk demo"
+      "liveDemo": "Bekijk demo",
+      "showMoreCount": "+{{ count }} meer",
+      "showLess": "Minder tonen"
     },
     "labels": {
       "featured": "Uitgelicht"

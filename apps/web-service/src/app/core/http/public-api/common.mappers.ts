@@ -11,6 +11,7 @@ export function normalizeMedia(media: MediaApi | null | undefined): ResolvedMedi
   return {
     id: media.id,
     url: media.url,
+    downloadUrl: media.downloadUrl ?? null,
     alt: media.alt ?? null,
     fileName: media.fileName ?? null,
     mimeType: media.mimeType ?? null,

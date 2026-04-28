@@ -48,7 +48,15 @@
                 [attr.aria-pressed]="locale === currentLocale"
                 [attr.aria-label]="localeAriaLabel(locale)"
               >
-                <span aria-hidden="true">{{ localeFlag(locale) }}</span>
+                <img
+                  [src]="localeFlagUrl(locale)"
+                  alt=""
+                  aria-hidden="true"
+                  class="h-4 w-5 rounded-[0.2rem] object-cover ring-1 ring-black/10"
+                  width="20"
+                  height="16"
+                />
+                <span class="sr-only">{{ localeShortLabel(locale) }}</span>
               </button>
             </div>
           </div>

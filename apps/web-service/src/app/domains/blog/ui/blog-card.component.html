@@ -1,12 +1,18 @@
 <app-ui-card *ngIf="featured; else defaultCard" [featured]="true" padding="none">
   <div class="grid h-full gap-0 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
     <div class="relative overflow-hidden lg:min-h-[24rem]">
-      <img
+      <a
         *ngIf="post.coverImageUrl; else blogFeaturedFallback"
-        [src]="post.coverImageUrl"
-        [alt]="post.coverImageAlt"
-        class="h-full w-full object-cover"
-      />
+        [routerLink]="articleRouterLink"
+        class="group block h-full min-h-[18rem] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)] lg:min-h-full"
+        [attr.aria-label]="articleImageAriaLabel"
+      >
+        <img
+          [src]="post.coverImageUrl"
+          [alt]="post.coverImageAlt"
+          class="h-full min-h-[18rem] w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+        />
+      </a>
       <ng-template #blogFeaturedFallback>
         <div class="ui-media-placeholder ui-media-fallback flex h-full min-h-[18rem] items-end p-5 text-xs font-semibold uppercase tracking-[0.16em]">
           <span class="max-w-[18ch]">{{ placeholderLabel }}</span>
@@ -30,6 +36,15 @@
 
         <div class="flex flex-wrap gap-2">
           <app-highlight-chip *ngFor="let tag of displayedTags" [label]="tag"></app-highlight-chip>
+          <button
+            *ngIf="shouldShowTagToggle"
+            type="button"
+            (click)="toggleTags()"
+            class="ui-pill inline-flex h-7 items-center px-3 text-xs font-semibold"
+            [attr.aria-expanded]="areTagsExpanded"
+          >
+            {{ tagToggleLabel }}
+          </button>
         </div>
       </div>
 
@@ -45,12 +60,18 @@
   <app-ui-card padding="none">
     <div class="flex h-full flex-col">
       <div class="relative overflow-hidden">
-        <img
+        <a
           *ngIf="post.coverImageUrl; else blogCardFallback"
-          [src]="post.coverImageUrl"
-          [alt]="post.coverImageAlt"
-          class="aspect-[16/10] w-full object-cover"
-        />
+          [routerLink]="articleRouterLink"
+          class="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
+          [attr.aria-label]="articleImageAriaLabel"
+        >
+          <img
+            [src]="post.coverImageUrl"
+            [alt]="post.coverImageAlt"
+            class="aspect-[16/10] w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+          />
+        </a>
         <ng-template #blogCardFallback>
           <div class="ui-media-placeholder ui-media-fallback relative flex aspect-[16/10] items-end p-4 text-[0.7rem] font-semibold uppercase tracking-[0.14em]">
             <span class="max-w-[16ch]">{{ placeholderLabel }}</span>
@@ -73,6 +94,15 @@
 
         <div class="flex flex-wrap gap-2">
           <app-highlight-chip *ngFor="let tag of displayedTags" [label]="tag"></app-highlight-chip>
+          <button
+            *ngIf="shouldShowTagToggle"
+            type="button"
+            (click)="toggleTags()"
+            class="ui-pill inline-flex h-7 items-center px-3 text-xs font-semibold"
+            [attr.aria-expanded]="areTagsExpanded"
+          >
+            {{ tagToggleLabel }}
+          </button>
         </div>
 
         <div class="mt-auto flex flex-wrap gap-3 pt-1">

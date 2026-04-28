@@ -112,7 +112,9 @@
       "readArticle": "Read article",
       "contactMe": "Contact me",
       "viewProjects": "View projects",
-      "liveDemo": "Live demo"
+      "liveDemo": "Live demo",
+      "showMoreCount": "+{{ count }} more",
+      "showLess": "Show less"
     },
     "labels": {
       "featured": "Featured"

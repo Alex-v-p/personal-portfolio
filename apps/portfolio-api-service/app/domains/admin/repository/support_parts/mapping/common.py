@@ -34,6 +34,7 @@ class AdminRepositoryMappingCommonMixin:
         return PublicMediaAssetOut(
             id=str(media_file.id),
             url=url,
+            download_url=self.media_resolver.resolve_download(media_file),
             alt=media_file.alt_text or alt,
             file_name=media_file.original_filename,
             mime_type=media_file.mime_type,

@@ -119,6 +119,10 @@ export function normalizeProfile(profile: ProfileApi): Profile {
     .filter((paragraph, index, items) => items.indexOf(paragraph) === index)
     .filter((paragraph) => paragraph !== shortIntro.trim());
 
+  const avatarMedia = normalizeMedia(profile.avatar);
+  const heroImageMedia = normalizeMedia(profile.heroImage);
+  const resumeMedia = normalizeMedia(profile.resume);
+
   return {
     id: profile.id,
     firstName: profile.firstName,
@@ -140,9 +144,9 @@ export function normalizeProfile(profile: ProfileApi): Profile {
     heroImageFileId: profile.heroImageFileId ?? null,
     resumeFileId: profile.resumeFileId ?? null,
     resumeFileIdNl: profile.resumeFileIdNl ?? null,
-    avatarUrl: normalizeMedia(profile.avatar)?.url ?? '',
-    heroImageUrl: normalizeMedia(profile.heroImage)?.url ?? '',
-    resumeUrl: normalizeMedia(profile.resume)?.url ?? '',
+    avatarUrl: avatarMedia?.url ?? '',
+    heroImageUrl: heroImageMedia?.url ?? '',
+    resumeUrl: resumeMedia?.downloadUrl ?? resumeMedia?.url ?? '',
     skills: Array.isArray(profile.skills) ? profile.skills : [],
     expertiseGroups: normalizeExpertiseGroups(profile.expertiseGroups),
     introParagraphs,
@@ -201,11 +205,13 @@ function toHeroAction(
     return null;
   }
 
-  if (url.startsWith('/')) {
+  const trimmedUrl = url.trim();
+
+  if (isInternalAppRoute(trimmedUrl)) {
     return {
       label,
       appearance,
-      routerLink: url,
+      routerLink: trimmedUrl,
       openInNewTab: false,
     };
   }
@@ -213,7 +219,28 @@ function toHeroAction(
   return {
     label,
     appearance,
-    href: url,
-    openInNewTab: true,
+    href: trimmedUrl,
+    openInNewTab: shouldOpenHeroActionInNewTab(trimmedUrl),
   };
+}
+
+function isInternalAppRoute(url: string): boolean {
+  if (!url.startsWith('/') || url.startsWith('//')) {
+    return false;
+  }
+
+  if (/^\/(api|assets|media|uploads|files)\b/i.test(url)) {
+    return false;
+  }
+
+  const [path] = url.split(/[?#]/, 1);
+  return /^(\/|\/(nl|en)?\/?(about|assistant|blog|contact|experience|projects|stats)?(?:\/.*)?$)$/i.test(path);
+}
+
+function shouldOpenHeroActionInNewTab(url: string): boolean {
+  if (url.startsWith('/')) {
+    return false;
+  }
+
+  return !url.startsWith('mailto:') && !url.startsWith('tel:');
 }

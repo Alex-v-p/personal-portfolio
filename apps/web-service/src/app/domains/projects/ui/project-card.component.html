@@ -2,11 +2,28 @@
   <div class="grid h-full gap-0 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
     <div class="relative overflow-hidden lg:min-h-[24rem]">
       <ng-container *ngIf="currentGalleryImage as image; else featuredProjectFallback">
-        <img
-          [src]="image.url"
-          [alt]="image.alt || project.coverImageAlt || project.title"
-          class="h-full min-h-[18rem] w-full object-cover transition duration-300 lg:min-h-full"
-        />
+        <a
+          *ngIf="mediaClickHref as href; else featuredProjectImage"
+          [href]="href"
+          target="_blank"
+          rel="noreferrer noopener"
+          class="group block h-full min-h-[18rem] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)] lg:min-h-full"
+          [attr.aria-label]="mediaClickAriaLabel"
+        >
+          <img
+            [src]="image.url"
+            [alt]="image.alt || project.coverImageAlt || project.title"
+            class="h-full min-h-[18rem] w-full object-cover transition duration-300 group-hover:scale-[1.02] lg:min-h-full"
+          />
+        </a>
+
+        <ng-template #featuredProjectImage>
+          <img
+            [src]="image.url"
+            [alt]="image.alt || project.coverImageAlt || project.title"
+            class="h-full min-h-[18rem] w-full object-cover transition duration-300 lg:min-h-full"
+          />
+        </ng-template>
 
         <ng-container *ngIf="hasMultipleGalleryImages">
           <button
@@ -50,12 +67,32 @@
         </div>
 
         <div class="space-y-3">
-          <h2 class="ui-title-card text-3xl leading-[1.08]">{{ project.title }}</h2>
+          <h2 class="ui-title-card text-3xl leading-[1.08]">
+            <a
+              *ngIf="mediaClickHref as href; else featuredProjectTitleText"
+              [href]="href"
+              target="_blank"
+              rel="noreferrer noopener"
+              class="transition hover:text-[var(--ui-accent)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
+            >
+              {{ project.title }}
+            </a>
+            <ng-template #featuredProjectTitleText>{{ project.title }}</ng-template>
+          </h2>
           <div class="project-card-markdown" [innerHTML]="renderedTeaserHtml"></div>
         </div>
 
         <div class="flex flex-wrap gap-2">
           <app-highlight-chip *ngFor="let tag of displayedTags" [label]="tag"></app-highlight-chip>
+          <button
+            *ngIf="shouldShowTagToggle"
+            type="button"
+            (click)="toggleTags()"
+            class="ui-pill inline-flex h-7 items-center px-3 text-xs font-semibold"
+            [attr.aria-expanded]="areTagsExpanded"
+          >
+            {{ tagToggleLabel }}
+          </button>
         </div>
 
         <div class="space-y-1">
@@ -91,7 +128,20 @@
     <div class="flex h-full flex-col">
       <div class="relative overflow-hidden">
         <ng-container *ngIf="currentGalleryImage as image; else defaultProjectFallback">
-          <img [src]="image.url" [alt]="image.alt || project.coverImageAlt || project.title" class="aspect-[16/10] w-full object-cover transition duration-300" />
+          <a
+            *ngIf="mediaClickHref as href; else defaultProjectImage"
+            [href]="href"
+            target="_blank"
+            rel="noreferrer noopener"
+            class="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
+            [attr.aria-label]="mediaClickAriaLabel"
+          >
+            <img [src]="image.url" [alt]="image.alt || project.coverImageAlt || project.title" class="aspect-[16/10] w-full object-cover transition duration-300 group-hover:scale-[1.02]" />
+          </a>
+
+          <ng-template #defaultProjectImage>
+            <img [src]="image.url" [alt]="image.alt || project.coverImageAlt || project.title" class="aspect-[16/10] w-full object-cover transition duration-300" />
+          </ng-template>
 
           <ng-container *ngIf="hasMultipleGalleryImages">
             <button
@@ -129,12 +179,32 @@
         </div>
 
         <div class="space-y-2">
-          <h3 class="ui-title-card text-2xl leading-[1.12]">{{ project.title }}</h3>
+          <h3 class="ui-title-card text-2xl leading-[1.12]">
+            <a
+              *ngIf="mediaClickHref as href; else defaultProjectTitleText"
+              [href]="href"
+              target="_blank"
+              rel="noreferrer noopener"
+              class="transition hover:text-[var(--ui-accent)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
+            >
+              {{ project.title }}
+            </a>
+            <ng-template #defaultProjectTitleText>{{ project.title }}</ng-template>
+          </h3>
           <div class="project-card-markdown" [innerHTML]="renderedTeaserHtml"></div>
         </div>
 
         <div class="flex flex-wrap gap-2">
           <app-highlight-chip *ngFor="let tag of displayedTags" [label]="tag"></app-highlight-chip>
+          <button
+            *ngIf="shouldShowTagToggle"
+            type="button"
+            (click)="toggleTags()"
+            class="ui-pill inline-flex h-7 items-center px-3 text-xs font-semibold"
+            [attr.aria-expanded]="areTagsExpanded"
+          >
+            {{ tagToggleLabel }}
+          </button>
         </div>
 
         <div class="mt-auto flex flex-wrap gap-3 pt-1">

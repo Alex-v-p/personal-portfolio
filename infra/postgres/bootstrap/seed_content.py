@@ -158,14 +158,14 @@ PROJECT_ROWS = [{'id': '33c06683-2241-54d8-b352-3104dc61a77d',
             '\n'
             '\n'
             '[Download '
-            'EchangePortal_UserGuide](http://localhost:19000/portfolio/projects/internal-exchange-student-portal/31bb799e481e4fc8bb324f7a19dcb0ea.pdf '
+            'EchangePortal_UserGuide](/api/public/media-files/762ac5ca-cc40-494f-9c61-c5f7171b533c/annotated-ExchangePortal_User_Guide.pdf '
             '"download")\n',
   'teaser_nl': 'Een studentenportaal om internationale uitwisselingen te beheren en studenten door het academische '
                'proces in het buitenland te begeleiden.\n'
                '\n'
                '\n'
                '[Download '
-               'EchangePortal_UserGuide](http://localhost:19000/portfolio/projects/internal-exchange-student-portal/31bb799e481e4fc8bb324f7a19dcb0ea.pdf '
+               'EchangePortal_UserGuide](/api/public/media-files/762ac5ca-cc40-494f-9c61-c5f7171b533c/annotated-ExchangePortal_User_Guide.pdf '
                '"download")',
   'summary': 'This client-facing school project focused on building a clear, user-friendly platform for international '
              'exchange students. Our team first reviewed the work of three other teams, combined their strongest ideas '
@@ -275,14 +275,14 @@ PROJECT_ROWS = [{'id': '33c06683-2241-54d8-b352-3104dc61a77d',
             '\n'
             '\n'
             '[Download '
-            'SecuritySystemIot_Report](http://localhost:19000/portfolio/projects/iot-security-system/83c81854eaeb4c3da7c409d616821ef9.pdf '
+            'SecuritySystemIot_Report](/api/public/media-files/f1499b84-1e62-47b6-9fcb-fa3e11a5afde/Iot_SecuritySystem_Report.pdf '
             '"download")\n',
   'teaser_nl': 'Een speels beveiligingsprototype dat computer vision, embedded aansturing en op maat geprinte hardware '
                'combineerde.\n'
                '\n'
                '\n'
                '[Download '
-               'SecuritySystemIot_Report](http://localhost:19000/portfolio/projects/iot-security-system/83c81854eaeb4c3da7c409d616821ef9.pdf '
+               'SecuritySystemIot_Report](/api/public/media-files/f1499b84-1e62-47b6-9fcb-fa3e11a5afde/Iot_SecuritySystem_Report.pdf '
                '"download")',
   'summary': 'For this IoT project, my team built a hardware-software demo that detects a person, aims a water gun at '
              'them, and triggers a smoke-screen effect when they get too close. It was a fun concept, but also a '
