@@ -1,19 +1,19 @@
 <div class="flex min-h-screen flex-col" [attr.data-skin]="isAdminRoute ? 'admin' : 'public'">
   <header *ngIf="!isAdminRoute" [class]="headerClasses">
     <div class="mx-auto max-w-6xl px-3 py-2 sm:px-0">
-      <div class="grid items-center gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
-        <div aria-hidden="true" class="hidden sm:block"></div>
+      <div class="grid min-w-0 items-center gap-3 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+        <div aria-hidden="true" class="hidden lg:block"></div>
 
-        <div class="flex justify-center">
-          <div class="ui-nav-shell w-full px-3 py-3 sm:inline-flex sm:w-fit sm:max-w-none sm:items-center sm:gap-2 sm:px-5 sm:py-2">
-            <nav class="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-center">
+        <div class="flex min-w-0 justify-center">
+          <div class="ui-nav-shell w-full px-3 py-3 sm:w-fit sm:max-w-full sm:px-5 sm:py-2">
+            <nav class="grid grid-cols-2 gap-2 xs:grid-cols-3 sm:flex sm:flex-wrap sm:items-center sm:justify-center">
               <ng-container *ngFor="let item of quickLinks">
                 <a
                   *ngIf="!item.isExternal; else externalHeaderLink"
                   [routerLink]="item.path"
                   routerLinkActive="ui-nav-link-active"
                   [routerLinkActiveOptions]="{ exact: item.path === '/' + currentLocale }"
-                  class="ui-nav-link w-full justify-center px-3 text-center sm:w-auto sm:px-8"
+                  class="ui-nav-link w-full justify-center px-3 text-center sm:w-auto md:px-5 lg:px-8"
                 >
                   {{ item.label }}
                 </a>
@@ -23,7 +23,7 @@
                     [href]="item.path"
                     target="_blank"
                     rel="noreferrer noopener"
-                    class="ui-nav-link w-full justify-center px-3 text-center sm:w-auto sm:px-8"
+                    class="ui-nav-link w-full justify-center px-3 text-center sm:w-auto md:px-5 lg:px-8"
                   >
                     {{ item.label }}
                   </a>
@@ -33,13 +33,13 @@
           </div>
         </div>
 
-        <div class="flex justify-end">
-          <div class="ui-nav-shell inline-flex items-center gap-2 px-3 py-2">
+        <div class="flex min-w-0 justify-center lg:justify-end">
+          <div class="ui-nav-shell flex max-w-full flex-wrap items-center justify-center gap-2 px-3 py-2">
             <span class="text-[10px] font-medium uppercase tracking-[0.14em] ui-text-soft">
               {{ 'shell.language.label' | translate }}
             </span>
 
-            <div class="inline-flex items-center gap-1.5">
+            <div class="inline-flex flex-wrap items-center justify-center gap-1.5">
               <button
                 *ngFor="let locale of locales"
                 type="button"
