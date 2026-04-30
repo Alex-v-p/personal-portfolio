@@ -138,7 +138,7 @@ class PublicProfileRepositoryMixin:
         intro_paragraphs = [part for part in [long_bio] if part]
         expertise_groups = self._get_expertise_groups()
         localized_resume_file = self._localized_resume_file(profile)
-        resume_url = self.media_resolver.resolve(localized_resume_file)
+        resume_url = self.media_resolver.resolve_download(localized_resume_file) or self.media_resolver.resolve(localized_resume_file)
         primary_cta_url = profile.cta_primary_url
         if primary_cta_url == 'media://resume' or (primary_cta_url and primary_cta_url.startswith('/assets/')):
             primary_cta_url = resume_url

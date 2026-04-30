@@ -204,8 +204,12 @@ export class AppShellComponent implements OnInit {
     ].join(' ');
   }
 
-  protected localeFlag(locale: AppLocale): string {
-    return locale === 'en' ? '🇬🇧' : '🇧🇪';
+  protected localeFlagUrl(locale: AppLocale): string {
+    return locale === 'en' ? '/icons/flags/gb.svg' : '/icons/flags/be.svg';
+  }
+
+  protected localeShortLabel(locale: AppLocale): string {
+    return locale === 'en' ? 'EN' : 'NL';
   }
 
   protected localeAriaLabel(locale: AppLocale): string {

@@ -16,9 +16,8 @@ _LEVEL_MAP = {
     'THIRD_QUARTILE': 3,
     'FOURTH_QUARTILE': 4,
 }
-_SVG_DAY_PATTERN = re.compile(
-    r'data-date="(?P<date>[0-9]{4}-[0-9]{2}-[0-9]{2})"[^>]*data-count="(?P<count>[0-9]+)"[^>]*data-level="(?P<level>[0-4])"'
-)
+_SVG_RECT_PATTERN = re.compile(r'<rect\b(?P<attrs>[^>]*)>', re.IGNORECASE)
+_SVG_ATTR_PATTERN = re.compile(r'(?P<name>data-date|data-count|data-level)="(?P<value>[^"]*)"')
 _TOOLTIP_DAY_PATTERN = re.compile(
     r'(?P<count>[0-9]+|No) contribution[s]? on (?P<month>[A-Za-z]+) (?P<day>[0-9]{1,2})(?:st|nd|rd|th)'
 )
@@ -39,14 +38,22 @@ _MONTHS = {
 
 
 def parse_svg_contribution_days(html: str) -> list[SyncedGithubContributionDay]:
-    days = [
-        SyncedGithubContributionDay(
-            date=match.group('date'),
-            count=max(int(match.group('count')), 0),
-            level=max(int(match.group('level')), 0),
-        )
-        for match in _SVG_DAY_PATTERN.finditer(html)
-    ]
+    days: list[SyncedGithubContributionDay] = []
+    for rect_match in _SVG_RECT_PATTERN.finditer(html):
+        attrs = {match.group('name'): match.group('value') for match in _SVG_ATTR_PATTERN.finditer(rect_match.group('attrs'))}
+        raw_date = attrs.get('data-date')
+        raw_count = attrs.get('data-count')
+        raw_level = attrs.get('data-level')
+        if raw_date is None or raw_count is None or raw_level is None:
+            continue
+        try:
+            date.fromisoformat(raw_date)
+            count = max(int(raw_count), 0)
+            level = max(int(raw_level), 0)
+        except ValueError:
+            continue
+        days.append(SyncedGithubContributionDay(date=raw_date, count=count, level=level))
+
     days.sort(key=lambda item: item.date)
     return days
 
@@ -276,6 +283,17 @@ class GithubContributionSyncClient:
         svg_fetcher: Callable[[str], str],
         html_fetcher: Callable[[str], str] | None = None,
     ) -> tuple[list[SyncedGithubContributionDay], dict[str, Any]]:
+        window_start = date.fromisoformat(from_date)
+        window_end = date.fromisoformat(to_date)
+        if window_start.year != window_end.year:
+            return self._fetch_public_segmented(
+                username=username,
+                from_date=from_date,
+                to_date=to_date,
+                svg_fetcher=svg_fetcher,
+                html_fetcher=html_fetcher,
+            )
+
         query = parse.urlencode({'from': from_date, 'to': to_date})
         url = f'https://github.com/users/{parse.quote(username)}/contributions?{query}'
         fetch_errors: list[str] = []
@@ -327,3 +345,43 @@ class GithubContributionSyncClient:
             'totalContributions': sum(day.count for day in normalized_days),
             'days': len(normalized_days),
         }
+
+    def _fetch_public_segmented(
+        self,
+        *,
+        username: str,
+        from_date: str,
+        to_date: str,
+        svg_fetcher: Callable[[str], str],
+        html_fetcher: Callable[[str], str] | None = None,
+    ) -> tuple[list[SyncedGithubContributionDay], dict[str, Any]]:
+        window_start = date.fromisoformat(from_date)
+        window_end = date.fromisoformat(to_date)
+        current = window_start
+        merged_days: list[SyncedGithubContributionDay] = []
+        segment_meta: list[dict[str, Any]] = []
+
+        while current <= window_end:
+            segment_end = min(date(current.year, 12, 31), window_end)
+            days, meta = self.fetch_public(
+                username=username,
+                from_date=current.isoformat(),
+                to_date=segment_end.isoformat(),
+                svg_fetcher=svg_fetcher,
+                html_fetcher=html_fetcher,
+            )
+            merged_days.extend(days)
+            segment_meta.append(meta)
+            current = segment_end + timedelta(days=1)
+
+        normalized_days = normalize_contribution_day_window(merged_days, from_date=from_date, to_date=to_date)
+        return normalized_days, {
+            'source': 'public-profile-segmented',
+            'from': from_date,
+            'to': to_date,
+            'totalContributions': sum(day.count for day in normalized_days),
+            'days': len(normalized_days),
+            'segments': len(segment_meta),
+            'segmentSources': [meta.get('source') for meta in segment_meta],
+        }
+

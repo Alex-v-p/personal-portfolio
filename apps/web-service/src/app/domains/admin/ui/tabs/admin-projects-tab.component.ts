@@ -141,7 +141,7 @@ export class AdminProjectsTabComponent extends AdminLocalizedContentTabBase {
 
   protected insertProjectDownloadFromMedia(): void {
     const media = this.selectedProjectDownloadMedia;
-    const url = media?.resolvedAsset?.url ?? media?.publicUrl ?? null;
+    const url = media?.resolvedAsset?.downloadUrl ?? media?.resolvedAsset?.url ?? media?.publicUrl ?? null;
     if (!media || !url) {
       return;
     }

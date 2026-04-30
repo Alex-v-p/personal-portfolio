@@ -20,7 +20,7 @@ def test_build_fallback_answer_limits_to_top_three_citations() -> None:
 
 def test_build_fallback_answer_can_reply_in_dutch() -> None:
     answer = build_fallback_answer(citations=[], locale='nl')
-    assert 'Ik kon nog niet genoeg relevante' in answer
+    assert 'Ik heb hier nog niet genoeg relevante informatie' in answer
 
 
 def test_serialize_recent_history_uses_latest_messages_only() -> None:

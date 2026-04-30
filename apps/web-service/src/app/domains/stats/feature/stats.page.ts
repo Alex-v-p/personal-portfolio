@@ -18,6 +18,11 @@ import { SiteTrackingService } from '@domains/site-activity/data/site-tracking.s
 
 const PORTFOLIO_LIKED_STORAGE_KEY = 'portfolio.stats.liked';
 
+interface MonthMarker {
+  label: string;
+  column: number;
+}
+
 @Component({
   selector: 'app-stats-page',
   standalone: true,
@@ -39,6 +44,7 @@ export class StatsPageComponent implements OnInit {
   protected portfolioLikesCard: StatItem = this.createStatItem('highlight-portfolio-likes', 'Like counter', '0', 'Love this portfolio');
   protected portfolioStats: StatItem[] = [];
   protected monthLabels: string[] = [];
+  protected monthMarkers: MonthMarker[] = [];
   protected weekdayLabels: string[] = [];
   protected contributionLegend = [0, 1, 2, 3, 4];
   protected isLoading = true;
@@ -83,6 +89,7 @@ export class StatsPageComponent implements OnInit {
           );
           this.portfolioStats = Array.isArray(stats.portfolioStats) ? stats.portfolioStats : [];
           this.monthLabels = Array.isArray(stats.monthLabels) ? stats.monthLabels : [];
+          this.monthMarkers = this.buildMonthMarkers(this.monthLabels);
           this.weekdayLabels = Array.isArray(stats.weekdayLabels) ? stats.weekdayLabels : [];
         },
         error: () => {
@@ -162,6 +169,42 @@ export class StatsPageComponent implements OnInit {
     return this.isSubmittingLike ? this.i18n.translate('pages.stats.cards.likesSaving') : this.portfolioLikesCard.actionLabel || this.i18n.translate('pages.stats.cards.likesAction');
   }
 
+
+  protected getMonthMarkerLeft(column: number): string {
+    const weekCount = Math.max(this.contributionWeeks.length, 1);
+    const boundedColumn = Math.min(Math.max(column, 0), Math.max(weekCount - 1, 0));
+    return `${(boundedColumn / weekCount) * 100}%`;
+  }
+
+  private buildMonthMarkers(labels: string[]): MonthMarker[] {
+    const markers = labels
+      .map((label, column) => ({ label: String(label ?? '').trim(), column }))
+      .filter((marker) => marker.label.length > 0);
+
+    if (markers.length <= 1) {
+      return markers;
+    }
+
+    return markers.filter((marker, index) => {
+      const previous = markers[index - 1];
+      const next = markers[index + 1];
+
+      // When the rolling window starts at the end of a month, the first two labels can land
+      // one column apart, producing a visual "AprMay" collision. Hide the tiny leading partial
+      // month and keep the first full month instead.
+      if (index === 0 && next && next.column - marker.column < 3) {
+        return false;
+      }
+
+      // For any other unusually tight pair, keep the earlier label so labels never overlap.
+      if (previous && marker.column - previous.column < 3) {
+        return false;
+      }
+
+      return true;
+    });
+  }
+
   protected getContributionCellClass(value: number): string {
     const base = 'aspect-square w-full rounded-[4px] border border-white/30';
     const tones = ['bg-stone-200', 'bg-lime-100', 'bg-lime-200', 'bg-lime-400', 'bg-lime-600'];
@@ -188,6 +231,7 @@ export class StatsPageComponent implements OnInit {
     this.portfolioLikesCard = this.createStatItem('highlight-portfolio-likes', this.i18n.translate('pages.stats.cards.likesLabel'), '0', this.i18n.translate('pages.stats.cards.likesAction'));
     this.portfolioStats = [];
     this.monthLabels = [];
+    this.monthMarkers = [];
     this.weekdayLabels = [];
   }
 

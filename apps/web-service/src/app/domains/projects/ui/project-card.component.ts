@@ -24,9 +24,34 @@ export class ProjectCardComponent {
   @Input() featured = false;
 
   protected activeGalleryIndex = 0;
+  protected areTagsExpanded = false;
+
+  private get tagPreviewLimit(): number {
+    return this.featured ? 5 : 4;
+  }
 
   protected get displayedTags(): string[] {
-    return this.project.tags.slice(0, this.featured ? 5 : 4);
+    return this.areTagsExpanded ? this.project.tags : this.project.tags.slice(0, this.tagPreviewLimit);
+  }
+
+  protected get hiddenTagCount(): number {
+    return Math.max(this.project.tags.length - this.tagPreviewLimit, 0);
+  }
+
+  protected get shouldShowTagToggle(): boolean {
+    return this.project.tags.length > this.tagPreviewLimit;
+  }
+
+  protected get tagToggleLabel(): string {
+    if (this.areTagsExpanded) {
+      return this.i18n.translate('common.actions.showLess');
+    }
+
+    return this.i18n.translate('common.actions.showMoreCount', { count: this.hiddenTagCount });
+  }
+
+  protected toggleTags(): void {
+    this.areTagsExpanded = !this.areTagsExpanded;
   }
 
   protected get readMoreAction(): ProjectLink | null {
@@ -36,6 +61,14 @@ export class ProjectCardComponent {
     }
 
     return this.project.links.find((link) => !!link.href && /read|meer|github/i.test(link.label ?? '')) ?? null;
+  }
+
+  protected get mediaClickHref(): string | null {
+    return this.readMoreAction?.href?.trim() || null;
+  }
+
+  protected get mediaClickAriaLabel(): string {
+    return `${this.i18n.translate('common.actions.readMore')}: ${this.project.title}`;
   }
 
   protected get renderedTeaserHtml(): string {

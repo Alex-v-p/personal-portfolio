@@ -21,6 +21,19 @@ def test_parse_svg_contribution_days_sorts_by_date() -> None:
     assert [day.level for day in days] == [0, 3, 2]
 
 
+def test_parse_svg_contribution_days_accepts_reordered_attributes() -> None:
+    html = (
+        '<rect data-level="3" class="ContributionCalendar-day" data-date="2026-04-02" data-count="7"></rect>'
+        '<rect data-count="2" data-level="1" data-date="2026-04-01"></rect>'
+    )
+
+    days = parse_svg_contribution_days(html)
+
+    assert [day.date for day in days] == ['2026-04-01', '2026-04-02']
+    assert [day.count for day in days] == [2, 7]
+    assert [day.level for day in days] == [1, 3]
+
+
 def test_parse_tooltip_contribution_days_uses_target_year_and_level_mapping() -> None:
     html = '1 contribution on January 3rd 12 contributions on February 4th'
 
@@ -72,6 +85,41 @@ def test_fetch_public_prefers_svg_calendar_and_returns_full_daily_window() -> No
     assert [day.date for day in days] == ['2026-04-01', '2026-04-02', '2026-04-03', '2026-04-04']
     assert [day.count for day in days] == [0, 9, 0, 1]
     assert meta['source'] == 'public-profile-svg'
+
+
+def test_fetch_public_splits_cross_year_windows_into_calendar_year_requests() -> None:
+    client = GithubContributionSyncClient()
+    requested_urls: list[str] = []
+
+    def svg_fetcher(url: str) -> str:
+        requested_urls.append(url)
+        if 'from=2025-12-30' in url and 'to=2025-12-31' in url:
+            return (
+                '<svg>'
+                '<rect data-date="2025-12-31" data-count="2" data-level="1"></rect>'
+                '</svg>'
+            )
+        if 'from=2026-01-01' in url and 'to=2026-01-02' in url:
+            return (
+                '<svg>'
+                '<rect data-date="2026-01-02" data-count="5" data-level="2"></rect>'
+                '</svg>'
+            )
+        return '<svg></svg>'
+
+    days, meta = client.fetch_public(
+        username='Alex-v-p',
+        from_date='2025-12-30',
+        to_date='2026-01-02',
+        svg_fetcher=svg_fetcher,
+        html_fetcher=lambda _url: '',
+    )
+
+    assert len(requested_urls) == 2
+    assert [day.date for day in days] == ['2025-12-30', '2025-12-31', '2026-01-01', '2026-01-02']
+    assert [day.count for day in days] == [0, 2, 0, 5]
+    assert meta['source'] == 'public-profile-segmented'
+    assert meta['segments'] == 2
 
 
 def test_fetch_public_rejects_weekly_only_html_fallback() -> None:

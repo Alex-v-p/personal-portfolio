@@ -1,5 +1,6 @@
 import { NgFor, NgIf } from '@angular/common';
 import { Component, Input, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { I18nService } from '@core/i18n/i18n.service';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
@@ -12,7 +13,7 @@ import { BlogPostSummary } from '@domains/blog/model/blog-post-summary.model';
 @Component({
   selector: 'app-blog-card',
   standalone: true,
-  imports: [NgFor, NgIf, TranslatePipe, UiCardComponent, UiChipComponent, HighlightChipComponent, UiLinkButtonComponent],
+  imports: [NgFor, NgIf, RouterLink, TranslatePipe, UiCardComponent, UiChipComponent, HighlightChipComponent, UiLinkButtonComponent],
   templateUrl: './blog-card.component.html'
 })
 export class BlogCardComponent {
@@ -22,8 +23,42 @@ export class BlogCardComponent {
   @Input() featured = false;
   @Input() showSecondaryAction = true;
 
+  protected areTagsExpanded = false;
+
+  private get tagPreviewLimit(): number {
+    return this.featured ? 4 : 3;
+  }
+
+  protected get articleRouterLink(): string | readonly string[] {
+    return this.i18n.localizeRouterCommands(['/blog', this.post.slug]) ?? ['/blog', this.post.slug];
+  }
+
   protected get displayedTags(): string[] {
-    return this.post.tags.slice(0, this.featured ? 4 : 3);
+    return this.areTagsExpanded ? this.post.tags : this.post.tags.slice(0, this.tagPreviewLimit);
+  }
+
+  protected get hiddenTagCount(): number {
+    return Math.max(this.post.tags.length - this.tagPreviewLimit, 0);
+  }
+
+  protected get shouldShowTagToggle(): boolean {
+    return this.post.tags.length > this.tagPreviewLimit;
+  }
+
+  protected get tagToggleLabel(): string {
+    if (this.areTagsExpanded) {
+      return this.i18n.translate('common.actions.showLess');
+    }
+
+    return this.i18n.translate('common.actions.showMoreCount', { count: this.hiddenTagCount });
+  }
+
+  protected toggleTags(): void {
+    this.areTagsExpanded = !this.areTagsExpanded;
+  }
+
+  protected get articleImageAriaLabel(): string {
+    return `${this.i18n.translate('common.actions.readArticle')}: ${this.post.title}`;
   }
 
   protected get placeholderLabel(): string {

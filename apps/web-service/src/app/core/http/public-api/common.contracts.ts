@@ -6,6 +6,7 @@ export interface CollectionResponse<T> {
 export interface MediaApi {
   id: string;
   url: string;
+  downloadUrl?: string | null;
   alt?: string | null;
   fileName?: string | null;
   mimeType?: string | null;

@@ -201,7 +201,7 @@ def test_provider_daily_generation_cap_forces_fallback(tmp_path: Path, monkeypat
     assert first.status_code == 200
     assert first.json()['message'] == 'Generated portfolio answer.'
     assert second.status_code == 200
-    assert "I couldn't find enough relevant indexed portfolio content" in second.json()['message']
+    assert "I don't have enough relevant information here" in second.json()['message']
 
 
 def test_chat_returns_async_task_when_redis_queue_is_available(tmp_path: Path, monkeypatch) -> None:

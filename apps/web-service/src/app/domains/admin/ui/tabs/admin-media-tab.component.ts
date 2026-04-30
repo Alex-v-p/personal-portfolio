@@ -95,7 +95,7 @@ export class AdminMediaTabComponent {
   }
 
   markdownDownloadSnippet(media: AdminMediaFile): string {
-    const url = media.resolvedAsset?.url ?? media.publicUrl ?? '';
+    const url = media.resolvedAsset?.downloadUrl ?? media.resolvedAsset?.url ?? media.publicUrl ?? '';
     return url ? buildMarkdownDownloadLink(`Download ${media.title || media.originalFilename || 'file'}`, url) : '';
   }
 
