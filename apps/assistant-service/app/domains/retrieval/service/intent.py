@@ -6,7 +6,7 @@ from app.domains.retrieval.service.text import contains_any, normalize_text
 
 def infer_intent(*, query: str, page_path: str | None) -> QueryIntent:
     normalized = normalize_text(query)
-    if contains_any(normalized, {'hire', 'hiring', 'recruiter', 'fit', 'candidate', 'strength', 'strengths', 'weakness', 'weaknesses', 'overall', 'best at', 'good at', 'work style', 'working style', 'availability', 'available', 'cv', 'resume'}):
+    if contains_any(normalized, {'hire', 'hiring', 'recruiter', 'fit', 'candidate', 'opportunity', 'opportunities', 'company', 'contact', 'email', 'linkedin', 'strength', 'strengths', 'weakness', 'weaknesses', 'overall', 'best at', 'good at', 'work style', 'working style', 'availability', 'available', 'location', 'located', 'lommel', 'belgium', 'remote', 'hybrid', 'onsite', 'on site', 'international', 'cv', 'resume'}):
         return QueryIntent(
             name='portfolio_fit',
             preferred_sources=('assistant_note', 'profile'),

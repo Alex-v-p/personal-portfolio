@@ -98,28 +98,28 @@ def build_conversational_answer(*, question: str, locale: str = 'en') -> str | N
         return _message(
             resolved_locale,
             en='Hi! I can help you explore Alex’s portfolio, projects, skills, experience, and blog posts.',
-            nl='Hoi! Ik kan je helpen om Alex’ portfolio, projecten, vaardigheden, ervaring en blogposts te verkennen.',
+            nl='Hoi! Ik kan u helpen om Alex’ portfolio, projecten, vaardigheden, ervaring en blogposts te verkennen.',
         )
 
     if normalized in _THANKS_PATTERNS:
         return _message(
             resolved_locale,
             en='You’re welcome! Ask me anything about the portfolio whenever you like.',
-            nl='Graag gedaan! Vraag gerust iets over het portfolio wanneer je wilt.',
+            nl='Graag gedaan! Vraag gerust iets over het portfolio wanneer u wilt.',
         )
 
     if normalized in _GREETING_PATTERNS or normalized in _HOW_ARE_YOU_PATTERNS:
         return _message(
             resolved_locale,
             en='I’m doing well, thanks! I’m here as a guide for Alex’s portfolio. I can talk through his projects, skills, experience, blog posts, or what might make him a good fit for a role.',
-            nl='Met mij gaat het goed, bedankt! Ik ben hier als gids voor Alex’ portfolio. Ik kan helpen met zijn projecten, vaardigheden, ervaring, blogposts of waarom hij bij een rol zou kunnen passen.',
+            nl='Met mij gaat het goed, bedankt! Ik ben hier als gids voor Alex’ portfolio. Ik kan u helpen met Alex’ projecten, vaardigheden, ervaring, blogposts of waarom Alex bij een rol zou kunnen passen.',
         )
 
     if any(phrase in normalized for phrase in _CAPABILITY_PHRASES):
         return _message(
             resolved_locale,
-            en='I can help you quickly understand Alex’s background: compare projects, summarize his strengths, point you to GitHub READMEs or blog posts, explain his tech stack, and answer recruiter-style questions using the portfolio content.',
-            nl='Ik kan je snel helpen Alex’ achtergrond te begrijpen: projecten vergelijken, zijn sterktes samenvatten, je naar GitHub-README’s of blogposts verwijzen, zijn techstack uitleggen en recruiter-achtige vragen beantwoorden op basis van de portfolio-inhoud.',
+            en='I can help you quickly understand Alex’s background: compare projects, summarize their strengths, point you to GitHub READMEs or blog posts, explain their tech stack, and answer recruiter-style questions with the information available here.',
+            nl='Ik kan u snel helpen Alex’ achtergrond te begrijpen: projecten vergelijken, sterktes samenvatten, u naar GitHub-README’s of blogposts verwijzen, de techstack uitleggen en recruiter-achtige vragen beantwoorden met de informatie die hier beschikbaar is.',
         )
 
     return None
@@ -130,17 +130,17 @@ def build_fallback_answer(*, citations: list[CitationOut], locale: str = 'en') -
     if resolved_locale == 'nl':
         if not citations:
             return (
-                'Ik kon nog niet genoeg relevante portfolio-informatie vinden om dat goed te beantwoorden. '
-                'Je kunt me wel iets vragen over Alex zijn projecten, ervaring, vaardigheden, blogposts of algemene profiel.'
+                'Ik heb hier nog niet genoeg relevante informatie om dat goed te beantwoorden. '
+                'U kunt wel iets vragen over Alex’ projecten, ervaring, vaardigheden, blogposts of algemene profiel.'
             )
-        opening = 'Dit is het beste wat ik uit de portfolio-inhoud kan halen:'
+        opening = 'Dit is de meest relevante informatie die ik hiervoor kan vinden:'
     else:
         if not citations:
             return (
-                "I couldn't find enough relevant indexed portfolio content to answer that confidently yet. "
+                "I don't have enough relevant information here to answer that confidently yet. "
                 "You can ask me about Alex's projects, experience, skills, blog posts, or overall profile."
             )
-        opening = 'Here is the best match I found in the portfolio content:'
+        opening = 'Here is the closest useful match I found:'
 
     relevant = []
     for citation in citations[:3]:

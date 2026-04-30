@@ -13,6 +13,14 @@ def test_infer_intent_prefers_project_sources_for_project_queries() -> None:
     assert 'experience' in intent.allowed_supporting_sources
 
 
+def test_infer_intent_routes_recruiter_logistics_to_private_guidance() -> None:
+    intent = infer_intent(query='Is Alex available for a hybrid opportunity in Belgium?', page_path='/')
+
+    assert intent.name == 'portfolio_fit'
+    assert intent.preferred_sources == ('assistant_note', 'profile')
+    assert 'project' in intent.allowed_supporting_sources
+
+
 def test_source_multiplier_boosts_preferred_source_on_matching_page() -> None:
     intent = QueryIntent(name='project', preferred_sources=('project',), page_path_hint='/projects')
 

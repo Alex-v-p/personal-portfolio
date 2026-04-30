@@ -283,6 +283,17 @@ class GithubContributionSyncClient:
         svg_fetcher: Callable[[str], str],
         html_fetcher: Callable[[str], str] | None = None,
     ) -> tuple[list[SyncedGithubContributionDay], dict[str, Any]]:
+        window_start = date.fromisoformat(from_date)
+        window_end = date.fromisoformat(to_date)
+        if window_start.year != window_end.year:
+            return self._fetch_public_segmented(
+                username=username,
+                from_date=from_date,
+                to_date=to_date,
+                svg_fetcher=svg_fetcher,
+                html_fetcher=html_fetcher,
+            )
+
         query = parse.urlencode({'from': from_date, 'to': to_date})
         url = f'https://github.com/users/{parse.quote(username)}/contributions?{query}'
         fetch_errors: list[str] = []
@@ -334,3 +345,43 @@ class GithubContributionSyncClient:
             'totalContributions': sum(day.count for day in normalized_days),
             'days': len(normalized_days),
         }
+
+    def _fetch_public_segmented(
+        self,
+        *,
+        username: str,
+        from_date: str,
+        to_date: str,
+        svg_fetcher: Callable[[str], str],
+        html_fetcher: Callable[[str], str] | None = None,
+    ) -> tuple[list[SyncedGithubContributionDay], dict[str, Any]]:
+        window_start = date.fromisoformat(from_date)
+        window_end = date.fromisoformat(to_date)
+        current = window_start
+        merged_days: list[SyncedGithubContributionDay] = []
+        segment_meta: list[dict[str, Any]] = []
+
+        while current <= window_end:
+            segment_end = min(date(current.year, 12, 31), window_end)
+            days, meta = self.fetch_public(
+                username=username,
+                from_date=current.isoformat(),
+                to_date=segment_end.isoformat(),
+                svg_fetcher=svg_fetcher,
+                html_fetcher=html_fetcher,
+            )
+            merged_days.extend(days)
+            segment_meta.append(meta)
+            current = segment_end + timedelta(days=1)
+
+        normalized_days = normalize_contribution_day_window(merged_days, from_date=from_date, to_date=to_date)
+        return normalized_days, {
+            'source': 'public-profile-segmented',
+            'from': from_date,
+            'to': to_date,
+            'totalContributions': sum(day.count for day in normalized_days),
+            'days': len(normalized_days),
+            'segments': len(segment_meta),
+            'segmentSources': [meta.get('source') for meta in segment_meta],
+        }
+
