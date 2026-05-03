@@ -1380,3 +1380,27 @@
   width: 1.25rem;
   font-size: 0.82rem;
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  .portfolio-route-surface.portfolio-route-enter {
+    animation: portfolio-route-enter 110ms ease-out both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portfolio-route-surface.portfolio-route-enter {
+    animation: none;
+  }
+}
+
+@keyframes portfolio-route-enter {
+  from {
+    opacity: 0.96;
+    transform: translateY(0.15rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

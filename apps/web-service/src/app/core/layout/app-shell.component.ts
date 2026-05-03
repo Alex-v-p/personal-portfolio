@@ -43,6 +43,7 @@ export class AppShellComponent implements OnInit {
   protected isAssistantOpen = false;
   protected isRouteLoading = true;
   protected hasActiveRouteComponent = false;
+  protected isRouteSettling = false;
   protected readonly assistantAvailability$ = this.assistant.availability$;
 
   protected readonly shellChrome = {
@@ -54,6 +55,7 @@ export class AppShellComponent implements OnInit {
   };
 
   private lastScrollY = 0;
+  private routeSettleTimer: number | undefined;
 
   ngOnInit(): void {
     this.isAdminRoute = this.router.url.startsWith('/admin');
@@ -89,6 +91,7 @@ export class AppShellComponent implements OnInit {
           if (!this.isAdminRoute) {
             this.siteTracking.trackPageView(event.urlAfterRedirects);
           }
+          this.restoreViewportForNewPage(event.urlAfterRedirects);
           this.changeDetectorRef.detectChanges();
           return;
         }
@@ -118,6 +121,7 @@ export class AppShellComponent implements OnInit {
   protected onRouteActivate(): void {
     this.hasActiveRouteComponent = true;
     this.isRouteLoading = false;
+    this.triggerRouteEnterAnimation();
     this.changeDetectorRef.detectChanges();
   }
 
@@ -128,9 +132,11 @@ export class AppShellComponent implements OnInit {
   }
 
   protected get mainContentContainerClasses(): string {
-    return this.isAdminRoute
-      ? 'mx-auto w-full max-w-[100rem] 2xl:max-w-[112rem]'
-      : 'mx-auto w-full max-w-6xl';
+    const baseClasses = this.isAdminRoute
+      ? 'portfolio-route-surface mx-auto w-full max-w-[100rem] 2xl:max-w-[112rem]'
+      : 'portfolio-route-surface mx-auto w-full max-w-6xl';
+
+    return this.isRouteSettling ? `${baseClasses} portfolio-route-enter` : baseClasses;
   }
 
   protected get resources(): Array<{ label: string; href: string }> {
@@ -243,6 +249,60 @@ export class AppShellComponent implements OnInit {
 
   private get isContactRoute(): boolean {
     return this.i18n.stripLocalePrefix(this.router.url).startsWith('/contact');
+  }
+
+  private triggerRouteEnterAnimation(): void {
+    this.isRouteSettling = false;
+
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    if (this.routeSettleTimer) {
+      window.clearTimeout(this.routeSettleTimer);
+    }
+
+    if (this.isAdminRoute) {
+      return;
+    }
+
+    const startAnimation = (): void => {
+      this.isRouteSettling = true;
+      this.changeDetectorRef.detectChanges();
+
+      this.routeSettleTimer = window.setTimeout(() => {
+        this.isRouteSettling = false;
+        this.changeDetectorRef.detectChanges();
+      }, 140);
+    };
+
+    if (typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(startAnimation);
+      return;
+    }
+
+    startAnimation();
+  }
+
+  private restoreViewportForNewPage(url: string): void {
+    this.shellChrome.headerVisible = true;
+    this.shellChrome.assistantVisible = true;
+    this.shellChrome.hasScrolledPastThreshold = false;
+    this.shellChrome.scrollDirection = 'up';
+    this.lastScrollY = 0;
+
+    if (typeof window === 'undefined' || url.includes('#')) {
+      return;
+    }
+
+    const scrollToTop = (): void => window.scrollTo({ left: 0, top: 0, behavior: 'auto' });
+
+    if (typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(scrollToTop);
+      return;
+    }
+
+    scrollToTop();
   }
 
   @HostListener('window:scroll')
