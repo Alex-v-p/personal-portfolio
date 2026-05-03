@@ -250,7 +250,7 @@
       }
     },
     "blogPost": {
-      "back": "← Terug naar blog",
+      "back": "Terug naar blog",
       "loading": "Artikel laden",
       "share": "Delen:",
       "errors": {

@@ -13,6 +13,7 @@ import { UiEmptyStateComponent } from '@shared/components/empty-state/ui-empty-s
 import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.component';
 import { ProjectSummary } from '@domains/projects/model/project-summary.model';
 import { ProjectCardComponent } from '@domains/projects/ui/project-card.component';
+import { UiBreadcrumbsComponent } from '@shared/components/breadcrumbs/ui-breadcrumbs.component';
 
 interface SkillFilterOption {
   name: string;
@@ -22,7 +23,7 @@ interface SkillFilterOption {
 @Component({
   selector: 'app-projects-page',
   standalone: true,
-  imports: [NgFor, NgIf, FormsModule, TranslatePipe, UiButtonComponent, UiEmptyStateComponent, UiSkeletonComponent, ProjectCardComponent],
+  imports: [NgFor, NgIf, FormsModule, TranslatePipe, UiButtonComponent, UiEmptyStateComponent, UiSkeletonComponent, ProjectCardComponent, UiBreadcrumbsComponent],
   templateUrl: './projects.page.html'
 })
 export class ProjectsPageComponent implements OnInit {

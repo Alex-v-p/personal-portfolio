@@ -1,5 +1,10 @@
 <div class="mx-auto max-w-6xl space-y-8">
-  <p class="text-sm ui-text-muted">{{ 'navigation.home' | translate }} &gt; {{ 'navigation.blog' | translate }}</p>
+  <app-ui-breadcrumbs
+    [items]="[
+      { label: ('navigation.home' | translate), path: '/' },
+      { label: ('navigation.blog' | translate), path: '/blog' }
+    ]"
+  ></app-ui-breadcrumbs>
 
   <section class="ui-panel-soft p-6 sm:p-8 lg:p-10">
     <div class="space-y-8">

@@ -250,7 +250,7 @@
       }
     },
     "blogPost": {
-      "back": "← Back to blog",
+      "back": "Back to blog",
       "loading": "Loading article",
       "share": "Share:",
       "errors": {

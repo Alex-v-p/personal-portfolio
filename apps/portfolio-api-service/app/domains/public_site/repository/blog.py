@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from sqlalchemy.orm import selectinload
 
-from app.db.models import BlogPost, BlogPostTag
+from app.db.models import BlogPost, BlogPostTag, MediaFile
 from app.domains.public_site.schema import BlogPostDetailOut, BlogPostSummaryOut, BlogTagOut
 
 
@@ -67,9 +67,33 @@ class PublicBlogRepositoryMixin:
 
     def _map_blog_post_detail(self, post: BlogPost) -> BlogPostDetailOut:
         summary = self._map_blog_post_summary(post)
+        content_markdown = self._localized(post, 'content_markdown') or post.content_markdown
         return BlogPostDetailOut(
             **summary.model_dump(),
-            content_markdown=self._localized(post, 'content_markdown') or post.content_markdown,
+            content_markdown=self._normalize_markdown_media_urls(content_markdown, post.cover_image_file),
             seo_title=self._localized(post, 'seo_title') or post.seo_title,
             seo_description=self._localized(post, 'seo_description') or post.seo_description,
         )
+
+    def _normalize_markdown_media_urls(self, markdown: str, media_file: MediaFile | None) -> str:
+        if media_file is None or not media_file.bucket_name or not media_file.object_key:
+            return markdown
+
+        resolved_url = self.media_resolver.resolve(media_file)
+        if not resolved_url:
+            return markdown
+
+        object_path = f'{media_file.bucket_name}/{media_file.object_key.lstrip("/")}'
+        legacy_prefixes = (
+            'http://localhost:19000',
+            'http://127.0.0.1:19000',
+            'http://localhost:9000',
+            'http://127.0.0.1:9000',
+            'https://media.alex-vp.com',
+        )
+
+        normalized_markdown = markdown
+        for prefix in legacy_prefixes:
+            normalized_markdown = normalized_markdown.replace(f'{prefix.rstrip("/")}/{object_path}', resolved_url)
+
+        return normalized_markdown

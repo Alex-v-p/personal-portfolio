@@ -1,5 +1,8 @@
 <div class="mx-auto max-w-4xl space-y-8">
-  <app-ui-link-button routerLink="/blog" appearance="ghost">{{ 'pages.blogPost.back' | translate }}</app-ui-link-button>
+  <a [href]="blogListingHref" class="ui-back-link">
+    <span aria-hidden="true" class="ui-back-link-icon">←</span>
+    <span>{{ 'pages.blogPost.back' | translate }}</span>
+  </a>
 
   <section *ngIf="isLoading" class="space-y-6" [attr.aria-label]="'pages.blogPost.loading' | translate">
     <app-ui-skeleton className="h-6 w-32 rounded-full"></app-ui-skeleton>
@@ -48,12 +51,18 @@
 
       <div class="flex items-center gap-3 text-sm ui-text-muted">
         <span>{{ 'pages.blogPost.share' | translate }}</span>
-        <span
-          *ngFor="let mark of shareMarks"
-          class="ui-pill h-8 w-8 justify-center rounded-sm px-0 text-xs font-semibold uppercase"
+        <a
+          *ngFor="let action of shareActions"
+          [href]="action.href"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="ui-share-button"
+          [attr.aria-label]="'Share on ' + action.name + ': ' + post.title"
+          [title]="'Share on ' + action.name"
         >
-          {{ mark }}
-        </span>
+          <app-ui-icon [name]="action.iconName" size="xs" [decorative]="true"></app-ui-icon>
+          <span class="sr-only">{{ action.name }}</span>
+        </a>
       </div>
     </header>
 

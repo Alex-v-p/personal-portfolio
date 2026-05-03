@@ -173,6 +173,9 @@ def test_get_blog_post_by_slug_returns_single_article(client: TestClient) -> Non
     assert body['slug'] == slug
     assert body['status'] == 'published'
     assert body['coverImage']['url'].startswith('http://media.example.test/portfolio/blog/')
+    assert 'http://localhost:19000' not in body['contentMarkdown']
+    assert 'https://media.alex-vp.com' not in body['contentMarkdown']
+    assert 'http://media.example.test/portfolio/blog/my-homelab/cover.png' in body['contentMarkdown']
 
 
 def test_list_experience_returns_rows_with_skill_names(client: TestClient) -> None:
@@ -240,7 +243,11 @@ def test_public_routes_return_localized_dutch_content_when_available(client: Tes
     blog_slug = _find_blog_slug(title_contains='homelab')
     blog_response = client.get(f'/api/public/blog-posts/{blog_slug}', params={'locale': 'nl'})
     assert blog_response.status_code == 200
-    assert blog_response.json()['title'] == 'Mijn homelab'
+    blog_body = blog_response.json()
+    assert blog_body['title'] == 'Mijn homelab'
+    assert blog_body['contentMarkdown'].startswith('# Mijn homelab')
+    assert 'At first my homelab' not in blog_body['contentMarkdown']
+    assert 'http://media.example.test/portfolio/blog/my-homelab/cover.png' in blog_body['contentMarkdown']
 
 
 def test_public_routes_fall_back_to_english_when_locale_content_is_missing(client: TestClient) -> None:
