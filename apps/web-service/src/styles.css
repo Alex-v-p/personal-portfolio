@@ -452,6 +452,23 @@
       opacity 0.18s ease;
   }
 
+  .ui-btn-label {
+    min-width: 0;
+  }
+
+  .ui-btn-external-icon {
+    flex: 0 0 auto;
+    opacity: 0.72;
+    transition:
+      opacity 0.18s ease,
+      transform 0.18s ease;
+  }
+
+  .ui-btn:hover .ui-btn-external-icon {
+    opacity: 1;
+    transform: translate(1px, -1px);
+  }
+
   .ui-btn:hover {
     transform: translateY(-1px);
   }

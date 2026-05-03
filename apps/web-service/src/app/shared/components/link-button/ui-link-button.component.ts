@@ -1,11 +1,14 @@
+import { NgIf } from '@angular/common';
 import { Component, Input, inject } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { I18nService } from '@core/i18n/i18n.service';
+import { UiIconComponent } from '@shared/icons/ui-icon.component';
 
 @Component({
   selector: 'app-ui-link-button',
   standalone: true,
+  imports: [NgIf, UiIconComponent],
   templateUrl: './ui-link-button.component.html'
 })
 export class UiLinkButtonComponent {
@@ -26,6 +29,15 @@ export class UiLinkButtonComponent {
     } as const;
 
     return `${base} ${variants[this.appearance]}`;
+  }
+
+
+  protected get shouldShowExternalIcon(): boolean {
+    return !!this.href && this.openInNewTab;
+  }
+
+  protected get opensInNewTabLabel(): string {
+    return this.i18n.translate('common.actions.opensInNewTab');
   }
 
   protected get resolvedHref(): string | null {

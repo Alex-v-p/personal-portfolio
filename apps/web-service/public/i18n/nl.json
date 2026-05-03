@@ -114,7 +114,8 @@
       "viewProjects": "Projecten bekijken",
       "liveDemo": "Bekijk demo",
       "showMoreCount": "+{{ count }} meer",
-      "showLess": "Minder tonen"
+      "showLess": "Minder tonen",
+      "opensInNewTab": "Opent in een nieuw tabblad"
     },
     "labels": {
       "featured": "Uitgelicht"

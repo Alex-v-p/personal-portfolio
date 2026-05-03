@@ -3,7 +3,16 @@
   [attr.href]="resolvedHref"
   [attr.target]="href && openInNewTab ? '_blank' : null"
   [attr.rel]="href && openInNewTab ? 'noreferrer noopener' : null"
+  [attr.title]="shouldShowExternalIcon ? opensInNewTabLabel : null"
   (click)="handleClick($event)"
 >
-  <ng-content></ng-content>
+  <span class="ui-btn-label"><ng-content></ng-content></span>
+  <app-ui-icon
+    *ngIf="shouldShowExternalIcon"
+    name="external-link"
+    size="xs"
+    class="ui-btn-external-icon"
+    [decorative]="true"
+  ></app-ui-icon>
+  <span *ngIf="shouldShowExternalIcon" class="sr-only">{{ opensInNewTabLabel }}</span>
 </a>

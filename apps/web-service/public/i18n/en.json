@@ -114,7 +114,8 @@
       "viewProjects": "View projects",
       "liveDemo": "Live demo",
       "showMoreCount": "+{{ count }} more",
-      "showLess": "Show less"
+      "showLess": "Show less",
+      "opensInNewTab": "Opens in a new tab"
     },
     "labels": {
       "featured": "Featured"
