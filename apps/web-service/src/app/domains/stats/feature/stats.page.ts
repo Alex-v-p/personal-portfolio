@@ -15,6 +15,7 @@ import { StatItem } from '@domains/stats/model/stat-item.model';
 import { PublicStatsApiService } from '@domains/stats/data/stats-api.service';
 import { PublicEventsApiService } from '@domains/site-activity/data/events-api.service';
 import { SiteTrackingService } from '@domains/site-activity/data/site-tracking.service';
+import { UiBreadcrumbsComponent } from '@shared/components/breadcrumbs/ui-breadcrumbs.component';
 
 const PORTFOLIO_LIKED_STORAGE_KEY = 'portfolio.stats.liked';
 
@@ -26,7 +27,7 @@ interface MonthMarker {
 @Component({
   selector: 'app-stats-page',
   standalone: true,
-  imports: [NgFor, NgIf, TranslatePipe, UiButtonComponent, UiCardComponent, UiEmptyStateComponent, UiSkeletonComponent],
+  imports: [NgFor, NgIf, TranslatePipe, UiButtonComponent, UiCardComponent, UiEmptyStateComponent, UiSkeletonComponent, UiBreadcrumbsComponent],
   templateUrl: './stats.page.html'
 })
 export class StatsPageComponent implements OnInit {

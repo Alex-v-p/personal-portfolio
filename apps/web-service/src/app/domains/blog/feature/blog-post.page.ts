@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
-import { NgFor, NgIf } from '@angular/common';
+import { DOCUMENT, NgFor, NgIf } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { combineLatest } from 'rxjs';
@@ -8,19 +8,25 @@ import { finalize, map, switchMap } from 'rxjs/operators';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { I18nService } from '@core/i18n/i18n.service';
 import { UiButtonComponent } from '@shared/components/button/ui-button.component';
-import { UiLinkButtonComponent } from '@shared/components/link-button/ui-link-button.component';
 import { HighlightChipComponent } from '@shared/components/highlight-chip/highlight-chip.component';
 import { UiEmptyStateComponent } from '@shared/components/empty-state/ui-empty-state.component';
 import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.component';
+import { UiIconComponent } from '@shared/icons';
 import { BlogPostDetail } from '@domains/blog/model/blog-post-detail.model';
 import { PublicBlogApiService } from '@domains/blog/data/blog-api.service';
 import { renderMarkdownToHtml } from '@shared/utils/markdown.util';
 import { SeoService } from '@shared/services/seo.service';
 
+interface ShareAction {
+  iconName: string;
+  name: string;
+  href: string;
+}
+
 @Component({
   selector: 'app-blog-post-page',
   standalone: true,
-  imports: [NgFor, NgIf, TranslatePipe, UiLinkButtonComponent, UiButtonComponent, HighlightChipComponent, UiEmptyStateComponent, UiSkeletonComponent],
+  imports: [NgFor, NgIf, TranslatePipe, UiButtonComponent, HighlightChipComponent, UiEmptyStateComponent, UiSkeletonComponent, UiIconComponent],
   templateUrl: './blog-post.page.html'
 })
 export class BlogPostPageComponent implements OnInit {
@@ -30,8 +36,7 @@ export class BlogPostPageComponent implements OnInit {
   private readonly seo = inject(SeoService);
   private readonly i18n = inject(I18nService);
   private readonly destroyRef = inject(DestroyRef);
-
-  protected readonly shareMarks = ['in', 'x'];
+  private readonly document = inject(DOCUMENT);
 
   protected post: BlogPostDetail | null = null;
   protected isLoading = true;
@@ -102,5 +107,38 @@ export class BlogPostPageComponent implements OnInit {
 
   protected get renderedContent(): string {
     return this.post ? renderMarkdownToHtml(this.post.contentMarkdown) : '';
+  }
+
+  protected get blogListingHref(): string {
+    return this.i18n.prefixPath('/blog');
+  }
+
+  protected get shareActions(): ShareAction[] {
+    if (!this.post) {
+      return [];
+    }
+
+    const pageUrl = this.currentShareUrl;
+    const encodedUrl = encodeURIComponent(pageUrl);
+    const encodedTitle = encodeURIComponent(this.post.title);
+
+    return [
+      {
+        iconName: 'linkedin',
+        name: 'LinkedIn',
+        href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+      },
+      {
+        iconName: 'twitter',
+        name: 'X',
+        href: `https://x.com/intent/post?url=${encodedUrl}&text=${encodedTitle}`,
+      },
+    ];
+  }
+
+  private get currentShareUrl(): string {
+    const origin = this.document.location?.origin ?? '';
+    const localizedPath = this.i18n.prefixPath(`/blog/${this.post?.slug ?? this.currentSlug}`);
+    return `${origin}${localizedPath}`;
   }
 }

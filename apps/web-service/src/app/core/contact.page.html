@@ -1,6 +1,11 @@
 <div class="mx-auto max-w-5xl space-y-8">
   <div class="space-y-3">
-    <p class="text-sm text-stone-600">{{ 'navigation.home' | translate }} &gt; {{ 'routes.contact.title' | translate }}</p>
+    <app-ui-breadcrumbs
+      [items]="[
+        { label: ('navigation.home' | translate), path: '/' },
+        { label: ('routes.contact.title' | translate), path: '/contact' }
+      ]"
+    ></app-ui-breadcrumbs>
     <h1 class="text-4xl font-semibold tracking-tight text-stone-950">{{ 'pages.contact.hero.title' | translate }}</h1>
   </div>
 

@@ -1,0 +1,19 @@
+<nav *ngIf="items.length" class="ui-breadcrumbs pb-3" aria-label="Breadcrumb">
+  <ol class="flex flex-wrap items-center gap-1.5">
+    <li *ngFor="let item of items; let isLast = last" class="inline-flex items-center gap-1.5">
+      <ng-container *ngIf="hrefFor(item) as href; else breadcrumbText">
+        <a [href]="href" class="ui-breadcrumb-link">
+          {{ item.label }}
+        </a>
+      </ng-container>
+
+      <ng-template #breadcrumbText>
+        <span class="ui-breadcrumb-current" [attr.aria-current]="isLast ? 'page' : null">
+          {{ item.label }}
+        </span>
+      </ng-template>
+
+      <span *ngIf="!isLast" aria-hidden="true" class="ui-breadcrumb-separator">&gt;</span>
+    </li>
+  </ol>
+</nav>

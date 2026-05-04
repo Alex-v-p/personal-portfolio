@@ -1,5 +1,10 @@
 <div class="mx-auto max-w-6xl space-y-8">
-  <p class="text-sm ui-text-muted">{{ 'navigation.home' | translate }} &gt; {{ 'navigation.projects' | translate }}</p>
+  <app-ui-breadcrumbs
+    [items]="[
+      { label: ('navigation.home' | translate), path: '/' },
+      { label: ('navigation.projects' | translate), path: '/projects' }
+    ]"
+  ></app-ui-breadcrumbs>
 
   <section class="ui-panel-soft p-6 sm:p-8 lg:p-10">
     <div class="space-y-8">
@@ -121,23 +126,25 @@
 
         <p class="text-center text-sm ui-text-muted">{{ 'pages.projects.summary' | translate:{ shown: filteredProjects.length, total: totalProjectCount } }}</p>
 
-        <section *ngIf="featuredProject as spotlightProject" class="space-y-3">
-          <div class="space-y-1">
-            <p class="ui-kicker">{{ 'pages.projects.featured.kicker' | translate }}</p>
-            <h2 class="ui-title-card text-2xl">{{ 'pages.projects.featured.title' | translate }}</h2>
-          </div>
+        <section *ngIf="filteredProjects.length; else emptyResults" class="space-y-8">
+          <section *ngIf="featuredProjects.length" class="space-y-3">
+            <div class="space-y-1">
+              <p class="ui-kicker">{{ 'pages.projects.featured.kicker' | translate }}</p>
+              <h2 class="ui-title-card text-2xl">{{ 'pages.projects.featured.title' | translate }}</h2>
+            </div>
 
-          <app-project-card [project]="spotlightProject" [featured]="true"></app-project-card>
-        </section>
+            <app-project-card [project]="featuredProjects[0]" [featured]="true"></app-project-card>
+          </section>
 
-        <section class="space-y-3">
-          <div>
-            <h2 class="ui-title-card text-2xl">{{ 'pages.projects.browseTitle' | translate }}</h2>
-          </div>
+          <section *ngIf="browseableProjects.length" class="space-y-3">
+            <div>
+              <h2 class="ui-title-card text-2xl">{{ 'pages.projects.browseTitle' | translate }}</h2>
+            </div>
 
-          <div *ngIf="filteredProjects.length; else emptyResults" class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            <app-project-card *ngFor="let project of filteredProjects" [project]="project"></app-project-card>
-          </div>
+            <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+              <app-project-card *ngFor="let project of browseableProjects" [project]="project"></app-project-card>
+            </div>
+          </section>
         </section>
 
         <ng-template #emptyResults>

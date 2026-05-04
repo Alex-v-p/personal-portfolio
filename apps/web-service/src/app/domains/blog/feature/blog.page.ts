@@ -13,6 +13,7 @@ import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.com
 import { PublicBlogApiService } from '@domains/blog/data/blog-api.service';
 import { BlogPostSummary } from '@domains/blog/model/blog-post-summary.model';
 import { BlogCardComponent } from '@domains/blog/ui/blog-card.component';
+import { UiBreadcrumbsComponent } from '@shared/components/breadcrumbs/ui-breadcrumbs.component';
 
 interface CategoryFilterOption {
   name: string;
@@ -22,7 +23,7 @@ interface CategoryFilterOption {
 @Component({
   selector: 'app-blog-page',
   standalone: true,
-  imports: [NgFor, NgIf, FormsModule, TranslatePipe, UiButtonComponent, UiEmptyStateComponent, UiSkeletonComponent, BlogCardComponent],
+  imports: [NgFor, NgIf, FormsModule, TranslatePipe, UiButtonComponent, UiEmptyStateComponent, UiSkeletonComponent, BlogCardComponent, UiBreadcrumbsComponent],
   templateUrl: './blog.page.html'
 })
 export class BlogPageComponent implements OnInit {

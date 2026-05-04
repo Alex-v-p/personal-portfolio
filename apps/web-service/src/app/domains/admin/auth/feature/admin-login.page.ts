@@ -17,8 +17,8 @@ export class AdminLoginPageComponent {
   private readonly adminSession = inject(AdminSessionService);
   private readonly router = inject(Router);
 
-  protected email = 'admin@example.com';
-  protected password = 'change-me-admin';
+  protected email = '';
+  protected password = '';
   protected isSubmitting = false;
   protected errorMessage = '';
 

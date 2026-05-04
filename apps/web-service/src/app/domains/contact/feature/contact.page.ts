@@ -13,6 +13,7 @@ import { UiChipComponent } from '@shared/components/chip/ui-chip.component';
 import { UiEmptyStateComponent } from '@shared/components/empty-state/ui-empty-state.component';
 import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.component';
 import { UiIconComponent } from '@shared/icons';
+import { UiBreadcrumbsComponent } from '@shared/components/breadcrumbs/ui-breadcrumbs.component';
 import { ContactMessageDraft } from '@domains/contact/model/contact-message.model';
 import { ContactMethod } from '@domains/profile/model/contact-method.model';
 import { Profile } from '@domains/profile/model/profile.model';
@@ -26,7 +27,7 @@ type SubmissionState = 'idle' | 'submitting' | 'success' | 'error';
 @Component({
   selector: 'app-contact-page',
   standalone: true,
-  imports: [NgFor, NgIf, ReactiveFormsModule, TranslatePipe, UiButtonComponent, UiCardComponent, UiChipComponent, UiEmptyStateComponent, UiSkeletonComponent, UiIconComponent],
+  imports: [NgFor, NgIf, ReactiveFormsModule, TranslatePipe, UiButtonComponent, UiCardComponent, UiChipComponent, UiEmptyStateComponent, UiSkeletonComponent, UiIconComponent, UiBreadcrumbsComponent],
   templateUrl: './contact.page.html'
 })
 export class ContactPageComponent implements OnInit {

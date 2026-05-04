@@ -34,7 +34,12 @@
 ></app-ui-empty-state>
 
 <div *ngIf="!isLoading && !errorMessage && hasStatsData" class="mx-auto max-w-6xl space-y-10">
-  <p class="text-sm text-stone-600">{{ 'navigation.home' | translate }} &gt; {{ 'routes.stats.title' | translate }}</p>
+  <app-ui-breadcrumbs
+    [items]="[
+      { label: ('navigation.home' | translate), path: '/' },
+      { label: ('routes.stats.title' | translate), path: '/stats' }
+    ]"
+  ></app-ui-breadcrumbs>
 
   <section class="space-y-6">
     <div class="space-y-2">
