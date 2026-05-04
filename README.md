@@ -1,0 +1,252 @@
+# Personal Portfolio
+
+A full-stack personal portfolio platform built as an Nx monorepo. The project is more than a static portfolio site: it includes a public Angular frontend, a FastAPI-powered content API, a protected CMS, a portfolio assistant service, media storage, and Docker-based infrastructure for local and production-style deployments.
+
+## What it does
+
+- Public portfolio pages for the home page, projects, blog posts, contact, statistics, and assistant.
+- Multilingual public routing using locale-based URLs such as `/en` or `/nl`.
+- Admin CMS for managing profile content, projects, blog posts, skills, navigation, media, GitHub stats, contact messages, and assistant knowledge.
+- Protected admin login with session cookies, CSRF protection, and TOTP-based MFA.
+- Contact form and site-event tracking with rate limiting and request-size protection.
+- Media uploads stored in MinIO and referenced through database metadata.
+- AI assistant service that can use indexed portfolio knowledge and either a mock provider, Ollama, or an OpenAI-compatible backend.
+- PostgreSQL migrations and seed/bootstrap logic handled by a dedicated database init job.
+
+## Tech stack
+
+| Area | Technology |
+| --- | --- |
+| Monorepo | Nx, npm workspaces |
+| Frontend | Angular, TypeScript, RxJS, Tailwind CSS |
+| Portfolio API | FastAPI, SQLAlchemy, Alembic, Pydantic Settings |
+| Assistant API | FastAPI, Redis-backed async jobs, retrieval/knowledge chunks |
+| Database | PostgreSQL 16 with pgvector |
+| Cache / jobs | Redis |
+| Media storage | MinIO |
+| AI runtime | Ollama by default in Docker, with mock and OpenAI-compatible provider options |
+| Deployment | Docker Compose, Nginx |
+| Testing / quality | Angular tests, pytest, ruff, Nx affected CI |
+
+
+## Project structure
+
+```text
+.
+├── apps
+│   ├── web-service              # Angular frontend
+│   ├── portfolio-api-service    # FastAPI portfolio/content/CMS API
+│   └── assistant-service        # FastAPI portfolio assistant API
+├── infra
+│   ├── nginx                    # Reverse proxy config
+│   ├── postgres                 # PostgreSQL bootstrap and Alembic migrations
+│   ├── minio                    # MinIO bucket init and seed files
+│   └── redis                    # Redis notes
+├── compose.yml                  # Main Docker Compose stack
+├── compose.dev.yml              # Development overrides
+├── nx.json                      # Nx workspace config
+└── package.json                 # Root scripts and workspaces
+```
+
+## Environment setup
+
+Create a local environment file from the example:
+
+```bash
+cp .env.example .env
+```
+
+The example file contains development defaults for PostgreSQL, Redis, MinIO, the APIs, the assistant, and the seeded CMS admin account. Change secrets and passwords before deploying anywhere public.
+
+Important local URLs from the default `.env.example`:
+
+| Service | URL |
+| --- | --- |
+| Frontend | `http://localhost:4200/en` |
+| Admin CMS | `http://localhost:4200/admin/login` |
+| Portfolio API health | `http://localhost:8011/api/health` |
+| Assistant API health | `http://localhost:8012/api/health` |
+| MinIO console | `http://localhost:19001` |
+| Ollama | `http://localhost:11534` |
+
+
+## Local development commands
+
+Start the Angular frontend through Nx:
+
+```bash
+npm run start:web
+```
+
+Start the portfolio API:
+
+```bash
+npm run start:portfolio-api
+```
+
+Start the assistant API:
+
+```bash
+npm run start:assistant
+```
+
+Build the frontend:
+
+```bash
+npm run build:web
+```
+
+Run frontend tests:
+
+```bash
+npm run test:web
+```
+
+You can also call Nx directly:
+
+```bash
+npx nx serve web-service
+npx nx serve portfolio-api-service
+npx nx serve assistant-service
+npx nx test web-service
+npx nx affected -t test
+npx nx affected -t build
+```
+
+> Note: the backend Nx commands currently use Windows-style `.venv\Scripts\python.exe` paths. On macOS or Linux, Docker Compose is the simplest option, or update the backend commands to use your local virtual environment path.
+
+## Python setup for backend development
+
+Create and activate a virtual environment:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+Install backend dependencies:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -r apps\portfolio-api-service\requirements.txt
+.\.venv\Scripts\python.exe -m pip install -r apps\assistant-service\requirements.txt
+.\.venv\Scripts\python.exe -m pip install pytest ruff
+```
+
+Run backend tests:
+
+```powershell
+npx nx test portfolio-api-service
+npx nx test assistant-service
+```
+
+Run backend linting:
+
+```powershell
+npx nx run portfolio-api-service:lint
+npx nx run assistant-service:lint
+```
+
+## Database migrations
+
+Apply migrations:
+
+```powershell
+.\.venv\Scripts\python.exe -m infra.postgres.migrations.cli upgrade head
+```
+
+Check migration state:
+
+```powershell
+.\.venv\Scripts\python.exe -m infra.postgres.migrations.cli check
+```
+
+Create a new autogenerated migration:
+
+```powershell
+.\.venv\Scripts\python.exe -m infra.postgres.migrations.cli revision --autogenerate -m "describe the change"
+```
+
+The Docker setup runs a dedicated `portfolio-db-init` container that applies migrations and seeds starter content. The API services themselves do not create the schema on startup.
+
+## Useful service endpoints
+
+### Portfolio API
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /api/health` | Portfolio API health check |
+| `GET /api/public/profile` | Public profile data |
+| `GET /api/public/navigation` | Public navigation items |
+| `GET /api/public/home` | Home page content |
+| `GET /api/public/projects` | Project listing |
+| `GET /api/public/projects/{slug}` | Project detail |
+| `GET /api/public/blog-posts` | Blog listing |
+| `GET /api/public/blog-posts/{slug}` | Blog post detail |
+| `GET /api/public/experience` | Experience content |
+| `GET /api/public/stats` | Statistics page content |
+| `POST /api/contact/messages` | Contact form submission |
+| `POST /api/events` | Site activity tracking |
+
+### Assistant API
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /api/health` | Assistant API health check |
+| `/api/chat` | Chat endpoints |
+| `/api/conversations` | Conversation endpoints |
+| `/api/providers` | Provider metadata/status |
+| `/api/knowledge` | Knowledge/retrieval endpoints |
+
+## Admin CMS
+
+The admin area is available at:
+
+```text
+/admin/login
+```
+
+The default seeded development account is controlled by these `.env` values:
+
+```env
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=change-me-admin
+ADMIN_DISPLAY_NAME=Portfolio Admin
+```
+
+After signing in, the CMS can manage content, media, taxonomy, messages, activity, GitHub stats, assistant indexing, backups, and admin users. MFA setup is required for admin accounts.
+
+## Assistant configuration
+
+The assistant provider is controlled with environment variables:
+
+```env
+ASSISTANT_PROVIDER_BACKEND=mock|ollama|openai-compatible
+ASSISTANT_PROVIDER_MODEL=qwen2.5:3b
+ASSISTANT_PROVIDER_BASE_URL=http://ollama:11434
+ASSISTANT_PROVIDER_API_KEY=
+```
+
+For local development, `mock` is useful when you want the assistant routes to work without calling a real model. With `ollama`, the Compose stack starts an Ollama container and the assistant can use it for generation and embeddings.
+
+After changing CMS content, rebuild the assistant knowledge index from the CMS Assistant tab so the assistant can search the latest portfolio content.
+
+## GitHub statistics
+
+GitHub snapshot refreshes are configured through:
+
+```env
+GITHUB_STATS_USERNAME=Alex-v-p
+GITHUB_API_TOKEN=
+GITHUB_STATS_LOOKBACK_DAYS=365
+```
+
+A token is optional for basic development, but recommended to avoid stricter unauthenticated API limits.
+
+## CI and deployment
+
+Pull requests run an Nx affected workflow on GitHub Actions. The workflow installs Node and Python dependencies, checks migrations, then lints, tests, and builds only the affected projects.
+
+The project is also deployed through a self-hosted GitHub Actions runner in my GitHub organization. This runner is responsible for deploying the portfolio from the organization environment and is intentionally only available there for security reasons. Keeping deployment access inside the organization helps protect server credentials, environment variables, and infrastructure-level permissions from being exposed in local development or public repository contexts.
+
+Because of this, the deployment workflow is not expected to run for external forks or outside my GitHub organization. Local development should use the Docker Compose commands above, while production deployment is handled by the organization runner.
