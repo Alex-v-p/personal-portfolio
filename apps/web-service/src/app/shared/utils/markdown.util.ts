@@ -77,8 +77,8 @@ const renderBlockquote = (lines: string[]): string => {
 
 const renderCodeBlock = (lines: string[]): string => `<pre><code>${escapeHtml(lines.join('\n'))}</code></pre>`;
 
-const isOrderedListLine = (line: string): boolean => /^\d+\.\s+/.test(line);
-const isUnorderedListLine = (line: string): boolean => /^[-*]\s+/.test(line);
+const isOrderedListLine = (line: string): boolean => /^\s*\d+[.)]\s+/.test(line);
+const isUnorderedListLine = (line: string): boolean => /^\s*[-*]\s+/.test(line);
 
 export const buildMarkdownDownloadLink = (label: string, url: string): string => {
   const safeLabel = label.replace(/[\r\n]+/g, ' ').replace(/\]/g, '\\]').trim() || 'Download file';
@@ -164,7 +164,7 @@ export const renderMarkdownToHtml = (markdown: string): string => {
     if (isOrderedListLine(trimmed)) {
       const items: string[] = [];
       while (index < lines.length && isOrderedListLine(lines[index].trim())) {
-        items.push(lines[index].trim().replace(/^\d+\.\s+/, ''));
+        items.push(lines[index].trim().replace(/^\d+[.)]\s+/, ''));
         index += 1;
       }
       blocks.push(renderList(items, true));

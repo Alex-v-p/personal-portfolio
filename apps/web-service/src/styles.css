@@ -963,6 +963,33 @@
     text-underline-offset: 0.2rem;
   }
 
+  .project-card-markdown ul,
+  .project-card-markdown ol {
+    margin: 0;
+    padding-left: 1.25rem;
+  }
+
+  .project-card-markdown ul {
+    list-style: disc;
+  }
+
+  .project-card-markdown ol {
+    list-style: decimal;
+  }
+
+  .project-card-markdown li {
+    padding-left: 0.2rem;
+  }
+
+  .project-card-markdown li + li {
+    margin-top: 0.35rem;
+  }
+
+  .project-card-markdown li::marker {
+    color: var(--ui-text);
+    font-weight: 700;
+  }
+
   .project-card-markdown a.markdown-download {
     display: inline-flex;
     align-items: center;
@@ -1065,11 +1092,28 @@
   .blog-markdown ul,
   .blog-markdown ol {
     margin: 0;
-    padding-left: 1.2rem;
+    padding-left: 1.4rem;
+  }
+
+  .blog-markdown ul {
+    list-style: disc;
+  }
+
+  .blog-markdown ol {
+    list-style: decimal;
+  }
+
+  .blog-markdown li {
+    padding-left: 0.25rem;
   }
 
   .blog-markdown li + li {
     margin-top: 0.4rem;
+  }
+
+  .blog-markdown li::marker {
+    color: var(--ui-text);
+    font-weight: 700;
   }
 
   .blog-markdown blockquote {

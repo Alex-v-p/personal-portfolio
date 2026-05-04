@@ -7,6 +7,7 @@ import {
   insertSnippet,
   suggestReadingTimeMinutes,
   toggleLinePrefix,
+  toggleOrderedListPrefix,
   wrapSelection,
 } from './admin-blog-editor.utils';
 
@@ -33,6 +34,21 @@ describe('admin-blog-editor.utils', () => {
       selection: { start: 0, end: 16 },
     });
     expect(toggleLinePrefix('- first\n- second', { start: 0, end: 16 }, '- ')).toEqual({
+      value: 'first\nsecond',
+      selection: { start: 0, end: 12 },
+    });
+  });
+
+  it('toggles ordered list prefixes with sequential numbering', () => {
+    expect(toggleOrderedListPrefix('first\nsecond', { start: 0, end: 12 })).toEqual({
+      value: '1. first\n2. second',
+      selection: { start: 0, end: 18 },
+    });
+    expect(toggleOrderedListPrefix('1. first\n2. second', { start: 0, end: 18 })).toEqual({
+      value: 'first\nsecond',
+      selection: { start: 0, end: 12 },
+    });
+    expect(toggleOrderedListPrefix('1. first\n1. second', { start: 0, end: 18 })).toEqual({
       value: 'first\nsecond',
       selection: { start: 0, end: 12 },
     });

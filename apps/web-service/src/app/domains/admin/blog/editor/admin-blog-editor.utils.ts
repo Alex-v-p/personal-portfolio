@@ -37,15 +37,29 @@ export function wrapSelection(
   };
 }
 
-export function toggleLinePrefix(content: string, selection: TextSelectionRange, prefix: string): TextSelectionUpdate {
+const getSelectedLineBlock = (content: string, selection: TextSelectionRange): { lineStart: number; lineEnd: number; lines: string[] } => {
   const lineStart = content.lastIndexOf('\n', Math.max(0, selection.start - 1)) + 1;
   let lineEnd = content.indexOf('\n', selection.end);
   if (lineEnd === -1) {
     lineEnd = content.length;
   }
 
-  const block = content.slice(lineStart, lineEnd);
-  const lines = block.split('\n');
+  return {
+    lineStart,
+    lineEnd,
+    lines: content.slice(lineStart, lineEnd).split('\n'),
+  };
+};
+
+const applyLineBlockReplacement = (content: string, lineStart: number, lineEnd: number, replacement: string): TextSelectionUpdate => ({
+  value: `${content.slice(0, lineStart)}${replacement}${content.slice(lineEnd)}`,
+  selection: { start: lineStart, end: lineStart + replacement.length },
+});
+
+const orderedListPrefixPattern = /^(\s*)\d+[.)]\s+/;
+
+export function toggleLinePrefix(content: string, selection: TextSelectionRange, prefix: string): TextSelectionUpdate {
+  const { lineStart, lineEnd, lines } = getSelectedLineBlock(content, selection);
   const populatedLines = lines.filter((line) => line.trim().length > 0);
   const allPrefixed = populatedLines.length > 0 && populatedLines.every((line) => line.startsWith(prefix));
   const replacement = lines
@@ -58,10 +72,33 @@ export function toggleLinePrefix(content: string, selection: TextSelectionRange,
     })
     .join('\n');
 
-  return {
-    value: `${content.slice(0, lineStart)}${replacement}${content.slice(lineEnd)}`,
-    selection: { start: lineStart, end: lineStart + replacement.length },
-  };
+  return applyLineBlockReplacement(content, lineStart, lineEnd, replacement);
+}
+
+export function toggleOrderedListPrefix(content: string, selection: TextSelectionRange): TextSelectionUpdate {
+  const { lineStart, lineEnd, lines } = getSelectedLineBlock(content, selection);
+  const populatedLines = lines.filter((line) => line.trim().length > 0);
+  const allNumbered = populatedLines.length > 0 && populatedLines.every((line) => orderedListPrefixPattern.test(line));
+  let itemNumber = 1;
+
+  const replacement = lines
+    .map((line) => {
+      if (!line.trim()) {
+        return line;
+      }
+
+      if (allNumbered) {
+        return line.replace(orderedListPrefixPattern, '$1');
+      }
+
+      const normalizedLine = line.replace(orderedListPrefixPattern, '$1');
+      const leadingWhitespace = normalizedLine.match(/^\s*/)?.[0] ?? '';
+      const contentWithoutIndent = normalizedLine.slice(leadingWhitespace.length);
+      return `${leadingWhitespace}${itemNumber++}. ${contentWithoutIndent}`;
+    })
+    .join('\n');
+
+  return applyLineBlockReplacement(content, lineStart, lineEnd, replacement);
 }
 
 export function insertSnippet(content: string, selection: TextSelectionRange, snippet: string, selectLength = 0): TextSelectionUpdate {

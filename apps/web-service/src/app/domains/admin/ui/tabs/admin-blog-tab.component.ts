@@ -13,6 +13,7 @@ import {
   suggestReadingTimeMinutes,
   TextSelectionUpdate,
   toggleLinePrefix,
+  toggleOrderedListPrefix,
   wrapSelection,
 } from '@domains/admin/blog/editor/admin-blog-editor.utils';
 import { AdminBlogPostForm, ScopedUploadForm } from '@domains/admin/model/forms/index';
@@ -156,6 +157,10 @@ export class AdminBlogTabComponent extends AdminLocalizedContentTabBase implemen
 
   protected toggleBlogLinePrefix(prefix: string): void {
     this.updateBlogMarkdownSelection((content, selection) => toggleLinePrefix(content, selection, prefix));
+  }
+
+  protected toggleBlogOrderedList(): void {
+    this.updateBlogMarkdownSelection((content, selection) => toggleOrderedListPrefix(content, selection));
   }
 
   protected insertBlogMarkdownLink(): void {
