@@ -97,15 +97,6 @@ export class ProjectsPageComponent implements OnInit {
     return this.selectedSkillFilters.includes(filter);
   }
 
-  protected get featuredProject(): ProjectSummary | null {
-    return this.projects.find((project) => project.isFeatured) ?? this.projects[0] ?? null;
-  }
-
-  protected get browsableProjects(): ProjectSummary[] {
-    const featuredProjectId = this.featuredProject?.id;
-    return this.projects.filter((project) => project.id !== featuredProjectId);
-  }
-
   protected get totalProjectCount(): number {
     return this.projects.length;
   }
@@ -115,11 +106,11 @@ export class ProjectsPageComponent implements OnInit {
   }
 
   protected get availableSkillFilters(): SkillFilterOption[] {
-    return Array.from(new Set(this.browsableProjects.flatMap((project) => project.tags ?? [])))
+    return Array.from(new Set(this.projects.flatMap((project) => project.tags ?? [])))
       .sort((left, right) => left.localeCompare(right))
       .map((name) => ({
         name,
-        projectCount: this.browsableProjects.filter((project) => (project.tags ?? []).includes(name)).length
+        projectCount: this.projects.filter((project) => (project.tags ?? []).includes(name)).length
       }));
   }
 
@@ -142,13 +133,28 @@ export class ProjectsPageComponent implements OnInit {
   protected get filteredProjects(): ProjectSummary[] {
     const normalizedQuery = this.searchQuery.trim().toLowerCase();
 
-    return this.browsableProjects.filter((project) => {
+    return this.projects.filter((project) => {
       const tags = project.tags ?? [];
       const matchesSkill = this.selectedSkillFilters.length === 0 || this.selectedSkillFilters.some((filter) => tags.includes(filter));
-      const searchableContent = [project.title, project.shortDescription, project.summary, project.organization, ...tags].join(' ').toLowerCase();
-      const matchesSearch = !normalizedQuery || searchableContent.includes(normalizedQuery);
+      if (!matchesSkill) {
+        return false;
+      }
 
-      return matchesSkill && matchesSearch;
+      if (!normalizedQuery) {
+        return true;
+      }
+
+      const searchableContent = [project.title, project.shortDescription, project.summary, project.organization, ...tags].join(' ').toLowerCase();
+      return searchableContent.includes(normalizedQuery);
     });
+  }
+
+  protected get featuredProjects(): ProjectSummary[] {
+    return this.filteredProjects.filter((project) => project.isFeatured).slice(0, 1);
+  }
+
+  protected get browseableProjects(): ProjectSummary[] {
+    const featuredIds = new Set(this.featuredProjects.map((project) => project.id));
+    return this.filteredProjects.filter((project) => !featuredIds.has(project.id));
   }
 }
