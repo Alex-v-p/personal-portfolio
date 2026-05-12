@@ -96,6 +96,11 @@ export class AppShellComponent implements OnInit {
           return;
         }
 
+        if (event instanceof NavigationError) {
+          this.handleNavigationError(event);
+          return;
+        }
+
         this.isRouteLoading = false;
         this.changeDetectorRef.detectChanges();
       });
@@ -303,6 +308,26 @@ export class AppShellComponent implements OnInit {
     }
 
     scrollToTop();
+  }
+
+  private handleNavigationError(event: NavigationError): void {
+    this.isRouteLoading = false;
+
+    if (this.isRecoverableLazyLoadError(event.error) && typeof window !== 'undefined') {
+      this.changeDetectorRef.detectChanges();
+      window.location.assign(event.url);
+      return;
+    }
+
+    this.changeDetectorRef.detectChanges();
+  }
+
+  private isRecoverableLazyLoadError(error: unknown): boolean {
+    const message = error instanceof Error ? `${error.name} ${error.message}` : String(error ?? '');
+
+    return /chunkloaderror|loading chunk|failed to fetch dynamically imported module|importing a module script failed|error loading dynamically imported module/i.test(
+      message
+    );
   }
 
   @HostListener('window:scroll')

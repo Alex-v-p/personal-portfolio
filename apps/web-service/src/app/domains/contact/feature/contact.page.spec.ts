@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { from, of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -67,6 +68,7 @@ describe('ContactPageComponent', () => {
     TestBed.configureTestingModule({
       imports: [ContactPageComponent],
       providers: [
+        provideRouter([]),
         {
           provide: PublicProfileApiService,
           useValue: {
@@ -125,6 +127,7 @@ describe('ContactPageComponent', () => {
     TestBed.configureTestingModule({
       imports: [ContactPageComponent],
       providers: [
+        provideRouter([]),
         {
           provide: PublicProfileApiService,
           useValue: {
@@ -186,6 +189,7 @@ describe('ContactPageComponent', () => {
     TestBed.configureTestingModule({
       imports: [ContactPageComponent],
       providers: [
+        provideRouter([]),
         {
           provide: PublicProfileApiService,
           useValue: {

@@ -1,5 +1,6 @@
 import { NgFor, NgIf } from '@angular/common';
 import { Component, Input, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { I18nService } from '@core/i18n/i18n.service';
 
@@ -11,7 +12,7 @@ export interface UiBreadcrumbItem {
 @Component({
   selector: 'app-ui-breadcrumbs',
   standalone: true,
-  imports: [NgFor, NgIf],
+  imports: [NgFor, NgIf, RouterLink],
   templateUrl: './ui-breadcrumbs.component.html',
 })
 export class UiBreadcrumbsComponent {
@@ -19,7 +20,7 @@ export class UiBreadcrumbsComponent {
 
   @Input() items: UiBreadcrumbItem[] = [];
 
-  protected hrefFor(item: UiBreadcrumbItem): string | null {
-    return item.path ? this.i18n.prefixPath(item.path) : null;
+  protected routerLinkFor(item: UiBreadcrumbItem): string | readonly string[] | null {
+    return this.i18n.localizeRouterCommands(item.path);
   }
 }

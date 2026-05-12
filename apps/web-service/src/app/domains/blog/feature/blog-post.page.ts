@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { DOCUMENT, NgFor, NgIf } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { combineLatest } from 'rxjs';
 import { finalize, map, switchMap } from 'rxjs/operators';
@@ -26,7 +26,7 @@ interface ShareAction {
 @Component({
   selector: 'app-blog-post-page',
   standalone: true,
-  imports: [NgFor, NgIf, TranslatePipe, UiButtonComponent, HighlightChipComponent, UiEmptyStateComponent, UiSkeletonComponent, UiIconComponent],
+  imports: [NgFor, NgIf, RouterLink, TranslatePipe, UiButtonComponent, HighlightChipComponent, UiEmptyStateComponent, UiSkeletonComponent, UiIconComponent],
   templateUrl: './blog-post.page.html'
 })
 export class BlogPostPageComponent implements OnInit {
@@ -109,8 +109,8 @@ export class BlogPostPageComponent implements OnInit {
     return this.post ? renderMarkdownToHtml(this.post.contentMarkdown) : '';
   }
 
-  protected get blogListingHref(): string {
-    return this.i18n.prefixPath('/blog');
+  protected get blogListingRouterLink(): string | readonly string[] {
+    return this.i18n.localizeRouterCommands('/blog') ?? '/blog';
   }
 
   protected get shareActions(): ShareAction[] {
