@@ -1,5 +1,14 @@
 <app-ui-card *ngIf="featured; else defaultCard" [featured]="true" padding="none">
-  <div class="grid h-full gap-0 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+  <div
+    class="grid h-full gap-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)] lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]"
+    [class.cursor-pointer]="hasPrimaryCardAction"
+    [attr.role]="hasPrimaryCardAction ? 'link' : null"
+    [attr.tabindex]="hasPrimaryCardAction ? 0 : null"
+    [attr.aria-label]="primaryCardAriaLabel"
+    (click)="openPrimaryCardAction($event)"
+    (keydown.enter)="openPrimaryCardAction($event)"
+    (keydown.space)="openPrimaryCardAction($event)"
+  >
     <div class="relative overflow-hidden lg:min-h-[24rem]">
       <ng-container *ngIf="currentGalleryImage as image; else featuredProjectFallback">
         <a
@@ -125,7 +134,16 @@
 
 <ng-template #defaultCard>
   <app-ui-card padding="none">
-    <div class="flex h-full flex-col">
+    <div
+      class="flex h-full flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
+      [class.cursor-pointer]="hasPrimaryCardAction"
+      [attr.role]="hasPrimaryCardAction ? 'link' : null"
+      [attr.tabindex]="hasPrimaryCardAction ? 0 : null"
+      [attr.aria-label]="primaryCardAriaLabel"
+      (click)="openPrimaryCardAction($event)"
+      (keydown.enter)="openPrimaryCardAction($event)"
+      (keydown.space)="openPrimaryCardAction($event)"
+    >
       <div class="relative overflow-hidden">
         <ng-container *ngIf="currentGalleryImage as image; else defaultProjectFallback">
           <a

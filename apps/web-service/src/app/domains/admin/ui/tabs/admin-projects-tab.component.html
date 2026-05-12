@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between gap-4"><h2 class="text-lg font-semibold text-stone-950">Projects</h2><button type="button" (click)="startNewProject()" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">New</button></div>
     <div class="admin-scroll-list mt-5 grid gap-3">
       <button *ngFor="let project of projects" type="button" (click)="selectProject(project.id)" [ngClass]="project.id === selectedProjectId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-[1.5rem] border p-4 text-left transition">
-        <p class="text-sm font-semibold text-stone-950">{{ project.title }}</p><p class="mt-1 text-sm text-stone-600">{{ project.state }} · {{ project.status }}</p><p class="mt-2 text-xs text-stone-500">{{ project.slug }}</p>
+        <div class="flex items-start justify-between gap-3"><p class="min-w-0 text-sm font-semibold text-stone-950">{{ project.title }}</p><span class="shrink-0 rounded-full border border-stone-300 bg-white px-2 py-0.5 text-[11px] font-semibold text-stone-600">#{{ project.sortOrder }}</span></div><p class="mt-1 text-sm text-stone-600">{{ project.state }} · {{ project.status }}</p><p class="mt-2 text-xs text-stone-500">{{ project.slug }}</p>
       </button>
     </div>
   </aside>
@@ -55,6 +55,7 @@
       <label *ngIf="contentLocale === 'en'" class="space-y-2"><span class="text-sm font-semibold">Status</span><input [(ngModel)]="projectForm.status" name="projectStatus" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
       <label *ngIf="contentLocale === 'nl'" class="space-y-2"><span class="text-sm font-semibold">Status label (NL)</span><input [(ngModel)]="projectForm.statusNl" name="projectStatusNl" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
       <label class="space-y-2"><span class="text-sm font-semibold">State</span><select [(ngModel)]="projectForm.state" name="projectState" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm"><option *ngFor="let state of referenceData.projectStates" [ngValue]="state">{{ state }}</option></select></label>
+      <label class="space-y-2"><span class="text-sm font-semibold">Display order</span><input [(ngModel)]="projectForm.sortOrder" name="projectSortOrder" type="number" step="1" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /><span class="text-xs text-stone-500">Lower numbers appear first on the public projects page and featured sections.</span></label>
       <label class="space-y-2"><span class="text-sm font-semibold">Start date</span><input [(ngModel)]="projectForm.startedOn" name="projectStartedOn" type="date" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
       <label class="space-y-2"><span class="text-sm font-semibold">End date</span><input [(ngModel)]="projectForm.endedOn" name="projectEndedOn" type="date" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
       <label *ngIf="contentLocale === 'en'" class="space-y-2"><span class="text-sm font-semibold">Duration label</span><input [(ngModel)]="projectForm.durationLabel" name="projectDurationLabel" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
