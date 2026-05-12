@@ -20,7 +20,7 @@
 
   <ng-container *ngIf="state$ | async as state">
     <ng-container *ngIf="availability$ | async as availability">
-      <div class="flex-1 overflow-y-auto px-5 pb-5" [ngClass]="mode === 'page' ? 'pr-2' : ''">
+      <div #messagesViewport class="flex-1 overflow-y-auto px-5 pb-5" [ngClass]="mode === 'page' ? 'pr-2' : ''">
         <div class="mb-4 text-sm leading-6" [ngClass]="getStatusCardClasses(availability.mode)" *ngIf="availability.mode !== 'ready'">
           <p class="m-0 font-semibold">{{ availability.label }}</p>
           <p class="m-0 mt-1">{{ availability.detail }}</p>
@@ -39,7 +39,7 @@
         </div>
 
         <div class="grid gap-4" *ngIf="state.messages.length">
-          <article *ngFor="let message of state.messages" [ngClass]="message.role === 'user' ? 'ui-chat-bubble-user ml-auto max-w-[88%] px-4 py-3' : message.tone === 'error' ? 'ui-chat-bubble-error mr-auto max-w-[92%] px-4 py-3' : 'ui-chat-bubble-assistant mr-auto max-w-[92%] px-4 py-3'">
+          <article #messageArticle *ngFor="let message of state.messages" [ngClass]="message.role === 'user' ? 'ui-chat-bubble-user ml-auto max-w-[88%] px-4 py-3' : message.tone === 'error' ? 'ui-chat-bubble-error mr-auto max-w-[92%] px-4 py-3' : 'ui-chat-bubble-assistant mr-auto max-w-[92%] px-4 py-3'">
             <div class="flex items-start gap-3">
               <span *ngIf="message.role === 'assistant' && message.tone === 'error'" class="mt-0.5 inline-flex h-6 min-w-6 items-center justify-center rounded-full text-xs font-bold ui-alert-danger">!</span>
               <div class="min-w-0 flex-1">

@@ -34,7 +34,7 @@ export class AssistantApiService {
   private readonly availabilitySubject = new BehaviorSubject<AssistantAvailabilityState>({
     mode: 'checking',
     label: this.translateOrFallback('assistantPopup.availability.checking.label', 'Checking availability'),
-    detail: this.translateOrFallback('assistantPopup.availability.checking.detail', 'Looking up the assistant status and retrieving the latest portfolio context.'),
+    detail: this.translateOrFallback('assistantPopup.availability.checking.detail', 'Checking the assistant status and preparing the latest portfolio content.'),
     providerBackend: null,
     providerModel: null,
     checkedAt: null,
@@ -307,13 +307,13 @@ export class AssistantApiService {
   private localizedAvailabilityDetail(mode: AssistantAvailabilityState['mode']): string {
     switch (mode) {
       case 'checking':
-        return this.translateOrFallback('assistantPopup.availability.checking.detail', 'Looking up the assistant status and retrieving the latest portfolio context.');
+        return this.translateOrFallback('assistantPopup.availability.checking.detail', 'Checking the assistant status and preparing the latest portfolio content.');
       case 'ready':
-        return this.translateOrFallback('assistantPopup.availability.ready.detail', 'The assistant can answer with live portfolio context.');
+        return this.translateOrFallback('assistantPopup.availability.ready.detail', 'The assistant can answer with the latest portfolio content.');
       case 'fallback':
-        return this.translateOrFallback('assistantPopup.availability.fallback.detail', 'Live retrieval is limited right now, but the assistant can still answer from the available portfolio snapshot.');
+        return this.translateOrFallback('assistantPopup.availability.fallback.detail', 'Live answers are limited right now, but the assistant can still use the current portfolio snapshot.');
       case 'preview':
-        return this.translateOrFallback('assistantPopup.availability.preview.detail', 'The assistant is running in preview mode with limited retrieval coverage.');
+        return this.translateOrFallback('assistantPopup.availability.preview.detail', 'The assistant is running in preview mode with limited portfolio coverage.');
       default:
         return this.translateOrFallback('assistantPopup.availability.offline.detail', 'The assistant service is unavailable right now.');
     }

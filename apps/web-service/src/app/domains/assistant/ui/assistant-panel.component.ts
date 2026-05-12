@@ -1,6 +1,7 @@
 import { AsyncPipe, NgClass, NgFor, NgIf } from '@angular/common';
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, QueryList, ViewChild, ViewChildren, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 
 import { AssistantApiService } from '@domains/assistant/data/assistant-api.service';
 import { AssistantAvailabilityState, AssistantChatState } from '@domains/assistant/model/assistant-chat.model';
@@ -13,9 +14,11 @@ import { I18nService } from '@core/i18n/i18n.service';
   imports: [NgIf, NgFor, NgClass, FormsModule, AsyncPipe, TranslatePipe],
   templateUrl: './assistant-panel.component.html'
 })
-export class AssistantPanelComponent {
+export class AssistantPanelComponent implements AfterViewInit, OnDestroy {
   @Input() mode: 'widget' | 'page' = 'widget';
   @Output() close = new EventEmitter<void>();
+  @ViewChild('messagesViewport') private messagesViewport?: ElementRef<HTMLElement>;
+  @ViewChildren('messageArticle') private messageArticles?: QueryList<ElementRef<HTMLElement>>;
 
   private readonly assistant = inject(AssistantApiService);
   private readonly i18n = inject(I18nService);
@@ -23,6 +26,25 @@ export class AssistantPanelComponent {
   protected readonly state$ = this.assistant.state$;
   protected readonly availability$ = this.assistant.availability$;
   protected draft = '';
+
+  private stateSubscription?: Subscription;
+  private lastScrollKey = '';
+
+
+  ngAfterViewInit(): void {
+    this.stateSubscription = this.state$.subscribe((state) => {
+      const lastMessage = state.messages.at(-1);
+      const scrollKey = `${state.messages.length}:${state.isLoading}:${lastMessage?.role ?? 'empty'}:${lastMessage?.createdAt ?? ''}`;
+      if (scrollKey !== this.lastScrollKey) {
+        this.lastScrollKey = scrollKey;
+        this.scrollToLatestConversationPosition(state);
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.stateSubscription?.unsubscribe();
+  }
 
   protected get starterPrompts(): string[] {
     return [
@@ -63,6 +85,65 @@ export class AssistantPanelComponent {
       this.sendMessage();
     }
   }
+
+  private scrollToLatestConversationPosition(state: AssistantChatState): void {
+    if (!state.messages.length) {
+      this.scrollMessagesToTop();
+      return;
+    }
+
+    const latestMessage = state.messages.at(-1);
+    if (latestMessage?.role === 'assistant' && !state.isLoading) {
+      this.scrollLatestMessageToTop();
+      return;
+    }
+
+    this.scrollMessagesToBottom();
+  }
+
+  private scrollMessagesToTop(): void {
+    this.withMessagesViewport((viewport) => {
+      viewport.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+
+  private scrollMessagesToBottom(): void {
+    this.withMessagesViewport((viewport) => {
+      viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
+    });
+  }
+
+  private scrollLatestMessageToTop(): void {
+    this.withMessagesViewport((viewport) => {
+      const latestMessageElement = this.messageArticles?.toArray().at(-1)?.nativeElement;
+      if (!latestMessageElement) {
+        viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
+        return;
+      }
+
+      const viewportRect = viewport.getBoundingClientRect();
+      const messageRect = latestMessageElement.getBoundingClientRect();
+      const nextScrollTop = viewport.scrollTop + messageRect.top - viewportRect.top;
+
+      viewport.scrollTo({ top: Math.max(0, nextScrollTop), behavior: 'smooth' });
+    });
+  }
+
+  private withMessagesViewport(callback: (viewport: HTMLElement) => void): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      const viewport = this.messagesViewport?.nativeElement;
+      if (!viewport) {
+        return;
+      }
+
+      callback(viewport);
+    });
+  }
+
   protected isExternalCitationUrl(url: string | null | undefined): boolean {
     return !!url && /^https?:\/\//i.test(url);
   }
