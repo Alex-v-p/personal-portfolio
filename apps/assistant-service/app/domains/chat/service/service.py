@@ -19,6 +19,7 @@ from app.domains.chat.service.formatting import (
     build_conversational_answer,
     build_fallback_answer,
     resolve_response_locale,
+    sanitize_assistant_answer,
     serialize_recent_history,
     trim_conversation_summary,
 )
@@ -61,7 +62,7 @@ class ChatService:
             return self._persist_and_return_response(
                 conversation=conversation,
                 user_message=message,
-                answer=conversational_answer,
+                answer=sanitize_assistant_answer(conversational_answer),
                 citations=[],
                 site_session_id=site_session_id,
                 visitor_id=visitor_id,
@@ -132,7 +133,7 @@ class ChatService:
                 len(citations),
             )
 
-        answer = generated or build_fallback_answer(citations=citations, locale=response_locale)
+        answer = sanitize_assistant_answer(generated or build_fallback_answer(citations=citations, locale=response_locale))
 
         return self._persist_and_return_response(
             conversation=conversation,

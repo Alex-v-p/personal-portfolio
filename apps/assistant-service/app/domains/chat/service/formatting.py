@@ -118,8 +118,8 @@ def build_conversational_answer(*, question: str, locale: str = 'en') -> str | N
     if any(phrase in normalized for phrase in _CAPABILITY_PHRASES):
         return _message(
             resolved_locale,
-            en='I can help you quickly understand Alex’s background: compare projects, summarize their strengths, point you to GitHub READMEs or blog posts, explain their tech stack, and answer recruiter-style questions with the information available here.',
-            nl='Ik kan u snel helpen Alex’ achtergrond te begrijpen: projecten vergelijken, sterktes samenvatten, u naar GitHub-README’s of blogposts verwijzen, de techstack uitleggen en recruiter-achtige vragen beantwoorden met de informatie die hier beschikbaar is.',
+            en='I can help you quickly understand Alex’s background: compare projects, summarize their strengths, point you to GitHub READMEs or blog posts, explain their tech stack, and answer recruiter-style questions.',
+            nl='Ik kan u snel helpen Alex’ achtergrond te begrijpen: projecten vergelijken, sterktes samenvatten, u naar GitHub-README’s of blogposts verwijzen, de techstack uitleggen en recruiter-achtige vragen beantwoorden.',
         )
 
     return None
@@ -130,17 +130,17 @@ def build_fallback_answer(*, citations: list[CitationOut], locale: str = 'en') -
     if resolved_locale == 'nl':
         if not citations:
             return (
-                'Ik heb hier nog niet genoeg relevante informatie om dat goed te beantwoorden. '
+                'Ik heb nog niet genoeg details om dat goed te beantwoorden. '
                 'U kunt wel iets vragen over Alex’ projecten, ervaring, vaardigheden, blogposts of algemene profiel.'
             )
-        opening = 'Dit is de meest relevante informatie die ik hiervoor kan vinden:'
+        opening = 'Dit komt het dichtst in de buurt:'
     else:
         if not citations:
             return (
-                "I don't have enough relevant information here to answer that confidently yet. "
+                "I don't have enough detail to answer that confidently yet. "
                 "You can ask me about Alex's projects, experience, skills, blog posts, or overall profile."
             )
-        opening = 'Here is the closest useful match I found:'
+        opening = 'Here’s the closest useful match I found:'
 
     relevant = []
     for citation in citations[:3]:
@@ -150,6 +150,29 @@ def build_fallback_answer(*, citations: list[CitationOut], locale: str = 'en') -
         source_label = citation.source_type.replace('_', ' ')
         relevant.append(f'- {citation.title} ({source_label}): {excerpt}')
     return opening + '\n\n' + '\n'.join(relevant)
+
+
+_SOURCE_DISCLOSURE_PATTERNS = (
+    (re.compile(r"\b(?:based on|according to|from)\s+(?:the\s+)?(?:provided|retrieved|available)\s+(?:information|context|details|data)[:,]?\s*", re.IGNORECASE), ''),
+    (re.compile(r"\b(?:based on|according to|from)\s+(?:the\s+)?(?:portfolio|context)[:,]?\s*", re.IGNORECASE), ''),
+    (re.compile(r"\b(?:the\s+)?(?:provided|retrieved|available)\s+(?:information|context|details|data)\s+(?:shows|suggests|indicates|says|mentions)\s+that\s+", re.IGNORECASE), ''),
+    (re.compile(r"\b(?:the\s+)?(?:provided|retrieved|available)\s+(?:information|context|details|data)\b", re.IGNORECASE), 'the portfolio'),
+    (re.compile(r"\b(?:retrieved|indexed)\s+(?:chunks|context|matches)\b", re.IGNORECASE), 'portfolio details'),
+)
+
+
+def sanitize_assistant_answer(answer: str) -> str:
+    """Remove retrieval/source-mechanics wording from user-facing assistant replies."""
+    cleaned = answer.strip()
+    cleaned = cleaned.replace('’', "'").replace('‘', "'").replace('�', "'")
+    for pattern, replacement in _SOURCE_DISCLOSURE_PATTERNS:
+        cleaned = pattern.sub(replacement, cleaned)
+    cleaned = re.sub(r'\s+([,.;:!?])', r'\1', cleaned)
+    cleaned = re.sub(r'(?m)^\s*,\s*', '', cleaned)
+    cleaned = re.sub(r'(?m)^\s*[:;]\s*', '', cleaned)
+    cleaned = re.sub(r' {2,}', ' ', cleaned)
+    cleaned = re.sub(r'(^|[.!?]\s+)(the portfolio)\b', lambda match: match.group(1) + 'The portfolio', cleaned)
+    return cleaned.strip()
 
 
 def trim_conversation_summary(summary: str, *, max_chars: int) -> str:

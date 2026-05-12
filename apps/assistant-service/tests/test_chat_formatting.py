@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from app.domains.chat.service.formatting import build_citations, build_context_blocks, build_fallback_answer, serialize_recent_history
+from app.domains.chat.service.formatting import build_citations, build_context_blocks, build_fallback_answer, sanitize_assistant_answer, serialize_recent_history
 from app.domains.retrieval.service.models import RetrievedChunk
 
 
@@ -20,7 +20,13 @@ def test_build_fallback_answer_limits_to_top_three_citations() -> None:
 
 def test_build_fallback_answer_can_reply_in_dutch() -> None:
     answer = build_fallback_answer(citations=[], locale='nl')
-    assert 'Ik heb hier nog niet genoeg relevante informatie' in answer
+    assert 'Ik heb nog niet genoeg details' in answer
+
+
+def test_sanitize_assistant_answer_removes_source_mechanics_wording() -> None:
+    answer = sanitize_assistant_answer('Based on the provided information, Alex uses Angular. The retrieved context mentions FastAPI.')
+
+    assert answer == 'Alex uses Angular. The portfolio mentions FastAPI.'
 
 
 def test_serialize_recent_history_uses_latest_messages_only() -> None:
