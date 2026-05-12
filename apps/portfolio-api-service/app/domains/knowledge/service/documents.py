@@ -198,7 +198,7 @@ class KnowledgeDocumentBuilder:
                     source_type=KnowledgeSourceType.EXPERIENCE,
                     source_id=experience.id,
                     title=title,
-                    canonical_url='/experience',
+                    canonical_url='/#experience',
                     content_markdown=content,
                     content_platform='portfolio',
                     metadata_json={

@@ -15,6 +15,7 @@ import { UiIconComponent } from '@shared/icons';
 import { BlogPostDetail } from '@domains/blog/model/blog-post-detail.model';
 import { PublicBlogApiService } from '@domains/blog/data/blog-api.service';
 import { renderMarkdownToHtml } from '@shared/utils/markdown.util';
+import { localizeInternalAppLinkUrl } from '@shared/utils/internal-link.util';
 import { SeoService } from '@shared/services/seo.service';
 
 interface ShareAction {
@@ -106,7 +107,9 @@ export class BlogPostPageComponent implements OnInit {
   }
 
   protected get renderedContent(): string {
-    return this.post ? renderMarkdownToHtml(this.post.contentMarkdown) : '';
+    return this.post
+      ? renderMarkdownToHtml(this.post.contentMarkdown, { transformLinkUrl: (url) => localizeInternalAppLinkUrl(url, this.i18n) })
+      : '';
   }
 
   protected get blogListingRouterLink(): string | readonly string[] {

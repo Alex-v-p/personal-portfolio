@@ -30,6 +30,10 @@ const publicRoutes: Routes = [
     },
   },
   {
+    path: 'projects/:slug',
+    redirectTo: 'projects',
+  },
+  {
     path: 'blog',
     loadComponent: () => import('@domains/blog/feature/blog.page').then((module) => module.BlogPageComponent),
     data: {
@@ -96,6 +100,14 @@ const publicRoutes: Routes = [
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'en' },
+  { path: 'projects', pathMatch: 'full', redirectTo: 'en/projects' },
+  { path: 'projects/:slug', redirectTo: 'en/projects' },
+  { path: 'blog', pathMatch: 'full', redirectTo: 'en/blog' },
+  { path: 'blog/:slug', redirectTo: 'en/blog/:slug' },
+  { path: 'contact', pathMatch: 'full', redirectTo: 'en/contact' },
+  { path: 'stats', pathMatch: 'full', redirectTo: 'en/stats' },
+  { path: 'assistant', pathMatch: 'full', redirectTo: 'en/assistant' },
+  { path: 'experience', pathMatch: 'full', redirectTo: 'en' },
   {
     path: 'admin/login',
     loadComponent: () => import('@domains/admin/auth/feature/admin-login.page').then((module) => module.AdminLoginPageComponent),

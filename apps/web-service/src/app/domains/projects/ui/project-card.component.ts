@@ -8,6 +8,7 @@ import { UiChipComponent } from '@shared/components/chip/ui-chip.component';
 import { HighlightChipComponent } from '@shared/components/highlight-chip/highlight-chip.component';
 import { UiLinkButtonComponent } from '@shared/components/link-button/ui-link-button.component';
 import { renderMarkdownToHtml } from '@shared/utils/markdown.util';
+import { localizeInternalAppLinkUrl } from '@shared/utils/internal-link.util';
 import { ResolvedMedia } from '@domains/media/model/resolved-media.model';
 import { ProjectLink, ProjectSummary } from '@domains/projects/model/project-summary.model';
 
@@ -72,11 +73,15 @@ export class ProjectCardComponent {
   }
 
   protected get renderedTeaserHtml(): string {
-    return renderMarkdownToHtml(this.project.teaser || this.project.shortDescription || '');
+    return renderMarkdownToHtml(this.project.teaser || this.project.shortDescription || '', this.markdownRenderOptions);
   }
 
   protected get renderedFeaturedSummaryHtml(): string {
-    return renderMarkdownToHtml(this.project.summary || this.project.teaser || this.project.shortDescription || '');
+    return renderMarkdownToHtml(this.project.summary || this.project.teaser || this.project.shortDescription || '', this.markdownRenderOptions);
+  }
+
+  private get markdownRenderOptions(): { transformLinkUrl: (url: string) => string } {
+    return { transformLinkUrl: (url) => localizeInternalAppLinkUrl(url, this.i18n) };
   }
 
   protected get galleryImages(): ResolvedMedia[] {
