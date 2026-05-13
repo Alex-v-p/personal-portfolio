@@ -64,6 +64,7 @@
   --ui-radius-card: 1.5rem;
   --ui-radius-panel: 1.85rem;
   --ui-radius-pill: 9999px;
+  --ui-radius-pill-small: 2rem;
   --ui-radius-media: 1.35rem;
 
   --ui-shadow-card: 0 14px 30px rgba(73, 52, 69, 0.06);
@@ -365,6 +366,14 @@
   .ui-breadcrumb-separator {
     color: var(--ui-text-soft);
     opacity: 0.7;
+  }
+
+  .ui-nav-shell-small {
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-pill-small);
+    background: rgba(255, 255, 255, 0.78);
+    box-shadow: var(--ui-shadow-card);
+    backdrop-filter: blur(10px);
   }
 
   .ui-nav-shell {
