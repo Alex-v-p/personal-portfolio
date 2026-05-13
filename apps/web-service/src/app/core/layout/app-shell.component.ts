@@ -230,10 +230,10 @@ export class AppShellComponent implements OnInit {
   protected get assistantButtonClasses(): string {
     const visibleState = this.shellChrome.assistantVisible ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0';
     const safePlacement = this.isContactRoute
-      ? 'bottom-3 right-3 sm:bottom-4 sm:right-4 lg:right-6'
-      : 'bottom-4 right-3 sm:bottom-6 sm:right-6 lg:bottom-8 lg:right-8';
+      ? 'bottom-2 left-2 right-2 sm:left-auto sm:bottom-4 sm:right-4 lg:right-6'
+      : 'bottom-3 left-2 right-2 sm:left-auto sm:bottom-6 sm:right-6 lg:bottom-8 lg:right-8';
 
-    return `pointer-events-none fixed ${safePlacement} z-40 max-w-[calc(100vw-1rem)] transition duration-300 ${visibleState}`;
+    return `pointer-events-none fixed ${safePlacement} z-40 max-w-none transition duration-300 sm:max-w-[calc(100vw-1rem)] ${visibleState}`;
   }
 
   protected get assistantPanelClasses(): string {
@@ -241,7 +241,7 @@ export class AppShellComponent implements OnInit {
       ? 'pointer-events-auto visible translate-y-0 scale-100 opacity-100'
       : 'invisible pointer-events-none translate-y-3 scale-95 opacity-0';
 
-    return `mb-3 max-h-[min(42rem,calc(100vh-8rem))] w-[min(36rem,calc(100vw-1rem))] origin-bottom-right overflow-hidden transition-all duration-200 ease-out sm:mb-4 sm:w-[32rem] lg:w-[34rem] ${openState}`;
+    return `mb-2 max-h-[calc(100svh-6rem)] w-full origin-bottom overflow-hidden transition-all duration-200 ease-out sm:mb-4 sm:max-h-[calc(100vh-8rem)] sm:w-[32rem] sm:origin-bottom-right lg:w-[34rem] ${openState}`;
   }
 
   protected get assistantFabClasses(): string {
@@ -249,7 +249,7 @@ export class AppShellComponent implements OnInit {
       ? 'scale-[0.985] shadow-[0_16px_36px_rgba(88,72,99,0.18)]'
       : 'hover:-translate-y-0.5 hover:shadow-[0_16px_32px_rgba(88,72,99,0.12)]';
 
-    return `ui-fab pointer-events-auto inline-flex max-w-[calc(100vw-1rem)] items-center gap-3 rounded-[1.75rem] px-3 py-3 ui-btn-secondary transition-all duration-200 sm:px-4 ${openState}`;
+    return `ui-fab pointer-events-auto inline-flex w-full max-w-none items-center justify-between gap-3 rounded-[1.5rem] px-3 py-2.5 ui-btn-secondary transition-all duration-200 sm:w-auto sm:max-w-[calc(100vw-1rem)] sm:justify-start sm:rounded-[1.75rem] sm:px-4 sm:py-3 ${openState}`;
   }
 
   private get isContactRoute(): boolean {
