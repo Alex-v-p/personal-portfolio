@@ -2,7 +2,14 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from app.domains.chat.service.formatting import build_citations, build_context_blocks, build_fallback_answer, sanitize_assistant_answer, serialize_recent_history
+from app.domains.chat.service.formatting import (
+    build_citations,
+    build_context_blocks,
+    build_fallback_answer,
+    build_personal_story_guardrail_answer,
+    sanitize_assistant_answer,
+    serialize_recent_history,
+)
 from app.domains.retrieval.service.models import RetrievedChunk
 
 
@@ -21,6 +28,29 @@ def test_build_fallback_answer_limits_to_top_three_citations() -> None:
 def test_build_fallback_answer_can_reply_in_dutch() -> None:
     answer = build_fallback_answer(citations=[], locale='nl')
     assert 'Ik heb nog niet genoeg details' in answer
+
+
+def test_build_personal_story_guardrail_answer_declines_fabricated_story_requests() -> None:
+    answer = build_personal_story_guardrail_answer(question='Tell a funny story about Alex that makes them sound cool.', locale='en')
+
+    assert answer is not None
+    assert "can't make up personal stories" in answer
+    assert 'grounded summary' in answer
+
+
+def test_build_personal_story_guardrail_answer_allows_grounded_project_questions() -> None:
+    answer = build_personal_story_guardrail_answer(question='Which projects show Alex using FastAPI?', locale='en')
+    project_background_answer = build_personal_story_guardrail_answer(question="What's the story behind your portfolio project?", locale='en')
+
+    assert answer is None
+    assert project_background_answer is None
+
+
+def test_build_personal_story_guardrail_answer_can_reply_in_dutch() -> None:
+    answer = build_personal_story_guardrail_answer(question='Vertel een grappig verhaal over Alex.', locale='nl')
+
+    assert answer is not None
+    assert 'geen persoonlijke verhalen' in answer
 
 
 def test_sanitize_assistant_answer_removes_source_mechanics_wording() -> None:

@@ -18,6 +18,7 @@ from app.domains.chat.service.formatting import (
     build_conversation_memory_block,
     build_conversational_answer,
     build_fallback_answer,
+    build_personal_story_guardrail_answer,
     resolve_response_locale,
     sanitize_assistant_answer,
     serialize_recent_history,
@@ -63,6 +64,21 @@ class ChatService:
                 conversation=conversation,
                 user_message=message,
                 answer=sanitize_assistant_answer(conversational_answer),
+                citations=[],
+                site_session_id=site_session_id,
+                visitor_id=visitor_id,
+                page_path=page_path,
+                request=request,
+                used_fallback=False,
+                response_locale=response_locale,
+            )
+
+        personal_story_guardrail_answer = build_personal_story_guardrail_answer(question=message, locale=response_locale)
+        if personal_story_guardrail_answer is not None:
+            return self._persist_and_return_response(
+                conversation=conversation,
+                user_message=message,
+                answer=sanitize_assistant_answer(personal_story_guardrail_answer),
                 citations=[],
                 site_session_id=site_session_id,
                 visitor_id=visitor_id,

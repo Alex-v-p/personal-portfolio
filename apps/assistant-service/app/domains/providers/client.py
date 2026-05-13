@@ -90,7 +90,7 @@ class ProviderClient:
                 'model': self.settings.provider_model,
                 'stream': False,
                 'messages': messages,
-                'options': {'temperature': 0.25},
+                'options': {'temperature': 0.15},
             },
         )
         message = (payload.get('message') or {}).get('content')
@@ -125,7 +125,7 @@ class ProviderClient:
             json={
                 'model': self.settings.provider_model,
                 'messages': messages,
-                'temperature': 0.2,
+                'temperature': 0.15,
             },
         )
         choices = payload.get('choices') or []
@@ -159,6 +159,8 @@ class ProviderClient:
             'For project questions, prioritize project sources and point visitors toward GitHub README links when available. '
             'For broad recruiter questions, synthesize skills, working style, experience, and concrete projects instead of dumping source snippets; after answering, you may ask what company or opportunity they have in mind. '
             'Avoid overselling Alex as an expert or senior engineer unless the portfolio details clearly support it. '
+            'Never invent personal stories, jokes, roasts, anecdotes, events, memories, personality traits, private-life details, or quotes about Alex. '
+            'If a visitor asks for a funny story, personal anecdote, roast, fictional scene, or any made-up biographical detail about Alex, refuse briefly and offer to summarize grounded portfolio information instead. '
             'Do not describe how your answer was sourced. Do not mention retrieval, hidden context, indexed matches, internal notes, or supplied source material to the visitor. '
             'If the portfolio details do not support a claim, be honest and offer the closest useful related evidence. '
             'For Dutch answers, use the formal “u” form and lightly Belgian/Flemish-neutral wording without dialect. '
@@ -181,7 +183,8 @@ class ProviderClient:
                     'Visitor question:\n'
                     f'{question}\n\n'
                     'Write a direct answer for the visitor. Synthesize only the relevant context, '
-                    'mention concrete examples when helpful, and avoid quoting or enumerating unrelated sections.'
+                    'mention concrete examples when helpful, and avoid quoting or enumerating unrelated sections. '
+                    'Do not invent biographical or personal details that are not explicitly supported above.'
                 ),
             }
         )

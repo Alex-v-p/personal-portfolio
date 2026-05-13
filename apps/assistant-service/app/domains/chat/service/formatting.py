@@ -125,6 +125,30 @@ def build_conversational_answer(*, question: str, locale: str = 'en') -> str | N
     return None
 
 
+def build_personal_story_guardrail_answer(*, question: str, locale: str = 'en') -> str | None:
+    """Decline prompts that ask the portfolio assistant to invent personal anecdotes."""
+    resolved_locale = resolve_response_locale(locale=locale)
+    normalized = _normalize(question)
+    if not normalized:
+        return None
+
+    if not _looks_like_personal_story_request(normalized):
+        return None
+
+    return _message(
+        resolved_locale,
+        en=(
+            "I can't make up personal stories, jokes, roasts, or anecdotes about real people. "
+            "For Alex, I can only answer from the portfolio details, so I can share a grounded summary of "
+            "their projects, skills, experience, blog posts, or professional background instead."
+        ),
+        nl=(
+            'Ik kan geen persoonlijke verhalen, grappen, roasts of anekdotes over echte personen verzinnen. '
+            'Voor Alex kan ik alleen antwoorden op basis van het portfolio, dus ik kan wel een onderbouwde samenvatting geven '
+            'van Alex’ projecten, vaardigheden, ervaring, blogposts of professionele achtergrond.'
+        ),
+    )
+
 def build_fallback_answer(*, citations: list[CitationOut], locale: str = 'en') -> str:
     resolved_locale = resolve_response_locale(locale=locale)
     if resolved_locale == 'nl':
@@ -181,6 +205,57 @@ def trim_conversation_summary(summary: str, *, max_chars: int) -> str:
         return normalized
     return normalized[: max_chars - 3].rstrip() + '...'
 
+
+_PERSONAL_STORY_TERMS = {'story', 'anecdote', 'verhaal', 'anekdote'}
+
+_CREATIVE_PERSONAL_CONTENT_TERMS = {
+    'joke', 'roast', 'funny', 'embarrassing', 'weird', 'wild', 'random', 'fictional',
+    'grap', 'mop', 'roast', 'grappig', 'genant', 'raar', 'wild', 'verzonnen',
+}
+
+_PERSON_REFERENCES = {
+    'alex', "alex's", 'him', 'his', 'he', 'they', 'them', 'their', 'me', 'my', 'you', 'your',
+    'alexs', 'alexa', 'persoon', 'hem', 'zijn', 'hen', 'hun', 'mij', 'mijn', 'jou', 'jouw', 'u', 'uw',
+}
+
+_FABRICATION_VERBS = {
+    'invent', 'make up', 'fabricate', 'improvise', 'imagine', 'verzin', 'verzinnen', 'bedenk', 'maak op',
+}
+
+
+def _looks_like_personal_story_request(normalized: str) -> bool:
+    words = set(normalized.split())
+    has_story_request = bool(words & _PERSONAL_STORY_TERMS)
+    has_creative_modifier = bool(words & _CREATIVE_PERSONAL_CONTENT_TERMS)
+    has_person_reference = bool(words & _PERSON_REFERENCES)
+    has_fabrication_request = any(phrase in normalized for phrase in _FABRICATION_VERBS)
+
+    explicit_personal_story_phrases = (
+        'story about alex',
+        'story about me',
+        'story about him',
+        'story about them',
+        'funny story',
+        'embarrassing story',
+        'personal story',
+        'anecdote about alex',
+        'joke about alex',
+        'roast alex',
+        'verhaal over alex',
+        'verhaal over mij',
+        'grappig verhaal',
+        'persoonlijk verhaal',
+        'anekdote over alex',
+        'grap over alex',
+        'mop over alex',
+    )
+    has_explicit_personal_story_phrase = any(phrase in normalized for phrase in explicit_personal_story_phrases)
+
+    return (
+        (has_creative_modifier and (has_person_reference or has_story_request))
+        or (has_fabrication_request and (has_person_reference or has_story_request))
+        or has_explicit_personal_story_phrase
+    )
 
 def _normalize(text: str) -> str:
     text = re.sub(r"[^a-zA-Z0-9' ]+", ' ', text.lower())
