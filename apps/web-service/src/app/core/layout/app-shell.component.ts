@@ -53,11 +53,20 @@ export class AppShellComponent implements OnInit {
     hasScrolledPastThreshold: false,
     scrollDirection: 'up' as 'up' | 'down'
   };
+  protected isMobileViewport = false;
 
+  private readonly mobileChromeBreakpoint = 768;
+  private readonly mobileChromeCollapseOffset = 72;
+  private readonly mobileChromeScrollDelta = 6;
   private lastScrollY = 0;
+  private isMobileHeaderManuallyOpened = false;
+  private mobileHeaderManualOpenScrollY = 0;
   private routeSettleTimer: number | undefined;
+  private isRestoringViewportForNewRoute = false;
+  private viewportRestoreTimer: number | undefined;
 
   ngOnInit(): void {
+    this.updateMobileViewport();
     this.isAdminRoute = this.router.url.startsWith('/admin');
     this.isRouteLoading = !this.isAdminRoute;
     if (!this.isAdminRoute) {
@@ -80,6 +89,7 @@ export class AppShellComponent implements OnInit {
       .subscribe((event) => {
         if (event instanceof NavigationStart) {
           this.isRouteLoading = !event.url.startsWith('/admin');
+          this.prepareMobileNavigationForRouteChange(event.url);
           return;
         }
 
@@ -121,6 +131,10 @@ export class AppShellComponent implements OnInit {
 
   protected get showRouteSkeleton(): boolean {
     return !this.isAdminRoute && this.isRouteLoading && !this.hasActiveRouteComponent;
+  }
+
+  protected get isMobileNavigationCollapsed(): boolean {
+    return !this.isAdminRoute && this.isMobileViewport && !this.shellChrome.headerVisible;
   }
 
   protected onRouteActivate(): void {
@@ -181,9 +195,22 @@ export class AppShellComponent implements OnInit {
 
   protected get headerClasses(): string {
     const stickyState = this.shellChrome.isStickyEnabled ? 'sticky top-0' : 'relative';
-    const visibleState = this.shellChrome.headerVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0';
+    const visibleState = this.shellChrome.headerVisible ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-full opacity-0';
 
-    return `${stickyState} z-30 px-4 pt-4 transition duration-300 sm:px-6 lg:px-8 ${visibleState}`;
+    return `${stickyState} z-30 px-4 pt-4 transition duration-300 sm:px-6 md:pointer-events-auto md:translate-y-0 md:opacity-100 lg:px-8 ${visibleState}`;
+  }
+
+  protected expandMobileNavigation(): void {
+    if (!this.isMobileViewport || this.isAdminRoute) {
+      return;
+    }
+
+    this.shellChrome.headerVisible = true;
+    this.shellChrome.assistantVisible = true;
+    this.shellChrome.scrollDirection = 'up';
+    this.isMobileHeaderManuallyOpened = true;
+    this.mobileHeaderManualOpenScrollY = typeof window === 'undefined' ? 0 : window.scrollY;
+    this.changeDetectorRef.detectChanges();
   }
 
   protected toggleAssistant(): void {
@@ -289,18 +316,61 @@ export class AppShellComponent implements OnInit {
     startAnimation();
   }
 
+  private prepareMobileNavigationForRouteChange(url: string): void {
+    if (typeof window === 'undefined' || !this.isMobileViewport || url.startsWith('/admin')) {
+      return;
+    }
+
+    this.isRestoringViewportForNewRoute = true;
+    this.shellChrome.headerVisible = true;
+    this.shellChrome.assistantVisible = true;
+    this.shellChrome.scrollDirection = 'up';
+    this.isMobileHeaderManuallyOpened = false;
+    this.mobileHeaderManualOpenScrollY = 0;
+    this.lastScrollY = Math.max(window.scrollY, 0);
+  }
+
   private restoreViewportForNewPage(url: string): void {
     this.shellChrome.headerVisible = true;
     this.shellChrome.assistantVisible = true;
     this.shellChrome.hasScrolledPastThreshold = false;
     this.shellChrome.scrollDirection = 'up';
-    this.lastScrollY = 0;
+    this.isMobileHeaderManuallyOpened = false;
+    this.mobileHeaderManualOpenScrollY = 0;
 
-    if (typeof window === 'undefined' || url.includes('#')) {
+    if (typeof window === 'undefined') {
+      this.lastScrollY = 0;
+      this.isRestoringViewportForNewRoute = false;
       return;
     }
 
-    const scrollToTop = (): void => window.scrollTo({ left: 0, top: 0, behavior: 'auto' });
+    if (url.includes('#')) {
+      this.lastScrollY = Math.max(window.scrollY, 0);
+      this.isRestoringViewportForNewRoute = false;
+      return;
+    }
+
+    this.isRestoringViewportForNewRoute = this.isMobileViewport && !this.isAdminRoute;
+    this.lastScrollY = Math.max(window.scrollY, 0);
+
+    if (this.viewportRestoreTimer) {
+      window.clearTimeout(this.viewportRestoreTimer);
+    }
+
+    const finishViewportRestore = (): void => {
+      this.shellChrome.headerVisible = true;
+      this.shellChrome.assistantVisible = true;
+      this.shellChrome.scrollDirection = 'up';
+      this.lastScrollY = Math.max(window.scrollY, 0);
+      this.isRestoringViewportForNewRoute = false;
+      this.changeDetectorRef.detectChanges();
+    };
+
+    const scrollToTop = (): void => {
+      window.scrollTo({ left: 0, top: 0, behavior: 'auto' });
+
+      this.viewportRestoreTimer = window.setTimeout(finishViewportRestore, 160);
+    };
 
     if (typeof window.requestAnimationFrame === 'function') {
       window.requestAnimationFrame(scrollToTop);
@@ -330,18 +400,85 @@ export class AppShellComponent implements OnInit {
     );
   }
 
+  @HostListener('window:resize')
+  protected onWindowResize(): void {
+    this.updateMobileViewport();
+
+    if (!this.isMobileViewport) {
+      this.shellChrome.headerVisible = true;
+      this.isMobileHeaderManuallyOpened = false;
+      this.mobileHeaderManualOpenScrollY = 0;
+      this.isRestoringViewportForNewRoute = false;
+    }
+
+    this.changeDetectorRef.detectChanges();
+  }
+
   @HostListener('window:scroll')
   protected onWindowScroll(): void {
     if (typeof window === 'undefined') {
       return;
     }
 
-    const currentScrollY = window.scrollY;
+    const currentScrollY = Math.max(window.scrollY, 0);
+    const isScrollingDown = currentScrollY > this.lastScrollY + this.mobileChromeScrollDelta;
+    const isNearTop = currentScrollY <= 12;
+
+    if (this.isRestoringViewportForNewRoute) {
+      this.shellChrome.headerVisible = true;
+      this.shellChrome.assistantVisible = true;
+      this.shellChrome.scrollDirection = 'up';
+      this.shellChrome.hasScrolledPastThreshold = currentScrollY > 24;
+      this.lastScrollY = currentScrollY;
+
+      if (isNearTop) {
+        this.isRestoringViewportForNewRoute = false;
+      }
+
+      return;
+    }
+
     this.shellChrome.hasScrolledPastThreshold = currentScrollY > 24;
-    this.shellChrome.scrollDirection = currentScrollY > this.lastScrollY ? 'down' : 'up';
-    this.shellChrome.headerVisible = true;
+    this.shellChrome.scrollDirection = isScrollingDown ? 'down' : 'up';
     this.shellChrome.assistantVisible = true;
-    this.lastScrollY = Math.max(currentScrollY, 0);
+
+    if (this.isAdminRoute || !this.isMobileViewport) {
+      this.shellChrome.headerVisible = true;
+      this.isMobileHeaderManuallyOpened = false;
+      this.mobileHeaderManualOpenScrollY = 0;
+      this.lastScrollY = currentScrollY;
+      return;
+    }
+
+    if (isNearTop) {
+      this.shellChrome.headerVisible = true;
+      this.isMobileHeaderManuallyOpened = false;
+      this.mobileHeaderManualOpenScrollY = 0;
+      this.lastScrollY = currentScrollY;
+      return;
+    }
+
+    if (this.isMobileHeaderManuallyOpened) {
+      const movedDownAfterManualOpen = currentScrollY > this.mobileHeaderManualOpenScrollY + 24;
+
+      if (isScrollingDown && movedDownAfterManualOpen && currentScrollY > this.mobileChromeCollapseOffset) {
+        this.shellChrome.headerVisible = false;
+        this.isMobileHeaderManuallyOpened = false;
+      }
+
+      this.lastScrollY = currentScrollY;
+      return;
+    }
+
+    if (isScrollingDown && currentScrollY > this.mobileChromeCollapseOffset) {
+      this.shellChrome.headerVisible = false;
+    }
+
+    this.lastScrollY = currentScrollY;
+  }
+
+  private updateMobileViewport(): void {
+    this.isMobileViewport = typeof window !== 'undefined' && window.innerWidth < this.mobileChromeBreakpoint;
   }
 
   private rebuildNavigationLinks(): void {

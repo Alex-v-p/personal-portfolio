@@ -1,5 +1,5 @@
 <div class="flex min-h-screen flex-col" [attr.data-skin]="isAdminRoute ? 'admin' : 'public'">
-  <header *ngIf="!isAdminRoute" [class]="headerClasses">
+  <header *ngIf="!isAdminRoute" id="site-navigation" [class]="headerClasses">
     <div class="mx-auto max-w-6xl px-3 py-2 sm:px-0">
       <div class="grid min-w-0 items-center gap-3 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
         <div aria-hidden="true" class="hidden lg:block"></div>
@@ -64,6 +64,31 @@
       </div>
     </div>
   </header>
+
+  <button
+    *ngIf="isMobileNavigationCollapsed"
+    type="button"
+    class="ui-mobile-nav-peek fixed left-1/2 top-2 z-40 inline-flex -translate-x-1/2 items-center justify-center md:hidden"
+    aria-label="Show navigation"
+    aria-controls="site-navigation"
+    [attr.aria-expanded]="shellChrome.headerVisible"
+    (click)="expandMobileNavigation()"
+  >
+    <svg
+      aria-hidden="true"
+      class="ui-mobile-nav-peek-icon"
+      viewBox="0 0 20 20"
+      fill="none"
+    >
+      <path
+        d="M5 7.5L10 12.5L15 7.5"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  </button>
 
   <main class="flex-1 px-4 py-10 sm:px-6 md:py-12 lg:px-8 lg:py-14">
     <div [class]="mainContentContainerClasses">
