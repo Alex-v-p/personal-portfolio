@@ -163,7 +163,8 @@
       "hero": {
         "coreSkills": "Mijn kernvaardigheden:",
         "openCv": "Cv openen",
-        "cvShort": "Cv"
+        "cvShort": "Cv",
+        "greeting": "Hoi, ik ben {{ name }}"
       },
       "featured": {
         "title": "Uitgelicht"

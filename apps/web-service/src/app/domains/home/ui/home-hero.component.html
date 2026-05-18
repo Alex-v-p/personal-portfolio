@@ -25,7 +25,7 @@
           </span>
 
           <p class="text-md font-medium ui-text-soft">
-            {{ profile.greeting }}
+            {{ 'pages.home.hero.greeting' | translate:{ name: profile.firstName } }}
           </p>
         </div>
       </div>
