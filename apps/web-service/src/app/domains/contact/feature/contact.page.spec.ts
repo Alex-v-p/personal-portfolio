@@ -22,7 +22,7 @@ const profileFixture: Profile = {
   phone: '+32 000 000',
   shortIntro: 'Builder',
   longBio: 'Long bio',
-  heroTitle: 'I’m Software Engineer',
+  heroTitle: 'Software Engineer',
   summary: 'Builder',
   shortBio: 'Long bio',
   footerDescription: 'Footer',

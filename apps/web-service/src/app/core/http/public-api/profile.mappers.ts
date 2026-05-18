@@ -136,7 +136,7 @@ export function normalizeProfile(profile: ProfileApi): Profile {
     phone: profile.phone ?? '',
     shortIntro,
     longBio,
-    heroTitle: `I’m ${headline}`,
+    heroTitle: `${headline}`,
     summary: shortIntro || longBio,
     shortBio: shortIntro || longBio,
     footerDescription: shortIntro || profile.footerDescription || longBio,
