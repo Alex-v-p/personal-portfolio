@@ -125,7 +125,7 @@ def _locale_multiplier(*, document: KnowledgeDocument, requested_locale: str) ->
     normalized_requested = normalize_assistant_locale(requested_locale)
 
     if document_locale == normalized_requested:
-        return 1.16
+        return 1.35
     if document_locale == DEFAULT_ASSISTANT_LOCALE:
-        return 0.92
-    return 0.74
+        return 0.72 if normalized_requested != DEFAULT_ASSISTANT_LOCALE else 1.0
+    return 0.62

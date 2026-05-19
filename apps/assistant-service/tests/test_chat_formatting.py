@@ -10,6 +10,7 @@ from app.domains.chat.service.formatting import (
     sanitize_assistant_answer,
     serialize_recent_history,
 )
+from app.domains.providers.client import ProviderClient
 from app.domains.retrieval.service.models import RetrievedChunk
 
 
@@ -84,7 +85,7 @@ def test_build_context_blocks_formats_scores_excerpt_and_locale() -> None:
         )
     ], locale='nl')
 
-    assert blocks == ['[1] Portfolio Project (project, locale=Dutch, relevance=9.88)\nFastAPI backend with Angular frontend.']
+    assert blocks == ['[1] Portfolio Project (project, taal=Nederlands, relevantie=9.88)\nFastAPI backend with Angular frontend.']
 
 
 def test_build_citations_localizes_internal_paths() -> None:
@@ -100,3 +101,25 @@ def test_build_citations_localizes_internal_paths() -> None:
     ], locale='nl')
 
     assert citations[0].canonical_url == '/nl/projects'
+
+
+
+def test_provider_uses_dutch_prompt_scaffolding_for_dutch_answers() -> None:
+    messages = ProviderClient()._build_messages(
+        question='Wat is het Angular Portfolio project?',
+        context_blocks=['[1] Angular Portfolio (project, taal=Nederlands, relevantie=10.00)\nHet huidige zelfgehoste portfolioplatform.'],
+        history=[],
+        page_path='/nl/projects/angular-portfolio-website',
+        locale='nl',
+        conversation_memory=None,
+    )
+
+    system_prompt = messages[0]['content']
+    user_prompt = messages[-1]['content']
+
+    assert 'Antwoord uitsluitend in natuurlijk Nederlands' in system_prompt
+    assert 'Gebruik geen Engelse bezitsvormen' in system_prompt
+    assert 'Huidige pagina:' in user_prompt
+    assert 'Vraag van de bezoeker:' in user_prompt
+    assert 'Preferred answer language' not in user_prompt
+    assert 'Visitor question' not in user_prompt

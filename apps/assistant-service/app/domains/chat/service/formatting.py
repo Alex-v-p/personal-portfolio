@@ -81,14 +81,36 @@ def build_citations(retrieved, *, locale: str = 'en') -> list[CitationOut]:
 
 
 def build_context_blocks(retrieved, *, locale: str = 'en') -> list[str]:
-    language = locale_language_name(resolve_response_locale(locale=locale))
+    resolved_locale = resolve_response_locale(locale=locale)
+    language = locale_language_name(resolved_locale)
     blocks: list[str] = []
     for index, item in enumerate(retrieved):
-        visibility_note = 'background guidance' if item.source_type == 'assistant_note' else item.source_type
-        blocks.append(
-            f'[{index + 1}] {item.title} ({visibility_note}, locale={language}, relevance={item.score:.2f})\n{item.excerpt}'
-        )
+        visibility_note = _source_label(item.source_type, resolved_locale)
+        if language == 'Dutch':
+            blocks.append(
+                f'[{index + 1}] {item.title} ({visibility_note}, taal=Nederlands, relevantie={item.score:.2f})\n{item.excerpt}'
+            )
+        else:
+            blocks.append(
+                f'[{index + 1}] {item.title} ({visibility_note}, language=English, relevance={item.score:.2f})\n{item.excerpt}'
+            )
     return blocks
+
+
+def _source_label(source_type: str, locale: str) -> str:
+    normalized_locale = resolve_response_locale(locale=locale)
+    normalized_source = (source_type or '').strip().lower()
+    if normalized_locale == 'nl':
+        return {
+            'assistant_note': 'achtergrondrichtlijn',
+            'blog_post': 'blogpost',
+            'experience': 'ervaring',
+            'profile': 'profiel',
+            'project': 'project',
+        }.get(normalized_source, normalized_source or 'bron')
+    if normalized_source == 'assistant_note':
+        return 'background guidance'
+    return normalized_source or 'source'
 
 
 def build_conversational_answer(*, question: str, locale: str = 'en') -> str | None:
