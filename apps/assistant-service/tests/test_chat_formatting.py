@@ -60,6 +60,16 @@ def test_sanitize_assistant_answer_removes_source_mechanics_wording() -> None:
     assert answer == 'Alex uses Angular. The portfolio mentions FastAPI.'
 
 
+def test_sanitize_assistant_answer_repairs_dutch_first_person_drift() -> None:
+    answer = sanitize_assistant_answer(
+        'Ik heb gewerkt aan mijn portfolio project met Angular. Ik kan u daar meer over vertellen.',
+        locale='nl',
+    )
+
+    assert 'Alex heeft gewerkt aan Alex’ portfolio project' in answer
+    assert 'Ik kan u daar meer over vertellen' in answer
+
+
 def test_serialize_recent_history_uses_latest_messages_only() -> None:
     conversation = SimpleNamespace(
         messages=[SimpleNamespace(created_at=index, role=SimpleNamespace(value='user'), message_text=f'message-{index}') for index in range(5)]
@@ -118,6 +128,8 @@ def test_provider_uses_dutch_prompt_scaffolding_for_dutch_answers() -> None:
     user_prompt = messages[-1]['content']
 
     assert 'Antwoord uitsluitend in natuurlijk Nederlands' in system_prompt
+    assert 'Beschrijf Alex altijd in de derde persoon' in system_prompt
+    assert 'nooit om Alex’ werk' in system_prompt
     assert 'Gebruik geen Engelse bezitsvormen' in system_prompt
     assert 'Huidige pagina:' in user_prompt
     assert 'Vraag van de bezoeker:' in user_prompt

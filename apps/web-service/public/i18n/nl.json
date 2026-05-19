@@ -417,7 +417,7 @@
       }
     },
     "empty": {
-      "intro": "Vraag naar projecten, blogposts, ervaring, technologieën of wat er in dit portfolio zit.",
+      "intro": "Vraag naar projecten, blogposts, ervaring, technologieën of wat er in dit portfolio zit. Let op: Nederlandse antwoorden kunnen minder goed zijn dan Engelse antwoorden door de beperkte grootte van het LLM-model.",
       "promptsLabel": "Probeer een van deze startvragen:"
     },
     "starterPrompts": {
