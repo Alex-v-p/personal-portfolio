@@ -2,7 +2,7 @@ import { AsyncPipe, NgClass, NgFor, NgIf } from '@angular/common';
 import { ChangeDetectorRef, Component, DestroyRef, HostListener, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { filter, take } from 'rxjs/operators';
+import { distinctUntilChanged, filter, take } from 'rxjs/operators';
 
 import { AppLocale, SUPPORTED_LOCALES } from '@core/i18n/locales';
 import { I18nService } from '@core/i18n/i18n.service';
@@ -96,6 +96,7 @@ export class AppShellComponent implements OnInit {
         if (event instanceof NavigationEnd) {
           this.isAdminRoute = event.urlAfterRedirects.startsWith('/admin');
           void this.i18n.syncLocaleFromUrl(event.urlAfterRedirects);
+          this.loadSiteShell();
           this.rebuildNavigationLinks();
           this.applyRouteSeo(event.urlAfterRedirects);
           if (!this.isAdminRoute) {
@@ -115,14 +116,13 @@ export class AppShellComponent implements OnInit {
         this.changeDetectorRef.detectChanges();
       });
 
-    this.profileApi.getSiteShell().pipe(take(1)).subscribe({
-      next: (shell) => {
-        this.shellData = shell;
-        this.profile = shell.profile;
-        this.rebuildNavigationLinks();
-        this.changeDetectorRef.detectChanges();
-      }
-    });
+    this.i18n.localeChanges$
+      .pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.loadSiteShell();
+      });
+
+    this.loadSiteShell();
   }
 
   protected get currentLocale(): AppLocale {
@@ -479,6 +479,21 @@ export class AppShellComponent implements OnInit {
 
   private updateMobileViewport(): void {
     this.isMobileViewport = typeof window !== 'undefined' && window.innerWidth < this.mobileChromeBreakpoint;
+  }
+
+  private loadSiteShell(): void {
+    if (this.isAdminRoute) {
+      return;
+    }
+
+    this.profileApi.getSiteShell().pipe(take(1)).subscribe({
+      next: (shell) => {
+        this.shellData = shell;
+        this.profile = shell.profile;
+        this.rebuildNavigationLinks();
+        this.changeDetectorRef.detectChanges();
+      }
+    });
   }
 
   private rebuildNavigationLinks(): void {
