@@ -38,6 +38,8 @@ class AdminProjectUpsertIn(ApiSchema):
     description_markdown_nl: str | None = None
     cover_image_file_id: str | None = None
     github_url: str | None = Field(default=None, max_length=500)
+    read_more_url: str | None = Field(default=None, max_length=500)
+    read_more_url_nl: str | None = Field(default=None, max_length=500)
     github_repo_owner: str | None = Field(default=None, max_length=120)
     github_repo_name: str | None = Field(default=None, max_length=120)
     demo_url: str | None = Field(default=None, max_length=500)
@@ -50,6 +52,7 @@ class AdminProjectUpsertIn(ApiSchema):
     status_nl: str | None = Field(default=None, max_length=120)
     state: ProjectStateLiteral
     is_featured: bool = False
+    is_card_popup_enabled: bool = True
     sort_order: int = 0
     published_at: str | None = None
     skill_ids: list[str] = Field(default_factory=list)
@@ -70,6 +73,8 @@ class AdminProjectOut(ApiSchema):
     cover_image_file_id: str | None = None
     cover_image: PublicMediaAssetOut | None = None
     github_url: str | None = None
+    read_more_url: str | None = None
+    read_more_url_nl: str | None = None
     github_repo_owner: str | None = None
     github_repo_name: str | None = None
     demo_url: str | None = None
@@ -82,6 +87,7 @@ class AdminProjectOut(ApiSchema):
     status_nl: str | None = None
     state: ProjectStateLiteral
     is_featured: bool
+    is_card_popup_enabled: bool
     sort_order: int
     published_at: str
     created_at: str

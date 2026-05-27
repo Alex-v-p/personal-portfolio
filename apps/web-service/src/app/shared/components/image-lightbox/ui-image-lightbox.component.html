@@ -1,0 +1,62 @@
+<div
+  *ngIf="isOpen && selectedImage as lightboxImage"
+  class="ui-image-lightbox fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-5"
+  role="dialog"
+  aria-modal="true"
+  [attr.aria-label]="'common.actions.largeImageViewFor' | translate:{ title: title }"
+  (click)="close($event)"
+>
+  <div class="ui-image-lightbox-backdrop" [style.background-image]="backgroundImage" aria-hidden="true"></div>
+
+  <button
+    type="button"
+    class="ui-image-lightbox-close inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-white/75 bg-white/90 text-[var(--ui-text)] shadow-lg backdrop-blur transition hover:scale-105 hover:bg-white hover:text-[var(--ui-accent-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
+    (click)="close($event)"
+    [attr.aria-label]="'common.actions.closeLargerImage' | translate"
+    [title]="'common.actions.closeImage' | translate"
+  >
+    <svg viewBox="0 0 20 20" class="h-5 w-5" aria-hidden="true" focusable="false">
+      <path d="M5 5L15 15M15 5L5 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" />
+    </svg>
+  </button>
+
+  <figure class="ui-image-lightbox-frame" (click)="stopPropagation($event)">
+    <div class="ui-image-lightbox-image-shell">
+      <img
+        [src]="lightboxImage.url"
+        [alt]="lightboxImage.alt || title"
+        class="ui-image-lightbox-image"
+        [class.ui-image-lightbox-image--zoomed]="isZoomed"
+        [style.transform-origin]="imageTransformOrigin"
+        (pointermove)="updateZoomOrigin($event)"
+        (pointerleave)="resetZoom()"
+      />
+
+      <button
+        *ngIf="hasMultipleImages"
+        type="button"
+        class="ui-image-lightbox-nav ui-image-lightbox-nav-left"
+        (click)="showPrevious($event)"
+        [attr.aria-label]="'common.actions.previousImageFor' | translate:{ title: title }"
+      >
+        <svg viewBox="0 0 20 20" class="h-5 w-5" aria-hidden="true" focusable="false">
+          <path d="M12.5 4.5L7 10l5.5 5.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" />
+        </svg>
+      </button>
+
+      <button
+        *ngIf="hasMultipleImages"
+        type="button"
+        class="ui-image-lightbox-nav ui-image-lightbox-nav-right"
+        (click)="showNext($event)"
+        [attr.aria-label]="'common.actions.nextImageFor' | translate:{ title: title }"
+      >
+        <svg viewBox="0 0 20 20" class="h-5 w-5" aria-hidden="true" focusable="false">
+          <path d="M7.5 4.5L13 10l-5.5 5.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" />
+        </svg>
+      </button>
+    </div>
+
+    <figcaption class="ui-image-lightbox-caption">{{ counterLabel || title }}</figcaption>
+  </figure>
+</div>

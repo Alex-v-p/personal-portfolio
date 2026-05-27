@@ -21,6 +21,8 @@ export interface AdminProjectForm {
   descriptionMarkdownNl: string;
   coverImageFileId: string | null;
   githubUrl: string;
+  readMoreUrl: string;
+  readMoreUrlNl: string;
   githubRepoOwner: string;
   githubRepoName: string;
   demoUrl: string;
@@ -33,6 +35,7 @@ export interface AdminProjectForm {
   statusNl: string;
   state: 'published' | 'archived' | 'completed' | 'paused';
   isFeatured: boolean;
+  isCardPopupEnabled: boolean;
   sortOrder: number;
   publishedAt: string;
   skillIds: string[];
@@ -118,6 +121,8 @@ export function createEmptyProjectForm(): AdminProjectForm {
     descriptionMarkdownNl: '',
     coverImageFileId: null,
     githubUrl: '',
+    readMoreUrl: '',
+    readMoreUrlNl: '',
     githubRepoOwner: '',
     githubRepoName: '',
     demoUrl: '',
@@ -130,6 +135,7 @@ export function createEmptyProjectForm(): AdminProjectForm {
     statusNl: '',
     state: 'published',
     isFeatured: false,
+    isCardPopupEnabled: true,
     sortOrder: 0,
     publishedAt: '',
     skillIds: [],
@@ -196,6 +202,8 @@ export function toProjectForm(project: AdminProject): AdminProjectForm {
     descriptionMarkdownNl: project.descriptionMarkdownNl ?? '',
     coverImageFileId: project.coverImageFileId ?? null,
     githubUrl: project.githubUrl ?? '',
+    readMoreUrl: project.readMoreUrl ?? '',
+    readMoreUrlNl: project.readMoreUrlNl ?? '',
     githubRepoOwner: project.githubRepoOwner ?? '',
     githubRepoName: project.githubRepoName ?? '',
     demoUrl: project.demoUrl ?? '',
@@ -208,6 +216,7 @@ export function toProjectForm(project: AdminProject): AdminProjectForm {
     statusNl: project.statusNl ?? '',
     state: project.state,
     isFeatured: project.isFeatured,
+    isCardPopupEnabled: project.isCardPopupEnabled ?? true,
     sortOrder: project.sortOrder,
     publishedAt: project.publishedAt?.slice(0, 16) ?? '',
     skillIds: [...project.skillIds],

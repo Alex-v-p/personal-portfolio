@@ -1,13 +1,17 @@
-<app-ui-card *ngIf="featured; else defaultCard" [featured]="true" padding="none">
+<div *ngIf="featured; else defaultCard" class="project-card-action-shell h-full" [class.project-card-action-shell--popup]="hasPopupCardAction">
+  <app-ui-card [featured]="true" padding="none">
   <div
     class="grid h-full gap-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)] lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]"
-    [class.cursor-pointer]="hasPrimaryCardAction"
-    [attr.role]="hasPrimaryCardAction ? 'link' : null"
-    [attr.tabindex]="hasPrimaryCardAction ? 0 : null"
+    [class.cursor-pointer]="hasCardClickAction"
+    [attr.role]="cardRole"
+    [attr.tabindex]="hasCardClickAction ? 0 : null"
     [attr.aria-label]="primaryCardAriaLabel"
-    (click)="openPrimaryCardAction($event)"
-    (keydown.enter)="openPrimaryCardAction($event)"
-    (keydown.space)="openPrimaryCardAction($event)"
+    (mouseenter)="prefetchProjectDetails()"
+    (focusin)="prefetchProjectDetails()"
+    (touchstart)="prefetchProjectDetails()"
+    (click)="openCardAction($event)"
+    (keydown.enter)="openCardAction($event)"
+    (keydown.space)="openCardAction($event)"
   >
     <div class="relative overflow-hidden lg:min-h-[24rem]">
       <ng-container *ngIf="currentGalleryImage as image; else featuredProjectFallback">
@@ -119,6 +123,18 @@
           {{ 'common.actions.readMore' | translate }}
         </app-ui-link-button>
         <app-ui-link-button
+          *ngIf="githubAction as github"
+          [routerLink]="null"
+          [href]="github.href ?? null"
+          [openInNewTab]="true"
+          appearance="ghost"
+        >
+          <span class="inline-flex items-center gap-1.5">
+            <app-ui-icon name="github" size="xs" [decorative]="true"></app-ui-icon>
+            <span>GitHub</span>
+          </span>
+        </app-ui-link-button>
+        <app-ui-link-button
           *ngIf="demoAction as demo"
           [routerLink]="null"
           [href]="demo.href ?? null"
@@ -130,19 +146,24 @@
       </div>
     </div>
   </div>
-</app-ui-card>
+  </app-ui-card>
+</div>
 
 <ng-template #defaultCard>
-  <app-ui-card padding="none">
+  <div class="project-card-action-shell h-full" [class.project-card-action-shell--popup]="hasPopupCardAction">
+    <app-ui-card padding="none">
     <div
       class="flex h-full flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
-      [class.cursor-pointer]="hasPrimaryCardAction"
-      [attr.role]="hasPrimaryCardAction ? 'link' : null"
-      [attr.tabindex]="hasPrimaryCardAction ? 0 : null"
+      [class.cursor-pointer]="hasCardClickAction"
+      [attr.role]="cardRole"
+      [attr.tabindex]="hasCardClickAction ? 0 : null"
       [attr.aria-label]="primaryCardAriaLabel"
-      (click)="openPrimaryCardAction($event)"
-      (keydown.enter)="openPrimaryCardAction($event)"
-      (keydown.space)="openPrimaryCardAction($event)"
+      (mouseenter)="prefetchProjectDetails()"
+      (focusin)="prefetchProjectDetails()"
+      (touchstart)="prefetchProjectDetails()"
+      (click)="openCardAction($event)"
+      (keydown.enter)="openCardAction($event)"
+      (keydown.space)="openCardAction($event)"
     >
       <div class="relative overflow-hidden">
         <ng-container *ngIf="currentGalleryImage as image; else defaultProjectFallback">
@@ -236,6 +257,18 @@
             {{ 'common.actions.readMore' | translate }}
           </app-ui-link-button>
           <app-ui-link-button
+            *ngIf="githubAction as github"
+            [routerLink]="null"
+            [href]="github.href ?? null"
+            [openInNewTab]="true"
+            appearance="ghost"
+          >
+            <span class="inline-flex items-center gap-1.5">
+              <app-ui-icon name="github" size="xs" [decorative]="true"></app-ui-icon>
+              <span>GitHub</span>
+            </span>
+          </app-ui-link-button>
+          <app-ui-link-button
             *ngIf="demoAction as demo"
             [routerLink]="null"
             [href]="demo.href ?? null"
@@ -247,5 +280,17 @@
         </div>
       </div>
     </div>
-  </app-ui-card>
+    </app-ui-card>
+  </div>
 </ng-template>
+
+<app-project-detail-modal
+  *ngIf="isDetailModalOpen"
+  [project]="detailModalProject"
+  [isLoading]="isDetailLoading"
+  [errorMessage]="detailErrorMessage"
+  [readMoreAction]="modalReadMoreAction"
+  [githubAction]="modalGithubAction"
+  [demoAction]="modalDemoAction"
+  (closed)="closeDetailModal()"
+></app-project-detail-modal>

@@ -57,6 +57,7 @@ class PublicProjectsRepositoryMixin:
         duration_label = self._localized(project, 'duration_label') or project.duration_label
         status = self._localized(project, 'status') or project.status
         ordered_images = sorted(project.images, key=lambda item: (item.sort_order, str(item.id)))
+        read_more_url = self._localized(project, 'read_more_url') or project.read_more_url
 
         return ProjectSummaryOut(
             id=str(project.id),
@@ -67,6 +68,7 @@ class PublicProjectsRepositoryMixin:
             cover_image_file_id=str(project.cover_image_file_id) if project.cover_image_file_id else None,
             cover_image=self._map_media(project.cover_image_file, alt=title),
             github_url=project.github_url,
+            read_more_url=read_more_url,
             github_repo_owner=project.github_repo_owner,
             github_repo_name=project.github_repo_name,
             demo_url=project.demo_url,
@@ -77,6 +79,7 @@ class PublicProjectsRepositoryMixin:
             status=status,
             state=project.state.value,
             is_featured=project.is_featured,
+            is_card_popup_enabled=project.is_card_popup_enabled,
             sort_order=project.sort_order,
             published_at=project.published_at.isoformat(),
             created_at=project.created_at.isoformat(),

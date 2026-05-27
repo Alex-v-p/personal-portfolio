@@ -40,6 +40,7 @@ class ProjectSummaryOut(ApiSchema):
     cover_image_file_id: str | None = None
     cover_image: PublicMediaAssetOut | None = None
     github_url: str | None = None
+    read_more_url: str | None = None
     github_repo_owner: str | None = None
     github_repo_name: str | None = None
     demo_url: str | None = None
@@ -50,6 +51,7 @@ class ProjectSummaryOut(ApiSchema):
     status: str
     state: Literal['published', 'archived', 'completed', 'paused']
     is_featured: bool
+    is_card_popup_enabled: bool
     sort_order: int
     published_at: str
     created_at: str

@@ -160,6 +160,7 @@ export class HomePageComponent implements OnInit {
       tags: [],
       featured: false,
       isFeatured: false,
+      isCardPopupEnabled: true,
       imageAlt: '',
       coverImageAlt: '',
       coverImageFileId: null,

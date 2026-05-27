@@ -38,6 +38,7 @@ export class AdminProjectsTabComponent extends AdminLocalizedContentTabBase {
   protected selectedProjectGalleryMediaId: string | null = null;
   protected projectGallerySearchTerm = '';
   protected selectedProjectDownloadMediaId: string | null = null;
+  protected selectedProjectDownloadTarget: 'teaser' | 'popupDescription' = 'teaser';
 
   selectProject(projectId: string): void {
     this.projectSelected.emit(projectId);
@@ -83,6 +84,54 @@ export class AdminProjectsTabComponent extends AdminLocalizedContentTabBase {
 
   protected get selectedProjectDownloadMedia(): AdminMediaFile | null {
     return this.referenceData.mediaFiles.find((media) => media.id === this.selectedProjectDownloadMediaId) ?? null;
+  }
+
+  protected get activeReadMoreUrl(): string {
+    if (this.contentLocale === 'nl') {
+      return (this.projectForm.readMoreUrlNl || this.projectForm.readMoreUrl || '').trim();
+    }
+
+    return (this.projectForm.readMoreUrl || '').trim();
+  }
+
+  protected get activePopupDescription(): string {
+    if (this.contentLocale === 'nl') {
+      return (this.projectForm.descriptionMarkdownNl || this.projectForm.descriptionMarkdown || '').trim();
+    }
+
+    return (this.projectForm.descriptionMarkdown || '').trim();
+  }
+
+  protected get hasActivePopupDescription(): boolean {
+    return this.activePopupDescription.length > 0;
+  }
+
+  protected get publicCardClickBehavior(): string {
+    if (this.projectForm.isCardPopupEnabled && this.hasActivePopupDescription) {
+      return 'Opens popup';
+    }
+
+    if (this.activeReadMoreUrl) {
+      return 'Opens Read more';
+    }
+
+    if ((this.projectForm.demoUrl || '').trim()) {
+      return 'Opens live demo';
+    }
+
+    return 'No card click';
+  }
+
+  protected get popupReadinessSummary(): string {
+    if (!this.projectForm.isCardPopupEnabled) {
+      return 'Disabled';
+    }
+
+    if (!this.hasActivePopupDescription) {
+      return 'Needs description';
+    }
+
+    return 'Ready';
   }
 
   protected galleryMedia(image: AdminProjectGalleryImageForm): AdminMediaFile | null {
@@ -147,11 +196,20 @@ export class AdminProjectsTabComponent extends AdminLocalizedContentTabBase {
     }
     const label = `Download ${media.title || media.originalFilename || 'file'}`.replace(/[\r\n]+/g, ' ').replace(/\]/g, '\\]').trim();
     const snippet = `\n[${label}](${url} \"download\")\n`;
-    if (this.contentLocale === 'nl') {
+
+    if (this.selectedProjectDownloadTarget === 'popupDescription') {
+      if (this.contentLocale === 'nl') {
+        this.projectForm.descriptionMarkdownNl = `${this.projectForm.descriptionMarkdownNl || ''}${snippet}`.trimStart();
+      } else {
+        this.projectForm.descriptionMarkdown = `${this.projectForm.descriptionMarkdown || ''}${snippet}`.trimStart();
+      }
+    } else if (this.contentLocale === 'nl') {
       this.projectForm.teaserNl = `${this.projectForm.teaserNl || ''}${snippet}`.trimStart();
     } else {
       this.projectForm.teaser = `${this.projectForm.teaser || ''}${snippet}`.trimStart();
     }
+
+    this.selectedProjectDownloadMediaId = null;
   }
 
   private normalizeGallerySortOrder(): void {
