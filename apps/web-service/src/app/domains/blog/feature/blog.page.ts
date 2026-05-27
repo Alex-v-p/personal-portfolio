@@ -192,11 +192,12 @@ export class BlogPageComponent implements OnInit {
   }
 
   protected get hasPostPagination(): boolean {
-    return this.browseablePosts.length > this.browsePageSize;
+    return this.browseablePosts.length > 0;
   }
 
   protected goToBrowsePage(page: number): void {
     this.currentBrowsePage = Math.min(Math.max(page, 1), this.totalBrowsePages);
+    this.scrollToPageTop();
   }
 
   protected goToPreviousBrowsePage(): void {
@@ -205,5 +206,15 @@ export class BlogPageComponent implements OnInit {
 
   protected goToNextBrowsePage(): void {
     this.goToBrowsePage(this.currentBrowsePage + 1);
+  }
+
+  private scrollToPageTop(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
   }
 }
