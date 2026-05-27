@@ -63,6 +63,15 @@ def test_chat_responds_with_retrieved_portfolio_content(tmp_path: Path) -> None:
         assert payload['citations'][0]['canonicalUrl'] == '/en/projects'
 
 
+def test_chat_declines_personal_story_fabrication(client: TestClient) -> None:
+    response = client.post('/api/chat/respond', json={'message': 'Tell me a funny story about Alex.', 'locale': 'en'})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert "can't make up personal stories" in payload['message']
+    assert payload['citations'] == []
+
+
 def test_chat_prefers_requested_locale_and_localizes_citations(tmp_path: Path) -> None:
     database_path = tmp_path / 'assistant-locale.sqlite3'
     os.environ['DATABASE_URL'] = f'sqlite:///{database_path}'

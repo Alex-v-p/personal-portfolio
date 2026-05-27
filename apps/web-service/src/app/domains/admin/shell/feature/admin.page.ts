@@ -339,7 +339,7 @@ export class AdminPageComponent implements OnInit, OnDestroy {
           this.selectedActivityVisitorId = activitySelections.selectedVisitorId;
           this.selectedActivityVisitSessionId = activitySelections.selectedVisitSessionId;
 
-          this.projectForm = this.selectedProjectId ? toProjectForm(this.projects.find((item) => item.id === this.selectedProjectId)!) : createEmptyProjectForm();
+          this.projectForm = this.selectedProjectId ? toProjectForm(this.projects.find((item) => item.id === this.selectedProjectId)!) : this.createNewProjectFormWithNextSortOrder();
           this.blogPostForm = this.selectedBlogPostId ? toBlogPostForm(this.blogPosts.find((item) => item.id === this.selectedBlogPostId)!) : createEmptyBlogPostForm();
           this.profileForm = this.profile ? toProfileForm(this.profile) : createEmptyProfileForm();
           this.skillCategoryForm = this.selectedSkillCategoryId ? toSkillCategoryForm(this.referenceData.skillCategories.find((item) => item.id === this.selectedSkillCategoryId)!) : createEmptySkillCategoryForm();
@@ -521,7 +521,22 @@ export class AdminPageComponent implements OnInit, OnDestroy {
   protected startNewProject(): void {
     this.selectedProjectId = null;
     this.projectForm = createEmptyProjectForm();
+    this.projectForm.sortOrder = this.nextProjectSortOrder();
     this.projectUploadForm = createEmptyScopedUploadForm();
+  }
+
+  private createNewProjectFormWithNextSortOrder(): AdminProjectForm {
+    const form = createEmptyProjectForm();
+    form.sortOrder = this.nextProjectSortOrder();
+    return form;
+  }
+
+  private nextProjectSortOrder(): number {
+    if (!this.projects.length) {
+      return 0;
+    }
+
+    return Math.max(...this.projects.map((project) => Number(project.sortOrder) || 0)) + 1;
   }
 
   protected toggleProjectSkill(skillId: string): void {
@@ -554,7 +569,7 @@ export class AdminPageComponent implements OnInit, OnDestroy {
       statusNl: this.projectForm.statusNl || null,
       state: this.projectForm.state,
       isFeatured: this.projectForm.isFeatured,
-      sortOrder: this.projectForm.sortOrder,
+      sortOrder: Number(this.projectForm.sortOrder) || 0,
       publishedAt: this.projectForm.publishedAt || null,
       skillIds: [...this.projectForm.skillIds],
       images: this.normalizedProjectGalleryImages(),
@@ -1461,34 +1476,6 @@ export class AdminPageComponent implements OnInit, OnDestroy {
       }
     });
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   private extractAdminErrorMessage(error: unknown, fallbackMessage: string): string {
     if (!error || typeof error !== 'object') {

@@ -1,6 +1,6 @@
-import { NgIf } from '@angular/common';
+import { NgIf, NgTemplateOutlet } from '@angular/common';
 import { Component, Input, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { RouterLink } from '@angular/router';
 
 import { I18nService } from '@core/i18n/i18n.service';
 import { UiIconComponent } from '@shared/icons/ui-icon.component';
@@ -8,7 +8,7 @@ import { UiIconComponent } from '@shared/icons/ui-icon.component';
 @Component({
   selector: 'app-ui-link-button',
   standalone: true,
-  imports: [NgIf, UiIconComponent],
+  imports: [NgIf, NgTemplateOutlet, RouterLink, UiIconComponent],
   templateUrl: './ui-link-button.component.html'
 })
 export class UiLinkButtonComponent {
@@ -17,7 +17,6 @@ export class UiLinkButtonComponent {
   @Input() openInNewTab = false;
   @Input() appearance: 'primary' | 'secondary' | 'ghost' = 'secondary';
 
-  private readonly router = inject(Router);
   private readonly i18n = inject(I18nService);
 
   protected get linkClasses(): string {
@@ -40,41 +39,7 @@ export class UiLinkButtonComponent {
     return this.i18n.translate('common.actions.opensInNewTab');
   }
 
-  protected get resolvedHref(): string | null {
-    if (this.href) {
-      return this.href;
-    }
-
-    const localizedRouterLink = this.localizedRouterLink;
-    if (!localizedRouterLink) {
-      return null;
-    }
-
-    const commands = Array.isArray(localizedRouterLink) ? localizedRouterLink : [localizedRouterLink];
-    return this.router.serializeUrl(this.router.createUrlTree([...commands]));
-  }
-
-  protected handleClick(event: MouseEvent): void {
-    if (this.href) {
-      return;
-    }
-
-    const localizedRouterLink = this.localizedRouterLink;
-    if (!localizedRouterLink) {
-      return;
-    }
-
-    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
-      return;
-    }
-
-    event.preventDefault();
-
-    const commands = Array.isArray(localizedRouterLink) ? [...localizedRouterLink] : [localizedRouterLink];
-    void this.router.navigate(commands);
-  }
-
-  private get localizedRouterLink(): string | readonly string[] | null {
-    return this.i18n.localizeRouterCommands(this.routerLink);
+  protected get resolvedRouterLink(): string | readonly string[] | null {
+    return this.href ? null : this.i18n.localizeRouterCommands(this.routerLink);
   }
 }

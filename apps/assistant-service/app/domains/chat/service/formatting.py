@@ -81,14 +81,36 @@ def build_citations(retrieved, *, locale: str = 'en') -> list[CitationOut]:
 
 
 def build_context_blocks(retrieved, *, locale: str = 'en') -> list[str]:
-    language = locale_language_name(resolve_response_locale(locale=locale))
+    resolved_locale = resolve_response_locale(locale=locale)
+    language = locale_language_name(resolved_locale)
     blocks: list[str] = []
     for index, item in enumerate(retrieved):
-        visibility_note = 'background guidance' if item.source_type == 'assistant_note' else item.source_type
-        blocks.append(
-            f'[{index + 1}] {item.title} ({visibility_note}, locale={language}, relevance={item.score:.2f})\n{item.excerpt}'
-        )
+        visibility_note = _source_label(item.source_type, resolved_locale)
+        if language == 'Dutch':
+            blocks.append(
+                f'[{index + 1}] {item.title} ({visibility_note}, taal=Nederlands, relevantie={item.score:.2f})\n{item.excerpt}'
+            )
+        else:
+            blocks.append(
+                f'[{index + 1}] {item.title} ({visibility_note}, language=English, relevance={item.score:.2f})\n{item.excerpt}'
+            )
     return blocks
+
+
+def _source_label(source_type: str, locale: str) -> str:
+    normalized_locale = resolve_response_locale(locale=locale)
+    normalized_source = (source_type or '').strip().lower()
+    if normalized_locale == 'nl':
+        return {
+            'assistant_note': 'achtergrondrichtlijn',
+            'blog_post': 'blogpost',
+            'experience': 'ervaring',
+            'profile': 'profiel',
+            'project': 'project',
+        }.get(normalized_source, normalized_source or 'bron')
+    if normalized_source == 'assistant_note':
+        return 'background guidance'
+    return normalized_source or 'source'
 
 
 def build_conversational_answer(*, question: str, locale: str = 'en') -> str | None:
@@ -124,6 +146,30 @@ def build_conversational_answer(*, question: str, locale: str = 'en') -> str | N
 
     return None
 
+
+def build_personal_story_guardrail_answer(*, question: str, locale: str = 'en') -> str | None:
+    """Decline prompts that ask the portfolio assistant to invent personal anecdotes."""
+    resolved_locale = resolve_response_locale(locale=locale)
+    normalized = _normalize(question)
+    if not normalized:
+        return None
+
+    if not _looks_like_personal_story_request(normalized):
+        return None
+
+    return _message(
+        resolved_locale,
+        en=(
+            "I can't make up personal stories, jokes, roasts, or anecdotes about real people. "
+            "For Alex, I can only answer from the portfolio details, so I can share a grounded summary of "
+            "their projects, skills, experience, blog posts, or professional background instead."
+        ),
+        nl=(
+            'Ik kan geen persoonlijke verhalen, grappen, roasts of anekdotes over echte personen verzinnen. '
+            'Voor Alex kan ik alleen antwoorden op basis van het portfolio, dus ik kan wel een onderbouwde samenvatting geven '
+            'van Alex’ projecten, vaardigheden, ervaring, blogposts of professionele achtergrond.'
+        ),
+    )
 
 def build_fallback_answer(*, citations: list[CitationOut], locale: str = 'en') -> str:
     resolved_locale = resolve_response_locale(locale=locale)
@@ -161,12 +207,14 @@ _SOURCE_DISCLOSURE_PATTERNS = (
 )
 
 
-def sanitize_assistant_answer(answer: str) -> str:
+def sanitize_assistant_answer(answer: str, *, locale: str = 'en') -> str:
     """Remove retrieval/source-mechanics wording from user-facing assistant replies."""
     cleaned = answer.strip()
     cleaned = cleaned.replace('’', "'").replace('‘', "'").replace('�', "'")
     for pattern, replacement in _SOURCE_DISCLOSURE_PATTERNS:
         cleaned = pattern.sub(replacement, cleaned)
+    if resolve_response_locale(locale=locale) == 'nl':
+        cleaned = _sanitize_dutch_alex_first_person(cleaned)
     cleaned = re.sub(r'\s+([,.;:!?])', r'\1', cleaned)
     cleaned = re.sub(r'(?m)^\s*,\s*', '', cleaned)
     cleaned = re.sub(r'(?m)^\s*[:;]\s*', '', cleaned)
@@ -175,12 +223,87 @@ def sanitize_assistant_answer(answer: str) -> str:
     return cleaned.strip()
 
 
+def _sanitize_dutch_alex_first_person(answer: str) -> str:
+    """Repair common Dutch model drift where Alex is described in first person."""
+    replacements = (
+        (r'(?i)\bik heb gewerkt aan\b', 'Alex heeft gewerkt aan'),
+        (r'(?i)\bik werkte aan\b', 'Alex werkte aan'),
+        (r'(?i)\bik heb gebouwd\b', 'Alex heeft gebouwd'),
+        (r'(?i)\bik bouwde\b', 'Alex bouwde'),
+        (r'(?i)\bik heb ontwikkeld\b', 'Alex heeft ontwikkeld'),
+        (r'(?i)\bik ontwikkelde\b', 'Alex ontwikkelde'),
+        (r'(?i)\bik heb gemaakt\b', 'Alex heeft gemaakt'),
+        (r'(?i)\bik maakte\b', 'Alex maakte'),
+        (r'(?i)\bik heb gebruikt\b', 'Alex heeft gebruikt'),
+        (r'(?i)\bik gebruikte\b', 'Alex gebruikte'),
+        (r'(?i)\bik studeer(?:de)?\b', 'Alex studeert'),
+        (r'(?i)\bik ben student\b', 'Alex is student'),
+        (r'(?i)\bik ben een student\b', 'Alex is een student'),
+        (r'(?i)\bmijn (portfolio|project|projecten|ervaring|stage|achtergrond|vaardigheden|werk|studie|studies)\b', r'Alex’ \1'),
+    )
+    cleaned = answer
+    for pattern, replacement in replacements:
+        cleaned = re.sub(pattern, replacement, cleaned)
+    return cleaned
+
+
 def trim_conversation_summary(summary: str, *, max_chars: int) -> str:
     normalized = re.sub(r'\s+', ' ', summary).strip()
     if len(normalized) <= max_chars:
         return normalized
     return normalized[: max_chars - 3].rstrip() + '...'
 
+
+_PERSONAL_STORY_TERMS = {'story', 'anecdote', 'verhaal', 'anekdote'}
+
+_CREATIVE_PERSONAL_CONTENT_TERMS = {
+    'joke', 'roast', 'funny', 'embarrassing', 'weird', 'wild', 'random', 'fictional',
+    'grap', 'mop', 'roast', 'grappig', 'genant', 'raar', 'wild', 'verzonnen',
+}
+
+_PERSON_REFERENCES = {
+    'alex', "alex's", 'him', 'his', 'he', 'they', 'them', 'their', 'me', 'my', 'you', 'your',
+    'alexs', 'alexa', 'persoon', 'hem', 'zijn', 'hen', 'hun', 'mij', 'mijn', 'jou', 'jouw', 'u', 'uw',
+}
+
+_FABRICATION_VERBS = {
+    'invent', 'make up', 'fabricate', 'improvise', 'imagine', 'verzin', 'verzinnen', 'bedenk', 'maak op',
+}
+
+
+def _looks_like_personal_story_request(normalized: str) -> bool:
+    words = set(normalized.split())
+    has_story_request = bool(words & _PERSONAL_STORY_TERMS)
+    has_creative_modifier = bool(words & _CREATIVE_PERSONAL_CONTENT_TERMS)
+    has_person_reference = bool(words & _PERSON_REFERENCES)
+    has_fabrication_request = any(phrase in normalized for phrase in _FABRICATION_VERBS)
+
+    explicit_personal_story_phrases = (
+        'story about alex',
+        'story about me',
+        'story about him',
+        'story about them',
+        'funny story',
+        'embarrassing story',
+        'personal story',
+        'anecdote about alex',
+        'joke about alex',
+        'roast alex',
+        'verhaal over alex',
+        'verhaal over mij',
+        'grappig verhaal',
+        'persoonlijk verhaal',
+        'anekdote over alex',
+        'grap over alex',
+        'mop over alex',
+    )
+    has_explicit_personal_story_phrase = any(phrase in normalized for phrase in explicit_personal_story_phrases)
+
+    return (
+        (has_creative_modifier and (has_person_reference or has_story_request))
+        or (has_fabrication_request and (has_person_reference or has_story_request))
+        or has_explicit_personal_story_phrase
+    )
 
 def _normalize(text: str) -> str:
     text = re.sub(r"[^a-zA-Z0-9' ]+", ' ', text.lower())

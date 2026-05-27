@@ -1,5 +1,6 @@
 import { NgFor, NgIf } from '@angular/common';
 import { Component, Input, inject } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { I18nService } from '@core/i18n/i18n.service';
@@ -8,6 +9,7 @@ import { UiChipComponent } from '@shared/components/chip/ui-chip.component';
 import { HighlightChipComponent } from '@shared/components/highlight-chip/highlight-chip.component';
 import { UiLinkButtonComponent } from '@shared/components/link-button/ui-link-button.component';
 import { renderMarkdownToHtml } from '@shared/utils/markdown.util';
+import { localizeInternalAppLinkUrl } from '@shared/utils/internal-link.util';
 import { ResolvedMedia } from '@domains/media/model/resolved-media.model';
 import { ProjectLink, ProjectSummary } from '@domains/projects/model/project-summary.model';
 
@@ -19,6 +21,7 @@ import { ProjectLink, ProjectSummary } from '@domains/projects/model/project-sum
 })
 export class ProjectCardComponent {
   private readonly i18n = inject(I18nService);
+  private readonly router = inject(Router);
 
   @Input({ required: true }) project!: ProjectSummary;
   @Input() featured = false;
@@ -63,20 +66,71 @@ export class ProjectCardComponent {
     return this.project.links.find((link) => !!link.href && /read|meer|github/i.test(link.label ?? '')) ?? null;
   }
 
+  protected get primaryCardAction(): ProjectLink | null {
+    return this.readMoreAction ?? this.demoAction;
+  }
+
+  protected get hasPrimaryCardAction(): boolean {
+    return this.primaryCardAction !== null;
+  }
+
   protected get mediaClickHref(): string | null {
-    return this.readMoreAction?.href?.trim() || null;
+    return this.primaryCardAction?.href?.trim() || null;
   }
 
   protected get mediaClickAriaLabel(): string {
-    return `${this.i18n.translate('common.actions.readMore')}: ${this.project.title}`;
+    return this.primaryCardAriaLabel ?? this.project.title;
+  }
+
+  protected get primaryCardAriaLabel(): string | null {
+    const action = this.primaryCardAction;
+    if (!action) {
+      return null;
+    }
+
+    return `${action.label}: ${this.project.title}`;
+  }
+
+  protected openPrimaryCardAction(event: Event): void {
+    const action = this.primaryCardAction;
+    if (!action || this.isNestedInteractiveTarget(event)) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const href = action.href?.trim();
+    if (href) {
+      const openedWindow = window.open(href, '_blank', 'noopener,noreferrer');
+      if (openedWindow) {
+        openedWindow.opener = null;
+      }
+      return;
+    }
+
+    const routerLink = this.i18n.localizeRouterCommands(action.routerLink);
+    if (!routerLink) {
+      return;
+    }
+
+    if (typeof routerLink === 'string') {
+      this.router.navigateByUrl(routerLink);
+      return;
+    }
+
+    this.router.navigate([...routerLink]);
   }
 
   protected get renderedTeaserHtml(): string {
-    return renderMarkdownToHtml(this.project.teaser || this.project.shortDescription || '');
+    return renderMarkdownToHtml(this.project.teaser || this.project.shortDescription || '', this.markdownRenderOptions);
   }
 
   protected get renderedFeaturedSummaryHtml(): string {
-    return renderMarkdownToHtml(this.project.summary || this.project.teaser || this.project.shortDescription || '');
+    return renderMarkdownToHtml(this.project.summary || this.project.teaser || this.project.shortDescription || '', this.markdownRenderOptions);
+  }
+
+  private get markdownRenderOptions(): { transformLinkUrl: (url: string) => string } {
+    return { transformLinkUrl: (url) => localizeInternalAppLinkUrl(url, this.i18n) };
   }
 
   protected get galleryImages(): ResolvedMedia[] {
@@ -180,6 +234,15 @@ export class ProjectCardComponent {
 
     const label = (link.label ?? '').toLowerCase();
     return !label.includes('github') && href !== this.project.githubUrl;
+  }
+
+  private isNestedInteractiveTarget(event: Event): boolean {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) {
+      return false;
+    }
+
+    return target.closest('a, button, input, label, select, textarea, [role="button"], [data-project-card-interactive]') !== null;
   }
 
   protected get placeholderLabel(): string {

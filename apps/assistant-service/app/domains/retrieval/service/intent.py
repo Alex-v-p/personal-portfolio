@@ -6,13 +6,13 @@ from app.domains.retrieval.service.text import contains_any, normalize_text
 
 def infer_intent(*, query: str, page_path: str | None) -> QueryIntent:
     normalized = normalize_text(query)
-    if contains_any(normalized, {'hire', 'hiring', 'recruiter', 'fit', 'candidate', 'opportunity', 'opportunities', 'company', 'contact', 'email', 'linkedin', 'strength', 'strengths', 'weakness', 'weaknesses', 'overall', 'best at', 'good at', 'work style', 'working style', 'availability', 'available', 'location', 'located', 'lommel', 'belgium', 'remote', 'hybrid', 'onsite', 'on site', 'international', 'cv', 'resume'}):
+    if contains_any(normalized, {'hire', 'hiring', 'recruiter', 'fit', 'candidate', 'opportunity', 'opportunities', 'company', 'contact', 'email', 'linkedin', 'strength', 'strengths', 'weakness', 'weaknesses', 'overall', 'best at', 'good at', 'work style', 'working style', 'availability', 'available', 'location', 'located', 'lommel', 'belgium', 'remote', 'hybrid', 'onsite', 'on site', 'international', 'cv', 'resume', 'aanwerven', 'sollicitatie', 'sollicitant', 'kandidaat', 'opportuniteit', 'vacature', 'bedrijf', 'contact', 'mail', 'sterkte', 'sterktes', 'zwakte', 'zwaktes', 'algemeen', 'goed in', 'werkstijl', 'beschikbaar', 'beschikbaarheid', 'locatie', 'gevestigd', 'belgië', 'op afstand', 'internationaal'}):
         return QueryIntent(
             name='portfolio_fit',
             preferred_sources=('assistant_note', 'profile'),
             allowed_supporting_sources=('project', 'experience', 'blog_post'),
         )
-    if contains_any(normalized, {'project', 'projects', 'build', 'built', 'case study', 'case studies', 'github', 'readme', 'repository', 'repo'}):
+    if contains_any(normalized, {'project', 'projects', 'build', 'built', 'case study', 'case studies', 'github', 'readme', 'repository', 'repo', 'projecten', 'bouwen', 'gebouwd', 'maakte', 'gemaakt', 'case', 'studie', 'casestudy', 'github', 'readme', 'repository', 'repo'}):
         return QueryIntent(
             name='project',
             preferred_sources=('project',),
@@ -20,7 +20,7 @@ def infer_intent(*, query: str, page_path: str | None) -> QueryIntent:
             suppress_sources=('profile',),
             page_path_hint='/projects',
         )
-    if contains_any(normalized, {'experience', 'internship', 'job', 'work', 'worked', 'career', 'role', 'roles'}):
+    if contains_any(normalized, {'experience', 'internship', 'job', 'work', 'worked', 'career', 'role', 'roles', 'ervaring', 'stage', 'job', 'werk', 'werkte', 'carrière', 'functie', 'rol', 'rollen'}):
         return QueryIntent(
             name='experience',
             preferred_sources=('experience',),
@@ -28,7 +28,7 @@ def infer_intent(*, query: str, page_path: str | None) -> QueryIntent:
             suppress_sources=('profile',),
             page_path_hint='/experience',
         )
-    if contains_any(normalized, {'blog', 'blogs', 'post', 'posts', 'article', 'articles', 'write', 'wrote', 'writing'}):
+    if contains_any(normalized, {'blog', 'blogs', 'post', 'posts', 'article', 'articles', 'write', 'wrote', 'writing', 'blogpost', 'blogposts', 'artikel', 'artikels', 'schrijf', 'schreef', 'schrijven'}):
         return QueryIntent(
             name='blog',
             preferred_sources=('blog_post',),
@@ -36,13 +36,13 @@ def infer_intent(*, query: str, page_path: str | None) -> QueryIntent:
             suppress_sources=('profile',),
             page_path_hint='/blog',
         )
-    if contains_any(normalized, {'skill', 'skills', 'stack', 'technology', 'technologies', 'tech', 'framework', 'frameworks', 'language', 'languages', 'frontend', 'backend', 'ai', 'data'}):
+    if contains_any(normalized, {'skill', 'skills', 'stack', 'technology', 'technologies', 'tech', 'framework', 'frameworks', 'language', 'languages', 'frontend', 'backend', 'ai', 'data', 'vaardigheid', 'vaardigheden', 'technologie', 'technologieën', 'framework', 'frameworks', 'taal', 'talen', 'frontend', 'backend', 'data'}):
         return QueryIntent(
             name='skills',
             preferred_sources=('assistant_note', 'project', 'experience'),
             allowed_supporting_sources=('blog_post', 'profile'),
         )
-    if contains_any(normalized, {'about', 'intro', 'introduction', 'bio', 'who is', 'who are', 'background'}):
+    if contains_any(normalized, {'about', 'intro', 'introduction', 'bio', 'who is', 'who are', 'background', 'over', 'introductie', 'biografie', 'wie is', 'achtergrond', 'profiel'}):
         return QueryIntent(
             name='profile',
             preferred_sources=('profile', 'assistant_note'),

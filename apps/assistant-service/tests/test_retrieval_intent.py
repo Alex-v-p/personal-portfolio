@@ -37,3 +37,21 @@ def test_text_helpers_handle_tokenization_excerpt_and_vectors() -> None:
     assert 'fastapi' in tokenize('FastAPI portfolio project')
     assert excerpt('This portfolio uses FastAPI and Angular for the project.', ['angular']).startswith('This portfolio')
     assert parse_vector('[1, 2.5,3]') == [1.0, 2.5, 3.0]
+
+
+
+def test_infer_intent_understands_dutch_project_and_skill_queries() -> None:
+    project_intent = infer_intent(query='Welke projecten heeft Alex met FastAPI gebouwd?', page_path='/nl')
+    skills_intent = infer_intent(query='Welke vaardigheden en technologieën gebruikt Alex?', page_path='/nl')
+
+    assert project_intent.name == 'project'
+    assert skills_intent.name == 'skills'
+
+
+def test_tokenize_filters_common_dutch_stop_words() -> None:
+    tokens = tokenize('Wat is het Angular Portfolio project en welke backend gebruikt het?')
+
+    assert 'wat' not in tokens
+    assert 'het' not in tokens
+    assert 'angular' in tokens
+    assert 'backend' in tokens

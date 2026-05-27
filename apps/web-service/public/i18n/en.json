@@ -163,7 +163,8 @@
       "hero": {
         "coreSkills": "My core skills:",
         "openCv": "Open CV",
-        "cvShort": "CV"
+        "cvShort": "CV",
+        "greeting": "Hi, I'm {{ name }}"
       },
       "featured": {
         "title": "Featured"

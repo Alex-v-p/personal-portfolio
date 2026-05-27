@@ -7,6 +7,7 @@ import { AssistantApiService } from '@domains/assistant/data/assistant-api.servi
 import { AssistantAvailabilityState, AssistantChatState } from '@domains/assistant/model/assistant-chat.model';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { I18nService } from '@core/i18n/i18n.service';
+import { localizeInternalAppLinkUrl } from '@shared/utils/internal-link.util';
 
 @Component({
   selector: 'app-assistant-panel',
@@ -146,6 +147,10 @@ export class AssistantPanelComponent implements AfterViewInit, OnDestroy {
 
   protected isExternalCitationUrl(url: string | null | undefined): boolean {
     return !!url && /^https?:\/\//i.test(url);
+  }
+
+  protected getCitationHref(url: string | null | undefined): string | null {
+    return url ? localizeInternalAppLinkUrl(url, this.i18n) : null;
   }
 
   protected getCitationTarget(url: string | null | undefined): string | null {

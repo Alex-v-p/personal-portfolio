@@ -64,6 +64,7 @@
   --ui-radius-card: 1.5rem;
   --ui-radius-panel: 1.85rem;
   --ui-radius-pill: 9999px;
+  --ui-radius-pill-small: 2rem;
   --ui-radius-media: 1.35rem;
 
   --ui-shadow-card: 0 14px 30px rgba(73, 52, 69, 0.06);
@@ -367,6 +368,14 @@
     opacity: 0.7;
   }
 
+  .ui-nav-shell-small {
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-pill-small);
+    background: rgba(255, 255, 255, 0.78);
+    box-shadow: var(--ui-shadow-card);
+    backdrop-filter: blur(10px);
+  }
+
   .ui-nav-shell {
     border: 1px solid var(--ui-border);
     border-radius: var(--ui-radius-pill);
@@ -397,6 +406,42 @@
     background: var(--ui-surface-strong);
     color: var(--ui-text);
     box-shadow: 0 10px 22px rgba(73, 52, 69, 0.08);
+  }
+
+  .ui-mobile-nav-peek {
+    width: 3.25rem;
+    height: 2.25rem;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-pill);
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--ui-accent-strong);
+    box-shadow: 0 10px 24px rgba(73, 52, 69, 0.12);
+    backdrop-filter: blur(10px);
+    transition:
+      transform 0.18s ease,
+      border-color 0.18s ease,
+      background-color 0.18s ease,
+      color 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+
+  .ui-mobile-nav-peek:hover {
+    border-color: var(--ui-border-strong);
+    background: var(--ui-surface-strong);
+    color: var(--ui-text);
+  }
+
+  .ui-mobile-nav-peek:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 3px var(--ui-focus-ring),
+      0 10px 24px rgba(73, 52, 69, 0.12);
+  }
+
+  .ui-mobile-nav-peek-icon {
+    width: 1.15rem;
+    height: 1.15rem;
+    display: block;
   }
 
   [data-skin="admin"] .ui-nav-link-active {

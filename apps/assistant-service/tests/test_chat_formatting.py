@@ -2,7 +2,15 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from app.domains.chat.service.formatting import build_citations, build_context_blocks, build_fallback_answer, sanitize_assistant_answer, serialize_recent_history
+from app.domains.chat.service.formatting import (
+    build_citations,
+    build_context_blocks,
+    build_fallback_answer,
+    build_personal_story_guardrail_answer,
+    sanitize_assistant_answer,
+    serialize_recent_history,
+)
+from app.domains.providers.client import ProviderClient
 from app.domains.retrieval.service.models import RetrievedChunk
 
 
@@ -23,10 +31,43 @@ def test_build_fallback_answer_can_reply_in_dutch() -> None:
     assert 'Ik heb nog niet genoeg details' in answer
 
 
+def test_build_personal_story_guardrail_answer_declines_fabricated_story_requests() -> None:
+    answer = build_personal_story_guardrail_answer(question='Tell a funny story about Alex that makes them sound cool.', locale='en')
+
+    assert answer is not None
+    assert "can't make up personal stories" in answer
+    assert 'grounded summary' in answer
+
+
+def test_build_personal_story_guardrail_answer_allows_grounded_project_questions() -> None:
+    answer = build_personal_story_guardrail_answer(question='Which projects show Alex using FastAPI?', locale='en')
+    project_background_answer = build_personal_story_guardrail_answer(question="What's the story behind your portfolio project?", locale='en')
+
+    assert answer is None
+    assert project_background_answer is None
+
+
+def test_build_personal_story_guardrail_answer_can_reply_in_dutch() -> None:
+    answer = build_personal_story_guardrail_answer(question='Vertel een grappig verhaal over Alex.', locale='nl')
+
+    assert answer is not None
+    assert 'geen persoonlijke verhalen' in answer
+
+
 def test_sanitize_assistant_answer_removes_source_mechanics_wording() -> None:
     answer = sanitize_assistant_answer('Based on the provided information, Alex uses Angular. The retrieved context mentions FastAPI.')
 
     assert answer == 'Alex uses Angular. The portfolio mentions FastAPI.'
+
+
+def test_sanitize_assistant_answer_repairs_dutch_first_person_drift() -> None:
+    answer = sanitize_assistant_answer(
+        'Ik heb gewerkt aan mijn portfolio project met Angular. Ik kan u daar meer over vertellen.',
+        locale='nl',
+    )
+
+    assert 'Alex heeft gewerkt aan Alex’ portfolio project' in answer
+    assert 'Ik kan u daar meer over vertellen' in answer
 
 
 def test_serialize_recent_history_uses_latest_messages_only() -> None:
@@ -54,7 +95,7 @@ def test_build_context_blocks_formats_scores_excerpt_and_locale() -> None:
         )
     ], locale='nl')
 
-    assert blocks == ['[1] Portfolio Project (project, locale=Dutch, relevance=9.88)\nFastAPI backend with Angular frontend.']
+    assert blocks == ['[1] Portfolio Project (project, taal=Nederlands, relevantie=9.88)\nFastAPI backend with Angular frontend.']
 
 
 def test_build_citations_localizes_internal_paths() -> None:
@@ -70,3 +111,27 @@ def test_build_citations_localizes_internal_paths() -> None:
     ], locale='nl')
 
     assert citations[0].canonical_url == '/nl/projects'
+
+
+
+def test_provider_uses_dutch_prompt_scaffolding_for_dutch_answers() -> None:
+    messages = ProviderClient()._build_messages(
+        question='Wat is het Angular Portfolio project?',
+        context_blocks=['[1] Angular Portfolio (project, taal=Nederlands, relevantie=10.00)\nHet huidige zelfgehoste portfolioplatform.'],
+        history=[],
+        page_path='/nl/projects/angular-portfolio-website',
+        locale='nl',
+        conversation_memory=None,
+    )
+
+    system_prompt = messages[0]['content']
+    user_prompt = messages[-1]['content']
+
+    assert 'Antwoord uitsluitend in natuurlijk Nederlands' in system_prompt
+    assert 'Beschrijf Alex altijd in de derde persoon' in system_prompt
+    assert 'nooit om Alex’ werk' in system_prompt
+    assert 'Gebruik geen Engelse bezitsvormen' in system_prompt
+    assert 'Huidige pagina:' in user_prompt
+    assert 'Vraag van de bezoeker:' in user_prompt
+    assert 'Preferred answer language' not in user_prompt
+    assert 'Visitor question' not in user_prompt
