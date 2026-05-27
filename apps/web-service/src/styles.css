@@ -1613,7 +1613,7 @@
 
 .project-detail-modal-hero {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   display: block;
   height: 100%;
   width: 100%;
@@ -1627,7 +1627,7 @@
 .project-detail-modal-image-open {
   position: absolute;
   inset: 0;
-  z-index: 5;
+  z-index: 6;
   cursor: zoom-in;
   border: 0;
   background: transparent;
