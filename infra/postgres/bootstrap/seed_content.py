@@ -1448,8 +1448,8 @@ BLOG_POST_ROWS = [{'id': '155286fe-5710-53c7-be2d-6088b3bfa71c',
                          '## Vooruitblik\n'
                          '\n'
                          'In de toekomst wil ik graag doorgroeien naar een stabiele rol als software developer, liefst in een internationale omgeving. Ik ben vooral geïnteresseerd in werk dat software, data, AI, infrastructuur of onderwijssystemen combineert.',
-  'cover_image_file_id': 'e059f2b2-311f-4447-b22b-178b2f4ca165',
-  'cover_image_alt': 'Portrait-style workspace image for the About me post',
+  'cover_image_file_id': '9c662c12-71ac-5ba7-9439-c472b943615c',
+  'cover_image_alt': 'Portfolio and homelab workspace image for the About me post',
   'cover_image_alt_nl': 'Werkplekafbeelding voor de Over mij-blogpost',
   'reading_time_minutes': 3,
   'status': 'published',
