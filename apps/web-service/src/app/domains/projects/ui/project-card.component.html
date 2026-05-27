@@ -6,6 +6,9 @@
     [attr.role]="cardRole"
     [attr.tabindex]="hasCardClickAction ? 0 : null"
     [attr.aria-label]="primaryCardAriaLabel"
+    (mouseenter)="prefetchProjectDetails()"
+    (focusin)="prefetchProjectDetails()"
+    (touchstart)="prefetchProjectDetails()"
     (click)="openCardAction($event)"
     (keydown.enter)="openCardAction($event)"
     (keydown.space)="openCardAction($event)"
@@ -126,7 +129,10 @@
           [openInNewTab]="true"
           appearance="ghost"
         >
-          GitHub
+          <span class="inline-flex items-center gap-1.5">
+            <app-ui-icon name="github" size="xs" [decorative]="true"></app-ui-icon>
+            <span>GitHub</span>
+          </span>
         </app-ui-link-button>
         <app-ui-link-button
           *ngIf="demoAction as demo"
@@ -152,6 +158,9 @@
       [attr.role]="cardRole"
       [attr.tabindex]="hasCardClickAction ? 0 : null"
       [attr.aria-label]="primaryCardAriaLabel"
+      (mouseenter)="prefetchProjectDetails()"
+      (focusin)="prefetchProjectDetails()"
+      (touchstart)="prefetchProjectDetails()"
       (click)="openCardAction($event)"
       (keydown.enter)="openCardAction($event)"
       (keydown.space)="openCardAction($event)"
@@ -254,7 +263,10 @@
             [openInNewTab]="true"
             appearance="ghost"
           >
-            GitHub
+            <span class="inline-flex items-center gap-1.5">
+              <app-ui-icon name="github" size="xs" [decorative]="true"></app-ui-icon>
+              <span>GitHub</span>
+            </span>
           </app-ui-link-button>
           <app-ui-link-button
             *ngIf="demoAction as demo"

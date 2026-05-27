@@ -1,5 +1,5 @@
 import { NgFor, NgIf } from '@angular/common';
-import { Component, Input, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { take } from 'rxjs/operators';
 
@@ -9,6 +9,7 @@ import { UiCardComponent } from '@shared/components/card/ui-card.component';
 import { UiChipComponent } from '@shared/components/chip/ui-chip.component';
 import { HighlightChipComponent } from '@shared/components/highlight-chip/highlight-chip.component';
 import { UiLinkButtonComponent } from '@shared/components/link-button/ui-link-button.component';
+import { UiIconComponent } from '@shared/icons/ui-icon.component';
 import { renderMarkdownToHtml } from '@shared/utils/markdown.util';
 import { localizeInternalAppLinkUrl } from '@shared/utils/internal-link.util';
 import { ResolvedMedia } from '@domains/media/model/resolved-media.model';
@@ -29,6 +30,7 @@ import { ProjectDetailModalComponent } from './project-detail-modal.component';
     UiChipComponent,
     HighlightChipComponent,
     UiLinkButtonComponent,
+    UiIconComponent,
     ProjectDetailModalComponent,
   ],
   templateUrl: './project-card.component.html'
@@ -37,6 +39,7 @@ export class ProjectCardComponent {
   private readonly i18n = inject(I18nService);
   private readonly projectsApi = inject(PublicProjectsApiService);
   private readonly router = inject(Router);
+  private readonly changeDetector = inject(ChangeDetectorRef);
 
   @Input({ required: true }) project!: ProjectSummary;
   @Input() featured = false;
@@ -47,6 +50,8 @@ export class ProjectCardComponent {
   protected detailErrorMessage = '';
   protected isDetailLoading = false;
   protected isDetailModalOpen = false;
+
+  private isDetailRequestInFlight = false;
 
   private get tagPreviewLimit(): number {
     return this.featured ? 5 : 4;
@@ -162,6 +167,15 @@ export class ProjectCardComponent {
 
   protected closeDetailModal(): void {
     this.isDetailModalOpen = false;
+    this.isDetailLoading = false;
+  }
+
+  protected prefetchProjectDetails(): void {
+    if (!this.hasPopupCardAction || this.detailModalProject || this.isDetailRequestInFlight) {
+      return;
+    }
+
+    this.loadProjectDetails();
   }
 
   protected get renderedTeaserHtml(): string {
@@ -235,38 +249,56 @@ export class ProjectCardComponent {
   }
 
   private openProjectDetails(): void {
-    if (this.detailModalProject?.descriptionMarkdown?.trim()) {
-      this.detailErrorMessage = '';
-      this.isDetailLoading = false;
-      this.isDetailModalOpen = true;
-      return;
-    }
-
-    if (this.isDetailLoading) {
-      this.isDetailModalOpen = true;
-      return;
-    }
-
     this.detailErrorMessage = '';
-    this.detailModalProject = null;
-    this.isDetailLoading = true;
     this.isDetailModalOpen = true;
+
+    if (this.detailModalProject?.descriptionMarkdown?.trim()) {
+      this.isDetailLoading = false;
+      this.changeDetector.detectChanges();
+      return;
+    }
+
+    this.isDetailLoading = true;
+    this.changeDetector.detectChanges();
+    this.loadProjectDetails();
+  }
+
+  private loadProjectDetails(): void {
+    if (this.isDetailRequestInFlight) {
+      return;
+    }
+
+    this.isDetailRequestInFlight = true;
 
     this.projectsApi.getProjectBySlug(this.project.slug).pipe(take(1)).subscribe({
       next: (detail) => {
+        this.isDetailRequestInFlight = false;
         this.isDetailLoading = false;
 
         if (!detail.descriptionMarkdown?.trim()) {
-          this.isDetailModalOpen = false;
-          this.openProjectLinkAction(this.primaryCardAction);
+          this.detailModalProject = null;
+
+          if (this.isDetailModalOpen) {
+            this.isDetailModalOpen = false;
+            this.changeDetector.detectChanges();
+            this.openProjectLinkAction(this.primaryCardAction);
+          }
+
           return;
         }
 
+        this.detailErrorMessage = '';
         this.detailModalProject = detail;
+        this.changeDetector.detectChanges();
       },
       error: () => {
+        this.isDetailRequestInFlight = false;
         this.isDetailLoading = false;
-        this.detailErrorMessage = 'Project details could not be loaded right now.';
+
+        if (this.isDetailModalOpen) {
+          this.detailErrorMessage = 'Project details could not be loaded right now.';
+          this.changeDetector.detectChanges();
+        }
       }
     });
   }

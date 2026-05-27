@@ -1,10 +1,10 @@
 <div
-  class="project-detail-modal-backdrop fixed inset-0 z-[90] flex items-center justify-center overflow-y-auto px-4 py-6 sm:px-6"
+  class="project-detail-modal-backdrop fixed inset-0 z-[90] flex items-center justify-center overflow-hidden px-3 py-2 sm:px-4 lg:px-6 lg:py-4"
   role="presentation"
   (click)="requestClose()"
 >
   <section
-    class="project-detail-modal ui-card-surface relative w-full max-w-5xl overflow-hidden rounded-[2rem] shadow-[0_30px_80px_rgba(73,52,69,0.28)]"
+    class="project-detail-modal ui-card-surface relative w-full overflow-hidden rounded-[2rem] shadow-[0_30px_80px_rgba(73,52,69,0.28)]"
     role="dialog"
     aria-modal="true"
     [attr.aria-labelledby]="dialogTitleId"
@@ -12,21 +12,23 @@
   >
     <button
       type="button"
-      class="absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/70 bg-white/85 text-xl font-semibold leading-none text-[var(--ui-text)] shadow-sm backdrop-blur transition hover:scale-105 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
+      class="project-detail-modal-close absolute right-4 top-4 z-30 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/70 bg-white/85 text-[var(--ui-text)] shadow-sm backdrop-blur transition hover:scale-105 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
       (click)="requestClose()"
       aria-label="Close project details"
     >
-      ×
+      <svg viewBox="0 0 20 20" class="h-5 w-5" aria-hidden="true" focusable="false">
+        <path d="M5 5L15 15M15 5L5 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" />
+      </svg>
     </button>
 
-    <div *ngIf="isLoading" class="grid min-h-[24rem] place-items-center p-8 text-center">
+    <div *ngIf="isLoading" class="grid h-full min-h-[24rem] place-items-center p-8 text-center">
       <div class="space-y-3">
         <div class="mx-auto h-12 w-12 animate-pulse rounded-full border border-[var(--ui-border)] bg-[var(--ui-surface-muted)]"></div>
         <p class="text-sm font-semibold ui-text-muted">Loading project details…</p>
       </div>
     </div>
 
-    <div *ngIf="!isLoading && errorMessage" class="grid min-h-[24rem] place-items-center p-8 text-center">
+    <div *ngIf="!isLoading && errorMessage" class="grid h-full min-h-[24rem] place-items-center p-8 text-center">
       <div class="max-w-md space-y-4">
         <p class="ui-kicker">Project details</p>
         <h2 [id]="dialogTitleId" class="ui-title-card text-2xl">Could not open the popup</h2>
@@ -54,24 +56,64 @@
     </div>
 
     <ng-container *ngIf="!isLoading && !errorMessage && project as detail">
-      <div class="max-h-[min(90vh,56rem)] overflow-y-auto">
-        <div class="grid gap-0 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-          <div class="relative min-h-[18rem] overflow-hidden bg-[var(--ui-surface-muted)] lg:min-h-full">
-            <img
-              *ngIf="heroImage as image; else modalImageFallback"
-              [src]="image.url"
-              [alt]="image.alt || detail.coverImageAlt || detail.title"
-              class="h-full min-h-[18rem] w-full object-cover lg:min-h-full"
-            />
+      <div class="project-detail-modal-layout">
+        <section class="project-detail-modal-media-panel" aria-label="Project gallery">
+          <div class="project-detail-modal-image-stage relative overflow-hidden rounded-[1.5rem] border border-[var(--ui-border-soft)]">
+            <ng-container *ngIf="selectedImage as image; else modalImageFallback">
+              <div class="project-detail-modal-image-backdrop" [style.background-image]="selectedImageBackgroundImage" aria-hidden="true"></div>
+              <img
+                [src]="image.url"
+                [alt]="image.alt || detail.coverImageAlt || detail.title"
+                class="project-detail-modal-hero"
+              />
+            </ng-container>
+
             <ng-template #modalImageFallback>
-              <div class="ui-media-placeholder ui-media-fallback flex h-full min-h-[18rem] items-end p-6 text-xs font-semibold uppercase tracking-[0.16em]">
+              <div class="project-detail-modal-hero ui-media-placeholder ui-media-fallback flex items-end p-6 text-xs font-semibold uppercase tracking-[0.16em]">
                 <span class="max-w-[18ch]">{{ detail.coverImageAlt || detail.imageAlt || detail.title }}</span>
               </div>
             </ng-template>
-            <app-ui-chip *ngIf="detail.isFeatured" tone="accent" class="absolute left-4 top-4">{{ 'common.labels.featured' | translate }}</app-ui-chip>
+
+            <app-ui-chip *ngIf="detail.isFeatured" tone="accent" class="absolute left-4 top-4 z-20">{{ 'common.labels.featured' | translate }}</app-ui-chip>
+
+            <ng-container *ngIf="hasMultipleModalImages">
+              <button
+                type="button"
+                (click)="showPreviousImage($event)"
+                class="project-gallery-side-button project-gallery-side-button-left"
+                [attr.aria-label]="'Previous image for ' + detail.title"
+              >
+                <span aria-hidden="true">‹</span>
+              </button>
+              <button
+                type="button"
+                (click)="showNextImage($event)"
+                class="project-gallery-side-button project-gallery-side-button-right"
+                [attr.aria-label]="'Next image for ' + detail.title"
+              >
+                <span aria-hidden="true">›</span>
+              </button>
+              <span class="project-gallery-counter">{{ modalGalleryCounterLabel }}</span>
+            </ng-container>
           </div>
 
-          <article class="space-y-6 px-6 py-7 sm:px-8 lg:px-9 lg:py-9">
+          <div *ngIf="hasMultipleModalImages" class="project-detail-modal-thumbnails flex gap-2 overflow-x-auto pt-3">
+            <button
+              *ngFor="let image of modalImages; let imageIndex = index; trackBy: trackImage"
+              type="button"
+              class="project-detail-modal-thumbnail h-14 w-24 flex-none overflow-hidden rounded-xl border bg-white/70 transition hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)] sm:h-16 lg:h-[4.5rem] lg:w-28"
+              [class.project-detail-modal-thumbnail-active]="imageIndex === activeImageIndex"
+              (click)="selectImage(imageIndex, $event)"
+              [attr.aria-label]="'Show image ' + (imageIndex + 1) + ' for ' + detail.title"
+              [attr.aria-current]="imageIndex === activeImageIndex ? 'true' : null"
+            >
+              <img [src]="image.url" [alt]="image.alt || detail.title" class="h-full w-full object-cover" />
+            </button>
+          </div>
+        </section>
+
+        <section class="project-detail-modal-content-panel" aria-label="Project details">
+          <article class="project-detail-modal-content-scroll px-6 py-6 sm:px-8 lg:px-9 lg:py-8">
             <header class="space-y-4 pr-10">
               <div class="ui-meta-row flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
                 <span *ngIf="detail.organization">{{ detail.organization }}</span>
@@ -81,26 +123,17 @@
 
               <div class="space-y-3">
                 <h2 [id]="dialogTitleId" class="ui-title-card text-3xl leading-[1.08] sm:text-4xl">{{ detail.title }}</h2>
-                <p *ngIf="detail.summary" class="max-w-[52ch] text-sm leading-6 ui-text-muted">{{ detail.summary }}</p>
+                <p *ngIf="detail.summary" class="max-w-[64ch] text-sm leading-6 ui-text-muted">{{ detail.summary }}</p>
               </div>
             </header>
 
-            <div class="flex flex-wrap gap-2" *ngIf="detail.tags.length">
+            <div class="mt-6 flex flex-wrap gap-2" *ngIf="detail.tags.length">
               <app-ui-chip *ngFor="let tag of detail.tags">{{ tag }}</app-ui-chip>
             </div>
 
-            <div class="project-detail-modal-markdown blog-markdown" [innerHTML]="renderedDescriptionHtml"></div>
+            <div class="project-detail-modal-markdown blog-markdown mt-6" [innerHTML]="renderedDescriptionHtml"></div>
 
-            <div *ngIf="supportingImages.length" class="grid gap-3 sm:grid-cols-3">
-              <img
-                *ngFor="let image of supportingImages; trackBy: trackImage"
-                [src]="image.url"
-                [alt]="image.alt || detail.title"
-                class="aspect-[4/3] w-full rounded-2xl border border-[var(--ui-border-soft)] object-cover"
-              />
-            </div>
-
-            <div class="flex flex-wrap gap-3 border-t pt-5" style="border-color: var(--ui-border-soft);">
+            <div class="mt-7 flex flex-wrap gap-3 border-t pt-5" style="border-color: var(--ui-border-soft);">
               <app-ui-link-button
                 *ngIf="readMoreAction as readMore"
                 [routerLink]="readMore.routerLink ?? null"
@@ -116,7 +149,10 @@
                 [openInNewTab]="true"
                 appearance="ghost"
               >
-                GitHub
+                <span class="inline-flex items-center gap-1.5">
+                  <app-ui-icon name="github" size="xs" [decorative]="true"></app-ui-icon>
+                  <span>GitHub</span>
+                </span>
               </app-ui-link-button>
               <app-ui-link-button
                 *ngIf="demoAction as demo"
@@ -129,7 +165,7 @@
               </app-ui-link-button>
             </div>
           </article>
-        </div>
+        </section>
       </div>
     </ng-container>
   </section>
