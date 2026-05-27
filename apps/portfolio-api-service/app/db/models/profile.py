@@ -24,6 +24,8 @@ class Profile(TimestampMixin, Base):
     short_intro_nl: Mapped[str | None] = mapped_column(Text)
     long_bio: Mapped[str | None] = mapped_column(Text)
     long_bio_nl: Mapped[str | None] = mapped_column(Text)
+    ai_notice: Mapped[str | None] = mapped_column(Text)
+    ai_notice_nl: Mapped[str | None] = mapped_column(Text)
     location: Mapped[str | None] = mapped_column(String(255))
     email: Mapped[str | None] = mapped_column(String(320))
     phone: Mapped[str | None] = mapped_column(String(64))

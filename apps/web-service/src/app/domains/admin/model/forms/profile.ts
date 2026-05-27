@@ -10,6 +10,8 @@ export interface AdminProfileForm {
   shortIntroNl: string;
   longBio: string;
   longBioNl: string;
+  aiNotice: string;
+  aiNoticeNl: string;
   location: string;
   email: string;
   phone: string;
@@ -37,6 +39,8 @@ export function createEmptyProfileForm(): AdminProfileForm {
     shortIntroNl: '',
     longBio: '',
     longBioNl: '',
+    aiNotice: '',
+    aiNoticeNl: '',
     location: '',
     email: '',
     phone: '',
@@ -66,6 +70,8 @@ export function toProfileForm(profile: AdminProfile): AdminProfileForm {
     shortIntroNl: profile.shortIntroNl ?? '',
     longBio: profile.longBio ?? '',
     longBioNl: profile.longBioNl ?? '',
+    aiNotice: profile.aiNotice ?? '',
+    aiNoticeNl: profile.aiNoticeNl ?? '',
     location: profile.location ?? '',
     email: profile.email ?? '',
     phone: profile.phone ?? '',

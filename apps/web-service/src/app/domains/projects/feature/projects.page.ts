@@ -32,12 +32,15 @@ export class ProjectsPageComponent implements OnInit {
   private readonly i18n = inject(I18nService);
   private readonly destroyRef = inject(DestroyRef);
 
+  protected readonly browsePageSize = 4;
+
   protected projects: ProjectSummary[] = [];
   protected searchQuery = '';
   protected selectedSkillFilters: string[] = [];
   protected isSkillMenuOpen = false;
   protected isLoading = true;
   protected errorMessage = '';
+  protected currentBrowsePage = 1;
 
   ngOnInit(): void {
     this.i18n.localeChanges$.pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe(() => {
@@ -61,6 +64,7 @@ export class ProjectsPageComponent implements OnInit {
       .subscribe({
         next: (projects) => {
           this.projects = Array.isArray(projects) ? projects : [];
+          this.currentBrowsePage = 1;
         },
         error: () => {
           this.projects = [];
@@ -77,20 +81,28 @@ export class ProjectsPageComponent implements OnInit {
     this.isSkillMenuOpen = false;
   }
 
+  protected updateSearchQuery(value: string): void {
+    this.searchQuery = value;
+    this.currentBrowsePage = 1;
+  }
+
   protected toggleSkillFilter(filter: string): void {
     this.selectedSkillFilters = this.selectedSkillFilters.includes(filter)
       ? this.selectedSkillFilters.filter((item) => item !== filter)
       : [...this.selectedSkillFilters, filter];
+    this.currentBrowsePage = 1;
   }
 
   protected clearSkillFilters(): void {
     this.selectedSkillFilters = [];
+    this.currentBrowsePage = 1;
   }
 
   protected resetFilters(): void {
     this.searchQuery = '';
     this.selectedSkillFilters = [];
     this.isSkillMenuOpen = false;
+    this.currentBrowsePage = 1;
   }
 
   protected isSkillSelected(filter: string): boolean {
@@ -157,4 +169,54 @@ export class ProjectsPageComponent implements OnInit {
     const featuredIds = new Set(this.featuredProjects.map((project) => project.id));
     return this.filteredProjects.filter((project) => !featuredIds.has(project.id));
   }
+
+  protected get totalBrowsePages(): number {
+    return Math.max(1, Math.ceil(this.browseableProjects.length / this.browsePageSize));
+  }
+
+  protected get browsePageNumbers(): number[] {
+    return Array.from({ length: this.totalBrowsePages }, (_, index) => index + 1);
+  }
+
+  protected get paginatedBrowseableProjects(): ProjectSummary[] {
+    const safePage = Math.min(Math.max(this.currentBrowsePage, 1), this.totalBrowsePages);
+    if (safePage !== this.currentBrowsePage) {
+      this.currentBrowsePage = safePage;
+    }
+
+    const startIndex = (safePage - 1) * this.browsePageSize;
+    return this.browseableProjects.slice(startIndex, startIndex + this.browsePageSize);
+  }
+
+  protected get visibleProjectCount(): number {
+    return this.featuredProjects.length + this.paginatedBrowseableProjects.length;
+  }
+
+  protected get hasProjectPagination(): boolean {
+    return this.browseableProjects.length > this.browsePageSize;
+  }
+
+  protected goToBrowsePage(page: number): void {
+    this.currentBrowsePage = Math.min(Math.max(page, 1), this.totalBrowsePages);
+    this.scrollToPageTop();
+  }
+
+  protected goToPreviousBrowsePage(): void {
+    this.goToBrowsePage(this.currentBrowsePage - 1);
+  }
+
+  protected goToNextBrowsePage(): void {
+    this.goToBrowsePage(this.currentBrowsePage + 1);
+  }
+
+  private scrollToPageTop(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
 }
+

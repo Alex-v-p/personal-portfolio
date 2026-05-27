@@ -56,7 +56,8 @@
           <label class="block space-y-2">
             <span class="ui-kicker">{{ 'pages.projects.filters.searchLabel' | translate }}</span>
             <input
-              [(ngModel)]="searchQuery"
+              [ngModel]="searchQuery"
+              (ngModelChange)="updateSearchQuery($event)"
               type="text"
               [placeholder]="'pages.projects.filters.searchPlaceholder' | translate"
               class="ui-input rounded-full"
@@ -123,7 +124,7 @@
           </div>
         </section>
 
-        <p class="text-center text-sm ui-text-muted">{{ 'pages.projects.summary' | translate:{ shown: filteredProjects.length, total: totalProjectCount } }}</p>
+        <p class="text-center text-sm ui-text-muted">{{ 'pages.projects.summary' | translate:{ shown: visibleProjectCount, total: filteredProjects.length } }}</p>
 
         <section *ngIf="filteredProjects.length; else emptyResults" class="space-y-8">
           <section *ngIf="featuredProjects.length" class="space-y-3">
@@ -141,8 +142,46 @@
             </div>
 
             <div class="grid gap-5 lg:grid-cols-2">
-              <app-project-card *ngFor="let project of browseableProjects" [project]="project"></app-project-card>
+              <app-project-card *ngFor="let project of paginatedBrowseableProjects" [project]="project"></app-project-card>
             </div>
+
+            <nav
+              *ngIf="hasProjectPagination"
+              class="ui-pagination"
+              [attr.aria-label]="'pages.projects.pagination.label' | translate"
+            >
+              <button
+                type="button"
+                class="ui-pagination__button"
+                [disabled]="currentBrowsePage === 1"
+                (click)="goToPreviousBrowsePage()"
+              >
+                {{ 'common.pagination.previous' | translate }}
+              </button>
+
+              <div class="ui-pagination__pages">
+                <button
+                  *ngFor="let page of browsePageNumbers"
+                  type="button"
+                  class="ui-pagination__page"
+                  [class.ui-pagination__page--active]="page === currentBrowsePage"
+                  [attr.aria-current]="page === currentBrowsePage ? 'page' : null"
+                  [attr.aria-label]="'common.pagination.goToPage' | translate:{ page: page }"
+                  (click)="goToBrowsePage(page)"
+                >
+                  {{ page }}
+                </button>
+              </div>
+
+              <button
+                type="button"
+                class="ui-pagination__button"
+                [disabled]="currentBrowsePage === totalBrowsePages"
+                (click)="goToNextBrowsePage()"
+              >
+                {{ 'common.pagination.next' | translate }}
+              </button>
+            </nav>
           </section>
         </section>
 

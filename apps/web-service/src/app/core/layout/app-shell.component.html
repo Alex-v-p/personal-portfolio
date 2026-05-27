@@ -152,6 +152,9 @@
         </div>
         <p class="max-w-sm text-sm leading-6 ui-text-muted">{{ profile.footerDescription || shellData?.footerText }}</p>
         <p class="text-sm ui-text-muted">{{ profile.location }}</p>
+        <p *ngIf="profile.aiNotice" class="max-w-sm rounded-2xl border border-stone-200 bg-white/60 px-3 py-2 text-xs leading-5 ui-text-muted">
+          {{ profile.aiNotice }}
+        </p>
       </section>
 
       <section class="space-y-3">

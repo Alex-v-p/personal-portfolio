@@ -133,6 +133,7 @@ class PublicProfileRepositoryMixin:
         headline = self._localized(profile, 'headline') or profile.headline
         short_intro = self._localized(profile, 'short_intro') or profile.short_intro
         long_bio = self._localized(profile, 'long_bio') or profile.long_bio
+        ai_notice = self._localized(profile, 'ai_notice') or profile.ai_notice
         cta_primary_label = self._localized(profile, 'cta_primary_label') or profile.cta_primary_label
         cta_secondary_label = self._localized(profile, 'cta_secondary_label') or profile.cta_secondary_label
         intro_paragraphs = [part for part in [long_bio] if part]
@@ -152,6 +153,7 @@ class PublicProfileRepositoryMixin:
             headline=headline,
             short_intro=short_intro,
             long_bio=long_bio,
+            ai_notice=ai_notice,
             location=profile.location,
             email=profile.email,
             phone=profile.phone,

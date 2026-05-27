@@ -12,24 +12,32 @@
   </div>
 
   <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] items-stretch">
-    <app-ui-card *ngIf="hasFeaturedBlogPost" padding="none" [featured]="true">
-      <div class="flex h-full flex-col">
+    <div *ngIf="hasFeaturedBlogPost" class="content-card-action-shell content-card-action-shell--clickable h-full">
+      <app-ui-card padding="none" [featured]="true">
+        <div
+          class="group flex h-full flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
+          role="link"
+          tabindex="0"
+          [attr.aria-label]="featuredBlogImageAriaLabel"
+          (click)="openFeaturedBlogCard($event)"
+          (keydown.enter)="openFeaturedBlogCard($event)"
+          (keydown.space)="openFeaturedBlogCard($event)"
+        >
 
         <div
           *ngIf="featuredBlogPost.coverImageUrl; else featuredFallback"
           class="overflow-hidden"
         >
-          <a
-            [routerLink]="featuredBlogArticleRouterLink"
-            class="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
-            [attr.aria-label]="featuredBlogImageAriaLabel"
+          <div
+            class="block"
+            aria-hidden="true"
           >
             <img
               [src]="featuredBlogPost.coverImageUrl"
               [alt]="featuredBlogPost.coverImageAlt"
               class="aspect-[16/8.5] w-full object-cover transition duration-300 group-hover:scale-[1.02]"
             />
-          </a>
+          </div>
         </div>
 
         <ng-template #featuredFallback>
@@ -72,13 +80,14 @@
           </div>
 
           <div class="pt-2">
-            <app-ui-link-button [routerLink]="['/blog', featuredBlogPost.slug]">
+            <app-ui-link-button [routerLink]="featuredBlogArticleRouterLink">
               {{ 'common.actions.readArticle' | translate }}
             </app-ui-link-button>
           </div>
         </div>
-      </div>
-    </app-ui-card>
+        </div>
+      </app-ui-card>
+    </div>
 
     <app-project-card
       *ngIf="hasPrimaryProject"

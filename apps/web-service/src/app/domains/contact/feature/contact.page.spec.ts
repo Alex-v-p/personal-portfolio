@@ -26,6 +26,7 @@ const profileFixture: Profile = {
   summary: 'Builder',
   shortBio: 'Long bio',
   footerDescription: 'Footer',
+  aiNotice: '',
   avatarFileId: null,
   heroImageFileId: null,
   resumeFileId: null,

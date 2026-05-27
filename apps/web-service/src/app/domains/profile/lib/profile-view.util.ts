@@ -16,6 +16,7 @@ export const createEmptyProfile = (): Profile => ({
   phone: '',
   shortIntro: '',
   longBio: '',
+  aiNotice: '',
   heroTitle: '',
   summary: '',
   shortBio: '',

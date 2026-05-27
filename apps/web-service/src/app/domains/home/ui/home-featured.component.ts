@@ -11,7 +11,7 @@ import { UiSectionTitleComponent } from '@shared/components/section-title/ui-sec
 import { BlogPostSummary } from '@domains/blog/model/blog-post-summary.model';
 import { ProjectSummary } from '@domains/projects/model/project-summary.model';
 import { ProjectCardComponent } from '@domains/projects/ui/project-card.component';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-home-featured-section',
@@ -21,6 +21,7 @@ import { RouterLink } from '@angular/router';
 })
 export class HomeFeaturedSectionComponent {
   private readonly i18n = inject(I18nService);
+  private readonly router = inject(Router);
 
   @Input({ required: true }) featuredBlogPost!: BlogPostSummary;
   @Input({ required: true }) primaryProject!: ProjectSummary;
@@ -39,6 +40,38 @@ export class HomeFeaturedSectionComponent {
 
   protected get featuredBlogImageAriaLabel(): string {
     return `${this.i18n.translate('common.actions.readArticle')}: ${this.featuredBlogPost.title}`;
+  }
+
+  protected openFeaturedBlogCard(event: Event): void {
+    if (this.isNestedInteractiveTarget(event)) {
+      return;
+    }
+
+    event.preventDefault();
+    this.navigateToFeaturedBlogPost();
+  }
+
+  protected navigateToFeaturedBlogPost(): void {
+    const routerLink = this.featuredBlogArticleRouterLink;
+
+    if (typeof routerLink === 'string') {
+      this.router.navigateByUrl(routerLink);
+      return;
+    }
+
+    this.router.navigate([...routerLink]);
+  }
+
+  private isNestedInteractiveTarget(event: Event): boolean {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) {
+      return false;
+    }
+
+    const currentTarget = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+    const interactiveTarget = target.closest('a, button, input, label, select, textarea, [role="button"], [data-blog-card-interactive]');
+
+    return !!interactiveTarget && interactiveTarget !== currentTarget;
   }
 
 }

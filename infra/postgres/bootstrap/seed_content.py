@@ -24,6 +24,8 @@ PROFILE_ROW = {'id': 'affede64-54ea-5bf3-ac15-87fc0bbb642b',
              'Outside of school, I like working on small personal tools, upgrading PCs, and experimenting with my NAS '
              'and homelab. When I’m not doing something tech-related, I enjoy gaming and spending time with friends, '
              'which helps me recharge and keeps things balanced.',
+ 'ai_notice': 'Text on this website was written with the assistance of AI.',
+ 'ai_notice_nl': 'Tekst op deze website is geschreven met hulp van AI.',
  'long_bio_nl': 'Hallo, ik ben Alex van Poppel, een Student Softwareontwikkeling aan de Thomas More in Geel. Ik heb '
                 'Gebruikte Computerwetenschap gekozen omdat ik altijd ben geïnteresseerd in hoe technologie werkt '
                 'achter de schermen, niet alleen hoe apps worden gebruikt, maar ook hoe ze worden gebouwd en worden '
@@ -1397,7 +1399,68 @@ BLOG_POST_ROWS = [{'id': '155286fe-5710-53c7-be2d-6088b3bfa71c',
                         'bij MobiLab & Care.',
   'published_at': '2026-04-14T09:00:00+00:00',
   'created_at': '2026-04-14T09:00:00+00:00',
-  'updated_at': '2026-04-28T17:05:00+00:00'}]
+  'updated_at': '2026-04-28T17:05:00+00:00'}
+, {'id': '6d25ad2c-23e7-5a8e-97bd-5df25942a44f',
+  'slug': 'about-me',
+  'title': 'About me',
+  'title_nl': 'Over mij',
+  'excerpt': 'A short introduction to who I am, what I enjoy building, and where I want to grow as a developer.',
+  'excerpt_nl': 'Een korte introductie tot wie ik ben, waar ik graag aan bouw en hoe ik verder wil groeien als developer.',
+  'content_markdown': '# About me\n'
+                      '\n'
+                      'Hi, I’m Alex van Poppel, a Software Development student at Thomas More in Geel. I chose Applied Computer Science because I have always been curious about how technology works behind the scenes: not just how apps are used, but how they are built, deployed, and kept running.\n'
+                      '\n'
+                      '## What I enjoy working on\n'
+                      '\n'
+                      'I like building practical web applications, experimenting with my homelab, and figuring out how systems fit together. I am especially interested in the parts around an application that make it reliable in real use, such as APIs, databases, deployment, networking, storage, and infrastructure.\n'
+                      '\n'
+                      'I also enjoy projects where software connects to a clear real-world problem. That can be a student portal, an AI-guidance system, a self-hosted portfolio, or a small tool that makes daily work easier.\n'
+                      '\n'
+                      '## How I work\n'
+                      '\n'
+                      'I usually like to understand the problem before jumping into code. I enjoy analysis, structuring ideas, building a clean first version, and then improving it based on feedback. Group projects have taught me how important communication, planning, and clear responsibilities are.\n'
+                      '\n'
+                      '## Outside school\n'
+                      '\n'
+                      'Outside of school, I spend time on personal technical projects, upgrading computers, experimenting with my NAS and homelab, gaming, and spending time with friends. Those projects help me keep learning in a way that feels practical and motivating.\n'
+                      '\n'
+                      '## Looking forward\n'
+                      '\n'
+                      'In the future, I would like to grow into a stable software development role, ideally in an international setting. I am most interested in work that combines software, data, AI, infrastructure, or education-related systems.',
+  'content_markdown_nl': '# Over mij\n'
+                         '\n'
+                         'Hallo, ik ben Alex van Poppel, een student Software Development aan Thomas More in Geel. Ik koos voor Toegepaste Informatica omdat ik altijd nieuwsgierig ben geweest naar hoe technologie achter de schermen werkt: niet alleen hoe apps gebruikt worden, maar ook hoe ze gebouwd, gedeployed en draaiende gehouden worden.\n'
+                         '\n'
+                         '## Waar ik graag aan werk\n'
+                         '\n'
+                         'Ik bouw graag praktische webapplicaties, experimenteer met mijn homelab en zoek uit hoe verschillende systemen in elkaar passen. Ik ben vooral geïnteresseerd in de onderdelen rond een applicatie die ervoor zorgen dat ze ook in de praktijk bruikbaar blijft, zoals API’s, databases, deployment, networking, storage en infrastructuur.\n'
+                         '\n'
+                         'Ik werk ook graag aan projecten waarbij software verbonden is met een duidelijk probleem uit de echte wereld. Dat kan een studentenportaal zijn, een AI-guidance-systeem, een self-hosted portfolio of een kleine tool die dagelijks werk eenvoudiger maakt.\n'
+                         '\n'
+                         '## Hoe ik werk\n'
+                         '\n'
+                         'Ik probeer meestal eerst het probleem goed te begrijpen voordat ik begin te programmeren. Ik hou van analyse, ideeën structureren, een duidelijke eerste versie bouwen en die daarna verbeteren op basis van feedback. Groepsprojecten hebben me geleerd hoe belangrijk communicatie, planning en duidelijke verantwoordelijkheden zijn.\n'
+                         '\n'
+                         '## Buiten school\n'
+                         '\n'
+                         'Buiten school werk ik graag aan persoonlijke technische projecten, het upgraden van computers, experimenteren met mijn NAS en homelab, gamen en tijd doorbrengen met vrienden. Die projecten helpen me om op een praktische en motiverende manier te blijven bijleren.\n'
+                         '\n'
+                         '## Vooruitblik\n'
+                         '\n'
+                         'In de toekomst wil ik graag doorgroeien naar een stabiele rol als software developer, liefst in een internationale omgeving. Ik ben vooral geïnteresseerd in werk dat software, data, AI, infrastructuur of onderwijssystemen combineert.',
+  'cover_image_file_id': '9c662c12-71ac-5ba7-9439-c472b943615c',
+  'cover_image_alt': 'Portfolio and homelab workspace image for the About me post',
+  'cover_image_alt_nl': 'Werkplekafbeelding voor de Over mij-blogpost',
+  'reading_time_minutes': 3,
+  'status': 'published',
+  'is_featured': False,
+  'seo_title': 'About me | Alex van Poppel',
+  'seo_title_nl': 'Over mij | Alex van Poppel',
+  'seo_description': 'A short introduction to Alex van Poppel and their interests as a software development student.',
+  'seo_description_nl': 'Een korte introductie tot Alex van Poppel en diens interesses als student Software Development.',
+  'published_at': '2026-05-27T15:45:00+00:00',
+  'created_at': '2026-05-27T15:45:00+00:00',
+  'updated_at': '2026-05-27T15:45:00+00:00'}]
 
 # Compatibility maps used by older tests/utilities. The active database seeder uses the
 # explicit relationship rows from the CMS backup instead of deriving relationships by name.
@@ -1422,5 +1485,6 @@ PROJECT_SKILL_NAMES_BY_PROJECT_SLUG = {'internal-exchange-student-portal': ['Lar
                                'LLM'],
  'appies-bricks': ['Angular', 'Git', 'Tailwind CSS', 'Azure', 'C#'],
  'ceriq-assistant': ['Python', 'Machine Learning', 'Docker', 'LLM']}
-BLOG_TAG_NAMES_BY_POST_SLUG = {'mobilab-internship': ['AI', 'Kubernetes', 'Python'],
+BLOG_TAG_NAMES_BY_POST_SLUG = {'about-me': ['Profile'],
+ 'mobilab-internship': ['AI', 'Kubernetes', 'Python'],
  'my-homelab': ['Homelabbing', 'Networking', 'Proxmox', 'TrueNAS']}

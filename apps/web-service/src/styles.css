@@ -1244,6 +1244,103 @@
     border-top: 1px solid var(--ui-border-soft);
     margin: 1.5rem 0;
   }
+
+
+  .profile-markdown {
+    color: var(--ui-text-muted);
+    font-size: 0.875rem;
+    line-height: 1.8;
+  }
+
+  .profile-markdown > * + * {
+    margin-top: 0.8rem;
+  }
+
+  .profile-markdown h1,
+  .profile-markdown h2,
+  .profile-markdown h3 {
+    color: var(--ui-text);
+    font-weight: 650;
+    letter-spacing: -0.02em;
+  }
+
+  .profile-markdown h1 {
+    font-size: 1.35rem;
+  }
+
+  .profile-markdown h2 {
+    font-size: 1.15rem;
+  }
+
+  .profile-markdown h3 {
+    font-size: 1rem;
+  }
+
+  .profile-markdown p {
+    margin: 0;
+  }
+
+  .profile-markdown ul,
+  .profile-markdown ol {
+    margin: 0;
+    padding-left: 1.25rem;
+  }
+
+  .profile-markdown ul {
+    list-style: disc;
+  }
+
+  .profile-markdown ol {
+    list-style: decimal;
+  }
+
+  .profile-markdown li + li {
+    margin-top: 0.3rem;
+  }
+
+  .profile-markdown a:not(.markdown-download) {
+    color: var(--ui-text);
+    font-weight: 650;
+    text-decoration: underline;
+    text-underline-offset: 0.2rem;
+  }
+
+  .profile-markdown a.markdown-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    max-width: 100%;
+    border: 1px solid var(--ui-border);
+    border-radius: 9999px;
+    background: var(--ui-surface-strong);
+    padding: 0.65rem 0.85rem;
+    color: var(--ui-text);
+    font-weight: 700;
+    line-height: 1.25;
+    text-decoration: none;
+    box-shadow: var(--ui-shadow-card);
+    transition: border-color 160ms ease, transform 160ms ease, background 160ms ease;
+  }
+
+  .profile-markdown a.markdown-download:hover {
+    border-color: var(--ui-border-strong);
+    background: var(--ui-surface-muted);
+    transform: translateY(-1px);
+  }
+
+  .profile-markdown .markdown-download__icon {
+    display: inline-flex;
+    height: 1.4rem;
+    width: 1.4rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: var(--ui-primary);
+    color: var(--ui-primary-contrast);
+    font-size: 0.85rem;
+    line-height: 1;
+  }
 }
 
 @layer utilities {
@@ -1948,6 +2045,118 @@
 
   .project-card-action-shell--popup:hover,
   .project-card-action-shell--popup:focus-within {
+    transform: none;
+    filter: none;
+  }
+}
+
+.ui-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.ui-pagination__pages {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.ui-pagination__button,
+.ui-pagination__page {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ui-border);
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  box-shadow: 0 10px 22px rgba(73, 52, 69, 0.08);
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.ui-pagination__button {
+  border-radius: var(--ui-radius-pill);
+  padding: 0.65rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.ui-pagination__page {
+  width: 2.5rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 800;
+}
+
+.ui-pagination__button:not(:disabled):hover,
+.ui-pagination__page:hover,
+.ui-pagination__page--active {
+  transform: translateY(-1px);
+  border-color: var(--ui-accent-soft);
+  background: var(--ui-primary);
+  color: var(--ui-on-primary);
+  box-shadow: 0 16px 30px rgba(73, 52, 69, 0.14);
+}
+
+.ui-pagination__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  box-shadow: none;
+}
+
+@media (max-width: 640px) {
+  .ui-pagination {
+    align-items: stretch;
+  }
+
+  .ui-pagination__button {
+    flex: 1 1 8rem;
+  }
+
+  .ui-pagination__pages {
+    order: -1;
+    width: 100%;
+  }
+}
+
+.content-card-action-shell {
+  height: 100%;
+  transform-origin: center;
+  transition: transform 180ms ease, filter 180ms ease;
+}
+
+.content-card-action-shell--clickable {
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .content-card-action-shell--clickable:hover {
+    transform: scale(1.02);
+    filter: saturate(1.03);
+  }
+}
+
+.content-card-action-shell--clickable:focus-within {
+  transform: scale(1.01);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content-card-action-shell {
+    transition: none;
+  }
+
+  .content-card-action-shell--clickable:hover,
+  .content-card-action-shell--clickable:focus-within {
     transform: none;
     filter: none;
   }

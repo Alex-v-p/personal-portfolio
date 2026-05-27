@@ -132,6 +132,11 @@
     "images": {
       "profileAvatar": "Profielavatar",
       "profileImage": "Profielafbeelding"
+    },
+    "pagination": {
+      "previous": "Vorige",
+      "next": "Volgende",
+      "goToPage": "Ga naar pagina {{page}}"
     }
   },
   "shell": {
@@ -222,6 +227,9 @@
       "browseTitle": "Alle projecten bekijken",
       "card": {
         "placeholder": "Tijdelijke projectafbeelding"
+      },
+      "pagination": {
+        "label": "Projectpagina’s"
       }
     },
     "blog": {
@@ -258,6 +266,9 @@
       "browseTitle": "Alle posts bekijken",
       "card": {
         "placeholder": "Tijdelijke blogafbeelding"
+      },
+      "pagination": {
+        "label": "Blogpostpagina’s"
       }
     },
     "blogPost": {

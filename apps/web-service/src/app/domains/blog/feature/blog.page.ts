@@ -32,7 +32,7 @@ export class BlogPageComponent implements OnInit {
   private readonly i18n = inject(I18nService);
   private readonly destroyRef = inject(DestroyRef);
 
-  protected readonly pagerDots = [1, 2, 3];
+  protected readonly browsePageSize = 4;
 
   protected posts: BlogPostSummary[] = [];
   protected searchQuery = '';
@@ -40,6 +40,7 @@ export class BlogPageComponent implements OnInit {
   protected isCategoryMenuOpen = false;
   protected isLoading = true;
   protected errorMessage = '';
+  protected currentBrowsePage = 1;
 
   ngOnInit(): void {
     this.i18n.localeChanges$.pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe(() => {
@@ -63,6 +64,7 @@ export class BlogPageComponent implements OnInit {
       .subscribe({
         next: (posts) => {
           this.posts = Array.isArray(posts) ? posts : [];
+          this.currentBrowsePage = 1;
         },
         error: () => {
           this.posts = [];
@@ -79,14 +81,21 @@ export class BlogPageComponent implements OnInit {
     this.isCategoryMenuOpen = false;
   }
 
+  protected updateSearchQuery(value: string): void {
+    this.searchQuery = value;
+    this.currentBrowsePage = 1;
+  }
+
   protected toggleCategoryFilter(category: string): void {
     this.selectedCategories = this.selectedCategories.includes(category)
       ? this.selectedCategories.filter((item) => item !== category)
       : [...this.selectedCategories, category];
+    this.currentBrowsePage = 1;
   }
 
   protected clearCategoryFilters(): void {
     this.selectedCategories = [];
+    this.currentBrowsePage = 1;
   }
 
   protected isCategorySelected(category: string): boolean {
@@ -97,6 +106,7 @@ export class BlogPageComponent implements OnInit {
     this.searchQuery = '';
     this.selectedCategories = [];
     this.isCategoryMenuOpen = false;
+    this.currentBrowsePage = 1;
   }
 
   protected get totalPostCount(): number {
@@ -157,5 +167,54 @@ export class BlogPageComponent implements OnInit {
   protected get browseablePosts(): BlogPostSummary[] {
     const featuredIds = new Set(this.featuredPosts.map((post) => post.id));
     return this.filteredPosts.filter((post) => !featuredIds.has(post.id));
+  }
+
+  protected get totalBrowsePages(): number {
+    return Math.max(1, Math.ceil(this.browseablePosts.length / this.browsePageSize));
+  }
+
+  protected get browsePageNumbers(): number[] {
+    return Array.from({ length: this.totalBrowsePages }, (_, index) => index + 1);
+  }
+
+  protected get paginatedBrowseablePosts(): BlogPostSummary[] {
+    const safePage = Math.min(Math.max(this.currentBrowsePage, 1), this.totalBrowsePages);
+    if (safePage !== this.currentBrowsePage) {
+      this.currentBrowsePage = safePage;
+    }
+
+    const startIndex = (safePage - 1) * this.browsePageSize;
+    return this.browseablePosts.slice(startIndex, startIndex + this.browsePageSize);
+  }
+
+  protected get visiblePostCount(): number {
+    return this.featuredPosts.length + this.paginatedBrowseablePosts.length;
+  }
+
+  protected get hasPostPagination(): boolean {
+    return this.browseablePosts.length > 0;
+  }
+
+  protected goToBrowsePage(page: number): void {
+    this.currentBrowsePage = Math.min(Math.max(page, 1), this.totalBrowsePages);
+    this.scrollToPageTop();
+  }
+
+  protected goToPreviousBrowsePage(): void {
+    this.goToBrowsePage(this.currentBrowsePage - 1);
+  }
+
+  protected goToNextBrowsePage(): void {
+    this.goToBrowsePage(this.currentBrowsePage + 1);
+  }
+
+  private scrollToPageTop(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
   }
 }

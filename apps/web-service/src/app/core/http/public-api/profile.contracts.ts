@@ -40,6 +40,7 @@ export interface ProfileApi {
   headline: string;
   shortIntro: string;
   longBio?: string | null;
+  aiNotice?: string | null;
   location?: string | null;
   email?: string | null;
   phone?: string | null;

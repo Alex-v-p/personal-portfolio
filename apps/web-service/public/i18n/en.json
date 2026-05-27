@@ -132,6 +132,11 @@
     "images": {
       "profileAvatar": "Profile avatar",
       "profileImage": "Profile image"
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "goToPage": "Go to page {{page}}"
     }
   },
   "shell": {
@@ -222,6 +227,9 @@
       "browseTitle": "Browse all projects",
       "card": {
         "placeholder": "Project cover placeholder"
+      },
+      "pagination": {
+        "label": "Project pages"
       }
     },
     "blog": {
@@ -258,6 +266,9 @@
       "browseTitle": "Browse all posts",
       "card": {
         "placeholder": "Blog post cover placeholder"
+      },
+      "pagination": {
+        "label": "Blog post pages"
       }
     },
     "blogPost": {
