@@ -1,7 +1,7 @@
 from app.db.base import Base, TimestampMixin
 from app.db.models.activity import AssistantConversation, AssistantMessage, ContactMessage, SiteEvent
 from app.db.models.admin import AdminAuthEvent, AdminSession, AdminUser
-from app.db.models.blog import BlogPost, BlogPostTag, BlogTag
+from app.db.models.blog import BlogPost, BlogPostTag, BlogProtectedDocument, BlogProtectedDocumentGroup, BlogTag
 from app.db.models.enums import (
     AssistantRole,
     EventType,
@@ -54,4 +54,6 @@ __all__ = [
     'BlogPost',
     'BlogTag',
     'BlogPostTag',
+    'BlogProtectedDocumentGroup',
+    'BlogProtectedDocument',
 ]

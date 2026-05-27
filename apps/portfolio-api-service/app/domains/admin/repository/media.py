@@ -68,6 +68,7 @@ class AdminMediaRepository(AdminRepositorySupport):
             project_cover_count=usage.project_cover_count,
             project_gallery_image_count=usage.project_gallery_image_count,
             blog_cover_count=usage.blog_cover_count,
+            blog_protected_document_count=usage.blog_protected_document_count,
             total_references=usage.total_references,
             is_referenced=usage.is_referenced,
         )

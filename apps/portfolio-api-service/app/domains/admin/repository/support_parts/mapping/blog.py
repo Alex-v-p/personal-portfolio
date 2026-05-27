@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from app.db.models import BlogPost
-from app.domains.admin.schema import AdminBlogPostOut, AdminBlogTagOut
+from app.db.models import BlogPost, BlogProtectedDocument, BlogProtectedDocumentGroup
+from app.domains.admin.schema import AdminBlogPostOut, AdminBlogTagOut, AdminProtectedDocumentGroupOut, AdminProtectedDocumentOut
 
 
 class AdminRepositoryBlogMappingMixin:
     def _map_blog_post(self, post: BlogPost) -> AdminBlogPostOut:
         ordered_tags = sorted((link.tag for link in post.tag_links), key=lambda tag: tag.name.lower())
+        ordered_groups = sorted(post.protected_document_groups, key=lambda group: (group.sort_order, group.title.lower(), str(group.id)))
 
         return AdminBlogPostOut(
             id=str(post.id),
@@ -34,4 +35,30 @@ class AdminRepositoryBlogMappingMixin:
             tag_ids=[str(tag.id) for tag in ordered_tags],
             tag_names=[tag.name for tag in ordered_tags],
             tags=[AdminBlogTagOut(id=str(tag.id), name=tag.name, slug=tag.slug) for tag in ordered_tags],
+            protected_document_groups=[self._map_protected_document_group(group) for group in ordered_groups],
+        )
+
+    def _map_protected_document_group(self, group: BlogProtectedDocumentGroup) -> AdminProtectedDocumentGroupOut:
+        ordered_documents = sorted(group.documents, key=lambda document: (document.sort_order, str(document.id)))
+        return AdminProtectedDocumentGroupOut(
+            id=str(group.id),
+            slug=group.slug,
+            title=group.title,
+            title_nl=group.title_nl,
+            description=group.description,
+            description_nl=group.description_nl,
+            is_enabled=group.is_enabled,
+            sort_order=group.sort_order,
+            has_password=bool(group.password_hash),
+            documents=[self._map_protected_document(document) for document in ordered_documents],
+        )
+
+    def _map_protected_document(self, document: BlogProtectedDocument) -> AdminProtectedDocumentOut:
+        return AdminProtectedDocumentOut(
+            id=str(document.id),
+            media_file_id=str(document.media_file_id),
+            title=document.title,
+            title_nl=document.title_nl,
+            sort_order=document.sort_order,
+            media=self._map_media(document.media_file, alt=document.title),
         )

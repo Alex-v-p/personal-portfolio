@@ -2,6 +2,10 @@ from app.domains.admin.schema_parts.content_sections.blog import (
     AdminBlogPostOut,
     AdminBlogPostsListOut,
     AdminBlogPostUpsertIn,
+    AdminProtectedDocumentGroupIn,
+    AdminProtectedDocumentGroupOut,
+    AdminProtectedDocumentIn,
+    AdminProtectedDocumentOut,
 )
 from app.domains.admin.schema_parts.content_sections.experience import (
     AdminExperienceOut,
@@ -20,6 +24,10 @@ __all__ = [
     'AdminBlogPostOut',
     'AdminBlogPostsListOut',
     'AdminBlogPostUpsertIn',
+    'AdminProtectedDocumentGroupIn',
+    'AdminProtectedDocumentGroupOut',
+    'AdminProtectedDocumentIn',
+    'AdminProtectedDocumentOut',
     'AdminExperienceOut',
     'AdminExperiencesListOut',
     'AdminExperienceUpsertIn',

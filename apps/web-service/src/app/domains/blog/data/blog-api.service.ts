@@ -4,9 +4,10 @@ import { map } from 'rxjs/operators';
 
 import { BlogPostDetail } from '@domains/blog/model/blog-post-detail.model';
 import { BlogPostSummary } from '@domains/blog/model/blog-post-summary.model';
+import { ProtectedDocumentsAccess } from '@domains/blog/model/protected-document.model';
 import { CollectionResponse } from '@core/http/public-api/common.contracts';
 import { normalizeBlogPostDetail, normalizeBlogPostSummaries } from '@core/http/public-api/blog.mappers';
-import { BlogPostDetailApi, BlogPostSummaryApi } from '@core/http/public-api/blog.contracts';
+import { BlogPostDetailApi, BlogPostSummaryApi, ProtectedDocumentsAccessApi } from '@core/http/public-api/blog.contracts';
 import { PublicHttpService } from '@core/http/public-api/public-http.service';
 import { I18nService } from '@core/i18n/i18n.service';
 
@@ -28,10 +29,25 @@ export class PublicBlogApiService {
   getBlogPostBySlug(slug: string): Observable<BlogPostDetail> {
     const locale = this.i18n.currentLocale();
 
-    return this.publicHttp.cacheRequest(`public:blog-posts:${slug}:${locale}`, () =>
-      this.publicHttp.http
-        .get<BlogPostDetailApi>(`${this.publicHttp.apiBaseUrl}/public/blog-posts/${slug}`, { params: this.publicHttp.localeParams(locale) })
-        .pipe(map((post) => normalizeBlogPostDetail(post, locale)))
-    );
+    return this.publicHttp.http
+      .get<BlogPostDetailApi>(`${this.publicHttp.apiBaseUrl}/public/blog-posts/${slug}`, { params: this.publicHttp.localeParams(locale) })
+      .pipe(map((post) => normalizeBlogPostDetail(post, locale)));
   }
+
+  getProtectedDocumentAccess(groupSlug: string): Observable<ProtectedDocumentsAccess> {
+    return this.publicHttp.http
+      .get<ProtectedDocumentsAccessApi>(`${this.publicHttp.apiBaseUrl}/public/protected-documents/${encodeURIComponent(groupSlug)}/access`, { withCredentials: true })
+      .pipe(map((response) => ({ unlocked: response.unlocked, expiresInSeconds: response.expiresInSeconds ?? 0 })));
+  }
+
+  unlockProtectedDocuments(groupSlug: string, password: string): Observable<ProtectedDocumentsAccess> {
+    return this.publicHttp.http
+      .post<ProtectedDocumentsAccessApi>(
+        `${this.publicHttp.apiBaseUrl}/public/protected-documents/${encodeURIComponent(groupSlug)}/unlock`,
+        { password },
+        { withCredentials: true }
+      )
+      .pipe(map((response) => ({ unlocked: response.unlocked, expiresInSeconds: response.expiresInSeconds ?? 0 })));
+  }
+
 }

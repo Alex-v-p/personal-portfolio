@@ -39,6 +39,29 @@ export interface AdminProjectForm {
   images: AdminProjectGalleryImageForm[];
 }
 
+
+export interface AdminProtectedDocumentForm {
+  id?: string | null;
+  mediaFileId: string | null;
+  title: string;
+  titleNl: string;
+  sortOrder: number;
+}
+
+export interface AdminProtectedDocumentGroupForm {
+  id?: string | null;
+  slug: string;
+  title: string;
+  titleNl: string;
+  description: string;
+  descriptionNl: string;
+  isEnabled: boolean;
+  sortOrder: number;
+  hasPassword: boolean;
+  newPassword: string;
+  documents: AdminProtectedDocumentForm[];
+}
+
 export interface AdminBlogPostForm {
   id?: string | null;
   slug: string;
@@ -60,6 +83,7 @@ export interface AdminBlogPostForm {
   seoDescription: string;
   seoDescriptionNl: string;
   tagIds: string[];
+  protectedDocumentGroups: AdminProtectedDocumentGroupForm[];
 }
 
 export interface AdminExperienceForm {
@@ -133,7 +157,8 @@ export function createEmptyBlogPostForm(): AdminBlogPostForm {
     seoTitleNl: '',
     seoDescription: '',
     seoDescriptionNl: '',
-    tagIds: []
+    tagIds: [],
+    protectedDocumentGroups: []
   };
 }
 
@@ -218,6 +243,25 @@ export function toBlogPostForm(post: AdminBlogPost): AdminBlogPostForm {
     seoDescription: post.seoDescription ?? '',
     seoDescriptionNl: post.seoDescriptionNl ?? '',
     tagIds: [...post.tagIds],
+    protectedDocumentGroups: (post.protectedDocumentGroups ?? []).map((group, groupIndex) => ({
+      id: group.id,
+      slug: group.slug,
+      title: group.title,
+      titleNl: group.titleNl ?? '',
+      description: group.description ?? '',
+      descriptionNl: group.descriptionNl ?? '',
+      isEnabled: group.isEnabled,
+      sortOrder: typeof group.sortOrder === 'number' ? group.sortOrder : groupIndex,
+      hasPassword: group.hasPassword,
+      newPassword: '',
+      documents: (group.documents ?? []).map((document, documentIndex) => ({
+        id: document.id,
+        mediaFileId: document.mediaFileId ?? null,
+        title: document.title ?? '',
+        titleNl: document.titleNl ?? '',
+        sortOrder: typeof document.sortOrder === 'number' ? document.sortOrder : documentIndex,
+      })),
+    })),
   };
 }
 

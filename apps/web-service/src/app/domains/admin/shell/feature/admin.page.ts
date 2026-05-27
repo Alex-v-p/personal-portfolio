@@ -10,6 +10,7 @@ import {
   AdminAsyncTaskAccepted,
   AdminAsyncTaskStatus,
   AdminBlogPost,
+  AdminBlogPostUpsert,
   AdminBlogTag,
   AdminContactMessage,
   AdminDashboardSummary,
@@ -625,33 +626,127 @@ export class AdminPageComponent implements OnInit, OnDestroy {
   }
 
   protected saveBlogPost(): void {
-    const payload = {
-      slug: this.blogPostForm.slug || null,
-      title: this.blogPostForm.title,
-      excerpt: this.blogPostForm.excerpt,
-      contentMarkdown: this.blogPostForm.contentMarkdown,
-      coverImageFileId: this.blogPostForm.coverImageFileId || null,
-      coverImageAlt: this.blogPostForm.coverImageAlt || null,
-      readingTimeMinutes: this.blogPostForm.readingTimeMinutes,
-      status: this.blogPostForm.status,
-      isFeatured: this.blogPostForm.isFeatured,
-      publishedAt: this.blogPostForm.publishedAt || null,
-      seoTitle: this.blogPostForm.seoTitle || null,
-      seoDescription: this.blogPostForm.seoDescription || null,
-      tagIds: [...this.blogPostForm.tagIds],
-    };
+    const validationError = this.validateProtectedDocumentGroups();
+    if (validationError) {
+      this.statusMessage = '';
+      this.errorMessage = validationError;
+      return;
+    }
+
+    this.errorMessage = '';
+    const payload = this.buildBlogPostPayload();
     const request$ = this.selectedBlogPostId
       ? this.contentApi.updateBlogPost(this.selectedBlogPostId, payload)
       : this.contentApi.createBlogPost(payload);
     request$.pipe(take(1)).subscribe({
       next: () => {
+        this.errorMessage = '';
         this.statusMessage = this.selectedBlogPostId ? 'Blog post updated.' : 'Blog post created.';
         this.loadCms();
       },
       error: (error) => {
-        this.statusMessage = error?.error?.detail || 'Saving the blog post failed.';
+        this.statusMessage = '';
+        this.errorMessage = this.formatApiError(error, 'Saving the blog post failed.');
       }
     });
+  }
+
+  private buildBlogPostPayload(): AdminBlogPostUpsert {
+    return {
+      slug: this.blogPostForm.slug || null,
+      title: this.blogPostForm.title,
+      titleNl: this.blogPostForm.titleNl || null,
+      excerpt: this.blogPostForm.excerpt,
+      excerptNl: this.blogPostForm.excerptNl || null,
+      contentMarkdown: this.blogPostForm.contentMarkdown,
+      contentMarkdownNl: this.blogPostForm.contentMarkdownNl || null,
+      coverImageFileId: this.blogPostForm.coverImageFileId || null,
+      coverImageAlt: this.blogPostForm.coverImageAlt || null,
+      coverImageAltNl: this.blogPostForm.coverImageAltNl || null,
+      readingTimeMinutes: this.blogPostForm.readingTimeMinutes,
+      status: this.blogPostForm.status,
+      isFeatured: this.blogPostForm.isFeatured,
+      publishedAt: this.blogPostForm.publishedAt || null,
+      seoTitle: this.blogPostForm.seoTitle || null,
+      seoTitleNl: this.blogPostForm.seoTitleNl || null,
+      seoDescription: this.blogPostForm.seoDescription || null,
+      seoDescriptionNl: this.blogPostForm.seoDescriptionNl || null,
+      tagIds: [...this.blogPostForm.tagIds],
+      protectedDocumentGroups: this.blogPostForm.protectedDocumentGroups.map((group, groupIndex) => ({
+        id: group.id || null,
+        slug: group.slug || null,
+        title: group.title,
+        titleNl: group.titleNl || null,
+        description: group.description || null,
+        descriptionNl: group.descriptionNl || null,
+        isEnabled: group.isEnabled,
+        sortOrder: typeof group.sortOrder === 'number' ? group.sortOrder : groupIndex,
+        newPassword: group.newPassword?.trim() || null,
+        documents: group.documents.map((document, documentIndex) => ({
+          id: document.id || null,
+          mediaFileId: document.mediaFileId || null,
+          title: document.title || null,
+          titleNl: document.titleNl || null,
+          sortOrder: typeof document.sortOrder === 'number' ? document.sortOrder : documentIndex,
+        })),
+      })),
+    };
+  }
+
+  private validateProtectedDocumentGroups(): string | null {
+    for (const [groupIndex, group] of this.blogPostForm.protectedDocumentGroups.entries()) {
+      const label = `Protected document card ${groupIndex + 1}`;
+      const title = group.title.trim();
+      const slug = group.slug.trim();
+      const password = group.newPassword.trim();
+
+      if (!title) {
+        return `${label}: add a card title before saving.`;
+      }
+
+      if (!slug) {
+        return `${label}: add a slug before saving.`;
+      }
+
+      if (password.length > 0 && password.length < 8) {
+        return `${label}: the access password must be at least 8 characters.`;
+      }
+
+      if (group.isEnabled && !group.hasPassword && password.length < 8) {
+        return `${label}: set an access password of at least 8 characters before enabling it.`;
+      }
+
+      if (group.isEnabled && group.documents.length === 0) {
+        return `${label}: add at least one document before enabling it.`;
+      }
+
+      const missingMediaIndex = group.documents.findIndex((document) => !document.mediaFileId);
+      if (missingMediaIndex >= 0) {
+        return `${label}, document ${missingMediaIndex + 1}: choose a media file or remove the empty document row.`;
+      }
+    }
+
+    return null;
+  }
+
+  private formatApiError(error: any, fallback: string): string {
+    const detail = error?.error?.detail;
+    if (typeof detail === 'string') {
+      return detail;
+    }
+
+    if (Array.isArray(detail)) {
+      const messages = detail
+        .map((item) => {
+          const location = Array.isArray(item?.loc) ? item.loc.join('.') : '';
+          const message = typeof item?.msg === 'string' ? item.msg : JSON.stringify(item);
+          return location ? `${location}: ${message}` : message;
+        })
+        .filter(Boolean);
+      return messages.length > 0 ? messages.join(' ') : fallback;
+    }
+
+    return fallback;
   }
 
   protected deleteBlogPost(): void {

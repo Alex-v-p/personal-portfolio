@@ -8,6 +8,28 @@ export interface BlogTagApi {
   slug: string;
 }
 
+
+export interface ProtectedDocumentApi {
+  id: string;
+  title: string;
+  fileName?: string | null;
+  mimeType?: string | null;
+  fileSizeBytes?: number | null;
+  downloadUrl: string;
+}
+
+export interface ProtectedDocumentGroupApi {
+  slug: string;
+  title: string;
+  description?: string | null;
+  documents: ProtectedDocumentApi[];
+}
+
+export interface ProtectedDocumentsAccessApi {
+  unlocked: boolean;
+  expiresInSeconds: number;
+}
+
 export interface BlogPostSummaryApi {
   id: string;
   slug: string;
@@ -29,4 +51,5 @@ export interface BlogPostDetailApi extends BlogPostSummaryApi {
   contentMarkdown: string;
   seoTitle?: string | null;
   seoDescription?: string | null;
+  protectedDocumentGroups?: ProtectedDocumentGroupApi[] | null;
 }
