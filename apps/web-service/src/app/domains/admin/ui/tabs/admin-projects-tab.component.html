@@ -4,6 +4,12 @@
     <div class="admin-scroll-list mt-5 grid gap-3">
       <button *ngFor="let project of projects" type="button" (click)="selectProject(project.id)" [ngClass]="project.id === selectedProjectId ? 'border-stone-900 bg-stone-100' : 'border-stone-200 bg-stone-50'" class="rounded-[1.5rem] border p-4 text-left transition">
         <div class="flex items-start justify-between gap-3"><p class="min-w-0 text-sm font-semibold text-stone-950">{{ project.title }}</p><span class="shrink-0 rounded-full border border-stone-300 bg-white px-2 py-0.5 text-[11px] font-semibold text-stone-600">#{{ project.sortOrder }}</span></div><p class="mt-1 text-sm text-stone-600">{{ project.state }} · {{ project.status }}</p><p class="mt-2 text-xs text-stone-500">{{ project.slug }}</p>
+        <div class="mt-3 flex flex-wrap gap-1.5">
+          <span *ngIf="project.isCardPopupEnabled" class="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-700">Popup</span>
+          <span *ngIf="project.readMoreUrl || project.readMoreUrlNl" class="rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-sky-700">Read more</span>
+          <span *ngIf="project.githubUrl" class="rounded-full border border-stone-300 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-stone-600">GitHub</span>
+          <span *ngIf="project.demoUrl" class="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-700">Demo</span>
+        </div>
       </button>
     </div>
   </aside>
@@ -39,16 +45,20 @@
       <section class="space-y-3 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4 lg:col-span-2">
         <div class="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p class="text-sm font-semibold text-stone-950">Public teaser download link</p>
-            <p class="mt-1 text-xs leading-5 text-stone-500">Insert a clear downloadable file link into the active English/Dutch project teaser so it appears on the public project card. It uses <code>[Download file](url "download")</code>.</p>
+            <p class="text-sm font-semibold text-stone-950">Public markdown download link</p>
+            <p class="mt-1 text-xs leading-5 text-stone-500">Insert a clear downloadable file link into the active English/Dutch project teaser or the popup description. It uses <code>[Download file](url "download")</code>.</p>
+          </div>
+          <div class="inline-flex rounded-full border border-stone-300 bg-white p-1">
+            <button type="button" (click)="selectedProjectDownloadTarget = 'teaser'" [ngClass]="selectedProjectDownloadTarget === 'teaser' ? 'bg-stone-900 text-white' : 'text-stone-700'" class="rounded-full px-3 py-1.5 text-xs font-semibold">Card teaser</button>
+            <button type="button" (click)="selectedProjectDownloadTarget = 'popupDescription'" [ngClass]="selectedProjectDownloadTarget === 'popupDescription' ? 'bg-stone-900 text-white' : 'text-stone-700'" class="rounded-full px-3 py-1.5 text-xs font-semibold">Popup description</button>
           </div>
         </div>
         <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
           <select [(ngModel)]="selectedProjectDownloadMediaId" name="projectDownloadMediaId" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm">
-            <option [ngValue]="null">Select a media file to insert into the public teaser</option>
+            <option [ngValue]="null">Select a media file to insert</option>
             <option *ngFor="let media of referenceData.mediaFiles" [ngValue]="media.id">{{ media.title || media.originalFilename }} · {{ media.objectKey }}</option>
           </select>
-          <button type="button" (click)="insertProjectDownloadFromMedia()" [disabled]="!selectedProjectDownloadMediaId" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Insert into teaser</button>
+          <button type="button" (click)="insertProjectDownloadFromMedia()" [disabled]="!selectedProjectDownloadMediaId" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Insert into {{ selectedProjectDownloadTarget === 'popupDescription' ? 'popup description' : 'teaser' }}</button>
         </div>
       </section>
 
@@ -61,17 +71,40 @@
       <label *ngIf="contentLocale === 'en'" class="space-y-2"><span class="text-sm font-semibold">Duration label</span><input [(ngModel)]="projectForm.durationLabel" name="projectDurationLabel" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
       <label *ngIf="contentLocale === 'nl'" class="space-y-2"><span class="text-sm font-semibold">Duration label (NL)</span><input [(ngModel)]="projectForm.durationLabelNl" name="projectDurationLabelNl" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
       <label class="space-y-2"><span class="text-sm font-semibold">Published at</span><input [(ngModel)]="projectForm.publishedAt" name="projectPublishedAt" type="datetime-local" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
-      <label *ngIf="contentLocale === 'en'" class="space-y-2"><span class="text-sm font-semibold">Read more URL</span><input [(ngModel)]="projectForm.readMoreUrl" name="projectReadMoreUrl" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /><span class="text-xs text-stone-500">Optional public Read more link. Leave empty to hide the Read more button.</span></label>
-      <label *ngIf="contentLocale === 'nl'" class="space-y-2"><span class="text-sm font-semibold">Read more URL (NL)</span><input [(ngModel)]="projectForm.readMoreUrlNl" name="projectReadMoreUrlNl" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /><span class="text-xs text-stone-500">Optional Dutch Read more link. Falls back to the English URL when empty.</span></label>
-      <label class="space-y-2"><span class="text-sm font-semibold">GitHub URL</span><input [(ngModel)]="projectForm.githubUrl" name="projectGithubUrl" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /><span class="text-xs text-stone-500">Shown as the GitHub link on public project cards. It is no longer used for Read more.</span></label>
-      <label class="space-y-2"><span class="text-sm font-semibold">Demo URL</span><input [(ngModel)]="projectForm.demoUrl" name="projectDemoUrl" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
+
+      <section class="space-y-4 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4 lg:col-span-2">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p class="text-sm font-semibold text-stone-950">Public card actions & popup</p>
+            <p class="mt-1 text-xs leading-5 text-stone-500">Controls the new card-click behavior, popup hover affordance, separate Read more link, GitHub icon link, and live demo button.</p>
+          </div>
+          <span [ngClass]="projectForm.isCardPopupEnabled ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-stone-300 bg-white text-stone-600'" class="rounded-full border px-3 py-1 text-xs font-semibold">{{ projectForm.isCardPopupEnabled ? 'Popup enabled' : 'Popup disabled' }}</span>
+        </div>
+
+        <div class="grid gap-3 lg:grid-cols-2">
+          <label *ngIf="contentLocale === 'en'" class="space-y-2"><span class="text-sm font-semibold">Read more URL</span><input [(ngModel)]="projectForm.readMoreUrl" name="projectReadMoreUrl" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /><span class="text-xs text-stone-500">Optional public Read more button. This is separate from GitHub.</span></label>
+          <label *ngIf="contentLocale === 'nl'" class="space-y-2"><span class="text-sm font-semibold">Read more URL (NL)</span><input [(ngModel)]="projectForm.readMoreUrlNl" name="projectReadMoreUrlNl" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /><span class="text-xs text-stone-500">Optional Dutch Read more button. Falls back to the English URL when empty.</span></label>
+          <label class="space-y-2"><span class="text-sm font-semibold">GitHub URL</span><input [(ngModel)]="projectForm.githubUrl" name="projectGithubUrl" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /><span class="text-xs text-stone-500">Shown only as the GitHub icon/link. It is no longer used for Read more.</span></label>
+          <label class="space-y-2"><span class="text-sm font-semibold">Demo URL</span><input [(ngModel)]="projectForm.demoUrl" name="projectDemoUrl" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm" /><span class="text-xs text-stone-500">Shown as the Live demo button and used as the card-click fallback when there is no popup or Read more URL.</span></label>
+          <label class="flex items-start gap-3 rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm lg:col-span-2"><input [(ngModel)]="projectForm.isCardPopupEnabled" name="projectCardPopupEnabled" type="checkbox" class="mt-1 h-4 w-4" /><span><span class="font-semibold text-stone-950">Enable project card popup</span><span class="mt-1 block text-xs leading-5 text-stone-500">When enabled, the public card shows a pointer cursor and subtle hover scale, then opens the detail popup before falling back to external links.</span></span></label>
+        </div>
+
+        <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <div class="rounded-2xl border border-stone-200 bg-white p-3"><p class="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-400">Card click</p><p class="mt-1 text-sm font-semibold text-stone-900">{{ publicCardClickBehavior }}</p></div>
+          <div class="rounded-2xl border border-stone-200 bg-white p-3"><p class="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-400">Popup content</p><p class="mt-1 text-sm font-semibold text-stone-900">{{ popupReadinessSummary }}</p></div>
+          <div class="rounded-2xl border border-stone-200 bg-white p-3"><p class="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-400">Gallery</p><p class="mt-1 text-sm font-semibold text-stone-900">{{ projectForm.images.length }} image{{ projectForm.images.length === 1 ? '' : 's' }}</p></div>
+          <div class="rounded-2xl border border-stone-200 bg-white p-3"><p class="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-400">Image click</p><p class="mt-1 text-sm font-semibold text-stone-900">Full-screen lightbox</p></div>
+        </div>
+
+        <p *ngIf="projectForm.isCardPopupEnabled && !hasActivePopupDescription" class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800">Popup is enabled, but the active locale has no popup description yet. Add content above, or the public card will fall back to Read more / Live demo.</p>
+      </section>
+
       <label class="space-y-2"><span class="text-sm font-semibold">GitHub owner</span><input [(ngModel)]="projectForm.githubRepoOwner" name="projectGithubOwner" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
       <label class="space-y-2"><span class="text-sm font-semibold">GitHub repo</span><input [(ngModel)]="projectForm.githubRepoName" name="projectGithubRepo" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
       <label class="space-y-2 lg:col-span-2"><span class="text-sm font-semibold">Company / context</span><input [(ngModel)]="projectForm.companyName" name="projectCompanyName" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm" /></label>
       <label class="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm"><input [(ngModel)]="projectForm.isFeatured" name="projectFeatured" type="checkbox" class="h-4 w-4" /> Feature on home page</label>
-      <label class="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm"><input [(ngModel)]="projectForm.isCardPopupEnabled" name="projectCardPopupEnabled" type="checkbox" class="h-4 w-4" /> Enable project card popup</label>
       <div class="space-y-3 lg:col-span-2 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
-        <div class="flex items-center justify-between gap-4"><div><p class="text-sm font-semibold">Project image upload</p><p class="text-xs text-stone-500">Uploaded to {{ buildProjectFolder() }}. Uploaded images are added to the public card gallery and selected as the cover.</p></div></div>
+        <div class="flex items-center justify-between gap-4"><div><p class="text-sm font-semibold">Project image upload</p><p class="text-xs text-stone-500">Uploaded to {{ buildProjectFolder() }}. Uploaded images are added to the public card gallery, project popup gallery, and full-screen lightbox.</p></div></div>
         <div class="grid gap-3 lg:grid-cols-2"><input [(ngModel)]="projectUploadForm.title" name="projectUploadTitle" placeholder="Media title" class="rounded-2xl border border-stone-300 px-4 py-3 text-sm" /><input [(ngModel)]="projectUploadForm.altText" name="projectUploadAltText" placeholder="Alt text" class="rounded-2xl border border-stone-300 px-4 py-3 text-sm" /><textarea [(ngModel)]="projectUploadForm.description" name="projectUploadDescription" rows="2" placeholder="Description" class="rounded-2xl border border-stone-300 px-4 py-3 text-sm lg:col-span-2"></textarea><input type="file" (change)="onScopedFileSelected($event, projectUploadForm)" class="rounded-2xl border border-stone-300 px-4 py-3 text-sm lg:col-span-2" /></div>
         <button type="button" (click)="uploadProjectCover()" [disabled]="uploadInProgressKey === 'project-cover'" class="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Upload and add to gallery</button>
       </div>
@@ -80,7 +113,7 @@
         <div class="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p class="text-sm font-semibold text-stone-950">Project image gallery</p>
-            <p class="mt-1 text-xs leading-5 text-stone-500">The first/cover image is shown first. Additional images can be browsed with left/right controls on the public project card.</p>
+            <p class="mt-1 text-xs leading-5 text-stone-500">The first/cover image is shown first. These images appear in the public card gallery, the project popup gallery, and the reusable full-screen lightbox.</p>
           </div>
           <span class="rounded-full border border-stone-300 bg-white px-3 py-1 text-xs text-stone-500">{{ projectForm.images.length }} image{{ projectForm.images.length === 1 ? '' : 's' }}</span>
         </div>
