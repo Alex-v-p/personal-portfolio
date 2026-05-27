@@ -1,8 +1,20 @@
 <div
-  class="project-detail-modal-backdrop fixed inset-0 z-[90] flex items-center justify-center overflow-hidden px-3 py-2 sm:px-4 lg:px-6 lg:py-4"
+  class="project-detail-modal-backdrop fixed inset-0 z-[90] flex items-center justify-center overflow-hidden px-2 py-1 sm:px-4 lg:px-6 lg:py-4"
   role="presentation"
   (click)="requestClose()"
 >
+  <button
+    type="button"
+    class="project-detail-modal-close fixed right-3 top-3 z-[115] inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-white/75 bg-white/90 text-[var(--ui-text)] shadow-[0_16px_36px_rgba(73,52,69,0.22)] backdrop-blur transition hover:scale-105 hover:bg-white hover:text-[var(--ui-accent-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)] sm:right-5 sm:top-5"
+    (click)="stopPropagation($event); requestClose()"
+    aria-label="Close project details"
+    title="Close"
+  >
+    <svg viewBox="0 0 20 20" class="h-5 w-5" aria-hidden="true" focusable="false">
+      <path d="M5 5L15 15M15 5L5 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" />
+    </svg>
+  </button>
+
   <section
     class="project-detail-modal ui-card-surface relative w-full overflow-hidden rounded-[2rem] shadow-[0_30px_80px_rgba(73,52,69,0.28)]"
     role="dialog"
@@ -10,17 +22,6 @@
     [attr.aria-labelledby]="dialogTitleId"
     (click)="stopPropagation($event)"
   >
-    <button
-      type="button"
-      class="project-detail-modal-close absolute right-4 top-4 z-30 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/70 bg-white/85 text-[var(--ui-text)] shadow-sm backdrop-blur transition hover:scale-105 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
-      (click)="requestClose()"
-      aria-label="Close project details"
-    >
-      <svg viewBox="0 0 20 20" class="h-5 w-5" aria-hidden="true" focusable="false">
-        <path d="M5 5L15 15M15 5L5 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" />
-      </svg>
-    </button>
-
     <div *ngIf="isLoading" class="grid h-full min-h-[24rem] place-items-center p-8 text-center">
       <div class="space-y-3">
         <div class="mx-auto h-12 w-12 animate-pulse rounded-full border border-[var(--ui-border)] bg-[var(--ui-surface-muted)]"></div>
@@ -66,6 +67,15 @@
                 [alt]="image.alt || detail.coverImageAlt || detail.title"
                 class="project-detail-modal-hero"
               />
+              <button
+                type="button"
+                class="project-detail-modal-image-open"
+                (click)="openImageViewer($event)"
+                [attr.aria-label]="'Open larger image for ' + detail.title"
+                title="Open larger image"
+              >
+                <span class="sr-only">Open larger image</span>
+              </button>
             </ng-container>
 
             <ng-template #modalImageFallback>
@@ -114,7 +124,7 @@
 
         <section class="project-detail-modal-content-panel" aria-label="Project details">
           <article class="project-detail-modal-content-scroll px-6 py-6 sm:px-8 lg:px-9 lg:py-8">
-            <header class="space-y-4 pr-10">
+            <header class="space-y-4">
               <div class="ui-meta-row flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
                 <span *ngIf="detail.organization">{{ detail.organization }}</span>
                 <span *ngIf="detail.duration">{{ detail.duration }}</span>
@@ -169,4 +179,14 @@
       </div>
     </ng-container>
   </section>
+
+  <app-ui-image-lightbox
+    [isOpen]="isImageViewerOpen"
+    [images]="modalImages"
+    [activeIndex]="activeImageIndex"
+    [title]="project?.title ?? 'project'"
+    (activeIndexChange)="updateActiveImageIndex($event)"
+    (closed)="closeImageViewer()"
+  ></app-ui-image-lightbox>
+
 </div>

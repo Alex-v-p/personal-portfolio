@@ -6,16 +6,17 @@ import { I18nService } from '@core/i18n/i18n.service';
 import { UiChipComponent } from '@shared/components/chip/ui-chip.component';
 import { UiLinkButtonComponent } from '@shared/components/link-button/ui-link-button.component';
 import { UiIconComponent } from '@shared/icons/ui-icon.component';
+import { UiImageLightboxComponent } from '@shared/components/image-lightbox/ui-image-lightbox.component';
+import { UiImageLightboxImage } from '@shared/components/image-lightbox/ui-image-lightbox.types';
 import { localizeInternalAppLinkUrl } from '@shared/utils/internal-link.util';
 import { renderMarkdownToHtml } from '@shared/utils/markdown.util';
-import { ResolvedMedia } from '@domains/media/model/resolved-media.model';
 import { ProjectDetail } from '@domains/projects/model/project-detail.model';
 import { ProjectLink } from '@domains/projects/model/project-summary.model';
 
 @Component({
   selector: 'app-project-detail-modal',
   standalone: true,
-  imports: [NgFor, NgIf, TranslatePipe, UiChipComponent, UiIconComponent, UiLinkButtonComponent],
+  imports: [NgFor, NgIf, TranslatePipe, UiChipComponent, UiIconComponent, UiImageLightboxComponent, UiLinkButtonComponent],
   templateUrl: './project-detail-modal.component.html'
 })
 export class ProjectDetailModalComponent implements OnChanges {
@@ -30,6 +31,7 @@ export class ProjectDetailModalComponent implements OnChanges {
   @Output() readonly closed = new EventEmitter<void>();
 
   protected activeImageIndex = 0;
+  protected isImageViewerOpen = false;
 
   ngOnChanges(changes: SimpleChanges): void {
     const projectChange = changes['project'];
@@ -42,15 +44,22 @@ export class ProjectDetailModalComponent implements OnChanges {
 
     if (previousProject?.id !== currentProject?.id) {
       this.activeImageIndex = 0;
+      this.closeImageViewer();
     }
   }
 
   @HostListener('document:keydown.escape')
   onEscapeKey(): void {
+    if (this.isImageViewerOpen) {
+      this.closeImageViewer();
+      return;
+    }
+
     this.requestClose();
   }
 
   protected requestClose(): void {
+    this.closeImageViewer();
     this.closed.emit();
   }
 
@@ -62,7 +71,7 @@ export class ProjectDetailModalComponent implements OnChanges {
     return `project-detail-title-${this.project?.id ?? 'loading'}`;
   }
 
-  protected get modalImages(): ResolvedMedia[] {
+  protected get modalImages(): UiImageLightboxImage[] {
     const project = this.project;
     if (!project) {
       return [];
@@ -74,7 +83,7 @@ export class ProjectDetailModalComponent implements OnChanges {
       return images;
     }
 
-    const coverImage: ResolvedMedia = {
+    const coverImage: UiImageLightboxImage = {
       id: project.coverImageFileId ?? project.id,
       url: project.coverImageUrl,
       alt: project.coverImageAlt || project.imageAlt || project.title,
@@ -90,7 +99,7 @@ export class ProjectDetailModalComponent implements OnChanges {
     return alreadyContainsCover ? images : [coverImage, ...images];
   }
 
-  protected get selectedImage(): ResolvedMedia | null {
+  protected get selectedImage(): UiImageLightboxImage | null {
     const images = this.modalImages;
     if (!images.length) {
       return null;
@@ -154,8 +163,30 @@ export class ProjectDetailModalComponent implements OnChanges {
     this.activeImageIndex = index;
   }
 
-  protected trackImage(index: number, image: ResolvedMedia): string {
-    return image.id ?? image.url ?? `${index}`;
+  protected openImageViewer(event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    if (!this.selectedImage) {
+      return;
+    }
+
+    this.isImageViewerOpen = true;
+  }
+
+  protected closeImageViewer(event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    this.isImageViewerOpen = false;
+  }
+
+  protected updateActiveImageIndex(index: number): void {
+    this.activeImageIndex = index;
+  }
+
+  protected trackImage(index: number, image: UiImageLightboxImage): string {
+    return String(image.id ?? image.url ?? index);
   }
 
   private shiftImage(direction: -1 | 1): void {
