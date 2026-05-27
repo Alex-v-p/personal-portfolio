@@ -21,6 +21,7 @@ export interface ProjectSummaryApi {
   coverImageFileId?: string | null;
   coverImage?: MediaApi | null;
   githubUrl?: string | null;
+  readMoreUrl?: string | null;
   githubRepoOwner?: string | null;
   githubRepoName?: string | null;
   demoUrl?: string | null;
@@ -31,6 +32,7 @@ export interface ProjectSummaryApi {
   status: string;
   state: ProjectState;
   isFeatured: boolean;
+  isCardPopupEnabled: boolean;
   sortOrder: number;
   publishedAt: string;
   createdAt: string;

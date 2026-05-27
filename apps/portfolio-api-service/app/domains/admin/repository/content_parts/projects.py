@@ -49,6 +49,8 @@ class AdminProjectContentRepository:
             description_markdown_nl=self._normalize_optional_text(payload.description_markdown_nl),
             cover_image_file_id=self._optional_uuid(payload.cover_image_file_id),
             github_url=self._normalize_optional_text(payload.github_url),
+            read_more_url=self._normalize_optional_text(payload.read_more_url),
+            read_more_url_nl=self._normalize_optional_text(payload.read_more_url_nl),
             github_repo_owner=self._normalize_optional_text(payload.github_repo_owner),
             github_repo_name=self._normalize_optional_text(payload.github_repo_name),
             demo_url=self._normalize_optional_text(payload.demo_url),
@@ -61,6 +63,7 @@ class AdminProjectContentRepository:
             status_nl=self._normalize_optional_text(payload.status_nl),
             state=ProjectState(payload.state),
             is_featured=payload.is_featured,
+            is_card_popup_enabled=payload.is_card_popup_enabled,
             sort_order=payload.sort_order,
             published_at=self._parse_datetime(payload.published_at) or datetime.now(UTC),
         )
@@ -87,6 +90,8 @@ class AdminProjectContentRepository:
         project.description_markdown_nl = self._normalize_optional_text(payload.description_markdown_nl)
         project.cover_image_file_id = self._optional_uuid(payload.cover_image_file_id)
         project.github_url = self._normalize_optional_text(payload.github_url)
+        project.read_more_url = self._normalize_optional_text(payload.read_more_url)
+        project.read_more_url_nl = self._normalize_optional_text(payload.read_more_url_nl)
         project.github_repo_owner = self._normalize_optional_text(payload.github_repo_owner)
         project.github_repo_name = self._normalize_optional_text(payload.github_repo_name)
         project.demo_url = self._normalize_optional_text(payload.demo_url)
@@ -99,6 +104,7 @@ class AdminProjectContentRepository:
         project.status_nl = self._normalize_optional_text(payload.status_nl)
         project.state = ProjectState(payload.state)
         project.is_featured = payload.is_featured
+        project.is_card_popup_enabled = payload.is_card_popup_enabled
         project.sort_order = payload.sort_order
         project.published_at = self._parse_datetime(payload.published_at) or project.published_at
         self._replace_project_skill_links(project, payload.skill_ids)

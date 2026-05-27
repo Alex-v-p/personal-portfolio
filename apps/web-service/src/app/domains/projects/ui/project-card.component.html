@@ -119,6 +119,15 @@
           {{ 'common.actions.readMore' | translate }}
         </app-ui-link-button>
         <app-ui-link-button
+          *ngIf="githubAction as github"
+          [routerLink]="null"
+          [href]="github.href ?? null"
+          [openInNewTab]="true"
+          appearance="ghost"
+        >
+          GitHub
+        </app-ui-link-button>
+        <app-ui-link-button
           *ngIf="demoAction as demo"
           [routerLink]="null"
           [href]="demo.href ?? null"
@@ -234,6 +243,15 @@
             appearance="ghost"
           >
             {{ 'common.actions.readMore' | translate }}
+          </app-ui-link-button>
+          <app-ui-link-button
+            *ngIf="githubAction as github"
+            [routerLink]="null"
+            [href]="github.href ?? null"
+            [openInNewTab]="true"
+            appearance="ghost"
+          >
+            GitHub
           </app-ui-link-button>
           <app-ui-link-button
             *ngIf="demoAction as demo"

@@ -58,12 +58,21 @@ export class ProjectCardComponent {
   }
 
   protected get readMoreAction(): ProjectLink | null {
-    const githubReadmeUrl = this.project.githubUrl?.trim();
-    if (githubReadmeUrl) {
-      return { label: this.i18n.translate('common.actions.readMore'), href: githubReadmeUrl };
+    const readMoreUrl = this.project.readMoreUrl?.trim();
+    if (readMoreUrl) {
+      return { label: this.i18n.translate('common.actions.readMore'), href: readMoreUrl };
     }
 
-    return this.project.links.find((link) => !!link.href && /read|meer|github/i.test(link.label ?? '')) ?? null;
+    return this.project.links.find((link) => !!link.href && /read|meer/i.test(link.label ?? '')) ?? null;
+  }
+
+  protected get githubAction(): ProjectLink | null {
+    const githubUrl = this.project.githubUrl?.trim();
+    if (!githubUrl) {
+      return null;
+    }
+
+    return { label: 'GitHub', href: githubUrl };
   }
 
   protected get primaryCardAction(): ProjectLink | null {
@@ -233,7 +242,7 @@ export class ProjectCardComponent {
     }
 
     const label = (link.label ?? '').toLowerCase();
-    return !label.includes('github') && href !== this.project.githubUrl;
+    return !label.includes('github') && !label.includes('read') && !label.includes('meer') && href !== this.project.githubUrl && href !== this.project.readMoreUrl;
   }
 
   private isNestedInteractiveTarget(event: Event): boolean {

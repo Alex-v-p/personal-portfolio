@@ -22,15 +22,17 @@ export function normalizeProjectSummary(project: ProjectSummaryApi, locale: AppL
   const galleryImages = (project.images ?? []).map((image) => normalizeMedia(image.image)).filter((item): item is ResolvedMedia => item !== null);
   const links: ProjectLink[] = [];
 
+  if (project.readMoreUrl) {
+    links.push({ label: locale === 'nl' ? 'Meer lezen' : 'Read more', href: project.readMoreUrl });
+  }
+
   if (project.githubUrl) {
-    links.push({ label: locale === 'nl' ? 'Meer lezen' : 'Read more', href: project.githubUrl });
     links.push({ label: 'GitHub', href: project.githubUrl });
   }
 
   if (project.demoUrl) {
     links.unshift({ label: locale === 'nl' ? 'Live demo' : 'Live Demo', href: project.demoUrl });
   }
-
 
   return {
     id: project.id,
@@ -48,6 +50,7 @@ export function normalizeProjectSummary(project: ProjectSummaryApi, locale: AppL
     tags,
     featured: project.isFeatured,
     isFeatured: project.isFeatured,
+    isCardPopupEnabled: project.isCardPopupEnabled ?? true,
     imageAlt: coverAlt,
     coverImageAlt: coverAlt,
     coverImageFileId: project.coverImageFileId ?? null,
@@ -55,6 +58,7 @@ export function normalizeProjectSummary(project: ProjectSummaryApi, locale: AppL
     galleryImages,
     highlight: project.summary ?? project.teaser,
     githubUrl: project.githubUrl ?? undefined,
+    readMoreUrl: project.readMoreUrl ?? undefined,
     githubRepoName: project.githubRepoName ?? undefined,
     demoUrl: project.demoUrl ?? undefined,
     startedOn: project.startedOn ?? null,

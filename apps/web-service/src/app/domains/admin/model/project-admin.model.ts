@@ -34,6 +34,8 @@ export interface AdminProject {
   coverImageFileId?: string | null;
   coverImage?: ResolvedMedia | null;
   githubUrl?: string | null;
+  readMoreUrl?: string | null;
+  readMoreUrlNl?: string | null;
   githubRepoOwner?: string | null;
   githubRepoName?: string | null;
   demoUrl?: string | null;
@@ -46,6 +48,7 @@ export interface AdminProject {
   statusNl?: string | null;
   state: 'published' | 'archived' | 'completed' | 'paused';
   isFeatured: boolean;
+  isCardPopupEnabled: boolean;
   sortOrder: number;
   publishedAt: string;
   createdAt: string;
@@ -67,6 +70,8 @@ export interface AdminProjectUpsert {
   descriptionMarkdownNl?: string | null;
   coverImageFileId?: string | null;
   githubUrl?: string | null;
+  readMoreUrl?: string | null;
+  readMoreUrlNl?: string | null;
   githubRepoOwner?: string | null;
   githubRepoName?: string | null;
   demoUrl?: string | null;
@@ -79,6 +84,7 @@ export interface AdminProjectUpsert {
   statusNl?: string | null;
   state: 'published' | 'archived' | 'completed' | 'paused';
   isFeatured: boolean;
+  isCardPopupEnabled: boolean;
   sortOrder: number;
   publishedAt?: string | null;
   skillIds: string[];

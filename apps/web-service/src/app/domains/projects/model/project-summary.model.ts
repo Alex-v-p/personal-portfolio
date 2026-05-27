@@ -24,6 +24,7 @@ export interface ProjectSummary {
   tags: string[];
   featured: boolean;
   isFeatured: boolean;
+  isCardPopupEnabled: boolean;
   imageAlt: string;
   coverImageAlt: string;
   coverImageFileId?: string | null;
@@ -31,6 +32,7 @@ export interface ProjectSummary {
   galleryImages: ResolvedMedia[];
   highlight: string;
   githubUrl?: string;
+  readMoreUrl?: string;
   githubRepoName?: string;
   demoUrl?: string;
   startedOn?: string | null;

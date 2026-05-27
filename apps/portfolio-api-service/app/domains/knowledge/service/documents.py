@@ -131,6 +131,7 @@ class KnowledgeDocumentBuilder:
             description_markdown = self._localized(project, 'description_markdown', locale)
             status = self._localized(project, 'status', locale)
             duration_label = self._localized(project, 'duration_label', locale)
+            read_more_url = self._localized(project, 'read_more_url', locale)
             content = '\n\n'.join(
                 part
                 for part in [
@@ -142,6 +143,7 @@ class KnowledgeDocumentBuilder:
                     f'State: {project.state.value}',
                     f'Duration: {duration_label}' if duration_label else '',
                     f'Company: {project.company_name}' if project.company_name else '',
+                    f'Read more: {read_more_url}' if read_more_url else '',
                     f'GitHub: {project.github_url}' if project.github_url else '',
                     f'Demo: {project.demo_url}' if project.demo_url else '',
                     '## Skills\n' + ', '.join(skills) if skills else '',
@@ -154,7 +156,7 @@ class KnowledgeDocumentBuilder:
                     source_type=KnowledgeSourceType.PROJECT,
                     source_id=project.id,
                     title=title,
-                    canonical_url=project.github_url or '/projects',
+                    canonical_url=read_more_url or project.github_url or '/projects',
                     content_markdown=content,
                     content_platform='portfolio',
                     metadata_json={
