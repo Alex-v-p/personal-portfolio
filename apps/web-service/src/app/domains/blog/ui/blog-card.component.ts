@@ -1,6 +1,6 @@
 import { NgFor, NgIf } from '@angular/common';
 import { Component, Input, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { I18nService } from '@core/i18n/i18n.service';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
@@ -18,6 +18,7 @@ import { BlogPostSummary } from '@domains/blog/model/blog-post-summary.model';
 })
 export class BlogCardComponent {
   private readonly i18n = inject(I18nService);
+  private readonly router = inject(Router);
 
   @Input({ required: true }) post!: BlogPostSummary;
   @Input() featured = false;
@@ -31,6 +32,10 @@ export class BlogCardComponent {
 
   protected get articleRouterLink(): string | readonly string[] {
     return this.i18n.localizeRouterCommands(['/blog', this.post.slug]) ?? ['/blog', this.post.slug];
+  }
+
+  protected get articleAriaLabel(): string {
+    return `${this.i18n.translate('common.actions.readArticle')}: ${this.post.title}`;
   }
 
   protected get displayedTags(): string[] {
@@ -53,12 +58,42 @@ export class BlogCardComponent {
     return this.i18n.translate('common.actions.showMoreCount', { count: this.hiddenTagCount });
   }
 
-  protected toggleTags(): void {
+  protected toggleTags(event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
     this.areTagsExpanded = !this.areTagsExpanded;
   }
 
-  protected get articleImageAriaLabel(): string {
-    return `${this.i18n.translate('common.actions.readArticle')}: ${this.post.title}`;
+  protected openArticleCard(event: Event): void {
+    if (this.isNestedInteractiveTarget(event)) {
+      return;
+    }
+
+    event.preventDefault();
+    this.navigateToArticle();
+  }
+
+  protected navigateToArticle(): void {
+    const routerLink = this.articleRouterLink;
+
+    if (typeof routerLink === 'string') {
+      this.router.navigateByUrl(routerLink);
+      return;
+    }
+
+    this.router.navigate([...routerLink]);
+  }
+
+  private isNestedInteractiveTarget(event: Event): boolean {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) {
+      return false;
+    }
+
+    const currentTarget = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+    const interactiveTarget = target.closest('a, button, input, label, select, textarea, [role="button"], [data-blog-card-interactive]');
+
+    return !!interactiveTarget && interactiveTarget !== currentTarget;
   }
 
   protected get placeholderLabel(): string {

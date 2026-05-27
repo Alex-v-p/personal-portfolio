@@ -2128,3 +2128,36 @@
     width: 100%;
   }
 }
+
+.content-card-action-shell {
+  height: 100%;
+  transform-origin: center;
+  transition: transform 180ms ease, filter 180ms ease;
+}
+
+.content-card-action-shell--clickable {
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .content-card-action-shell--clickable:hover {
+    transform: scale(1.02);
+    filter: saturate(1.03);
+  }
+}
+
+.content-card-action-shell--clickable:focus-within {
+  transform: scale(1.01);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content-card-action-shell {
+    transition: none;
+  }
+
+  .content-card-action-shell--clickable:hover,
+  .content-card-action-shell--clickable:focus-within {
+    transform: none;
+    filter: none;
+  }
+}
