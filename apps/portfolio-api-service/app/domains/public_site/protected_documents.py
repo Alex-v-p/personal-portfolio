@@ -4,7 +4,6 @@ import base64
 import hashlib
 import hmac
 import json
-import secrets
 import time
 from pathlib import PurePosixPath
 from uuid import UUID
