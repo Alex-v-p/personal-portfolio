@@ -39,6 +39,8 @@ class AdminProfileContentRepository:
         profile.short_intro_nl = self._normalize_optional_text(payload.short_intro_nl)
         profile.long_bio = self._normalize_optional_text(payload.long_bio)
         profile.long_bio_nl = self._normalize_optional_text(payload.long_bio_nl)
+        profile.ai_notice = self._normalize_optional_text(payload.ai_notice)
+        profile.ai_notice_nl = self._normalize_optional_text(payload.ai_notice_nl)
         profile.location = self._normalize_optional_text(payload.location)
         profile.email = str(payload.email).strip() if payload.email else None
         profile.phone = self._normalize_optional_text(payload.phone)

@@ -16,6 +16,8 @@ class AdminRepositoryProfileMappingMixin:
             short_intro_nl=profile.short_intro_nl,
             long_bio=profile.long_bio,
             long_bio_nl=profile.long_bio_nl,
+            ai_notice=profile.ai_notice,
+            ai_notice_nl=profile.ai_notice_nl,
             location=profile.location,
             email=profile.email,
             phone=profile.phone,

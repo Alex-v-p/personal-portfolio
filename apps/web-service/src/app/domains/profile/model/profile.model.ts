@@ -36,6 +36,7 @@ export interface Profile {
   phone: string;
   shortIntro: string;
   longBio: string;
+  aiNotice: string;
   heroTitle: string;
   summary: string;
   shortBio: string;

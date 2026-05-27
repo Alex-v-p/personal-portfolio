@@ -65,6 +65,8 @@ export class AdminProfilePageComponent implements OnInit {
       shortIntroNl: this.profileForm.shortIntroNl || null,
       longBio: this.profileForm.longBio || null,
       longBioNl: this.profileForm.longBioNl || null,
+      aiNotice: this.profileForm.aiNotice || null,
+      aiNoticeNl: this.profileForm.aiNoticeNl || null,
       location: this.profileForm.location || null,
       email: this.profileForm.email || null,
       phone: this.profileForm.phone || null,

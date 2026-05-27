@@ -21,7 +21,7 @@
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div>
         <p class="text-sm font-semibold text-stone-950">Localized profile copy</p>
-        <p class="mt-1 text-xs leading-5 text-stone-500">Switch between English and Dutch content for the hero, bio, and CTA labels.</p>
+        <p class="mt-1 text-xs leading-5 text-stone-500">Switch between English and Dutch content for the hero, markdown bio, footer AI notice, and CTA labels.</p>
       </div>
       <div class="flex flex-wrap items-center gap-3">
         <button type="button" (click)="generateDutchDraft()" [disabled]="isGeneratingDutchDraft" class="rounded-full border border-emerald-300 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 disabled:opacity-60">{{ isGeneratingDutchDraft ? 'Generating…' : 'Generate Dutch draft' }}</button>
@@ -44,8 +44,14 @@
         <textarea [(ngModel)]="profileForm.shortIntro" name="profileShortIntroEn" rows="3" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea>
       </label>
       <label class="space-y-2 lg:col-span-2">
-        <span class="text-sm font-semibold text-stone-800">Long bio</span>
-        <textarea [(ngModel)]="profileForm.longBio" name="profileLongBioEn" rows="8" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea>
+        <span class="text-sm font-semibold text-stone-800">Long bio markdown</span>
+        <p class="text-xs leading-5 text-stone-500">Shown in the homepage About me area. Supports headings, links, lists, emphasis, and download links.</p>
+        <textarea [(ngModel)]="profileForm.longBio" name="profileLongBioEn" rows="10" class="admin-markdown-editor admin-markdown-editor--tall w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm font-mono"></textarea>
+      </label>
+      <label class="space-y-2 lg:col-span-2">
+        <span class="text-sm font-semibold text-stone-800">AI notice</span>
+        <p class="text-xs leading-5 text-stone-500">Optional footer notice, for example: “Text on this website was written with the assistance of AI.” Leave empty to hide it.</p>
+        <textarea [(ngModel)]="profileForm.aiNotice" name="profileAiNoticeEn" rows="2" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea>
       </label>
       <label class="space-y-2">
         <span class="text-sm font-semibold text-stone-800">Primary CTA label</span>
@@ -67,8 +73,14 @@
         <textarea [(ngModel)]="profileForm.shortIntroNl" name="profileShortIntroNl" rows="3" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea>
       </label>
       <label class="space-y-2 lg:col-span-2">
-        <span class="text-sm font-semibold text-stone-800">Long bio (Dutch)</span>
-        <textarea [(ngModel)]="profileForm.longBioNl" name="profileLongBioNl" rows="8" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea>
+        <span class="text-sm font-semibold text-stone-800">Long bio markdown (Dutch)</span>
+        <p class="text-xs leading-5 text-stone-500">Dutch homepage About me markdown. Leave empty to fall back to English.</p>
+        <textarea [(ngModel)]="profileForm.longBioNl" name="profileLongBioNl" rows="10" class="admin-markdown-editor admin-markdown-editor--tall w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm font-mono"></textarea>
+      </label>
+      <label class="space-y-2 lg:col-span-2">
+        <span class="text-sm font-semibold text-stone-800">AI notice (Dutch)</span>
+        <p class="text-xs leading-5 text-stone-500">Dutch footer AI notice. Leave empty to fall back to English.</p>
+        <textarea [(ngModel)]="profileForm.aiNoticeNl" name="profileAiNoticeNl" rows="2" class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm"></textarea>
       </label>
       <label class="space-y-2">
         <span class="text-sm font-semibold text-stone-800">Primary CTA label (Dutch)</span>

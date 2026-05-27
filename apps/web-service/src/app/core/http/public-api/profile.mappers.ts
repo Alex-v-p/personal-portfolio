@@ -97,6 +97,7 @@ export function normalizeExpertiseGroups(items: ExpertiseGroupApi[] | null | und
 export function normalizeProfile(profile: ProfileApi): Profile {
   const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(' ').trim();
   const longBio = profile.longBio ?? '';
+  const aiNotice = profile.aiNotice ?? '';
   const shortIntro = profile.shortIntro ?? '';
   const headline = profile.headline ?? 'Portfolio Builder';
   const socialLinks = normalizeSocialLinks(profile.socialLinks);
@@ -136,6 +137,7 @@ export function normalizeProfile(profile: ProfileApi): Profile {
     phone: profile.phone ?? '',
     shortIntro,
     longBio,
+    aiNotice,
     heroTitle: `${headline}`,
     summary: shortIntro || longBio,
     shortBio: shortIntro || longBio,

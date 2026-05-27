@@ -1,8 +1,6 @@
 <section class="space-y-8 lg:space-y-10">
-  <div class="hidden space-y-4 pt-4 lg:pt-5 xl:block">
-    <p *ngFor="let paragraph of profile.introParagraphs" class="text-sm leading-7 text-stone-600">
-      {{ paragraph }}
-    </p>
+  <div *ngIf="hasLongBio()" class="hidden space-y-4 pt-4 lg:pt-5 xl:block">
+    <div class="profile-markdown" [innerHTML]="renderedLongBioHtml"></div>
 
     <div class="flex flex-wrap gap-3 pt-1">
       <app-ui-link-button routerLink="/contact">{{ 'common.actions.contactMe' | translate }}</app-ui-link-button>

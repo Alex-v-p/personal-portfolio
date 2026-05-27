@@ -83,6 +83,7 @@ export class AdminProfileTabComponent extends AdminLocalizedContentTabBase {
       headlineNl: this.profileForm.headline,
       shortIntroNl: this.profileForm.shortIntro,
       longBioNl: this.profileForm.longBio,
+      aiNoticeNl: this.profileForm.aiNotice,
       ctaPrimaryLabelNl: this.profileForm.ctaPrimaryLabel,
       ctaSecondaryLabelNl: this.profileForm.ctaSecondaryLabel,
     };
@@ -99,6 +100,7 @@ export class AdminProfileTabComponent extends AdminLocalizedContentTabBase {
           headlineNl: 'headlineNl',
           shortIntroNl: 'shortIntroNl',
           longBioNl: 'longBioNl',
+          aiNoticeNl: 'aiNoticeNl',
           ctaPrimaryLabelNl: 'ctaPrimaryLabelNl',
           ctaSecondaryLabelNl: 'ctaSecondaryLabelNl',
         });

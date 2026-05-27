@@ -1244,6 +1244,103 @@
     border-top: 1px solid var(--ui-border-soft);
     margin: 1.5rem 0;
   }
+
+
+  .profile-markdown {
+    color: var(--ui-text-muted);
+    font-size: 0.875rem;
+    line-height: 1.8;
+  }
+
+  .profile-markdown > * + * {
+    margin-top: 0.8rem;
+  }
+
+  .profile-markdown h1,
+  .profile-markdown h2,
+  .profile-markdown h3 {
+    color: var(--ui-text);
+    font-weight: 650;
+    letter-spacing: -0.02em;
+  }
+
+  .profile-markdown h1 {
+    font-size: 1.35rem;
+  }
+
+  .profile-markdown h2 {
+    font-size: 1.15rem;
+  }
+
+  .profile-markdown h3 {
+    font-size: 1rem;
+  }
+
+  .profile-markdown p {
+    margin: 0;
+  }
+
+  .profile-markdown ul,
+  .profile-markdown ol {
+    margin: 0;
+    padding-left: 1.25rem;
+  }
+
+  .profile-markdown ul {
+    list-style: disc;
+  }
+
+  .profile-markdown ol {
+    list-style: decimal;
+  }
+
+  .profile-markdown li + li {
+    margin-top: 0.3rem;
+  }
+
+  .profile-markdown a:not(.markdown-download) {
+    color: var(--ui-text);
+    font-weight: 650;
+    text-decoration: underline;
+    text-underline-offset: 0.2rem;
+  }
+
+  .profile-markdown a.markdown-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    max-width: 100%;
+    border: 1px solid var(--ui-border);
+    border-radius: 9999px;
+    background: var(--ui-surface-strong);
+    padding: 0.65rem 0.85rem;
+    color: var(--ui-text);
+    font-weight: 700;
+    line-height: 1.25;
+    text-decoration: none;
+    box-shadow: var(--ui-shadow-card);
+    transition: border-color 160ms ease, transform 160ms ease, background 160ms ease;
+  }
+
+  .profile-markdown a.markdown-download:hover {
+    border-color: var(--ui-border-strong);
+    background: var(--ui-surface-muted);
+    transform: translateY(-1px);
+  }
+
+  .profile-markdown .markdown-download__icon {
+    display: inline-flex;
+    height: 1.4rem;
+    width: 1.4rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: var(--ui-primary);
+    color: var(--ui-primary-contrast);
+    font-size: 0.85rem;
+    line-height: 1;
+  }
 }
 
 @layer utilities {

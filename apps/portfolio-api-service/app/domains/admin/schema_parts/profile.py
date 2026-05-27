@@ -25,6 +25,8 @@ class AdminProfileUpdateIn(ApiSchema):
     short_intro_nl: str | None = None
     long_bio: str | None = None
     long_bio_nl: str | None = None
+    ai_notice: str | None = None
+    ai_notice_nl: str | None = None
     location: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = None
     phone: str | None = Field(default=None, max_length=64)
@@ -62,6 +64,8 @@ class AdminProfileOut(ApiSchema):
     short_intro_nl: str | None = None
     long_bio: str | None = None
     long_bio_nl: str | None = None
+    ai_notice: str | None = None
+    ai_notice_nl: str | None = None
     location: str | None = None
     email: str | None = None
     phone: str | None = None

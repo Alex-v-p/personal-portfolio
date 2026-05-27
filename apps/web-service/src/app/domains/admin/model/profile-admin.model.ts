@@ -20,6 +20,8 @@ export interface AdminProfile {
   shortIntroNl?: string | null;
   longBio?: string | null;
   longBioNl?: string | null;
+  aiNotice?: string | null;
+  aiNoticeNl?: string | null;
   location?: string | null;
   email?: string | null;
   phone?: string | null;
@@ -52,6 +54,8 @@ export interface AdminProfileUpdate {
   shortIntroNl?: string | null;
   longBio?: string | null;
   longBioNl?: string | null;
+  aiNotice?: string | null;
+  aiNoticeNl?: string | null;
   location?: string | null;
   email?: string | null;
   phone?: string | null;

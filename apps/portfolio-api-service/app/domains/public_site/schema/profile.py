@@ -65,6 +65,7 @@ class ProfileOut(ApiSchema):
     headline: str
     short_intro: str
     long_bio: str | None = None
+    ai_notice: str | None = None
     location: str | None = None
     email: str | None = None
     phone: str | None = None
