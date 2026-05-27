@@ -11,7 +11,7 @@ from app.db.models.enums import MediaVisibility
 
 if TYPE_CHECKING:
     from app.db.models.admin import AdminUser
-    from app.db.models.blog import BlogPost
+    from app.db.models.blog import BlogPost, BlogProtectedDocument
     from app.db.models.experience import Experience
     from app.db.models.profile import Profile
     from app.db.models.projects import Project, ProjectImage
@@ -78,4 +78,9 @@ class MediaFile(TimestampMixin, Base):
         'BlogPost',
         foreign_keys='BlogPost.cover_image_file_id',
         back_populates='cover_image_file',
+    )
+    protected_blog_documents: Mapped[list[BlogProtectedDocument]] = relationship(
+        'BlogProtectedDocument',
+        foreign_keys='BlogProtectedDocument.media_file_id',
+        back_populates='media_file',
     )

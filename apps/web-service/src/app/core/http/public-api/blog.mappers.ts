@@ -1,9 +1,43 @@
 import { AppLocale } from '@core/i18n/locales';
 import { BlogPostDetail } from '@domains/blog/model/blog-post-detail.model';
 import { BlogPostSummary } from '@domains/blog/model/blog-post-summary.model';
+import { ProtectedDocument, ProtectedDocumentGroup } from '@domains/blog/model/protected-document.model';
 
 import { formatDate, normalizeMedia, readingTimeLabel } from './common.mappers';
-import { BlogPostDetailApi, BlogPostSummaryApi } from './blog.contracts';
+import { BlogPostDetailApi, BlogPostSummaryApi, ProtectedDocumentApi, ProtectedDocumentGroupApi } from './blog.contracts';
+
+
+export function normalizeProtectedDocumentGroups(items: ProtectedDocumentGroupApi[] | null | undefined): ProtectedDocumentGroup[] {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  return items
+    .map((group) => ({
+      slug: group.slug,
+      title: group.title,
+      description: group.description ?? undefined,
+      documents: normalizeProtectedDocuments(group.documents),
+    }))
+    .filter((group) => group.slug && group.documents.length > 0);
+}
+
+function normalizeProtectedDocuments(items: ProtectedDocumentApi[] | null | undefined): ProtectedDocument[] {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  return items
+    .map((document) => ({
+      id: document.id,
+      title: document.title,
+      fileName: document.fileName ?? undefined,
+      mimeType: document.mimeType ?? undefined,
+      fileSizeBytes: typeof document.fileSizeBytes === 'number' ? document.fileSizeBytes : undefined,
+      downloadUrl: document.downloadUrl,
+    }))
+    .filter((document) => document.id && document.downloadUrl);
+}
 
 export function normalizeBlogPostSummaries(items: BlogPostSummaryApi[] | null | undefined, locale: AppLocale): BlogPostSummary[] {
   if (!Array.isArray(items)) {
@@ -45,5 +79,6 @@ export function normalizeBlogPostDetail(post: BlogPostDetailApi, locale: AppLoca
     contentMarkdown: post.contentMarkdown ?? '',
     seoTitle: post.seoTitle ?? undefined,
     seoDescription: post.seoDescription ?? undefined,
+    protectedDocumentGroups: normalizeProtectedDocumentGroups(post.protectedDocumentGroups),
   };
 }

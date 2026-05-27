@@ -78,6 +78,11 @@
 
       <div class="px-6 py-8 sm:px-8">
         <div class="blog-markdown" [innerHTML]="renderedContent"></div>
+
+        <app-protected-documents-card
+          *ngFor="let group of post.protectedDocumentGroups"
+          [group]="group"
+        ></app-protected-documents-card>
       </div>
     </div>
   </article>

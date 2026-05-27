@@ -8,6 +8,7 @@ export interface AdminMediaUsageSummary {
   projectCoverCount: number;
   projectGalleryImageCount: number;
   blogCoverCount: number;
+  blogProtectedDocumentCount: number;
   totalReferences: number;
   isReferenced: boolean;
 }

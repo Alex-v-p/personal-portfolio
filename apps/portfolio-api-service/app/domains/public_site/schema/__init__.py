@@ -1,4 +1,4 @@
-from .blog import BlogPostDetailOut, BlogPostsListOut, BlogPostSummaryOut, BlogTagOut
+from .blog import BlogPostDetailOut, BlogPostsListOut, BlogPostSummaryOut, BlogTagOut, ProtectedDocumentGroupOut, ProtectedDocumentOut, ProtectedDocumentsAccessOut, ProtectedDocumentsUnlockIn, ProtectedDocumentsUnlockOut
 from .common import PublicMediaAssetOut
 from .experience import ExperienceListOut, ExperienceOut
 from .overview import HomeOut
@@ -26,6 +26,11 @@ __all__ = [
     'ProjectImageOut',
     'ProjectsListOut',
     'ProjectSummaryOut',
+    'ProtectedDocumentGroupOut',
+    'ProtectedDocumentOut',
+    'ProtectedDocumentsAccessOut',
+    'ProtectedDocumentsUnlockIn',
+    'ProtectedDocumentsUnlockOut',
     'PublicMediaAssetOut',
     'SiteShellOut',
     'SkillSummaryOut',

@@ -260,6 +260,24 @@
       },
       "empty": {
         "loadTitle": "Could not load article"
+      },
+      "protectedDocuments": {
+        "kicker": "Protected downloads",
+        "lockedNotice": "Enter the access password to reveal the confidential document downloads. The links are temporary once unlocked.",
+        "passwordLabel": "Access password",
+        "passwordPlaceholder": "Enter password",
+        "unlock": "Unlock documents",
+        "unlocking": "Unlocking…",
+        "accessGranted": "Access granted",
+        "accessGrantedDescription": "These download links are available for this browser session.",
+        "download": "Download",
+        "errors": {
+          "passwordRequired": "Please enter the access password.",
+          "invalidPassword": "That password was not accepted.",
+          "rateLimited": "Too many attempts. Please wait before trying again.",
+          "notConfigured": "Protected document access is not configured yet.",
+          "unlockFailed": "The documents could not be unlocked right now."
+        }
       }
     },
     "contact": {

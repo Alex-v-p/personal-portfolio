@@ -260,6 +260,24 @@
       },
       "empty": {
         "loadTitle": "Artikel kon niet geladen worden"
+      },
+      "protectedDocuments": {
+        "kicker": "Beveiligde downloads",
+        "lockedNotice": "Voer het toegangswachtwoord in om de vertrouwelijke documenten te tonen. De links zijn tijdelijk zodra ze ontgrendeld zijn.",
+        "passwordLabel": "Toegangswachtwoord",
+        "passwordPlaceholder": "Voer wachtwoord in",
+        "unlock": "Documenten ontgrendelen",
+        "unlocking": "Ontgrendelen…",
+        "accessGranted": "Toegang toegestaan",
+        "accessGrantedDescription": "Deze downloadlinks zijn beschikbaar voor deze browsersessie.",
+        "download": "Downloaden",
+        "errors": {
+          "passwordRequired": "Voer het toegangswachtwoord in.",
+          "invalidPassword": "Dat wachtwoord werd niet aanvaard.",
+          "rateLimited": "Te veel pogingen. Wacht even voordat je opnieuw probeert.",
+          "notConfigured": "Beveiligde documenttoegang is nog niet ingesteld.",
+          "unlockFailed": "De documenten konden nu niet ontgrendeld worden."
+        }
       }
     },
     "contact": {

@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
-from sqlalchemy import Boolean, DateTime, Enum as SqlEnum, ForeignKey, Integer, String, Text, Uuid
+from sqlalchemy import Boolean, DateTime, Enum as SqlEnum, ForeignKey, Integer, String, Text, UniqueConstraint, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin
@@ -44,6 +44,11 @@ class BlogPost(TimestampMixin, Base):
         back_populates='blog_cover_for',
     )
     tag_links: Mapped[list[BlogPostTag]] = relationship(back_populates='post', cascade='all, delete-orphan')
+    protected_document_groups: Mapped[list[BlogProtectedDocumentGroup]] = relationship(
+        back_populates='blog_post',
+        cascade='all, delete-orphan',
+        order_by='BlogProtectedDocumentGroup.sort_order',
+    )
 
 
 class BlogTag(Base):
@@ -68,3 +73,42 @@ class BlogPostTag(Base):
 
     post: Mapped[BlogPost] = relationship(back_populates='tag_links')
     tag: Mapped[BlogTag] = relationship(back_populates='post_links')
+
+
+class BlogProtectedDocumentGroup(TimestampMixin, Base):
+    __tablename__ = 'blog_protected_document_groups'
+    __table_args__ = (
+        UniqueConstraint('slug', name='uq_blog_protected_document_groups_slug'),
+    )
+
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    blog_post_id: Mapped[UUID] = mapped_column(Uuid, ForeignKey('blog_posts.id', ondelete='CASCADE'), nullable=False)
+    slug: Mapped[str] = mapped_column(String(160), nullable=False)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    title_nl: Mapped[str | None] = mapped_column(String(255))
+    description: Mapped[str | None] = mapped_column(Text)
+    description_nl: Mapped[str | None] = mapped_column(Text)
+    password_hash: Mapped[str | None] = mapped_column(String(255))
+    is_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
+    blog_post: Mapped[BlogPost] = relationship(back_populates='protected_document_groups')
+    documents: Mapped[list[BlogProtectedDocument]] = relationship(
+        back_populates='group',
+        cascade='all, delete-orphan',
+        order_by='BlogProtectedDocument.sort_order',
+    )
+
+
+class BlogProtectedDocument(TimestampMixin, Base):
+    __tablename__ = 'blog_protected_documents'
+
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    group_id: Mapped[UUID] = mapped_column(Uuid, ForeignKey('blog_protected_document_groups.id', ondelete='CASCADE'), nullable=False)
+    media_file_id: Mapped[UUID] = mapped_column(Uuid, ForeignKey('media_files.id', ondelete='RESTRICT'), nullable=False)
+    title: Mapped[str | None] = mapped_column(String(255))
+    title_nl: Mapped[str | None] = mapped_column(String(255))
+    sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
+    group: Mapped[BlogProtectedDocumentGroup] = relationship(back_populates='documents')
+    media_file: Mapped[MediaFile] = relationship('MediaFile', back_populates='protected_blog_documents')

@@ -4,7 +4,7 @@ from pathlib import PurePosixPath
 from urllib.parse import quote
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from sqlalchemy.orm import Session
 
 from app.db.models import MediaFile, MediaVisibility
@@ -19,6 +19,9 @@ from app.domains.public_site.schema import (
     NavigationListOut,
     ProfileOut,
     ProjectDetailOut,
+    ProtectedDocumentsAccessOut,
+    ProtectedDocumentsUnlockIn,
+    ProtectedDocumentsUnlockOut,
     ProjectsListOut,
     SiteShellOut,
     StatsOut,
@@ -26,6 +29,16 @@ from app.domains.public_site.schema import (
 from app.domains.public_site.service.public_content_query_service import PublicContentQueryService
 from app.domains.media.service.resolver import sanitize_public_download_filename
 from app.domains.media.service.storage import AdminMediaStorageService
+from app.domains.public_site.protected_documents import (
+    enforce_protected_document_unlock_rate_limit,
+    ensure_media_belongs_to_group,
+    protected_document_access_remaining_seconds,
+    require_configured_group,
+    require_protected_document_access,
+    set_protected_document_access_cookie,
+    stream_protected_document,
+    verify_protected_documents_password,
+)
 
 router = APIRouter()
 
@@ -33,6 +46,38 @@ router = APIRouter()
 def resolve_public_locale(locale: PublicLocale = Query(default=DEFAULT_PUBLIC_LOCALE)) -> PublicLocale:
     return locale
 
+
+
+@router.get('/protected-documents/{group_slug}/access', response_model=ProtectedDocumentsAccessOut)
+def get_protected_document_access(group_slug: str, request: Request, session: Session = Depends(get_session)) -> ProtectedDocumentsAccessOut:
+    require_configured_group(session, group_slug)
+    remaining_seconds = protected_document_access_remaining_seconds(request, group_slug=group_slug)
+    return ProtectedDocumentsAccessOut(unlocked=remaining_seconds > 0, expires_in_seconds=remaining_seconds)
+
+
+@router.post('/protected-documents/{group_slug}/unlock', response_model=ProtectedDocumentsUnlockOut)
+def unlock_protected_documents(group_slug: str, payload: ProtectedDocumentsUnlockIn, request: Request, response: Response, session: Session = Depends(get_session)) -> ProtectedDocumentsUnlockOut:
+    group = require_configured_group(session, group_slug)
+    enforce_protected_document_unlock_rate_limit(request, group_slug=group_slug)
+
+    if not verify_protected_documents_password(group, payload.password):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid document access password.')
+
+    max_age_seconds = set_protected_document_access_cookie(response, group_slug=group_slug)
+    return ProtectedDocumentsUnlockOut(unlocked=True, expires_in_seconds=max_age_seconds)
+
+
+@router.get('/protected-documents/{group_slug}/{media_id}/{filename}', response_model=None)
+def download_protected_document(group_slug: str, media_id: UUID, filename: str, request: Request, session: Session = Depends(get_session)) -> Response:
+    group = require_configured_group(session, group_slug)
+    ensure_media_belongs_to_group(group, media_id)
+    require_protected_document_access(request, group_slug=group_slug)
+
+    media_file = session.get(MediaFile, media_id)
+    if media_file is None:
+        raise HTTPException(status_code=404, detail='Protected document not found.')
+
+    return stream_protected_document(media_file, filename)
 
 
 @router.get('/media-files/{media_id}/{filename}', response_model=None)

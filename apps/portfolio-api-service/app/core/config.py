@@ -129,6 +129,34 @@ class Settings(BaseSettings):
         le=60,
         validation_alias=AliasChoices('ADMIN_MFA_PENDING_SECRET_TTL_MINUTES', 'PORTFOLIO_API_ADMIN_MFA_PENDING_SECRET_TTL_MINUTES'),
     )
+
+    protected_documents_access_ttl_minutes: int = Field(
+        default=60,
+        ge=1,
+        validation_alias=AliasChoices('PROTECTED_DOCUMENTS_ACCESS_TTL_MINUTES', 'PORTFOLIO_API_PROTECTED_DOCUMENTS_ACCESS_TTL_MINUTES'),
+    )
+    protected_documents_rate_limit_max_attempts: int = Field(
+        default=5,
+        ge=1,
+        validation_alias=AliasChoices('PROTECTED_DOCUMENTS_RATE_LIMIT_MAX_ATTEMPTS', 'PORTFOLIO_API_PROTECTED_DOCUMENTS_RATE_LIMIT_MAX_ATTEMPTS'),
+    )
+    protected_documents_rate_limit_window_seconds: int = Field(
+        default=300,
+        ge=60,
+        validation_alias=AliasChoices('PROTECTED_DOCUMENTS_RATE_LIMIT_WINDOW_SECONDS', 'PORTFOLIO_API_PROTECTED_DOCUMENTS_RATE_LIMIT_WINDOW_SECONDS'),
+    )
+    protected_documents_cookie_name: str = Field(
+        default='portfolio_protected_documents',
+        validation_alias=AliasChoices('PROTECTED_DOCUMENTS_COOKIE_NAME', 'PORTFOLIO_API_PROTECTED_DOCUMENTS_COOKIE_NAME'),
+    )
+    protected_documents_cookie_secure: bool = Field(
+        default=False,
+        validation_alias=AliasChoices('PROTECTED_DOCUMENTS_COOKIE_SECURE', 'PORTFOLIO_API_PROTECTED_DOCUMENTS_COOKIE_SECURE'),
+    )
+    protected_documents_cookie_same_site: str = Field(
+        default='lax',
+        validation_alias=AliasChoices('PROTECTED_DOCUMENTS_COOKIE_SAME_SITE', 'PORTFOLIO_API_PROTECTED_DOCUMENTS_COOKIE_SAME_SITE'),
+    )
     media_storage_endpoint: str = Field(
         default='minio:9000',
         validation_alias=AliasChoices('MEDIA_STORAGE_ENDPOINT', 'PORTFOLIO_API_MEDIA_STORAGE_ENDPOINT'),

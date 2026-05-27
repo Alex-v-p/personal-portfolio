@@ -3,6 +3,7 @@ from __future__ import annotations
 from sqlalchemy.orm import selectinload
 
 from app.db.models import BlogPost, BlogPostTag, MediaFile
+from app.domains.public_site.protected_documents import list_protected_document_groups_for_blog
 from app.domains.public_site.schema import BlogPostDetailOut, BlogPostSummaryOut, BlogTagOut
 
 
@@ -73,6 +74,7 @@ class PublicBlogRepositoryMixin:
             content_markdown=self._normalize_markdown_media_urls(content_markdown, post.cover_image_file),
             seo_title=self._localized(post, 'seo_title') or post.seo_title,
             seo_description=self._localized(post, 'seo_description') or post.seo_description,
+            protected_document_groups=list_protected_document_groups_for_blog(self.session, blog_slug=post.slug, locale=self.locale),
         )
 
     def _normalize_markdown_media_urls(self, markdown: str, media_file: MediaFile | None) -> str:

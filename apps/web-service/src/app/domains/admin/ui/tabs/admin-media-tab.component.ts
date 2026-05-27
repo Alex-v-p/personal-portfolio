@@ -117,6 +117,7 @@ export class AdminMediaTabComponent {
       { label: 'Project covers', count: usage.projectCoverCount },
       { label: 'Project gallery', count: usage.projectGalleryImageCount },
       { label: 'Blog covers', count: usage.blogCoverCount },
+      { label: 'Protected blog documents', count: usage.blogProtectedDocumentCount },
     ].filter((item) => item.count > 0);
   }
 }

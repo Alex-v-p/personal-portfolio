@@ -7,7 +7,7 @@ import { AdminContentApiService } from '@domains/admin/data/api/admin-content-ap
 import { AdminMediaApiService } from '@domains/admin/data/api/admin-media-api.service';
 import { AdminOverviewApiService } from '@domains/admin/data/api/admin-overview-api.service';
 import { AdminSessionService } from '@domains/admin/data/admin-session.service';
-import { AdminBlogPost, AdminMediaFile, AdminReferenceData } from '@domains/admin/model/admin.model';
+import { AdminBlogPost, AdminBlogPostUpsert, AdminMediaFile, AdminReferenceData } from '@domains/admin/model/admin.model';
 import { AdminBlogPostForm, ScopedUploadForm, createEmptyBlogPostForm, createEmptyScopedUploadForm, toBlogPostForm } from '@domains/admin/model/forms/index';
 import { AdminBlogTabComponent } from '@domains/admin/ui/tabs/admin-blog-tab.component';
 import { buildBlogMediaFolder, resetScopedUploadForm } from '@domains/admin/media/state/admin-media.filters';
@@ -67,6 +67,7 @@ export class AdminBlogPageComponent implements OnInit {
     this.blogUploadForm = createEmptyScopedUploadForm();
     this.blogInlineImageUploadForm = createEmptyScopedUploadForm();
     this.statusMessage = '';
+    this.errorMessage = '';
   }
 
   protected startNewBlogPost(): void {
@@ -75,10 +76,46 @@ export class AdminBlogPageComponent implements OnInit {
     this.blogUploadForm = createEmptyScopedUploadForm();
     this.blogInlineImageUploadForm = createEmptyScopedUploadForm();
     this.statusMessage = '';
+    this.errorMessage = '';
   }
 
   protected saveBlogPost(): void {
-    const payload = {
+    const validationError = this.validateProtectedDocumentGroups();
+    if (validationError) {
+      this.statusMessage = '';
+      this.errorMessage = validationError;
+      return;
+    }
+
+    this.errorMessage = '';
+    const payload = this.buildBlogPostPayload();
+
+    const request$ = this.selectedBlogPostId
+      ? this.contentApi.updateBlogPost(this.selectedBlogPostId, payload)
+      : this.contentApi.createBlogPost(payload);
+
+    request$.pipe(take(1)).subscribe({
+      next: (savedPost) => {
+        const wasEditing = Boolean(this.selectedBlogPostId);
+        this.selectedBlogPostId = savedPost.id;
+        this.errorMessage = '';
+        this.statusMessage = wasEditing ? 'Blog post updated.' : 'Blog post created.';
+        this.loadBlogPage(false);
+      },
+      error: (error) => {
+        if (error?.status === 401) {
+          this.adminSession.logout();
+          return;
+        }
+
+        this.statusMessage = '';
+        this.errorMessage = this.formatApiError(error, 'Saving the blog post failed.');
+      },
+    });
+  }
+
+  private buildBlogPostPayload(): AdminBlogPostUpsert {
+    return {
       slug: this.blogPostForm.slug || null,
       title: this.blogPostForm.title,
       titleNl: this.blogPostForm.titleNl || null,
@@ -98,28 +135,81 @@ export class AdminBlogPageComponent implements OnInit {
       seoDescription: this.blogPostForm.seoDescription || null,
       seoDescriptionNl: this.blogPostForm.seoDescriptionNl || null,
       tagIds: [...this.blogPostForm.tagIds],
+      protectedDocumentGroups: this.blogPostForm.protectedDocumentGroups.map((group, groupIndex) => ({
+        id: group.id || null,
+        slug: group.slug || null,
+        title: group.title,
+        titleNl: group.titleNl || null,
+        description: group.description || null,
+        descriptionNl: group.descriptionNl || null,
+        isEnabled: group.isEnabled,
+        sortOrder: typeof group.sortOrder === 'number' ? group.sortOrder : groupIndex,
+        newPassword: group.newPassword?.trim() || null,
+        documents: group.documents.map((document, documentIndex) => ({
+          id: document.id || null,
+          mediaFileId: document.mediaFileId || null,
+          title: document.title || null,
+          titleNl: document.titleNl || null,
+          sortOrder: typeof document.sortOrder === 'number' ? document.sortOrder : documentIndex,
+        })),
+      })),
     };
+  }
 
-    const request$ = this.selectedBlogPostId
-      ? this.contentApi.updateBlogPost(this.selectedBlogPostId, payload)
-      : this.contentApi.createBlogPost(payload);
+  private validateProtectedDocumentGroups(): string | null {
+    for (const [groupIndex, group] of this.blogPostForm.protectedDocumentGroups.entries()) {
+      const label = `Protected document card ${groupIndex + 1}`;
+      const title = group.title.trim();
+      const slug = group.slug.trim();
+      const password = group.newPassword.trim();
 
-    request$.pipe(take(1)).subscribe({
-      next: (savedPost) => {
-        const wasEditing = Boolean(this.selectedBlogPostId);
-        this.selectedBlogPostId = savedPost.id;
-        this.statusMessage = wasEditing ? 'Blog post updated.' : 'Blog post created.';
-        this.loadBlogPage(false);
-      },
-      error: (error) => {
-        if (error?.status === 401) {
-          this.adminSession.logout();
-          return;
-        }
+      if (!title) {
+        return `${label}: add a card title before saving.`;
+      }
 
-        this.statusMessage = error?.error?.detail || 'Saving the blog post failed.';
-      },
-    });
+      if (!slug) {
+        return `${label}: add a slug before saving.`;
+      }
+
+      if (password.length > 0 && password.length < 8) {
+        return `${label}: the access password must be at least 8 characters.`;
+      }
+
+      if (group.isEnabled && !group.hasPassword && password.length < 8) {
+        return `${label}: set an access password of at least 8 characters before enabling it.`;
+      }
+
+      if (group.isEnabled && group.documents.length === 0) {
+        return `${label}: add at least one document before enabling it.`;
+      }
+
+      const missingMediaIndex = group.documents.findIndex((document) => !document.mediaFileId);
+      if (missingMediaIndex >= 0) {
+        return `${label}, document ${missingMediaIndex + 1}: choose a media file or remove the empty document row.`;
+      }
+    }
+
+    return null;
+  }
+
+  private formatApiError(error: any, fallback: string): string {
+    const detail = error?.error?.detail;
+    if (typeof detail === 'string') {
+      return detail;
+    }
+
+    if (Array.isArray(detail)) {
+      const messages = detail
+        .map((item) => {
+          const location = Array.isArray(item?.loc) ? item.loc.join('.') : '';
+          const message = typeof item?.msg === 'string' ? item.msg : JSON.stringify(item);
+          return location ? `${location}: ${message}` : message;
+        })
+        .filter(Boolean);
+      return messages.length > 0 ? messages.join(' ') : fallback;
+    }
+
+    return fallback;
   }
 
   protected deleteBlogPost(): void {

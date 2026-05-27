@@ -139,6 +139,71 @@ export class AdminBlogTabComponent extends AdminLocalizedContentTabBase implemen
     this.blogPostForm.tagIds = toggleSelection(this.blogPostForm.tagIds, tagId);
   }
 
+  protected addProtectedDocumentGroup(): void {
+    const nextIndex = this.blogPostForm.protectedDocumentGroups.length;
+    this.blogPostForm.protectedDocumentGroups = [
+      ...this.blogPostForm.protectedDocumentGroups,
+      {
+        slug: slugify(`${this.blogPostForm.slug || this.blogPostForm.title || 'blog'}-documents-${nextIndex + 1}`),
+        title: 'Confidential internship documents',
+        titleNl: '',
+        description: 'Enter the access password provided by Alex to view these downloads.',
+        descriptionNl: '',
+        isEnabled: true,
+        sortOrder: nextIndex,
+        hasPassword: false,
+        newPassword: '',
+        documents: [],
+      },
+    ];
+  }
+
+  protected removeProtectedDocumentGroup(index: number): void {
+    this.blogPostForm.protectedDocumentGroups = this.blogPostForm.protectedDocumentGroups.filter((_, groupIndex) => groupIndex !== index);
+    this.normalizeProtectedDocumentGroupSortOrder();
+  }
+
+  protected addProtectedDocument(groupIndex: number): void {
+    const group = this.blogPostForm.protectedDocumentGroups[groupIndex];
+    if (!group) {
+      return;
+    }
+    group.documents = [
+      ...group.documents,
+      {
+        mediaFileId: null,
+        title: '',
+        titleNl: '',
+        sortOrder: group.documents.length,
+      },
+    ];
+  }
+
+  protected removeProtectedDocument(groupIndex: number, documentIndex: number): void {
+    const group = this.blogPostForm.protectedDocumentGroups[groupIndex];
+    if (!group) {
+      return;
+    }
+    group.documents = group.documents.filter((_, currentIndex) => currentIndex !== documentIndex);
+    group.documents.forEach((document, index) => {
+      document.sortOrder = index;
+    });
+  }
+
+  protected selectedMediaLabel(mediaFileId: string | null): string {
+    if (!mediaFileId) {
+      return 'No file selected';
+    }
+    const media = this.referenceData.mediaFiles.find((item) => item.id === mediaFileId);
+    return media ? `${media.title || media.originalFilename} · ${media.visibility}` : mediaFileId;
+  }
+
+  private normalizeProtectedDocumentGroupSortOrder(): void {
+    this.blogPostForm.protectedDocumentGroups.forEach((group, index) => {
+      group.sortOrder = index;
+    });
+  }
+
   protected onScopedFileSelected(event: Event, form: ScopedUploadForm): void {
     this.scopedFileSelected.emit({ event, form });
   }

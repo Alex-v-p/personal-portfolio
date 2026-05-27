@@ -23,6 +23,7 @@ class MediaReferenceSummary:
     project_cover_count: int = 0
     project_gallery_image_count: int = 0
     blog_cover_count: int = 0
+    blog_protected_document_count: int = 0
 
     @property
     def total_references(self) -> int:
@@ -34,6 +35,7 @@ class MediaReferenceSummary:
             + self.project_cover_count
             + self.project_gallery_image_count
             + self.blog_cover_count
+            + self.blog_protected_document_count
         )
 
     @property

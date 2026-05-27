@@ -14,6 +14,7 @@ class AdminMediaUsageSummaryOut(ApiSchema):
     project_cover_count: int = 0
     project_gallery_image_count: int = 0
     blog_cover_count: int = 0
+    blog_protected_document_count: int = 0
     total_references: int = 0
     is_referenced: bool = False
 

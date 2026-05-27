@@ -143,6 +143,50 @@ export const ICON_REGISTRY: Readonly<Record<IconKey, IconDefinition>> = {
       <rect x="5" y="8.5" width="10.5" height="10.5" rx="2" />
     `),
   },
+
+  lock: {
+    key: 'lock',
+    label: 'Lock',
+    group: 'contact',
+    keywords: ['security', 'protected', 'private'],
+    svg: strokeIcon(`
+      <rect x="5.5" y="10" width="13" height="9" rx="2" />
+      <path d="M8.5 10V7.8a3.5 3.5 0 0 1 7 0V10" />
+      <path d="M12 13.5v2" />
+    `),
+  },
+  check: {
+    key: 'check',
+    label: 'Check',
+    group: 'contact',
+    keywords: ['success', 'done', 'confirmed'],
+    svg: strokeIcon(`
+      <path d="m5.5 12.5 4.2 4.2 8.8-9.4" />
+    `),
+  },
+  download: {
+    key: 'download',
+    label: 'Download',
+    group: 'contact',
+    keywords: ['file', 'save', 'document'],
+    svg: strokeIcon(`
+      <path d="M12 4.5v9" />
+      <path d="m8.2 10.3 3.8 3.8 3.8-3.8" />
+      <path d="M5.5 18.5h13" />
+    `),
+  },
+  document: {
+    key: 'document',
+    label: 'Document',
+    group: 'contact',
+    keywords: ['file', 'pdf', 'attachment'],
+    svg: strokeIcon(`
+      <path d="M7 3.8h6.2L17 7.6v12.6H7Z" />
+      <path d="M13 3.8v4h4" />
+      <path d="M9.5 12h5" />
+      <path d="M9.5 15h5" />
+    `),
+  },
   code: {
     key: 'code',
     label: 'Code',

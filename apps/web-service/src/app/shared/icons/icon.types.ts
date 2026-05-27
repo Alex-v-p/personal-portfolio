@@ -1,6 +1,6 @@
 export const ICON_GROUPS = {
   social: ['github', 'linkedin', 'twitter', 'instagram', 'youtube', 'facebook', 'discord'],
-  contact: ['mail', 'phone', 'map-pin', 'globe', 'link', 'external-link'],
+  contact: ['mail', 'phone', 'map-pin', 'globe', 'link', 'external-link', 'lock', 'check', 'download', 'document'],
   expertise: ['code', 'server', 'brain', 'database', 'workflow', 'languages', 'shield', 'cpu'],
   tech: ['angular', 'laravel', 'python', 'docker', 'git', 'typescript', 'tailwindcss', 'sql', 'kubernetes', 'fastapi', 'csharp', 'pandas'],
 } as const;
@@ -92,5 +92,12 @@ export const ICON_ALIASES: Readonly<Record<string, IconKey>> = {
   networking: 'globe',
   'networking-basics': 'globe',
   csharp: 'code',
+  file: 'document',
+  pdf: 'document',
+  attachment: 'document',
+  protected: 'lock',
+  private: 'lock',
+  unlock: 'lock',
+  success: 'check',
   'c-sharp': 'code',
 } as const;

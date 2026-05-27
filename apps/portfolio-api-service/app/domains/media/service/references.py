@@ -6,7 +6,7 @@ from uuid import UUID
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.db.models import BlogPost, Experience, MediaFile, Profile, Project, ProjectImage
+from app.db.models import BlogPost, BlogProtectedDocument, Experience, MediaFile, Profile, Project, ProjectImage
 from app.domains.media.service.models import MediaReferenceSummary
 
 
@@ -25,6 +25,7 @@ class AdminMediaReferenceService:
             (Project, Project.cover_image_file_id, 'project_cover_count'),
             (ProjectImage, ProjectImage.image_file_id, 'project_gallery_image_count'),
             (BlogPost, BlogPost.cover_image_file_id, 'blog_cover_count'),
+            (BlogProtectedDocument, BlogProtectedDocument.media_file_id, 'blog_protected_document_count'),
         ):
             statement = select(column, func.count()).where(column.is_not(None)).group_by(column)
             if media_ids:

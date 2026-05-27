@@ -14,6 +14,7 @@ import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.com
 import { UiIconComponent } from '@shared/icons';
 import { BlogPostDetail } from '@domains/blog/model/blog-post-detail.model';
 import { PublicBlogApiService } from '@domains/blog/data/blog-api.service';
+import { ProtectedDocumentsCardComponent } from '@domains/blog/ui/protected-documents-card.component';
 import { renderMarkdownToHtml } from '@shared/utils/markdown.util';
 import { localizeInternalAppLinkUrl } from '@shared/utils/internal-link.util';
 import { SeoService } from '@shared/services/seo.service';
@@ -27,7 +28,7 @@ interface ShareAction {
 @Component({
   selector: 'app-blog-post-page',
   standalone: true,
-  imports: [NgFor, NgIf, RouterLink, TranslatePipe, UiButtonComponent, HighlightChipComponent, UiEmptyStateComponent, UiSkeletonComponent, UiIconComponent],
+  imports: [NgFor, NgIf, RouterLink, TranslatePipe, UiButtonComponent, HighlightChipComponent, UiEmptyStateComponent, UiSkeletonComponent, UiIconComponent, ProtectedDocumentsCardComponent],
   templateUrl: './blog-post.page.html'
 })
 export class BlogPostPageComponent implements OnInit {
