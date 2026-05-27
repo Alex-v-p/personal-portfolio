@@ -1,12 +1,14 @@
 import { NgIf } from '@angular/common';
 import { Component, EventEmitter, HostListener, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 
+import { TranslatePipe } from '@core/i18n/translate.pipe';
+
 import { UiImageLightboxImage } from './ui-image-lightbox.types';
 
 @Component({
   selector: 'app-ui-image-lightbox',
   standalone: true,
-  imports: [NgIf],
+  imports: [NgIf, TranslatePipe],
   templateUrl: './ui-image-lightbox.component.html'
 })
 export class UiImageLightboxComponent implements OnChanges {

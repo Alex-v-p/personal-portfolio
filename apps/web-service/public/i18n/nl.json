@@ -115,7 +115,16 @@
       "liveDemo": "Bekijk demo",
       "showMoreCount": "+{{ count }} meer",
       "showLess": "Minder tonen",
-      "opensInNewTab": "Opent in een nieuw tabblad"
+      "opensInNewTab": "Opent in een nieuw tabblad",
+      "close": "Sluiten",
+      "openImage": "Afbeelding openen",
+      "openLargerImageFor": "Grotere afbeelding openen voor {{ title }}",
+      "closeImage": "Afbeelding sluiten",
+      "closeLargerImage": "Grotere afbeelding sluiten",
+      "closeProjectDetails": "Projectdetails sluiten",
+      "largeImageViewFor": "Grote afbeeldingsweergave voor {{ title }}",
+      "previousImageFor": "Vorige afbeelding voor {{ title }}",
+      "nextImageFor": "Volgende afbeelding voor {{ title }}"
     },
     "labels": {
       "featured": "Uitgelicht"

@@ -7,8 +7,8 @@
     type="button"
     class="project-detail-modal-close fixed right-3 top-3 z-[115] inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-white/75 bg-white/90 text-[var(--ui-text)] shadow-[0_16px_36px_rgba(73,52,69,0.22)] backdrop-blur transition hover:scale-105 hover:bg-white hover:text-[var(--ui-accent-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)] sm:right-5 sm:top-5"
     (click)="stopPropagation($event); requestClose()"
-    aria-label="Close project details"
-    title="Close"
+    [attr.aria-label]="'common.actions.closeProjectDetails' | translate"
+    [title]="'common.actions.close' | translate"
   >
     <svg viewBox="0 0 20 20" class="h-5 w-5" aria-hidden="true" focusable="false">
       <path d="M5 5L15 15M15 5L5 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" />
@@ -71,10 +71,16 @@
                 type="button"
                 class="project-detail-modal-image-open"
                 (click)="openImageViewer($event)"
-                [attr.aria-label]="'Open larger image for ' + detail.title"
-                title="Open larger image"
+                [attr.aria-label]="'common.actions.openLargerImageFor' | translate:{ title: detail.title }"
+                [title]="'common.actions.openImage' | translate"
               >
-                <span class="sr-only">Open larger image</span>
+                <span class="project-detail-modal-image-open-label" aria-hidden="true">
+                  <svg viewBox="0 0 20 20" class="h-3.5 w-3.5" aria-hidden="true" focusable="false">
+                    <path d="M4.5 6.25A2.25 2.25 0 0 1 6.75 4h6.5a2.25 2.25 0 0 1 2.25 2.25v6.5A2.25 2.25 0 0 1 13.25 15h-6.5a2.25 2.25 0 0 1-2.25-2.25v-6.5Z" fill="none" stroke="currentColor" stroke-width="1.4" />
+                    <path d="M8.25 8.25h3.5v3.5M11.65 8.35 7.75 12.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4" />
+                  </svg>
+                  <span>{{ 'common.actions.openImage' | translate }}</span>
+                </span>
               </button>
             </ng-container>
 
@@ -91,7 +97,7 @@
                 type="button"
                 (click)="showPreviousImage($event)"
                 class="project-gallery-side-button project-gallery-side-button-left"
-                [attr.aria-label]="'Previous image for ' + detail.title"
+                [attr.aria-label]="'common.actions.previousImageFor' | translate:{ title: detail.title }"
               >
                 <span aria-hidden="true">‹</span>
               </button>
@@ -99,7 +105,7 @@
                 type="button"
                 (click)="showNextImage($event)"
                 class="project-gallery-side-button project-gallery-side-button-right"
-                [attr.aria-label]="'Next image for ' + detail.title"
+                [attr.aria-label]="'common.actions.nextImageFor' | translate:{ title: detail.title }"
               >
                 <span aria-hidden="true">›</span>
               </button>

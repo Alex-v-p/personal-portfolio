@@ -3,7 +3,7 @@
   class="ui-image-lightbox fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-5"
   role="dialog"
   aria-modal="true"
-  [attr.aria-label]="'Large image view for ' + title"
+  [attr.aria-label]="'common.actions.largeImageViewFor' | translate:{ title: title }"
   (click)="close($event)"
 >
   <div class="ui-image-lightbox-backdrop" [style.background-image]="backgroundImage" aria-hidden="true"></div>
@@ -12,8 +12,8 @@
     type="button"
     class="ui-image-lightbox-close inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-white/75 bg-white/90 text-[var(--ui-text)] shadow-lg backdrop-blur transition hover:scale-105 hover:bg-white hover:text-[var(--ui-accent-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
     (click)="close($event)"
-    aria-label="Close larger image"
-    title="Close image"
+    [attr.aria-label]="'common.actions.closeLargerImage' | translate"
+    [title]="'common.actions.closeImage' | translate"
   >
     <svg viewBox="0 0 20 20" class="h-5 w-5" aria-hidden="true" focusable="false">
       <path d="M5 5L15 15M15 5L5 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" />
@@ -25,7 +25,7 @@
     type="button"
     class="ui-image-lightbox-nav ui-image-lightbox-nav-left"
     (click)="showPrevious($event)"
-    [attr.aria-label]="'Previous image for ' + title"
+    [attr.aria-label]="'common.actions.previousImageFor' | translate:{ title: title }"
   >
     <span aria-hidden="true">‹</span>
   </button>
@@ -48,7 +48,7 @@
     type="button"
     class="ui-image-lightbox-nav ui-image-lightbox-nav-right"
     (click)="showNext($event)"
-    [attr.aria-label]="'Next image for ' + title"
+    [attr.aria-label]="'common.actions.nextImageFor' | translate:{ title: title }"
   >
     <span aria-hidden="true">›</span>
   </button>

@@ -115,7 +115,16 @@
       "liveDemo": "Live demo",
       "showMoreCount": "+{{ count }} more",
       "showLess": "Show less",
-      "opensInNewTab": "Opens in a new tab"
+      "opensInNewTab": "Opens in a new tab",
+      "close": "Close",
+      "openImage": "Open image",
+      "openLargerImageFor": "Open larger image for {{ title }}",
+      "closeImage": "Close image",
+      "closeLargerImage": "Close larger image",
+      "closeProjectDetails": "Close project details",
+      "largeImageViewFor": "Large image view for {{ title }}",
+      "previousImageFor": "Previous image for {{ title }}",
+      "nextImageFor": "Next image for {{ title }}"
     },
     "labels": {
       "featured": "Featured"
