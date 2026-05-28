@@ -31,13 +31,27 @@ const isDownloadLink = (label: string, url: string, title: string): boolean => {
 
 export interface MarkdownRenderOptions {
   transformLinkUrl?: (url: string) => string;
+  enableImageLightbox?: boolean;
 }
 
-const renderImage = (altText: string, rawTarget: string): string => {
+export interface MarkdownImageReference {
+  url: string;
+  alt: string;
+  title: string;
+}
+
+const renderImage = (altText: string, rawTarget: string, options: MarkdownRenderOptions): string => {
   const { url } = splitMarkdownTarget(rawTarget);
-  const safeUrl = isSafeUrl(url) ? escapeHtml(url.trim()) : '#';
+  const trimmedUrl = url.trim();
+  const safeUrl = isSafeUrl(trimmedUrl) ? escapeHtml(trimmedUrl) : '#';
   const safeAltText = altText.trim();
-  return `<img src="${safeUrl}" alt="${safeAltText}" loading="lazy" />`;
+
+  if (!options.enableImageLightbox || safeUrl === '#') {
+    return `<img src="${safeUrl}" alt="${safeAltText}" loading="lazy" />`;
+  }
+
+  const ariaLabel = safeAltText ? `Open larger image: ${safeAltText}` : 'Open larger image';
+  return `<img src="${safeUrl}" alt="${safeAltText}" loading="lazy" class="markdown-lightbox-image" role="button" tabindex="0" data-lightbox-src="${safeUrl}" data-lightbox-alt="${safeAltText}" aria-label="${ariaLabel}" />`;
 };
 
 const renderLink = (label: string, rawTarget: string, options: MarkdownRenderOptions): string => {
@@ -59,7 +73,7 @@ const renderLink = (label: string, rawTarget: string, options: MarkdownRenderOpt
 const renderInline = (value: string, options: MarkdownRenderOptions): string => {
   let text = escapeHtml(value);
 
-  text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_match, altText: string, target: string) => renderImage(altText, target));
+  text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_match, altText: string, target: string) => renderImage(altText, target, options));
   text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
   text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
@@ -85,6 +99,30 @@ const renderCodeBlock = (lines: string[]): string => `<pre><code>${escapeHtml(li
 
 const isOrderedListLine = (line: string): boolean => /^\s*\d+[.)]\s+/.test(line);
 const isUnorderedListLine = (line: string): boolean => /^\s*[-*]\s+/.test(line);
+
+
+export const extractMarkdownImages = (markdown: string): MarkdownImageReference[] => {
+  const images: MarkdownImageReference[] = [];
+  const imagePattern = /!\[([^\]]*)\]\(([^)]+)\)/g;
+  let match: RegExpExecArray | null;
+
+  while ((match = imagePattern.exec(markdown)) !== null) {
+    const { url, title } = splitMarkdownTarget(match[2] ?? '');
+    const trimmedUrl = url.trim();
+
+    if (!isSafeUrl(trimmedUrl)) {
+      continue;
+    }
+
+    images.push({
+      url: trimmedUrl,
+      alt: (match[1] ?? '').trim(),
+      title,
+    });
+  }
+
+  return images;
+};
 
 export const buildMarkdownDownloadLink = (label: string, url: string): string => {
   const safeLabel = label.replace(/[\r\n]+/g, ' ').replace(/\]/g, '\\]').trim() || 'Download file';
