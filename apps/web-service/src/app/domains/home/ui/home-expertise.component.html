@@ -1,0 +1,29 @@
+<section class="space-y-6">
+  <div *ngIf="hasLongBio()" class="space-y-4 xl:hidden">
+    <div class="profile-markdown" [innerHTML]="renderedLongBioHtml"></div>
+
+    <div class="flex flex-wrap gap-3 pt-1">
+      <app-ui-link-button routerLink="/contact">{{ 'common.actions.contactMe' | translate }}</app-ui-link-button>
+      <app-ui-link-button routerLink="/projects" appearance="ghost">{{ 'common.actions.viewProjects' | translate }}</app-ui-link-button>
+    </div>
+  </div>
+
+  <app-ui-section-title [title]="'pages.home.expertise.title' | translate" description=""></app-ui-section-title>
+
+  <div class="pt-4 space-y-3">
+    <app-ui-card *ngFor="let group of groups" class="block">
+      <div class="grid gap-4 sm:grid-cols-[auto_1fr] sm:items-start">
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-md bg-stone-300 text-stone-600">
+          <app-ui-icon [name]="group.iconKey || group.title" [fallbackText]="group.title" size="md"></app-ui-icon>
+        </span>
+
+        <div class="space-y-3">
+          <h3 class="text-xl font-semibold text-stone-950">{{ group.title }}</h3>
+          <div class="flex flex-wrap gap-2">
+            <app-highlight-chip *ngFor="let skill of skillItems(group)" [label]="formatSkillLabel(skill)"></app-highlight-chip>
+          </div>
+        </div>
+      </div>
+    </app-ui-card>
+  </div>
+</section>

@@ -1,0 +1,9 @@
+<ng-container *ngIf="svgMarkup; else fallbackTemplate">
+  <span class="inline-flex h-full w-full items-center justify-center" [innerHTML]="svgMarkup"></span>
+</ng-container>
+
+<ng-template #fallbackTemplate>
+  <span class="inline-flex h-full w-full items-center justify-center text-[0.62em] font-semibold uppercase tracking-[0.14em]">
+    {{ fallbackMark }}
+  </span>
+</ng-template>

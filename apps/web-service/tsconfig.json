@@ -15,6 +15,12 @@
     "target": "ES2022",
     "module": "preserve",
     "moduleResolution": "bundler",
+    "baseUrl": "./src/app",
+    "paths": {
+      "@core/*": ["core/*"],
+      "@shared/*": ["shared/*"],
+      "@domains/*": ["domains/*"]
+    },
     "lib": ["ES2022", "dom"]
   },
   "angularCompilerOptions": {

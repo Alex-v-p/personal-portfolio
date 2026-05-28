@@ -1,0 +1,112 @@
+<div class="space-y-8">
+  <header *ngIf="!compactMode" class="ui-panel p-6 sm:p-8">
+    <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+      <div class="space-y-3">
+        <p class="ui-kicker">Portfolio CMS</p>
+        <h1 class="ui-title-section">Content management</h1>
+        <p class="max-w-3xl text-sm leading-6 ui-text-muted">
+          Manage the remaining legacy admin areas while more operational workspaces continue moving onto dedicated routes.
+        </p>
+      </div>
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="ui-pill px-4 py-2 text-sm">
+          Signed in as <span class="font-semibold ui-text-strong">{{ adminDisplayName }}</span>
+        </div>
+        <button type="button" (click)="loadCms()" class="ui-btn ui-btn-secondary min-h-11 px-4">Refresh</button>
+        <button type="button" (click)="logout()" class="ui-btn ui-btn-primary min-h-11 px-5">Sign out</button>
+      </div>
+    </div>
+
+    <div *ngIf="statusMessage" class="mt-5 ui-alert ui-alert-success">{{ statusMessage }}</div>
+    <div *ngIf="errorMessage" class="mt-5 ui-alert ui-alert-danger">{{ errorMessage }}</div>
+  </header>
+
+  <section *ngIf="isLoading" class="ui-panel p-6 text-sm ui-text-muted">Loading admin CMS data…</section>
+
+  <ng-container *ngIf="!isLoading && !errorMessage">
+    <nav *ngIf="!compactMode" class="ui-panel flex flex-wrap gap-3 p-4">
+      <button *ngFor="let tab of tabs" type="button" (click)="setActiveTab(tab.id)" [ngClass]="tab.id === activeTab ? 'ui-tab-pill-active' : 'ui-tab-pill'" class="min-h-11 px-4">{{ tab.label }}</button>
+    </nav>
+
+    <app-admin-projects-tab
+      *ngIf="activeTab === 'projects'"
+      [projects]="projects"
+      [selectedProjectId]="selectedProjectId"
+      [projectForm]="projectForm"
+      [projectUploadForm]="projectUploadForm"
+      [referenceData]="referenceData"
+      [uploadInProgressKey]="uploadInProgressKey"
+      (projectSelected)="selectProject($event)"
+      (newProjectStarted)="startNewProject()"
+      (projectSkillToggled)="toggleProjectSkill($event)"
+      (projectSaved)="saveProject()"
+      (projectDeleted)="deleteProject()"
+      (scopedFileSelected)="onScopedFileSelected($event.event, $event.form)"
+      (projectCoverUploadRequested)="uploadProjectCover()">
+    </app-admin-projects-tab>
+
+    <app-admin-taxonomy-tab
+      *ngIf="activeTab === 'taxonomy'"
+      [referenceData]="referenceData"
+      [selectedSkillCategoryId]="selectedSkillCategoryId"
+      [selectedSkillId]="selectedSkillId"
+      [selectedBlogTagId]="selectedBlogTagId"
+      [skillCategoryForm]="skillCategoryForm"
+      [skillForm]="skillForm"
+      [blogTagForm]="blogTagForm"
+      (skillCategorySelected)="selectSkillCategory($event)"
+      (newSkillCategoryStarted)="startNewSkillCategory()"
+      (skillCategorySaved)="saveSkillCategory()"
+      (skillCategoryDeleted)="deleteSkillCategory()"
+      (skillSelected)="selectSkill($event)"
+      (newSkillStarted)="startNewSkill()"
+      (skillSaved)="saveSkill()"
+      (skillDeleted)="deleteSkill()"
+      (blogTagSelected)="selectBlogTag($event)"
+      (newBlogTagStarted)="startNewBlogTag()"
+      (blogTagSaved)="saveBlogTag()"
+      (blogTagDeleted)="deleteBlogTag()">
+    </app-admin-taxonomy-tab>
+
+    <app-admin-experience-tab
+      *ngIf="activeTab === 'experience'"
+      [experiences]="experiences"
+      [selectedExperienceId]="selectedExperienceId"
+      [experienceForm]="experienceForm"
+      [skills]="referenceData.skills"
+      [mediaFiles]="referenceData.mediaFiles"
+      [experienceUploadForm]="experienceUploadForm"
+      [uploadInProgressKey]="uploadInProgressKey"
+      (experienceSelected)="selectExperience($event)"
+      (newExperienceStarted)="startNewExperience()"
+      (experienceSkillToggled)="toggleExperienceSkill($event)"
+      (experienceSaved)="saveExperience()"
+      (experienceDeleted)="deleteExperience()"
+      (scopedFileSelected)="onScopedFileSelected($event.event, $event.form)"
+      (experienceLogoUploadRequested)="uploadExperienceLogo()">
+    </app-admin-experience-tab>
+
+    <app-admin-navigation-tab
+      *ngIf="activeTab === 'navigation'"
+      [navigationItems]="navigationItems"
+      [selectedNavigationItemId]="selectedNavigationItemId"
+      [navigationItemForm]="navigationItemForm"
+      (navigationItemSelected)="selectNavigationItem($event)"
+      (newNavigationItemStarted)="startNewNavigationItem()"
+      (navigationItemSaved)="saveNavigationItem()"
+      (navigationItemDeleted)="deleteNavigationItem()">
+    </app-admin-navigation-tab>
+
+    <app-admin-admins-tab
+      *ngIf="activeTab === 'admins'"
+      [adminUsers]="adminUsers"
+      [selectedAdminUserId]="selectedAdminUserId"
+      [currentAdminId]="currentAdminId"
+      [adminUserForm]="adminUserForm"
+      (adminUserSelected)="selectAdminUser($event)"
+      (newAdminUserStarted)="startNewAdminUser()"
+      (adminUserSaved)="saveAdminUser()"
+      (adminUserDeleted)="deleteAdminUser()">
+    </app-admin-admins-tab>
+  </ng-container>
+</div>

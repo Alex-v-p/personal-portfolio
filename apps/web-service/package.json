@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "ng serve --host 0.0.0.0 --port 4200",
+    "serve": "ng serve --host 0.0.0.0 --port 4200 --proxy-config proxy.conf.json",
     "start": "npm run serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",

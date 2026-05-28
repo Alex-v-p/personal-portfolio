@@ -1,0 +1,78 @@
+import { AppLocale } from '@core/i18n/locales';
+import { ResolvedMedia } from '@domains/media/model/resolved-media.model';
+import { ProjectDetail } from '@domains/projects/model/project-detail.model';
+import { ProjectLink, ProjectSummary } from '@domains/projects/model/project-summary.model';
+
+import { normalizeMedia } from './common.mappers';
+import { ProjectDetailApi, ProjectSummaryApi } from './projects.contracts';
+
+export function normalizeProjectSummaries(items: ProjectSummaryApi[] | null | undefined, locale: AppLocale): ProjectSummary[] {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  return items.map((project) => normalizeProjectSummary(project, locale));
+}
+
+export function normalizeProjectSummary(project: ProjectSummaryApi, locale: AppLocale): ProjectSummary {
+  const orderedSkills = [...(project.skills ?? [])].sort((left, right) => left.sortOrder - right.sortOrder || left.name.localeCompare(right.name));
+  const coverImage = normalizeMedia(project.coverImage);
+  const coverAlt = coverImage?.alt ?? project.title;
+  const tags = orderedSkills.map((skill) => skill.name);
+  const galleryImages = (project.images ?? []).map((image) => normalizeMedia(image.image)).filter((item): item is ResolvedMedia => item !== null);
+  const links: ProjectLink[] = [];
+
+  if (project.readMoreUrl) {
+    links.push({ label: locale === 'nl' ? 'Meer lezen' : 'Read more', href: project.readMoreUrl });
+  }
+
+  if (project.githubUrl) {
+    links.push({ label: 'GitHub', href: project.githubUrl });
+  }
+
+  if (project.demoUrl) {
+    links.unshift({ label: locale === 'nl' ? 'Live demo' : 'Live Demo', href: project.demoUrl });
+  }
+
+  return {
+    id: project.id,
+    slug: project.slug,
+    title: project.title,
+    teaser: project.teaser,
+    shortDescription: project.teaser,
+    summary: project.summary ?? '',
+    organization: project.companyName ?? '',
+    duration: project.durationLabel,
+    durationLabel: project.durationLabel,
+    status: project.status,
+    state: project.state,
+    category: locale === 'nl' ? 'Project' : 'Project',
+    tags,
+    featured: project.isFeatured,
+    isFeatured: project.isFeatured,
+    isCardPopupEnabled: project.isCardPopupEnabled ?? true,
+    imageAlt: coverAlt,
+    coverImageAlt: coverAlt,
+    coverImageFileId: project.coverImageFileId ?? null,
+    coverImageUrl: coverImage?.url ?? galleryImages[0]?.url ?? undefined,
+    galleryImages,
+    highlight: project.summary ?? project.teaser,
+    githubUrl: project.githubUrl ?? undefined,
+    readMoreUrl: project.readMoreUrl ?? undefined,
+    githubRepoName: project.githubRepoName ?? undefined,
+    demoUrl: project.demoUrl ?? undefined,
+    startedOn: project.startedOn ?? null,
+    endedOn: project.endedOn ?? null,
+    publishedAt: project.publishedAt ?? null,
+    sortOrder: typeof project.sortOrder === 'number' ? project.sortOrder : Number.MAX_SAFE_INTEGER,
+    links,
+  };
+}
+
+export function normalizeProjectDetail(project: ProjectDetailApi, locale: AppLocale): ProjectDetail {
+  return {
+    ...normalizeProjectSummary(project, locale),
+    descriptionMarkdown: project.descriptionMarkdown ?? undefined,
+    images: (project.images ?? []).map((image) => normalizeMedia(image.image)).filter((item): item is ResolvedMedia => item !== null),
+  };
+}

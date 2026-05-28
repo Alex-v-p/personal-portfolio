@@ -1,0 +1,296 @@
+<div *ngIf="featured; else defaultCard" class="project-card-action-shell h-full" [class.project-card-action-shell--popup]="hasPopupCardAction">
+  <app-ui-card [featured]="true" padding="none">
+  <div
+    class="grid h-full gap-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)] lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]"
+    [class.cursor-pointer]="hasCardClickAction"
+    [attr.role]="cardRole"
+    [attr.tabindex]="hasCardClickAction ? 0 : null"
+    [attr.aria-label]="primaryCardAriaLabel"
+    (mouseenter)="prefetchProjectDetails()"
+    (focusin)="prefetchProjectDetails()"
+    (touchstart)="prefetchProjectDetails()"
+    (click)="openCardAction($event)"
+    (keydown.enter)="openCardAction($event)"
+    (keydown.space)="openCardAction($event)"
+  >
+    <div class="relative overflow-hidden lg:min-h-[24rem]">
+      <ng-container *ngIf="currentGalleryImage as image; else featuredProjectFallback">
+        <a
+          *ngIf="mediaClickHref as href; else featuredProjectImage"
+          [href]="href"
+          target="_blank"
+          rel="noreferrer noopener"
+          class="group block h-full min-h-[18rem] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)] lg:min-h-full"
+          [attr.aria-label]="mediaClickAriaLabel"
+        >
+          <img
+            [src]="image.url"
+            [alt]="image.alt || project.coverImageAlt || project.title"
+            class="h-full min-h-[18rem] w-full object-cover transition duration-300 group-hover:scale-[1.02] lg:min-h-full"
+          />
+        </a>
+
+        <ng-template #featuredProjectImage>
+          <img
+            [src]="image.url"
+            [alt]="image.alt || project.coverImageAlt || project.title"
+            class="h-full min-h-[18rem] w-full object-cover transition duration-300 lg:min-h-full"
+          />
+        </ng-template>
+
+        <ng-container *ngIf="hasMultipleGalleryImages">
+          <button
+            type="button"
+            (click)="showPreviousGalleryImage($event)"
+            class="project-gallery-side-button project-gallery-side-button-left"
+            [attr.aria-label]="'Previous image for ' + project.title"
+          >
+            <span aria-hidden="true">‹</span>
+          </button>
+          <button
+            type="button"
+            (click)="showNextGalleryImage($event)"
+            class="project-gallery-side-button project-gallery-side-button-right"
+            [attr.aria-label]="'Next image for ' + project.title"
+          >
+            <span aria-hidden="true">›</span>
+          </button>
+          <span class="project-gallery-counter">{{ galleryCounterLabel }}</span>
+        </ng-container>
+      </ng-container>
+
+      <ng-template #featuredProjectFallback>
+        <div class="ui-media-placeholder ui-media-fallback flex h-full min-h-[18rem] items-end p-5 text-xs font-semibold uppercase tracking-[0.16em] lg:min-h-full">
+          <span class="max-w-[18ch]">{{ placeholderLabel }}</span>
+        </div>
+      </ng-template>
+
+      <app-ui-chip tone="accent" class="absolute left-4 top-4">{{ 'common.labels.featured' | translate }}</app-ui-chip>
+    </div>
+
+    <div class="flex h-full flex-col justify-between gap-5 px-6 py-6 lg:px-7 lg:py-7">
+      <div class="space-y-5">
+        <div class="ui-meta-row flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span>{{ project.organization }}</span>
+            <span>{{ project.duration }}</span>
+          </div>
+
+          <app-ui-chip class="ml-auto">{{ project.status }}</app-ui-chip>
+        </div>
+
+        <div class="space-y-3">
+          <h2 class="ui-title-card text-3xl leading-[1.08]">
+            <a
+              *ngIf="mediaClickHref as href; else featuredProjectTitleText"
+              [href]="href"
+              target="_blank"
+              rel="noreferrer noopener"
+              class="transition hover:text-[var(--ui-accent)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
+            >
+              {{ project.title }}
+            </a>
+            <ng-template #featuredProjectTitleText>{{ project.title }}</ng-template>
+          </h2>
+          <div class="project-card-markdown" [innerHTML]="renderedTeaserHtml"></div>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <app-highlight-chip *ngFor="let tag of displayedTags" [label]="tag"></app-highlight-chip>
+          <button
+            *ngIf="shouldShowTagToggle"
+            type="button"
+            (click)="toggleTags()"
+            class="ui-pill inline-flex h-7 items-center px-3 text-xs font-semibold"
+            [attr.aria-expanded]="areTagsExpanded"
+          >
+            {{ tagToggleLabel }}
+          </button>
+        </div>
+
+        <div class="space-y-1">
+          <div class="project-card-markdown project-card-markdown-featured max-w-[42ch]" [innerHTML]="renderedFeaturedSummaryHtml"></div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-3 pt-1">
+        <app-ui-link-button
+          *ngIf="readMoreAction as readMore"
+          [routerLink]="readMore.routerLink ?? null"
+          [href]="readMore.href ?? null"
+          [openInNewTab]="!!readMore.href"
+        >
+          {{ 'common.actions.readMore' | translate }}
+        </app-ui-link-button>
+        <app-ui-link-button
+          *ngIf="githubAction as github"
+          [routerLink]="null"
+          [href]="github.href ?? null"
+          [openInNewTab]="true"
+          appearance="ghost"
+        >
+          <span class="inline-flex items-center gap-1.5">
+            <app-ui-icon name="github" size="xs" [decorative]="true"></app-ui-icon>
+            <span>GitHub</span>
+          </span>
+        </app-ui-link-button>
+        <app-ui-link-button
+          *ngIf="demoAction as demo"
+          [routerLink]="null"
+          [href]="demo.href ?? null"
+          [openInNewTab]="true"
+          appearance="ghost"
+        >
+          {{ 'common.actions.liveDemo' | translate }}
+        </app-ui-link-button>
+      </div>
+    </div>
+  </div>
+  </app-ui-card>
+</div>
+
+<ng-template #defaultCard>
+  <div class="project-card-action-shell h-full" [class.project-card-action-shell--popup]="hasPopupCardAction">
+    <app-ui-card padding="none">
+    <div
+      class="flex h-full flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
+      [class.cursor-pointer]="hasCardClickAction"
+      [attr.role]="cardRole"
+      [attr.tabindex]="hasCardClickAction ? 0 : null"
+      [attr.aria-label]="primaryCardAriaLabel"
+      (mouseenter)="prefetchProjectDetails()"
+      (focusin)="prefetchProjectDetails()"
+      (touchstart)="prefetchProjectDetails()"
+      (click)="openCardAction($event)"
+      (keydown.enter)="openCardAction($event)"
+      (keydown.space)="openCardAction($event)"
+    >
+      <div class="relative overflow-hidden">
+        <ng-container *ngIf="currentGalleryImage as image; else defaultProjectFallback">
+          <a
+            *ngIf="mediaClickHref as href; else defaultProjectImage"
+            [href]="href"
+            target="_blank"
+            rel="noreferrer noopener"
+            class="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
+            [attr.aria-label]="mediaClickAriaLabel"
+          >
+            <img [src]="image.url" [alt]="image.alt || project.coverImageAlt || project.title" class="aspect-[16/10] w-full object-cover transition duration-300 group-hover:scale-[1.02]" />
+          </a>
+
+          <ng-template #defaultProjectImage>
+            <img [src]="image.url" [alt]="image.alt || project.coverImageAlt || project.title" class="aspect-[16/10] w-full object-cover transition duration-300" />
+          </ng-template>
+
+          <ng-container *ngIf="hasMultipleGalleryImages">
+            <button
+              type="button"
+              (click)="showPreviousGalleryImage($event)"
+              class="project-gallery-side-button project-gallery-side-button-left project-gallery-side-button-small"
+              [attr.aria-label]="'Previous image for ' + project.title"
+            >
+              <span aria-hidden="true">‹</span>
+            </button>
+            <button
+              type="button"
+              (click)="showNextGalleryImage($event)"
+              class="project-gallery-side-button project-gallery-side-button-right project-gallery-side-button-small"
+              [attr.aria-label]="'Next image for ' + project.title"
+            >
+              <span aria-hidden="true">›</span>
+            </button>
+            <span class="project-gallery-counter project-gallery-counter-small">{{ galleryCounterLabel }}</span>
+          </ng-container>
+        </ng-container>
+
+        <ng-template #defaultProjectFallback>
+          <div class="ui-media-placeholder ui-media-fallback relative flex aspect-[16/10] items-end p-4 text-[0.7rem] font-semibold uppercase tracking-[0.14em]">
+            <span class="max-w-[16ch]">{{ placeholderLabel }}</span>
+          </div>
+        </ng-template>
+        <app-ui-chip *ngIf="project.isFeatured" tone="accent" class="absolute left-3 top-3">{{ 'common.labels.featured' | translate }}</app-ui-chip>
+      </div>
+
+      <div class="flex h-full flex-col gap-4 px-6 pb-6 pt-5">
+        <div class="ui-meta-row flex flex-wrap gap-x-3 gap-y-1">
+          <span>{{ project.organization }}</span>
+          <span>{{ project.duration }}</span>
+        </div>
+
+        <div class="space-y-2">
+          <h3 class="ui-title-card text-2xl leading-[1.12]">
+            <a
+              *ngIf="mediaClickHref as href; else defaultProjectTitleText"
+              [href]="href"
+              target="_blank"
+              rel="noreferrer noopener"
+              class="transition hover:text-[var(--ui-accent)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
+            >
+              {{ project.title }}
+            </a>
+            <ng-template #defaultProjectTitleText>{{ project.title }}</ng-template>
+          </h3>
+          <div class="project-card-markdown" [innerHTML]="renderedTeaserHtml"></div>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <app-highlight-chip *ngFor="let tag of displayedTags" [label]="tag"></app-highlight-chip>
+          <button
+            *ngIf="shouldShowTagToggle"
+            type="button"
+            (click)="toggleTags()"
+            class="ui-pill inline-flex h-7 items-center px-3 text-xs font-semibold"
+            [attr.aria-expanded]="areTagsExpanded"
+          >
+            {{ tagToggleLabel }}
+          </button>
+        </div>
+
+        <div class="mt-auto flex flex-wrap gap-3 pt-1">
+          <app-ui-link-button
+            *ngIf="readMoreAction as readMore"
+            [routerLink]="readMore.routerLink ?? null"
+            [href]="readMore.href ?? null"
+            [openInNewTab]="!!readMore.href"
+            appearance="ghost"
+          >
+            {{ 'common.actions.readMore' | translate }}
+          </app-ui-link-button>
+          <app-ui-link-button
+            *ngIf="githubAction as github"
+            [routerLink]="null"
+            [href]="github.href ?? null"
+            [openInNewTab]="true"
+            appearance="ghost"
+          >
+            <span class="inline-flex items-center gap-1.5">
+              <app-ui-icon name="github" size="xs" [decorative]="true"></app-ui-icon>
+              <span>GitHub</span>
+            </span>
+          </app-ui-link-button>
+          <app-ui-link-button
+            *ngIf="demoAction as demo"
+            [routerLink]="null"
+            [href]="demo.href ?? null"
+            [openInNewTab]="true"
+            appearance="ghost"
+          >
+            {{ 'common.actions.liveDemo' | translate }}
+          </app-ui-link-button>
+        </div>
+      </div>
+    </div>
+    </app-ui-card>
+  </div>
+</ng-template>
+
+<app-project-detail-modal
+  *ngIf="isDetailModalOpen"
+  [project]="detailModalProject"
+  [isLoading]="isDetailLoading"
+  [errorMessage]="detailErrorMessage"
+  [readMoreAction]="modalReadMoreAction"
+  [githubAction]="modalGithubAction"
+  [demoAction]="modalDemoAction"
+  (closed)="closeDetailModal()"
+></app-project-detail-modal>

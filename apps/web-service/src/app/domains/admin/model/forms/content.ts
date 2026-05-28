@@ -1,0 +1,296 @@
+import { AdminBlogPost, AdminExperience, AdminProject } from '@domains/admin/model/admin.model';
+
+export interface AdminProjectGalleryImageForm {
+  imageFileId: string | null;
+  altText: string;
+  altTextNl: string;
+  sortOrder: number;
+  isCover: boolean;
+}
+
+export interface AdminProjectForm {
+  id?: string | null;
+  slug: string;
+  title: string;
+  titleNl: string;
+  teaser: string;
+  teaserNl: string;
+  summary: string;
+  summaryNl: string;
+  descriptionMarkdown: string;
+  descriptionMarkdownNl: string;
+  coverImageFileId: string | null;
+  githubUrl: string;
+  readMoreUrl: string;
+  readMoreUrlNl: string;
+  githubRepoOwner: string;
+  githubRepoName: string;
+  demoUrl: string;
+  companyName: string;
+  startedOn: string;
+  endedOn: string;
+  durationLabel: string;
+  durationLabelNl: string;
+  status: string;
+  statusNl: string;
+  state: 'published' | 'archived' | 'completed' | 'paused';
+  isFeatured: boolean;
+  isCardPopupEnabled: boolean;
+  sortOrder: number;
+  publishedAt: string;
+  skillIds: string[];
+  images: AdminProjectGalleryImageForm[];
+}
+
+
+export interface AdminProtectedDocumentForm {
+  id?: string | null;
+  mediaFileId: string | null;
+  title: string;
+  titleNl: string;
+  sortOrder: number;
+}
+
+export interface AdminProtectedDocumentGroupForm {
+  id?: string | null;
+  slug: string;
+  title: string;
+  titleNl: string;
+  description: string;
+  descriptionNl: string;
+  isEnabled: boolean;
+  sortOrder: number;
+  hasPassword: boolean;
+  newPassword: string;
+  documents: AdminProtectedDocumentForm[];
+}
+
+export interface AdminBlogPostForm {
+  id?: string | null;
+  slug: string;
+  title: string;
+  titleNl: string;
+  excerpt: string;
+  excerptNl: string;
+  contentMarkdown: string;
+  contentMarkdownNl: string;
+  coverImageFileId: string | null;
+  coverImageAlt: string;
+  coverImageAltNl: string;
+  readingTimeMinutes: number | null;
+  status: 'draft' | 'published' | 'archived';
+  isFeatured: boolean;
+  publishedAt: string;
+  seoTitle: string;
+  seoTitleNl: string;
+  seoDescription: string;
+  seoDescriptionNl: string;
+  tagIds: string[];
+  protectedDocumentGroups: AdminProtectedDocumentGroupForm[];
+}
+
+export interface AdminExperienceForm {
+  id?: string | null;
+  organizationName: string;
+  roleTitle: string;
+  roleTitleNl: string;
+  location: string;
+  experienceType: string;
+  startDate: string;
+  endDate: string;
+  isCurrent: boolean;
+  summary: string;
+  summaryNl: string;
+  descriptionMarkdown: string;
+  descriptionMarkdownNl: string;
+  logoFileId: string | null;
+  sortOrder: number;
+  skillIds: string[];
+}
+
+export function createEmptyProjectForm(): AdminProjectForm {
+  return {
+    slug: '',
+    title: '',
+    titleNl: '',
+    teaser: '',
+    teaserNl: '',
+    summary: '',
+    summaryNl: '',
+    descriptionMarkdown: '',
+    descriptionMarkdownNl: '',
+    coverImageFileId: null,
+    githubUrl: '',
+    readMoreUrl: '',
+    readMoreUrlNl: '',
+    githubRepoOwner: '',
+    githubRepoName: '',
+    demoUrl: '',
+    companyName: '',
+    startedOn: '',
+    endedOn: '',
+    durationLabel: '',
+    durationLabelNl: '',
+    status: '',
+    statusNl: '',
+    state: 'published',
+    isFeatured: false,
+    isCardPopupEnabled: true,
+    sortOrder: 0,
+    publishedAt: '',
+    skillIds: [],
+    images: []
+  };
+}
+
+export function createEmptyBlogPostForm(): AdminBlogPostForm {
+  return {
+    slug: '',
+    title: '',
+    titleNl: '',
+    excerpt: '',
+    excerptNl: '',
+    contentMarkdown: '',
+    contentMarkdownNl: '',
+    coverImageFileId: null,
+    coverImageAlt: '',
+    coverImageAltNl: '',
+    readingTimeMinutes: null,
+    status: 'draft',
+    isFeatured: false,
+    publishedAt: '',
+    seoTitle: '',
+    seoTitleNl: '',
+    seoDescription: '',
+    seoDescriptionNl: '',
+    tagIds: [],
+    protectedDocumentGroups: []
+  };
+}
+
+export function createEmptyExperienceForm(): AdminExperienceForm {
+  return {
+    organizationName: '',
+    roleTitle: '',
+    roleTitleNl: '',
+    location: '',
+    experienceType: 'work',
+    startDate: '',
+    endDate: '',
+    isCurrent: false,
+    summary: '',
+    summaryNl: '',
+    descriptionMarkdown: '',
+    descriptionMarkdownNl: '',
+    logoFileId: null,
+    sortOrder: 0,
+    skillIds: []
+  };
+}
+
+export function toProjectForm(project: AdminProject): AdminProjectForm {
+  return {
+    id: project.id,
+    slug: project.slug,
+    title: project.title,
+    titleNl: project.titleNl ?? '',
+    teaser: project.teaser,
+    teaserNl: project.teaserNl ?? '',
+    summary: project.summary ?? '',
+    summaryNl: project.summaryNl ?? '',
+    descriptionMarkdown: project.descriptionMarkdown ?? '',
+    descriptionMarkdownNl: project.descriptionMarkdownNl ?? '',
+    coverImageFileId: project.coverImageFileId ?? null,
+    githubUrl: project.githubUrl ?? '',
+    readMoreUrl: project.readMoreUrl ?? '',
+    readMoreUrlNl: project.readMoreUrlNl ?? '',
+    githubRepoOwner: project.githubRepoOwner ?? '',
+    githubRepoName: project.githubRepoName ?? '',
+    demoUrl: project.demoUrl ?? '',
+    companyName: project.companyName ?? '',
+    startedOn: project.startedOn ?? '',
+    endedOn: project.endedOn ?? '',
+    durationLabel: project.durationLabel,
+    durationLabelNl: project.durationLabelNl ?? '',
+    status: project.status,
+    statusNl: project.statusNl ?? '',
+    state: project.state,
+    isFeatured: project.isFeatured,
+    isCardPopupEnabled: project.isCardPopupEnabled ?? true,
+    sortOrder: project.sortOrder,
+    publishedAt: project.publishedAt?.slice(0, 16) ?? '',
+    skillIds: [...project.skillIds],
+    images: (project.images ?? []).map((image, index) => ({
+      imageFileId: image.imageFileId ?? null,
+      altText: image.altText ?? image.image?.alt ?? '',
+      altTextNl: image.altTextNl ?? '',
+      sortOrder: typeof image.sortOrder === 'number' ? image.sortOrder : index,
+      isCover: image.isCover || image.imageFileId === project.coverImageFileId,
+    })),
+  };
+}
+
+export function toBlogPostForm(post: AdminBlogPost): AdminBlogPostForm {
+  return {
+    id: post.id,
+    slug: post.slug,
+    title: post.title,
+    titleNl: post.titleNl ?? '',
+    excerpt: post.excerpt,
+    excerptNl: post.excerptNl ?? '',
+    contentMarkdown: post.contentMarkdown,
+    contentMarkdownNl: post.contentMarkdownNl ?? '',
+    coverImageFileId: post.coverImageFileId ?? null,
+    coverImageAlt: post.coverImageAlt ?? '',
+    coverImageAltNl: post.coverImageAltNl ?? '',
+    readingTimeMinutes: post.readingTimeMinutes ?? null,
+    status: post.status,
+    isFeatured: post.isFeatured,
+    publishedAt: post.publishedAt?.slice(0, 16) ?? '',
+    seoTitle: post.seoTitle ?? '',
+    seoTitleNl: post.seoTitleNl ?? '',
+    seoDescription: post.seoDescription ?? '',
+    seoDescriptionNl: post.seoDescriptionNl ?? '',
+    tagIds: [...post.tagIds],
+    protectedDocumentGroups: (post.protectedDocumentGroups ?? []).map((group, groupIndex) => ({
+      id: group.id,
+      slug: group.slug,
+      title: group.title,
+      titleNl: group.titleNl ?? '',
+      description: group.description ?? '',
+      descriptionNl: group.descriptionNl ?? '',
+      isEnabled: group.isEnabled,
+      sortOrder: typeof group.sortOrder === 'number' ? group.sortOrder : groupIndex,
+      hasPassword: group.hasPassword,
+      newPassword: '',
+      documents: (group.documents ?? []).map((document, documentIndex) => ({
+        id: document.id,
+        mediaFileId: document.mediaFileId ?? null,
+        title: document.title ?? '',
+        titleNl: document.titleNl ?? '',
+        sortOrder: typeof document.sortOrder === 'number' ? document.sortOrder : documentIndex,
+      })),
+    })),
+  };
+}
+
+export function toExperienceForm(experience: AdminExperience): AdminExperienceForm {
+  return {
+    id: experience.id,
+    organizationName: experience.organizationName,
+    roleTitle: experience.roleTitle,
+    roleTitleNl: experience.roleTitleNl ?? '',
+    location: experience.location ?? '',
+    experienceType: experience.experienceType,
+    startDate: experience.startDate,
+    endDate: experience.endDate ?? '',
+    isCurrent: experience.isCurrent,
+    summary: experience.summary,
+    summaryNl: experience.summaryNl ?? '',
+    descriptionMarkdown: experience.descriptionMarkdown ?? '',
+    descriptionMarkdownNl: experience.descriptionMarkdownNl ?? '',
+    logoFileId: experience.logoFileId ?? null,
+    sortOrder: experience.sortOrder,
+    skillIds: [...experience.skillIds],
+  };
+}

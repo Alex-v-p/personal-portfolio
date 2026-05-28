@@ -28,9 +28,134 @@ class Settings(BaseSettings):
         default='http://localhost:9000',
         validation_alias=AliasChoices('MEDIA_PUBLIC_BASE_URL', 'PORTFOLIO_API_MEDIA_PUBLIC_BASE_URL'),
     )
-    admin_access_token_expire_minutes: int = Field(
-        default=480,
-        validation_alias=AliasChoices('ADMIN_ACCESS_TOKEN_EXPIRE_MINUTES', 'PORTFOLIO_API_ADMIN_ACCESS_TOKEN_EXPIRE_MINUTES'),
+
+    contact_rate_limit_max_requests: int = Field(
+        default=5,
+        validation_alias=AliasChoices('CONTACT_RATE_LIMIT_MAX_REQUESTS', 'PORTFOLIO_API_CONTACT_RATE_LIMIT_MAX_REQUESTS'),
+    )
+    contact_rate_limit_window_seconds: int = Field(
+        default=600,
+        validation_alias=AliasChoices('CONTACT_RATE_LIMIT_WINDOW_SECONDS', 'PORTFOLIO_API_CONTACT_RATE_LIMIT_WINDOW_SECONDS'),
+    )
+    contact_max_request_bytes: int = Field(
+        default=16_384,
+        validation_alias=AliasChoices('CONTACT_MAX_REQUEST_BYTES', 'PORTFOLIO_API_CONTACT_MAX_REQUEST_BYTES'),
+    )
+    events_rate_limit_max_requests: int = Field(
+        default=60,
+        validation_alias=AliasChoices('EVENTS_RATE_LIMIT_MAX_REQUESTS', 'PORTFOLIO_API_EVENTS_RATE_LIMIT_MAX_REQUESTS'),
+    )
+    events_rate_limit_window_seconds: int = Field(
+        default=60,
+        validation_alias=AliasChoices('EVENTS_RATE_LIMIT_WINDOW_SECONDS', 'PORTFOLIO_API_EVENTS_RATE_LIMIT_WINDOW_SECONDS'),
+    )
+    events_max_request_bytes: int = Field(
+        default=65_536,
+        validation_alias=AliasChoices('EVENTS_MAX_REQUEST_BYTES', 'PORTFOLIO_API_EVENTS_MAX_REQUEST_BYTES'),
+    )
+    events_metadata_max_entries: int = Field(
+        default=25,
+        validation_alias=AliasChoices('EVENTS_METADATA_MAX_ENTRIES', 'PORTFOLIO_API_EVENTS_METADATA_MAX_ENTRIES'),
+    )
+    events_metadata_max_depth: int = Field(
+        default=3,
+        validation_alias=AliasChoices('EVENTS_METADATA_MAX_DEPTH', 'PORTFOLIO_API_EVENTS_METADATA_MAX_DEPTH'),
+    )
+    events_metadata_max_list_items: int = Field(
+        default=20,
+        validation_alias=AliasChoices('EVENTS_METADATA_MAX_LIST_ITEMS', 'PORTFOLIO_API_EVENTS_METADATA_MAX_LIST_ITEMS'),
+    )
+    events_metadata_max_string_length: int = Field(
+        default=500,
+        validation_alias=AliasChoices('EVENTS_METADATA_MAX_STRING_LENGTH', 'PORTFOLIO_API_EVENTS_METADATA_MAX_STRING_LENGTH'),
+    )
+    media_upload_rate_limit_max_requests: int = Field(
+        default=20,
+        validation_alias=AliasChoices('MEDIA_UPLOAD_RATE_LIMIT_MAX_REQUESTS', 'PORTFOLIO_API_MEDIA_UPLOAD_RATE_LIMIT_MAX_REQUESTS'),
+    )
+    media_upload_rate_limit_window_seconds: int = Field(
+        default=300,
+        validation_alias=AliasChoices('MEDIA_UPLOAD_RATE_LIMIT_WINDOW_SECONDS', 'PORTFOLIO_API_MEDIA_UPLOAD_RATE_LIMIT_WINDOW_SECONDS'),
+    )
+    admin_session_max_age_minutes: int = Field(
+        default=120,
+        ge=5,
+        validation_alias=AliasChoices('ADMIN_SESSION_MAX_AGE_MINUTES', 'PORTFOLIO_API_ADMIN_SESSION_MAX_AGE_MINUTES'),
+    )
+    admin_session_idle_timeout_minutes: int = Field(
+        default=30,
+        ge=5,
+        validation_alias=AliasChoices('ADMIN_SESSION_IDLE_TIMEOUT_MINUTES', 'PORTFOLIO_API_ADMIN_SESSION_IDLE_TIMEOUT_MINUTES'),
+    )
+    admin_login_rate_limit_max_attempts: int = Field(
+        default=5,
+        ge=1,
+        validation_alias=AliasChoices('ADMIN_LOGIN_RATE_LIMIT_MAX_ATTEMPTS', 'PORTFOLIO_API_ADMIN_LOGIN_RATE_LIMIT_MAX_ATTEMPTS'),
+    )
+    admin_login_rate_limit_window_seconds: int = Field(
+        default=900,
+        ge=60,
+        validation_alias=AliasChoices('ADMIN_LOGIN_RATE_LIMIT_WINDOW_SECONDS', 'PORTFOLIO_API_ADMIN_LOGIN_RATE_LIMIT_WINDOW_SECONDS'),
+    )
+    admin_session_cookie_name: str = Field(
+        default='portfolio_admin_session',
+        validation_alias=AliasChoices('ADMIN_SESSION_COOKIE_NAME', 'PORTFOLIO_API_ADMIN_SESSION_COOKIE_NAME'),
+    )
+    admin_csrf_header_name: str = Field(
+        default='X-Portfolio-CSRF',
+        validation_alias=AliasChoices('ADMIN_CSRF_HEADER_NAME', 'PORTFOLIO_API_ADMIN_CSRF_HEADER_NAME'),
+    )
+    admin_session_cookie_secure: bool = Field(
+        default=False,
+        validation_alias=AliasChoices('ADMIN_SESSION_COOKIE_SECURE', 'PORTFOLIO_API_ADMIN_SESSION_COOKIE_SECURE'),
+    )
+    admin_session_cookie_same_site: str = Field(
+        default='lax',
+        validation_alias=AliasChoices('ADMIN_SESSION_COOKIE_SAME_SITE', 'PORTFOLIO_API_ADMIN_SESSION_COOKIE_SAME_SITE'),
+    )
+    admin_mfa_totp_issuer: str = Field(
+        default='Personal Portfolio CMS',
+        validation_alias=AliasChoices('ADMIN_MFA_TOTP_ISSUER', 'PORTFOLIO_API_ADMIN_MFA_TOTP_ISSUER'),
+    )
+    admin_mfa_recovery_code_count: int = Field(
+        default=8,
+        ge=4,
+        le=16,
+        validation_alias=AliasChoices('ADMIN_MFA_RECOVERY_CODE_COUNT', 'PORTFOLIO_API_ADMIN_MFA_RECOVERY_CODE_COUNT'),
+    )
+    admin_mfa_pending_secret_ttl_minutes: int = Field(
+        default=15,
+        ge=5,
+        le=60,
+        validation_alias=AliasChoices('ADMIN_MFA_PENDING_SECRET_TTL_MINUTES', 'PORTFOLIO_API_ADMIN_MFA_PENDING_SECRET_TTL_MINUTES'),
+    )
+
+    protected_documents_access_ttl_minutes: int = Field(
+        default=60,
+        ge=1,
+        validation_alias=AliasChoices('PROTECTED_DOCUMENTS_ACCESS_TTL_MINUTES', 'PORTFOLIO_API_PROTECTED_DOCUMENTS_ACCESS_TTL_MINUTES'),
+    )
+    protected_documents_rate_limit_max_attempts: int = Field(
+        default=5,
+        ge=1,
+        validation_alias=AliasChoices('PROTECTED_DOCUMENTS_RATE_LIMIT_MAX_ATTEMPTS', 'PORTFOLIO_API_PROTECTED_DOCUMENTS_RATE_LIMIT_MAX_ATTEMPTS'),
+    )
+    protected_documents_rate_limit_window_seconds: int = Field(
+        default=300,
+        ge=60,
+        validation_alias=AliasChoices('PROTECTED_DOCUMENTS_RATE_LIMIT_WINDOW_SECONDS', 'PORTFOLIO_API_PROTECTED_DOCUMENTS_RATE_LIMIT_WINDOW_SECONDS'),
+    )
+    protected_documents_cookie_name: str = Field(
+        default='portfolio_protected_documents',
+        validation_alias=AliasChoices('PROTECTED_DOCUMENTS_COOKIE_NAME', 'PORTFOLIO_API_PROTECTED_DOCUMENTS_COOKIE_NAME'),
+    )
+    protected_documents_cookie_secure: bool = Field(
+        default=False,
+        validation_alias=AliasChoices('PROTECTED_DOCUMENTS_COOKIE_SECURE', 'PORTFOLIO_API_PROTECTED_DOCUMENTS_COOKIE_SECURE'),
+    )
+    protected_documents_cookie_same_site: str = Field(
+        default='lax',
+        validation_alias=AliasChoices('PROTECTED_DOCUMENTS_COOKIE_SAME_SITE', 'PORTFOLIO_API_PROTECTED_DOCUMENTS_COOKIE_SAME_SITE'),
     )
     media_storage_endpoint: str = Field(
         default='minio:9000',
@@ -69,6 +194,56 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices('GITHUB_STATS_LOOKBACK_DAYS', 'PORTFOLIO_API_GITHUB_STATS_LOOKBACK_DAYS'),
     )
 
+    site_events_retention_days: int = Field(
+        default=90,
+        ge=1,
+        validation_alias=AliasChoices('SITE_EVENTS_RETENTION_DAYS', 'PORTFOLIO_API_SITE_EVENTS_RETENTION_DAYS'),
+    )
+    assistant_activity_retention_days: int = Field(
+        default=90,
+        ge=1,
+        validation_alias=AliasChoices('ASSISTANT_ACTIVITY_RETENTION_DAYS', 'PORTFOLIO_API_ASSISTANT_ACTIVITY_RETENTION_DAYS'),
+    )
+    maintenance_check_interval_seconds: int = Field(
+        default=60,
+        ge=5,
+        validation_alias=AliasChoices('MAINTENANCE_CHECK_INTERVAL_SECONDS', 'PORTFOLIO_API_MAINTENANCE_CHECK_INTERVAL_SECONDS'),
+    )
+    maintenance_lock_ttl_seconds: int = Field(
+        default=900,
+        ge=30,
+        validation_alias=AliasChoices('MAINTENANCE_LOCK_TTL_SECONDS', 'PORTFOLIO_API_MAINTENANCE_LOCK_TTL_SECONDS'),
+    )
+    maintenance_state_ttl_seconds: int = Field(
+        default=60 * 60 * 24 * 30,
+        ge=300,
+        validation_alias=AliasChoices('MAINTENANCE_STATE_TTL_SECONDS', 'PORTFOLIO_API_MAINTENANCE_STATE_TTL_SECONDS'),
+    )
+    retention_cleanup_interval_seconds: int = Field(
+        default=60 * 60 * 24,
+        ge=60,
+        validation_alias=AliasChoices('RETENTION_CLEANUP_INTERVAL_SECONDS', 'PORTFOLIO_API_RETENTION_CLEANUP_INTERVAL_SECONDS'),
+    )
+    retention_cleanup_retry_interval_seconds: int = Field(
+        default=60 * 60,
+        ge=60,
+        validation_alias=AliasChoices('RETENTION_CLEANUP_RETRY_INTERVAL_SECONDS', 'PORTFOLIO_API_RETENTION_CLEANUP_RETRY_INTERVAL_SECONDS'),
+    )
+    github_auto_refresh_enabled: bool = Field(
+        default=True,
+        validation_alias=AliasChoices('GITHUB_AUTO_REFRESH_ENABLED', 'PORTFOLIO_API_GITHUB_AUTO_REFRESH_ENABLED'),
+    )
+    github_auto_refresh_interval_seconds: int = Field(
+        default=60 * 60 * 24,
+        ge=60,
+        validation_alias=AliasChoices('GITHUB_AUTO_REFRESH_INTERVAL_SECONDS', 'PORTFOLIO_API_GITHUB_AUTO_REFRESH_INTERVAL_SECONDS'),
+    )
+    github_auto_refresh_retry_interval_seconds: int = Field(
+        default=60 * 60,
+        ge=60,
+        validation_alias=AliasChoices('GITHUB_AUTO_REFRESH_RETRY_INTERVAL_SECONDS', 'PORTFOLIO_API_GITHUB_AUTO_REFRESH_RETRY_INTERVAL_SECONDS'),
+    )
+
     knowledge_embedding_backend: str = Field(
         default='ollama',
         validation_alias=AliasChoices('KNOWLEDGE_EMBEDDING_BACKEND', 'PORTFOLIO_API_KNOWLEDGE_EMBEDDING_BACKEND'),
@@ -88,6 +263,60 @@ class Settings(BaseSettings):
     knowledge_embedding_timeout_seconds: float = Field(
         default=20.0,
         validation_alias=AliasChoices('KNOWLEDGE_EMBEDDING_TIMEOUT_SECONDS', 'PORTFOLIO_API_KNOWLEDGE_EMBEDDING_TIMEOUT_SECONDS'),
+    )
+    translation_provider_backend: str = Field(
+        default='mock',
+        validation_alias=AliasChoices(
+            'TRANSLATION_PROVIDER_BACKEND',
+            'PORTFOLIO_API_TRANSLATION_PROVIDER_BACKEND',
+            'ASSISTANT_PROVIDER_BACKEND',
+            'PROVIDER_BACKEND',
+        ),
+    )
+    translation_provider_model: str = Field(
+        default='llama3.1:8b',
+        validation_alias=AliasChoices(
+            'TRANSLATION_PROVIDER_MODEL',
+            'PORTFOLIO_API_TRANSLATION_PROVIDER_MODEL',
+            'ASSISTANT_PROVIDER_MODEL',
+            'PROVIDER_MODEL',
+        ),
+    )
+    translation_provider_base_url: str = Field(
+        default='http://ollama:11434',
+        validation_alias=AliasChoices(
+            'TRANSLATION_PROVIDER_BASE_URL',
+            'PORTFOLIO_API_TRANSLATION_PROVIDER_BASE_URL',
+            'ASSISTANT_PROVIDER_BASE_URL',
+            'PROVIDER_BASE_URL',
+        ),
+    )
+    translation_provider_api_key: str = Field(
+        default='',
+        validation_alias=AliasChoices(
+            'TRANSLATION_PROVIDER_API_KEY',
+            'PORTFOLIO_API_TRANSLATION_PROVIDER_API_KEY',
+            'ASSISTANT_PROVIDER_API_KEY',
+            'PROVIDER_API_KEY',
+        ),
+    )
+    translation_provider_request_timeout_seconds: float = Field(
+        default=40.0,
+        validation_alias=AliasChoices(
+            'TRANSLATION_PROVIDER_REQUEST_TIMEOUT_SECONDS',
+            'PORTFOLIO_API_TRANSLATION_PROVIDER_REQUEST_TIMEOUT_SECONDS',
+            'ASSISTANT_PROVIDER_REQUEST_TIMEOUT_SECONDS',
+            'PROVIDER_REQUEST_TIMEOUT_SECONDS',
+        ),
+    )
+    translation_provider_max_retries: int = Field(
+        default=1,
+        validation_alias=AliasChoices(
+            'TRANSLATION_PROVIDER_MAX_RETRIES',
+            'PORTFOLIO_API_TRANSLATION_PROVIDER_MAX_RETRIES',
+            'ASSISTANT_PROVIDER_MAX_RETRIES',
+            'PROVIDER_MAX_RETRIES',
+        ),
     )
 
     model_config = SettingsConfigDict(env_file='.env', extra='ignore')

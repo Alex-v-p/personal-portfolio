@@ -2,14 +2,15 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.db.session import get_session
-from app.schemas.chat import ChatMessageOut, ConversationOut, ConversationsListOut
-from app.services.chat_service import ChatService
+from app.domains.chat.schema import ChatMessageOut, ConversationOut, ConversationsListOut
+from app.domains.chat.service.service import ChatService
+from app.services.security import get_current_admin_user
 
 router = APIRouter()
 
 
 @router.get('/', response_model=ConversationsListOut)
-def list_conversations(session: Session = Depends(get_session)) -> ConversationsListOut:
+def list_conversations(_: dict = Depends(get_current_admin_user), session: Session = Depends(get_session)) -> ConversationsListOut:
     items = [
         ConversationOut(
             id=str(item.id),
@@ -27,7 +28,11 @@ def list_conversations(session: Session = Depends(get_session)) -> Conversations
 
 
 @router.get('/{conversation_id}', response_model=ConversationOut)
-def get_conversation(conversation_id: str, session: Session = Depends(get_session)) -> ConversationOut:
+def get_conversation(
+    conversation_id: str,
+    _: dict = Depends(get_current_admin_user),
+    session: Session = Depends(get_session),
+) -> ConversationOut:
     conversation = ChatService(session).get_conversation(conversation_id)
     if conversation is None:
         raise HTTPException(status_code=404, detail='Conversation not found.')

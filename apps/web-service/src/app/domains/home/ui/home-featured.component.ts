@@ -1,0 +1,77 @@
+import { NgFor, NgIf } from '@angular/common';
+import { Component, Input, inject } from '@angular/core';
+
+import { I18nService } from '@core/i18n/i18n.service';
+import { TranslatePipe } from '@core/i18n/translate.pipe';
+import { UiCardComponent } from '@shared/components/card/ui-card.component';
+import { UiChipComponent } from '@shared/components/chip/ui-chip.component';
+import { HighlightChipComponent } from '@shared/components/highlight-chip/highlight-chip.component';
+import { UiLinkButtonComponent } from '@shared/components/link-button/ui-link-button.component';
+import { UiSectionTitleComponent } from '@shared/components/section-title/ui-section-title.component';
+import { BlogPostSummary } from '@domains/blog/model/blog-post-summary.model';
+import { ProjectSummary } from '@domains/projects/model/project-summary.model';
+import { ProjectCardComponent } from '@domains/projects/ui/project-card.component';
+import { Router, RouterLink } from '@angular/router';
+
+@Component({
+  selector: 'app-home-featured-section',
+  standalone: true,
+  imports: [NgFor, NgIf, RouterLink, TranslatePipe, UiCardComponent, UiChipComponent, HighlightChipComponent, UiLinkButtonComponent, UiSectionTitleComponent, ProjectCardComponent],
+  templateUrl: './home-featured.component.html'
+})
+export class HomeFeaturedSectionComponent {
+  private readonly i18n = inject(I18nService);
+  private readonly router = inject(Router);
+
+  @Input({ required: true }) featuredBlogPost!: BlogPostSummary;
+  @Input({ required: true }) primaryProject!: ProjectSummary;
+
+  protected get hasFeaturedBlogPost(): boolean {
+    return Boolean(this.featuredBlogPost?.title);
+  }
+
+  protected get hasPrimaryProject(): boolean {
+    return Boolean(this.primaryProject?.title);
+  }
+
+  protected get featuredBlogArticleRouterLink(): string | readonly string[] {
+    return this.i18n.localizeRouterCommands(['/blog', this.featuredBlogPost.slug]) ?? ['/blog', this.featuredBlogPost.slug];
+  }
+
+  protected get featuredBlogImageAriaLabel(): string {
+    return `${this.i18n.translate('common.actions.readArticle')}: ${this.featuredBlogPost.title}`;
+  }
+
+  protected openFeaturedBlogCard(event: Event): void {
+    if (this.isNestedInteractiveTarget(event)) {
+      return;
+    }
+
+    event.preventDefault();
+    this.navigateToFeaturedBlogPost();
+  }
+
+  protected navigateToFeaturedBlogPost(): void {
+    const routerLink = this.featuredBlogArticleRouterLink;
+
+    if (typeof routerLink === 'string') {
+      this.router.navigateByUrl(routerLink);
+      return;
+    }
+
+    this.router.navigate([...routerLink]);
+  }
+
+  private isNestedInteractiveTarget(event: Event): boolean {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) {
+      return false;
+    }
+
+    const currentTarget = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+    const interactiveTarget = target.closest('a, button, input, label, select, textarea, [role="button"], [data-blog-card-interactive]');
+
+    return !!interactiveTarget && interactiveTarget !== currentTarget;
+  }
+
+}

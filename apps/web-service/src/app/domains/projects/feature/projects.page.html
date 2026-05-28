@@ -1,0 +1,202 @@
+<div class="mx-auto max-w-6xl space-y-8">
+  <app-ui-breadcrumbs
+    [items]="[
+      { label: ('navigation.home' | translate), path: '/' },
+      { label: ('navigation.projects' | translate), path: '/projects' }
+    ]"
+  ></app-ui-breadcrumbs>
+
+  <section class="ui-panel-soft p-6 sm:p-8 lg:p-10">
+    <div class="space-y-8">
+      <header class="space-y-4 text-center">
+        <h1 class="ui-title-section text-4xl">{{ 'pages.projects.title' | translate }}</h1>
+        <div class="mx-auto h-3 w-full max-w-lg rounded-full" style="background: var(--ui-primary);"></div>
+      </header>
+
+      <section *ngIf="isLoading" class="space-y-5" [attr.aria-label]="'pages.projects.loading' | translate">
+        <div class="ui-card-soft grid gap-4 p-4 md:grid-cols-[minmax(0,1fr)_20rem] md:items-end md:p-5">
+          <div class="space-y-2">
+            <app-ui-skeleton className="h-3 w-16 rounded-full"></app-ui-skeleton>
+            <app-ui-skeleton className="h-12 w-full rounded-full"></app-ui-skeleton>
+          </div>
+          <div class="space-y-2">
+            <app-ui-skeleton className="h-3 w-32 rounded-full"></app-ui-skeleton>
+            <app-ui-skeleton className="h-12 w-full rounded-full"></app-ui-skeleton>
+          </div>
+        </div>
+
+        <app-ui-skeleton className="h-[24rem] w-full rounded-[2rem]"></app-ui-skeleton>
+
+        <div class="grid gap-5 lg:grid-cols-2">
+          <app-ui-skeleton className="h-[20rem] w-full rounded-[2rem]"></app-ui-skeleton>
+          <app-ui-skeleton className="h-[20rem] w-full rounded-[2rem]"></app-ui-skeleton>
+        </div>
+      </section>
+
+      <app-ui-empty-state
+        *ngIf="!isLoading && errorMessage"
+        [title]="'pages.projects.empty.loadTitle' | translate"
+        [description]="errorMessage"
+        [hasActions]="true"
+        tone="error"
+      >
+        <div actions>
+          <app-ui-button appearance="secondary" type="button" (click)="loadProjects()">{{ 'common.actions.retry' | translate }}</app-ui-button>
+        </div>
+      </app-ui-empty-state>
+
+      <app-ui-empty-state
+        *ngIf="!isLoading && !errorMessage && !hasProjects"
+        [title]="'pages.projects.empty.noneTitle' | translate"
+        [description]="'pages.projects.empty.noneDescription' | translate"
+      ></app-ui-empty-state>
+
+      <ng-container *ngIf="!isLoading && !errorMessage && hasProjects">
+        <section class="ui-card-soft grid gap-4 overflow-visible p-4 md:grid-cols-[minmax(0,1fr)_20rem] md:items-start md:p-5">
+          <label class="block space-y-2">
+            <span class="ui-kicker">{{ 'pages.projects.filters.searchLabel' | translate }}</span>
+            <input
+              [ngModel]="searchQuery"
+              (ngModelChange)="updateSearchQuery($event)"
+              type="text"
+              [placeholder]="'pages.projects.filters.searchPlaceholder' | translate"
+              class="ui-input rounded-full"
+            />
+          </label>
+
+          <div class="relative min-w-0 space-y-2">
+            <span class="block ui-kicker">{{ 'pages.projects.filters.technologiesLabel' | translate }}</span>
+            <button
+              type="button"
+              (click)="toggleSkillMenu()"
+              class="ui-btn ui-btn-secondary flex min-h-12 w-full min-w-0 items-center justify-between gap-3 rounded-full px-4 py-3 text-left text-sm"
+              [attr.aria-expanded]="isSkillMenuOpen"
+            >
+              <span class="min-w-0 flex-1 truncate pr-3">{{ skillFilterLabel }}</span>
+              <span class="text-lg leading-none ui-text-soft">{{ isSkillMenuOpen ? '−' : '+' }}</span>
+            </button>
+
+            <div
+              *ngIf="isSkillMenuOpen"
+              class="ui-panel static mt-2 w-full rounded-[1.5rem] p-4 md:absolute md:right-0 md:z-20 md:max-h-[min(28rem,calc(100vh-12rem))] md:w-[min(32rem,calc(100vw-3rem))] md:overflow-y-auto"
+            >
+              <div class="mb-4 flex items-center justify-between gap-3">
+                <p class="text-sm font-semibold ui-text-strong">{{ 'pages.projects.filters.selectTechnologies' | translate }}</p>
+                <button
+                  type="button"
+                  (click)="closeSkillMenu()"
+                  class="text-sm font-medium ui-text-soft transition hover:[color:var(--ui-text)]"
+                >
+                  {{ 'common.actions.done' | translate }}
+                </button>
+              </div>
+
+              <div class="grid max-h-[18rem] gap-2 overflow-y-auto pr-1 sm:grid-cols-2 md:max-h-none md:overflow-visible md:pr-0">
+                <label
+                  *ngFor="let filter of availableSkillFilters"
+                  class="ui-card-soft flex min-w-0 cursor-pointer items-center justify-between gap-3 rounded-2xl px-3 py-3 transition hover:[border-color:var(--ui-border)] hover:[background:var(--ui-surface-soft)]"
+                >
+                  <span class="flex min-w-0 items-center gap-3">
+                    <input
+                      type="checkbox"
+                      [checked]="isSkillSelected(filter.name)"
+                      (change)="toggleSkillFilter(filter.name)"
+                      class="h-4 w-4 rounded"
+                      style="accent-color: var(--ui-primary);"
+                    />
+                    <span class="min-w-0 break-words text-sm font-medium ui-text-muted">{{ filter.name }}</span>
+                  </span>
+                  <span class="text-xs font-semibold ui-text-soft">{{ filter.projectCount }}</span>
+                </label>
+              </div>
+
+              <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-4" style="border-color: var(--ui-border-soft);">
+                <p class="text-xs ui-text-soft">{{ 'pages.projects.filters.helper' | translate }}</p>
+                <button
+                  type="button"
+                  (click)="clearSkillFilters()"
+                  class="text-sm font-semibold ui-text-muted transition hover:[color:var(--ui-text)]"
+                >
+                  {{ 'pages.projects.filters.clearTechnologies' | translate }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <p class="text-center text-sm ui-text-muted">{{ 'pages.projects.summary' | translate:{ shown: visibleProjectCount, total: filteredProjects.length } }}</p>
+
+        <section *ngIf="filteredProjects.length; else emptyResults" class="space-y-8">
+          <section *ngIf="featuredProjects.length" class="space-y-3">
+            <div class="space-y-1">
+              <p class="ui-kicker">{{ 'pages.projects.featured.kicker' | translate }}</p>
+              <h2 class="ui-title-card text-2xl">{{ 'pages.projects.featured.title' | translate }}</h2>
+            </div>
+
+            <app-project-card [project]="featuredProjects[0]" [featured]="true"></app-project-card>
+          </section>
+
+          <section *ngIf="browseableProjects.length" class="space-y-3">
+            <div>
+              <h2 class="ui-title-card text-2xl">{{ 'pages.projects.browseTitle' | translate }}</h2>
+            </div>
+
+            <div class="grid gap-5 lg:grid-cols-2">
+              <app-project-card *ngFor="let project of paginatedBrowseableProjects" [project]="project"></app-project-card>
+            </div>
+
+            <nav
+              *ngIf="hasProjectPagination"
+              class="ui-pagination"
+              [attr.aria-label]="'pages.projects.pagination.label' | translate"
+            >
+              <button
+                type="button"
+                class="ui-pagination__button"
+                [disabled]="currentBrowsePage === 1"
+                (click)="goToPreviousBrowsePage()"
+              >
+                {{ 'common.pagination.previous' | translate }}
+              </button>
+
+              <div class="ui-pagination__pages">
+                <button
+                  *ngFor="let page of browsePageNumbers"
+                  type="button"
+                  class="ui-pagination__page"
+                  [class.ui-pagination__page--active]="page === currentBrowsePage"
+                  [attr.aria-current]="page === currentBrowsePage ? 'page' : null"
+                  [attr.aria-label]="'common.pagination.goToPage' | translate:{ page: page }"
+                  (click)="goToBrowsePage(page)"
+                >
+                  {{ page }}
+                </button>
+              </div>
+
+              <button
+                type="button"
+                class="ui-pagination__button"
+                [disabled]="currentBrowsePage === totalBrowsePages"
+                (click)="goToNextBrowsePage()"
+              >
+                {{ 'common.pagination.next' | translate }}
+              </button>
+            </nav>
+          </section>
+        </section>
+
+        <ng-template #emptyResults>
+          <app-ui-empty-state
+            [title]="'pages.projects.empty.noMatchTitle' | translate"
+            [description]="'pages.projects.empty.noMatchDescription' | translate"
+            [hasActions]="true"
+          >
+            <div actions>
+              <app-ui-button appearance="secondary" type="button" (click)="resetFilters()">{{ 'pages.projects.filters.reset' | translate }}</app-ui-button>
+            </div>
+          </app-ui-empty-state>
+        </ng-template>
+      </ng-container>
+    </div>
+  </section>
+</div>

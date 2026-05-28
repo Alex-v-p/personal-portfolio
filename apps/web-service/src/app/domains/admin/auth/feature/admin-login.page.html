@@ -1,0 +1,51 @@
+<div class="mx-auto flex min-h-[70vh] max-w-5xl items-center justify-center">
+  <section class="ui-panel w-full max-w-md p-8">
+    <div class="space-y-3 text-center">
+      <h1 class="ui-title-section">Admin CMS login</h1>
+      <p class="text-sm leading-6 ui-text-muted">
+        Sign in to manage projects, blog posts, profile content, and contact messages.
+      </p>
+    </div>
+
+    <form class="mt-8 space-y-5" (ngSubmit)="submit()" autocomplete="off">
+      <label class="block space-y-2">
+        <span class="ui-field-label">Email</span>
+        <input
+          [(ngModel)]="email"
+          name="email"
+          type="email"
+          required
+          autocomplete="off"
+          autocapitalize="off"
+          autocorrect="off"
+          spellcheck="false"
+          class="ui-input"
+        />
+      </label>
+
+      <label class="block space-y-2">
+        <span class="ui-field-label">Password</span>
+        <input
+          [(ngModel)]="password"
+          name="password"
+          type="password"
+          required
+          autocomplete="new-password"
+          class="ui-input"
+        />
+      </label>
+
+      <p *ngIf="errorMessage" class="ui-alert ui-alert-danger">
+        {{ errorMessage }}
+      </p>
+
+      <button
+        type="submit"
+        [disabled]="isSubmitting"
+        class="ui-btn ui-btn-primary w-full"
+      >
+        {{ isSubmitting ? 'Signing in…' : 'Sign in to the CMS' }}
+      </button>
+    </form>
+  </section>
+</div>

@@ -1,26 +1,66 @@
 from __future__ import annotations
 
+import pyotp
 from fastapi.testclient import TestClient
 
-from app.services.github_stats_sync import SyncedGithubContributionDay, SyncedGithubSnapshot
+from app.domains.github.sync import SyncedGithubContributionDay, SyncedGithubSnapshot
 
 
 ADMIN_EMAIL = 'admin@example.com'
 ADMIN_PASSWORD = 'test-admin-pass'
 
 
-def _admin_token(client: TestClient) -> str:
+def _login_admin(client: TestClient):
     response = client.post('/api/admin/auth/login', json={'email': ADMIN_EMAIL, 'password': ADMIN_PASSWORD})
     assert response.status_code == 200
-    return response.json()['accessToken']
+    return response
 
 
-def test_admin_login_returns_bearer_token(client: TestClient) -> None:
-    response = client.post('/api/admin/auth/login', json={'email': ADMIN_EMAIL, 'password': ADMIN_PASSWORD})
-    assert response.status_code == 200
+def _admin_headers(client: TestClient) -> dict[str, str]:
+    response = _login_admin(client)
     body = response.json()
-    assert body['tokenType'] == 'bearer'
+    csrf_headers = {'X-Portfolio-CSRF': body['csrfToken']}
+
+    if body.get('mfaSetupRequired'):
+        setup = client.post('/api/admin/auth/mfa/setup', headers=csrf_headers)
+        assert setup.status_code == 200
+        setup_body = setup.json()
+        code = pyotp.TOTP(setup_body['manualEntryKey']).now()
+        confirm = client.post('/api/admin/auth/mfa/setup/confirm', headers=csrf_headers, json={'code': code})
+        assert confirm.status_code == 200
+        return {'X-Portfolio-CSRF': confirm.json()['session']['csrfToken']}
+
+    return {'X-Portfolio-CSRF': body['csrfToken']}
+
+
+def test_admin_login_returns_cookie_session_payload(client: TestClient) -> None:
+    response = _login_admin(client)
+    body = response.json()
+    assert body['csrfToken']
+    assert 'portfolio_admin_session' in response.cookies
     assert body['user']['email'] == ADMIN_EMAIL
+    assert body['mfaSetupRequired'] is True
+    assert body['mfaRequired'] is False
+
+
+def test_admin_can_enroll_totp_mfa_and_receive_backup_codes(client: TestClient) -> None:
+    login_response = _login_admin(client)
+    login_body = login_response.json()
+    headers = {'X-Portfolio-CSRF': login_body['csrfToken']}
+
+    setup_response = client.post('/api/admin/auth/mfa/setup', headers=headers)
+    assert setup_response.status_code == 200
+    setup_body = setup_response.json()
+    assert setup_body['manualEntryKey']
+    assert setup_body['qrCodeDataUrl'].startswith('data:image/svg+xml;base64,')
+
+    code = pyotp.TOTP(setup_body['manualEntryKey']).now()
+    confirm_response = client.post('/api/admin/auth/mfa/setup/confirm', headers=headers, json={'code': code})
+    assert confirm_response.status_code == 200
+    confirm_body = confirm_response.json()
+    assert len(confirm_body['backupCodes']) >= 8
+    assert confirm_body['session']['isMfaVerified'] is True
+    assert confirm_body['session']['mfaSetupRequired'] is False
 
 
 def test_admin_endpoints_require_auth(client: TestClient) -> None:
@@ -28,9 +68,42 @@ def test_admin_endpoints_require_auth(client: TestClient) -> None:
     assert response.status_code == 401
 
 
+
+
+def test_admin_write_endpoints_require_csrf(client: TestClient) -> None:
+    response = client.post('/api/admin/auth/login', json={'email': ADMIN_EMAIL, 'password': ADMIN_PASSWORD})
+    assert response.status_code == 200
+
+    blocked = client.post('/api/admin/blog-tags', json={'name': 'No CSRF', 'slug': 'no-csrf'})
+    assert blocked.status_code == 403
+
+
+
+def test_admin_logout_revokes_the_current_session(client: TestClient) -> None:
+    headers = _admin_headers(client)
+
+    authenticated = client.get('/api/admin/reference-data', headers=headers)
+    assert authenticated.status_code == 200
+
+    logout_response = client.post('/api/admin/auth/logout', headers=headers)
+    assert logout_response.status_code == 204
+
+    after_logout = client.get('/api/admin/reference-data', headers=headers)
+    assert after_logout.status_code == 401
+
+
+
+def test_admin_login_is_rate_limited_after_repeated_failures(client: TestClient) -> None:
+    for _ in range(5):
+        response = client.post('/api/admin/auth/login', json={'email': ADMIN_EMAIL, 'password': 'wrong-password'})
+        assert response.status_code == 401
+
+    blocked = client.post('/api/admin/auth/login', json={'email': ADMIN_EMAIL, 'password': 'wrong-password'})
+    assert blocked.status_code == 429
+    assert blocked.headers.get('Retry-After')
+
 def test_admin_can_create_update_and_delete_project(client: TestClient) -> None:
-    token = _admin_token(client)
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = _admin_headers(client)
     reference = client.get('/api/admin/reference-data', headers=headers)
     assert reference.status_code == 200
     skill_id = reference.json()['skills'][0]['id']
@@ -40,9 +113,13 @@ def test_admin_can_create_update_and_delete_project(client: TestClient) -> None:
         headers=headers,
         json={
             'title': 'Admin created project',
+            'titleNl': 'Project aangemaakt in de CMS',
             'teaser': 'A project created from the admin CMS.',
+            'teaserNl': 'Een project aangemaakt vanuit de admin-CMS.',
             'summary': 'CMS project summary',
+            'summaryNl': 'CMS projectsamenvatting',
             'descriptionMarkdown': '## CMS body',
+            'descriptionMarkdownNl': '## CMS inhoud',
             'coverImageFileId': None,
             'githubUrl': 'https://github.com/shuzu/admin-created-project',
             'githubRepoOwner': 'shuzu',
@@ -52,7 +129,9 @@ def test_admin_can_create_update_and_delete_project(client: TestClient) -> None:
             'startedOn': '2026-01-01',
             'endedOn': None,
             'durationLabel': '2 weeks',
+            'durationLabelNl': '2 weken',
             'status': 'In progress',
+            'statusNl': 'Bezig',
             'state': 'published',
             'isFeatured': False,
             'sortOrder': 88,
@@ -63,6 +142,7 @@ def test_admin_can_create_update_and_delete_project(client: TestClient) -> None:
     assert create_response.status_code == 201
     created = create_response.json()
     assert created['slug'] == 'admin-created-project'
+    assert created['titleNl'] == 'Project aangemaakt in de CMS'
     assert created['skillIds'] == [skill_id]
 
     update_response = client.put(
@@ -71,9 +151,13 @@ def test_admin_can_create_update_and_delete_project(client: TestClient) -> None:
         json={
             'slug': 'admin-created-project-updated',
             'title': 'Admin created project updated',
+            'titleNl': 'Project bijgewerkt in de CMS',
             'teaser': 'Updated teaser',
+            'teaserNl': 'Bijgewerkte teaser',
             'summary': 'Updated summary',
+            'summaryNl': 'Bijgewerkte samenvatting',
             'descriptionMarkdown': 'Updated markdown',
+            'descriptionMarkdownNl': 'Bijgewerkte markdown',
             'coverImageFileId': None,
             'githubUrl': 'https://github.com/shuzu/admin-created-project-updated',
             'githubRepoOwner': 'shuzu',
@@ -83,7 +167,9 @@ def test_admin_can_create_update_and_delete_project(client: TestClient) -> None:
             'startedOn': '2026-01-01',
             'endedOn': '2026-01-20',
             'durationLabel': '3 weeks',
+            'durationLabelNl': '3 weken',
             'status': 'Completed',
+            'statusNl': 'Voltooid',
             'state': 'completed',
             'isFeatured': True,
             'sortOrder': 77,
@@ -94,6 +180,7 @@ def test_admin_can_create_update_and_delete_project(client: TestClient) -> None:
     assert update_response.status_code == 200
     updated = update_response.json()
     assert updated['slug'] == 'admin-created-project-updated'
+    assert updated['titleNl'] == 'Project bijgewerkt in de CMS'
     assert updated['isFeatured'] is True
 
     delete_response = client.delete(f"/api/admin/projects/{created['id']}", headers=headers)
@@ -101,8 +188,7 @@ def test_admin_can_create_update_and_delete_project(client: TestClient) -> None:
 
 
 def test_admin_can_manage_blog_posts(client: TestClient) -> None:
-    token = _admin_token(client)
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = _admin_headers(client)
 
     first_tag_response = client.post(
         '/api/admin/blog-tags',
@@ -141,6 +227,8 @@ def test_admin_can_manage_blog_posts(client: TestClient) -> None:
     assert create_response.status_code == 201
     created = create_response.json()
     assert created['slug'] == 'cms-launch-notes'
+    assert created['titleNl'] is None
+    assert created['coverImageAltNl'] is None
     assert 'Admin CMS' in created['tagNames']
     assert first_tag_id in created['tagIds']
 
@@ -158,36 +246,50 @@ def test_admin_can_manage_blog_posts(client: TestClient) -> None:
         json={
             'slug': 'cms-launch-notes-published',
             'title': 'CMS launch notes published',
+            'titleNl': 'CMS lanceringsnotities gepubliceerd',
             'excerpt': 'Published excerpt',
+            'excerptNl': 'Gepubliceerd uittreksel',
             'contentMarkdown': '# Published',
+            'contentMarkdownNl': '# Gepubliceerd',
             'coverImageFileId': None,
             'coverImageAlt': 'Published article cover',
+            'coverImageAltNl': 'Omslagafbeelding van het gepubliceerde artikel',
             'readingTimeMinutes': 5,
             'status': 'published',
             'isFeatured': True,
             'publishedAt': '2026-02-01T10:00:00+00:00',
             'seoTitle': 'Published CMS launch notes',
+            'seoTitleNl': 'Gepubliceerde CMS lanceringsnotities',
             'seoDescription': 'Published admin-created post',
+            'seoDescriptionNl': 'Gepubliceerde beheerpost',
             'tagIds': [first_tag_id, third_tag_id],
         },
     )
     assert update_response.status_code == 200
     updated = update_response.json()
     assert updated['status'] == 'published'
+    assert updated['titleNl'] == 'CMS lanceringsnotities gepubliceerd'
     assert updated['isFeatured'] is True
     assert 'Admin FastAPI' in updated['tagNames']
 
 
 def test_admin_can_manage_taxonomy_experience_navigation_and_stats(client: TestClient) -> None:
-    token = _admin_token(client)
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = _admin_headers(client)
 
     category_response = client.post(
         '/api/admin/skill-categories',
         headers=headers,
-        json={'name': 'Backend', 'description': 'Backend skills', 'sortOrder': 25},
+        json={
+            'name': 'Backend',
+            'nameNl': 'Backend',
+            'description': 'Backend skills',
+            'descriptionNl': 'Backendvaardigheden',
+            'iconKey': 'server',
+            'sortOrder': 25,
+        },
     )
     assert category_response.status_code == 201
+    assert category_response.json()['iconKey'] == 'server'
     category_id = category_response.json()['id']
 
     skill_response = client.post(
@@ -211,19 +313,23 @@ def test_admin_can_manage_taxonomy_experience_navigation_and_stats(client: TestC
         json={
             'organizationName': 'OpenAI',
             'roleTitle': 'Builder',
+            'roleTitleNl': 'Bouwer',
             'location': 'Remote',
             'experienceType': 'work',
             'startDate': '2026-01-01',
             'endDate': None,
             'isCurrent': True,
             'summary': 'Building portfolio CMS features',
+            'summaryNl': 'Portfolio CMS-functies bouwen',
             'descriptionMarkdown': 'Experience body',
+            'descriptionMarkdownNl': 'Ervaringsinhoud',
             'logoFileId': None,
             'sortOrder': 5,
             'skillIds': [skill_id],
         },
     )
     assert experience_response.status_code == 201
+    assert experience_response.json()['roleTitleNl'] == 'Bouwer'
     assert experience_response.json()['skills'][0]['id'] == skill_id
 
     navigation_response = client.post(
@@ -231,6 +337,7 @@ def test_admin_can_manage_taxonomy_experience_navigation_and_stats(client: TestC
         headers=headers,
         json={
             'label': 'Admin',
+            'labelNl': 'Beheer',
             'routePath': '/admin',
             'isExternal': False,
             'sortOrder': 99,
@@ -238,6 +345,7 @@ def test_admin_can_manage_taxonomy_experience_navigation_and_stats(client: TestC
         },
     )
     assert navigation_response.status_code == 201
+    assert navigation_response.json()['labelNl'] == 'Beheer'
     assert navigation_response.json()['routePath'] == '/admin'
 
     snapshot_response = client.post(
@@ -276,8 +384,7 @@ def test_admin_can_manage_taxonomy_experience_navigation_and_stats(client: TestC
 
 
 def test_admin_can_update_profile(client: TestClient) -> None:
-    token = _admin_token(client)
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = _admin_headers(client)
     current_profile = client.get('/api/admin/profile', headers=headers)
     assert current_profile.status_code == 200
     profile = current_profile.json()
@@ -289,8 +396,11 @@ def test_admin_can_update_profile(client: TestClient) -> None:
             'firstName': 'Alex',
             'lastName': 'van Poppel',
             'headline': 'Software Engineer & CMS owner',
+            'headlineNl': 'Software Engineer & CMS-beheerder',
             'shortIntro': 'Updated intro from the admin profile editor.',
+            'shortIntroNl': 'Bijgewerkte intro vanuit de profiel-editor.',
             'longBio': 'Longer bio updated through the admin CMS.',
+            'longBioNl': 'Langere bio bijgewerkt via de admin-CMS.',
             'location': 'Belgium',
             'email': 'hello@shuzu.dev',
             'phone': profile['phone'],
@@ -298,8 +408,10 @@ def test_admin_can_update_profile(client: TestClient) -> None:
             'heroImageFileId': profile['heroImageFileId'],
             'resumeFileId': profile['resumeFileId'],
             'ctaPrimaryLabel': 'View resume',
+            'ctaPrimaryLabelNl': 'Bekijk cv',
             'ctaPrimaryUrl': 'media://resume',
             'ctaSecondaryLabel': 'Email me',
+            'ctaSecondaryLabelNl': 'Mail mij',
             'ctaSecondaryUrl': 'mailto:hello@shuzu.dev',
             'isPublic': True,
             'socialLinks': [
@@ -326,6 +438,8 @@ def test_admin_can_update_profile(client: TestClient) -> None:
     assert update_response.status_code == 200
     updated = update_response.json()
     assert updated['headline'] == 'Software Engineer & CMS owner'
+    assert updated['headlineNl'] == 'Software Engineer & CMS-beheerder'
+    assert updated['ctaPrimaryLabelNl'] == 'Bekijk cv'
     assert len(updated['socialLinks']) == 2
 
 
@@ -341,8 +455,7 @@ def test_admin_can_read_and_mark_contact_messages(client: TestClient) -> None:
         },
     )
 
-    token = _admin_token(client)
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = _admin_headers(client)
     response = client.get('/api/admin/contact-messages', headers=headers)
     assert response.status_code == 200
     message = response.json()['items'][0]
@@ -358,8 +471,7 @@ def test_admin_can_read_and_mark_contact_messages(client: TestClient) -> None:
 
 
 def test_admin_can_refresh_github_snapshot_from_github(client: TestClient, monkeypatch) -> None:
-    token = _admin_token(client)
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = _admin_headers(client)
 
     call_count = {'value': 0}
 
@@ -401,8 +513,7 @@ def test_admin_can_refresh_github_snapshot_from_github(client: TestClient, monke
 
 
 def test_admin_can_rebuild_assistant_knowledge_index(client: TestClient) -> None:
-    token = _admin_token(client)
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = _admin_headers(client)
 
     status_response = client.get('/api/admin/assistant/knowledge', headers=headers)
     assert status_response.status_code == 200
@@ -416,3 +527,188 @@ def test_admin_can_rebuild_assistant_knowledge_index(client: TestClient) -> None
     assert rebuilt['totalDocuments'] >= 1
     assert rebuilt['totalChunks'] >= rebuilt['totalDocuments']
     assert rebuilt['documentsBySourceType']
+
+
+
+def test_admin_refresh_returns_async_task_when_redis_queue_is_available(client: TestClient, monkeypatch) -> None:
+    from app.services.async_tasks import AdminTaskRecord
+
+    headers = _admin_headers(client)
+
+    class FakeQueue:
+        enabled = True
+        poll_after_ms = 1200
+
+        def enqueue(self, task_type: str, payload: dict[str, object]) -> AdminTaskRecord:
+            assert task_type == 'github-refresh'
+            assert payload['username'] == 'Alex-v-p'
+            return AdminTaskRecord(task_id='task-1', task_type=task_type, status='queued', submitted_at='2026-04-14T10:00:00+00:00')
+
+    monkeypatch.setattr('app.api.routes.admin.stats.get_admin_task_queue', lambda: FakeQueue())
+
+    response = client.post('/api/admin/github-snapshots/refresh', headers=headers, json={'username': 'Alex-v-p', 'pruneHistory': True})
+    assert response.status_code == 202
+    assert response.json() == {
+        'taskId': 'task-1',
+        'taskType': 'github-refresh',
+        'status': 'queued',
+        'pollAfterMs': 1200,
+    }
+
+
+def test_admin_can_fetch_async_task_status(client: TestClient, monkeypatch) -> None:
+    from app.services.async_tasks import AdminTaskRecord
+
+    headers = _admin_headers(client)
+
+    class FakeQueue:
+        def get(self, task_id: str) -> AdminTaskRecord | None:
+            assert task_id == 'task-1'
+            return AdminTaskRecord(
+                task_id='task-1',
+                task_type='assistant-knowledge-rebuild',
+                status='succeeded',
+                submitted_at='2026-04-14T10:00:00+00:00',
+                started_at='2026-04-14T10:00:01+00:00',
+                completed_at='2026-04-14T10:00:05+00:00',
+                result={'totalDocuments': 5, 'totalChunks': 12},
+            )
+
+    monkeypatch.setattr('app.api.routes.admin.tasks.get_admin_task_queue', lambda: FakeQueue())
+
+    response = client.get('/api/admin/tasks/task-1', headers=headers)
+    assert response.status_code == 200
+    assert response.json()['status'] == 'succeeded'
+    assert response.json()['result']['totalDocuments'] == 5
+
+
+def test_admin_site_activity_includes_retention_countdowns(client: TestClient) -> None:
+    from datetime import UTC, datetime, timedelta
+
+    from sqlalchemy.orm import Session
+
+    from app.db.models import AssistantConversation, AssistantMessage, AssistantRole, EventType, SiteEvent
+    from app.db.session import get_engine
+
+    now = datetime.now(UTC)
+    event_created_at = now - timedelta(days=10)
+    conversation_last_message_at = now - timedelta(days=4)
+    conversation_id = ''
+
+    with Session(get_engine()) as session:
+        conversation = AssistantConversation(
+            session_id='assistant-session-1',
+            started_at=conversation_last_message_at - timedelta(minutes=5),
+            last_message_at=conversation_last_message_at,
+        )
+        session.add(
+            SiteEvent(
+                visitor_id='visitor-retention',
+                session_id='visit-retention',
+                page_path='/assistant',
+                event_type=EventType.ASSISTANT_MESSAGE,
+                metadata_json={'conversation_id': None},
+                created_at=event_created_at,
+            )
+        )
+        session.add(conversation)
+        session.flush()
+        conversation_id = str(conversation.id)
+        session.add(
+            AssistantMessage(
+                conversation_id=conversation.id,
+                role=AssistantRole.USER,
+                message_text='How long until this disappears?',
+                created_at=conversation_last_message_at,
+            )
+        )
+        session.add(
+            SiteEvent(
+                visitor_id='visitor-retention',
+                session_id='visit-retention',
+                page_path='/assistant',
+                event_type=EventType.ASSISTANT_MESSAGE,
+                metadata_json={'conversation_id': conversation_id, 'used_fallback': False},
+                created_at=conversation_last_message_at,
+            )
+        )
+        session.commit()
+
+    headers = _admin_headers(client)
+    response = client.get('/api/admin/site-activity', headers=headers)
+    assert response.status_code == 200
+
+    body = response.json()
+    assert body['summary']['siteEventsRetentionDays'] == 90
+    assert body['summary']['assistantActivityRetentionDays'] == 90
+
+    tracked_event = next(item for item in body['events'] if item['visitorId'] == 'visitor-retention' and item['createdAt'] == event_created_at.isoformat())
+    assert tracked_event['retentionEndsAt'] == (event_created_at + timedelta(days=90)).isoformat()
+    assert tracked_event['secondsUntilRetentionEnd'] > 0
+
+    tracked_visitor = next(item for item in body['visitors'] if item['visitorId'] == 'visitor-retention')
+    assert tracked_visitor['retentionEndsAt'] == (conversation_last_message_at + timedelta(days=90)).isoformat()
+    assert tracked_visitor['secondsUntilRetentionEnd'] > 0
+
+    tracked_visit = next(item for item in body['visits'] if item['sessionId'] == 'visit-retention')
+    assert tracked_visit['retentionEndsAt'] == (conversation_last_message_at + timedelta(days=90)).isoformat()
+    assert tracked_visit['secondsUntilRetentionEnd'] > 0
+
+    tracked_conversation = next(item for item in body['assistantConversations'] if item['id'] == conversation_id)
+    assert tracked_conversation['retentionEndsAt'] == (conversation_last_message_at + timedelta(days=90)).isoformat()
+    assert tracked_conversation['secondsUntilRetentionEnd'] > 0
+
+
+
+def test_admin_github_snapshot_listing_includes_auto_refresh_countdown(client: TestClient, monkeypatch) -> None:
+    from datetime import datetime, timezone
+
+    from app.services.maintenance import MaintenanceJobStatus
+
+    headers = _admin_headers(client)
+
+    created_response = client.post(
+        '/api/admin/github-snapshots',
+        headers=headers,
+        json={
+            'snapshotDate': '2026-04-11',
+            'username': 'Alex-v-p',
+            'publicRepoCount': 12,
+            'followersCount': 10,
+            'followingCount': 5,
+            'totalStars': 22,
+            'totalCommits': 100,
+            'rawPayload': {'source': 'test'},
+            'contributionDays': [],
+        },
+    )
+    assert created_response.status_code == 201
+
+    next_run_at = datetime(2026, 4, 15, 9, 0, tzinfo=timezone.utc)
+    monkeypatch.setattr(
+        'app.domains.admin.repository.stats.MaintenanceJobInspector.github_auto_refresh_status',
+        lambda self, now=None: MaintenanceJobStatus(
+            enabled=True,
+            status='scheduled',
+            next_run_at=next_run_at,
+            seconds_until_next_run=3600,
+            last_attempt_at=datetime(2026, 4, 14, 8, 0, tzinfo=timezone.utc),
+            last_success_at=datetime(2026, 4, 14, 8, 0, tzinfo=timezone.utc),
+            last_failed_at=None,
+            last_error=None,
+        ),
+    )
+
+    response = client.get('/api/admin/github-snapshots', headers=headers)
+    assert response.status_code == 200
+    body = response.json()
+    assert body['autoRefreshEnabled'] is True
+    assert body['autoRefreshStatus'] == 'scheduled'
+    assert body['nextAutoRefreshAt'] == next_run_at.isoformat()
+    assert body['secondsUntilAutoRefresh'] == 3600
+
+    snapshot = next(item for item in body['items'] if item['username'] == 'Alex-v-p')
+    assert snapshot['autoRefreshEnabled'] is True
+    assert snapshot['autoRefreshStatus'] == 'scheduled'
+    assert snapshot['nextAutoRefreshAt'] == next_run_at.isoformat()
+    assert snapshot['secondsUntilAutoRefresh'] == 3600

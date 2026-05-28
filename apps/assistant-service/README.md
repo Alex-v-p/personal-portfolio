@@ -6,6 +6,7 @@ FastAPI service for the portfolio assistant.
 
 - reads indexed portfolio content from `knowledge_documents` and `knowledge_chunks`
 - stores conversations in the shared PostgreSQL database
+- uses Redis-backed async jobs for public chat responses when Redis is enabled
 - supports a default `mock` provider mode for local development
 - can be pointed at Ollama or an OpenAI-compatible / vLLM-style endpoint later
 - Docker Compose now starts the Ollama container by default, but the assistant still uses `mock` unless you set `ASSISTANT_PROVIDER_BACKEND=ollama`
@@ -19,7 +20,7 @@ FastAPI service for the portfolio assistant.
 
 ## CMS workflow
 
-The portfolio CMS rebuilds the assistant knowledge index through the portfolio API. After content changes, use the **Assistant** tab in the CMS to rebuild the searchable index.
+The portfolio CMS rebuilds the assistant knowledge index through the portfolio API. After content changes, use the **Assistant** tab in the CMS to rebuild the searchable index. The API now queues the indexing work in Redis and a worker container performs the rebuild outside the request lifecycle.
 
 
 Notes:

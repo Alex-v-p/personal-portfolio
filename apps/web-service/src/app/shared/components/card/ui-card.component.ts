@@ -6,16 +6,19 @@ import { Component, Input } from '@angular/core';
   templateUrl: './ui-card.component.html'
 })
 export class UiCardComponent {
-  @Input() padding: 'md' | 'lg' = 'md';
+  @Input() padding: 'none' | 'sm' | 'md' | 'lg' = 'md';
   @Input() featured = false;
 
   protected get cardClasses(): string {
-    const base = 'min-w-0 rounded-[1.75rem] border border-stone-200 bg-white/85 shadow-[0_18px_48px_rgba(40,31,20,0.06)]';
-    const padding = this.padding === 'lg' ? 'p-8' : 'p-6';
-    const featured = this.featured
-      ? 'border-stone-300 bg-gradient-to-b from-white/95 to-stone-100/90'
-      : '';
+    const base = 'min-w-0 ui-card-surface';
+    const padding =
+      this.padding === 'none' ? 'p-0' :
+      this.padding === 'sm' ? 'p-4' :
+      this.padding === 'lg' ? 'p-8' :
+      'p-6';
 
-    return `${base} ${padding} ${featured}`.trim();
+    const featured = this.featured ? ' ui-card-featured' : '';
+
+    return `${base} ${padding}${featured}`;
   }
 }

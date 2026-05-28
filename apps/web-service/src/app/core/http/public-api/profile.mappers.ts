@@ -1,0 +1,248 @@
+import { ContactMethod } from '@domains/profile/model/contact-method.model';
+import { ExpertiseGroup, ExpertiseSkill, Profile } from '@domains/profile/model/profile.model';
+import { NavigationItem, SiteShellData } from '@domains/profile/model/site-shell.model';
+import { SocialLink } from '@domains/profile/model/social-link.model';
+
+import { normalizeMedia } from './common.mappers';
+import { resolveIconKey } from '@shared/icons';
+import { ContactMethodApi, NavigationItemApi, ProfileApi, SiteShellApi, SocialLinkApi } from './profile.contracts';
+import { ExpertiseGroupApi, ExpertiseSkillApi } from './common.contracts';
+
+export function normalizeNavigationItem(item: NavigationItemApi): NavigationItem {
+  return {
+    id: item.id,
+    label: item.label,
+    routePath: item.routePath,
+    isExternal: item.isExternal,
+    sortOrder: item.sortOrder,
+    isVisible: item.isVisible,
+  };
+}
+
+export function normalizeSocialLinks(items: SocialLinkApi[] | null | undefined): SocialLink[] {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  return items.map((link) => ({
+    id: link.id,
+    profileId: link.profileId,
+    platform: link.platform,
+    label: link.label,
+    url: link.url,
+    iconKey: resolveIconKey(link.iconKey) ?? resolveIconKey(link.platform) ?? '',
+    sortOrder: link.sortOrder,
+    isVisible: link.isVisible,
+  }));
+}
+
+export function normalizeContactMethods(items: ContactMethodApi[] | null | undefined): ContactMethod[] {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  return items.map((item) => ({
+    id: item.id,
+    platform: item.platform,
+    label: item.label,
+    value: item.value,
+    href: item.href,
+    actionLabel: item.actionLabel,
+    iconKey: resolveIconKey(item.iconKey) ?? resolveIconKey(item.platform) ?? resolveIconKey(item.label) ?? undefined,
+    description: item.description ?? undefined,
+    sortOrder: item.sortOrder,
+    isVisible: item.isVisible,
+  }));
+}
+
+export function normalizeExpertiseSkill(skill: ExpertiseSkillApi | null | undefined): ExpertiseSkill | null {
+  if (!skill?.name) {
+    return null;
+  }
+
+  return {
+    name: skill.name,
+    yearsOfExperience: skill.yearsOfExperience ?? null,
+    proficiencyLabel: skill.proficiencyLabel ?? null,
+    displayLabel: skill.displayLabel ?? skill.proficiencyLabel ?? null,
+    iconKey: resolveIconKey(skill.iconKey) ?? resolveIconKey(skill.name) ?? undefined,
+  };
+}
+
+export function normalizeExpertiseGroups(items: ExpertiseGroupApi[] | null | undefined): ExpertiseGroup[] {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  return items.map((group) => {
+    const normalizedSkills = Array.isArray(group.skills)
+      ? group.skills
+          .map((skill) => normalizeExpertiseSkill(skill))
+          .filter((skill): skill is ExpertiseSkill => skill !== null)
+      : [];
+
+    const fallbackSkills = normalizedSkills.length
+      ? normalizedSkills
+      : (group.tags ?? []).map((tag) => parseExpertiseSkillFromTag(tag));
+
+    return {
+      title: group.title,
+      iconKey: resolveIconKey(group.iconKey) ?? resolveIconKey(group.title) ?? undefined,
+      tags: Array.isArray(group.tags) ? group.tags : [],
+      skills: fallbackSkills,
+    };
+  });
+}
+
+export function normalizeProfile(profile: ProfileApi): Profile {
+  const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(' ').trim();
+  const longBio = profile.longBio ?? '';
+  const aiNotice = profile.aiNotice ?? '';
+  const shortIntro = profile.shortIntro ?? '';
+  const headline = profile.headline ?? 'Portfolio Builder';
+  const socialLinks = normalizeSocialLinks(profile.socialLinks);
+  const heroActions = [
+    toHeroAction(profile.ctaPrimaryLabel, profile.ctaPrimaryUrl, 'primary'),
+    toHeroAction(profile.ctaSecondaryLabel, profile.ctaSecondaryUrl, 'secondary'),
+  ].filter((action): action is Profile['heroActions'][number] => action !== null);
+
+  const longBioParagraphs = longBio
+    .split(/\n\s*\n/g)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+
+  const introParagraphs = (Array.isArray(profile.introParagraphs) && profile.introParagraphs.length
+    ? profile.introParagraphs
+    : longBioParagraphs
+  )
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean)
+    .filter((paragraph, index, items) => items.indexOf(paragraph) === index)
+    .filter((paragraph) => paragraph !== shortIntro.trim());
+
+  const avatarMedia = normalizeMedia(profile.avatar);
+  const heroImageMedia = normalizeMedia(profile.heroImage);
+  const resumeMedia = normalizeMedia(profile.resume);
+
+  return {
+    id: profile.id,
+    firstName: profile.firstName,
+    lastName: profile.lastName,
+    name: fullName,
+    headline,
+    role: headline,
+    greeting: `Hi, I'm ${profile.firstName} !`,
+    location: profile.location ?? '',
+    email: profile.email ?? '',
+    phone: profile.phone ?? '',
+    shortIntro,
+    longBio,
+    aiNotice,
+    heroTitle: `${headline}`,
+    summary: shortIntro || longBio,
+    shortBio: shortIntro || longBio,
+    footerDescription: shortIntro || profile.footerDescription || longBio,
+    avatarFileId: profile.avatarFileId ?? null,
+    heroImageFileId: profile.heroImageFileId ?? null,
+    resumeFileId: profile.resumeFileId ?? null,
+    resumeFileIdNl: profile.resumeFileIdNl ?? null,
+    avatarUrl: avatarMedia?.url ?? '',
+    heroImageUrl: heroImageMedia?.url ?? '',
+    resumeUrl: resumeMedia?.downloadUrl ?? resumeMedia?.url ?? '',
+    skills: Array.isArray(profile.skills) ? profile.skills : [],
+    expertiseGroups: normalizeExpertiseGroups(profile.expertiseGroups),
+    introParagraphs,
+    availability: Array.isArray(profile.availability) ? profile.availability : [],
+    heroActions,
+    socialLinks,
+    createdAt: profile.createdAt,
+    updatedAt: profile.updatedAt,
+  };
+}
+
+export function normalizeSiteShell(shell: SiteShellApi): SiteShellData {
+  return {
+    navigation: (shell.navigation.items ?? []).map((item) => normalizeNavigationItem(item)),
+    profile: normalizeProfile(shell.profile),
+    footerText: shell.footerText ?? '',
+    contactMethods: normalizeContactMethods(shell.contactMethods),
+  };
+}
+
+function parseExpertiseSkillFromTag(tag: string): ExpertiseSkill {
+  const trimmedTag = tag.trim();
+  const match = trimmedTag.match(/^(.*?)\s*[-·]\s*(\d+)y$/i);
+
+  if (!match) {
+    const labelMatch = trimmedTag.match(/^(.*?)\s*[-·]\s*(.+)$/);
+
+    if (labelMatch) {
+      return {
+        name: labelMatch[1].trim(),
+        yearsOfExperience: null,
+        proficiencyLabel: labelMatch[2].trim(),
+        displayLabel: labelMatch[2].trim(),
+        iconKey: undefined,
+      };
+    }
+
+    return { name: trimmedTag, yearsOfExperience: null, proficiencyLabel: null, displayLabel: null, iconKey: undefined };
+  }
+
+  return {
+    name: match[1].trim(),
+    yearsOfExperience: Number.parseInt(match[2], 10) || null,
+    proficiencyLabel: null,
+    displayLabel: `${match[2]}y`,
+    iconKey: undefined,
+  };
+}
+
+function toHeroAction(
+  label: string | null | undefined,
+  url: string | null | undefined,
+  appearance: 'primary' | 'secondary' | 'ghost'
+): Profile['heroActions'][number] | null {
+  if (!label || !url) {
+    return null;
+  }
+
+  const trimmedUrl = url.trim();
+
+  if (isInternalAppRoute(trimmedUrl)) {
+    return {
+      label,
+      appearance,
+      routerLink: trimmedUrl,
+      openInNewTab: false,
+    };
+  }
+
+  return {
+    label,
+    appearance,
+    href: trimmedUrl,
+    openInNewTab: shouldOpenHeroActionInNewTab(trimmedUrl),
+  };
+}
+
+function isInternalAppRoute(url: string): boolean {
+  if (!url.startsWith('/') || url.startsWith('//')) {
+    return false;
+  }
+
+  if (/^\/(api|assets|media|uploads|files)\b/i.test(url)) {
+    return false;
+  }
+
+  const [path] = url.split(/[?#]/, 1);
+  return /^(\/|\/(nl|en)?\/?(about|assistant|blog|contact|experience|projects|stats)?(?:\/.*)?$)$/i.test(path);
+}
+
+function shouldOpenHeroActionInNewTab(url: string): boolean {
+  if (url.startsWith('/')) {
+    return false;
+  }
+
+  return !url.startsWith('mailto:') && !url.startsWith('tel:');
+}

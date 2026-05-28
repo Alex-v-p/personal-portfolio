@@ -1,87 +1,183 @@
-<div class="min-h-screen bg-stone-100 text-stone-900">
-  <header *ngIf="!isAdminRoute" [class]="headerClasses">
-    <div class="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 rounded-full border border-stone-300 bg-stone-200/90 px-3 py-2 shadow-[0_10px_25px_rgba(40,31,20,0.08)] backdrop-blur">
-      <nav class="flex flex-1 flex-wrap items-center gap-2">
-        <ng-container *ngFor="let item of quickLinks">
-          <a
-            *ngIf="!item.isExternal; else externalHeaderLink"
-            [routerLink]="item.path"
-            routerLinkActive="bg-white text-stone-950 shadow-sm"
-            [routerLinkActiveOptions]="{ exact: item.path === '/' }"
-            class="inline-flex min-h-10 items-center rounded-full px-4 text-sm font-medium text-stone-600 transition hover:bg-white/80 hover:text-stone-950"
-          >
-            {{ item.label }}
-          </a>
-          <ng-template #externalHeaderLink>
-            <a
-              [href]="item.path"
-              target="_blank"
-              rel="noreferrer noopener"
-              class="inline-flex min-h-10 items-center rounded-full px-4 text-sm font-medium text-stone-600 transition hover:bg-white/80 hover:text-stone-950"
-            >
-              {{ item.label }}
-            </a>
-          </ng-template>
-        </ng-container>
-      </nav>
+<div class="flex min-h-screen flex-col" [attr.data-skin]="isAdminRoute ? 'admin' : 'public'">
+  <header *ngIf="!isAdminRoute" id="site-navigation" [class]="headerClasses">
+    <div class="mx-auto max-w-6xl px-3 py-2 sm:px-0">
+      <div class="grid min-w-0 items-center gap-3 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+        <div aria-hidden="true" class="hidden lg:block"></div>
+
+        <div class="flex min-w-0 justify-center">
+          <div class="ui-nav-shell-small w-full px-3 py-3 sm:w-fit sm:max-w-full sm:px-5 sm:py-2 md:rounded-[var(--ui-radius-pill)]">
+            <nav class="grid grid-cols-2 gap-2 xs:grid-cols-3 sm:flex sm:flex-wrap sm:items-center sm:justify-center">
+              <ng-container *ngFor="let item of quickLinks">
+                <a
+                  *ngIf="!item.isExternal; else externalHeaderLink"
+                  [routerLink]="item.path"
+                  routerLinkActive="ui-nav-link-active"
+                  [routerLinkActiveOptions]="{ exact: item.path === '/' + currentLocale }"
+                  class="ui-nav-link w-full justify-center px-3 text-center sm:w-auto md:px-5 lg:px-8"
+                >
+                  {{ item.label }}
+                </a>
+
+                <ng-template #externalHeaderLink>
+                  <a
+                    [href]="item.path"
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    class="ui-nav-link w-full justify-center px-3 text-center sm:w-auto md:px-5 lg:px-8"
+                  >
+                    {{ item.label }}
+                  </a>
+                </ng-template>
+              </ng-container>
+            </nav>
+          </div>
+        </div>
+
+        <div class="flex min-w-0 justify-center lg:justify-end">
+          <div class="ui-nav-shell-small md:rounded-[var(--ui-radius-pill)] flex max-w-full flex-wrap items-center justify-center gap-2 px-3 py-2">
+            <span class="text-[10px] font-medium uppercase tracking-[0.14em] ui-text-soft">
+              {{ 'shell.language.label' | translate }}
+            </span>
+
+            <div class="inline-flex flex-wrap items-center justify-center gap-1.5">
+              <button
+                *ngFor="let locale of locales"
+                type="button"
+                [class]="localeToggleClasses(locale)"
+                (click)="switchLocale(locale)"
+                [attr.aria-pressed]="locale === currentLocale"
+                [attr.aria-label]="localeAriaLabel(locale)"
+              >
+                <img
+                  [src]="localeFlagUrl(locale)"
+                  alt=""
+                  aria-hidden="true"
+                  class="h-4 w-5 rounded-[0.2rem] object-cover ring-1 ring-black/10"
+                  width="20"
+                  height="16"
+                />
+                <span class="sr-only">{{ localeShortLabel(locale) }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </header>
 
-  <main class="px-4 py-10 sm:px-6 md:py-12 lg:px-8 lg:py-14">
-    <div class="mx-auto w-full max-w-6xl">
-      <router-outlet></router-outlet>
+  <button
+    *ngIf="isMobileNavigationCollapsed"
+    type="button"
+    class="ui-mobile-nav-peek fixed left-1/2 top-2 z-40 inline-flex -translate-x-1/2 items-center justify-center md:hidden"
+    aria-label="Show navigation"
+    aria-controls="site-navigation"
+    [attr.aria-expanded]="shellChrome.headerVisible"
+    (click)="expandMobileNavigation()"
+  >
+    <svg
+      aria-hidden="true"
+      class="ui-mobile-nav-peek-icon"
+      viewBox="0 0 20 20"
+      fill="none"
+    >
+      <path
+        d="M5 7.5L10 12.5L15 7.5"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  </button>
+
+  <main class="flex-1 px-4 py-10 sm:px-6 md:py-12 lg:px-8 lg:py-14">
+    <div [class]="mainContentContainerClasses">
+      <section *ngIf="showRouteSkeleton" [attr.aria-label]="'common.loading.page' | translate" class="grid min-h-[55vh] gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.8fr)]">
+        <div class="ui-panel-soft space-y-5 p-6">
+          <app-ui-skeleton className="h-8 w-48 rounded-full"></app-ui-skeleton>
+          <app-ui-skeleton className="h-14 w-full rounded-[1.75rem]"></app-ui-skeleton>
+          <app-ui-skeleton className="h-5 w-4/5 rounded-full"></app-ui-skeleton>
+          <div class="grid gap-3 md:grid-cols-2">
+            <app-ui-skeleton className="h-40 w-full rounded-[1.75rem]"></app-ui-skeleton>
+            <app-ui-skeleton className="h-40 w-full rounded-[1.75rem]"></app-ui-skeleton>
+          </div>
+        </div>
+
+        <div class="ui-panel-soft space-y-4 p-6">
+          <app-ui-skeleton className="h-6 w-32 rounded-full"></app-ui-skeleton>
+          <app-ui-skeleton className="h-24 w-full rounded-[1.5rem]"></app-ui-skeleton>
+          <app-ui-skeleton className="h-24 w-full rounded-[1.5rem]"></app-ui-skeleton>
+          <app-ui-skeleton className="h-12 w-40 rounded-full"></app-ui-skeleton>
+        </div>
+      </section>
+
+      <router-outlet (activate)="onRouteActivate()" (deactivate)="onRouteDeactivate()"></router-outlet>
     </div>
   </main>
 
-  <div *ngIf="!isAdminRoute" [class]="assistantButtonClasses">
-    <div *ngIf="isAssistantOpen" class="mb-4 w-[min(36rem,calc(100vw-1.5rem))] sm:w-[32rem] lg:w-[34rem]">
+  <div *ngIf="!isAdminRoute" [class]="assistantButtonClasses" class="flex flex-col items-end">
+    <div [class]="assistantPanelClasses">
       <app-assistant-panel mode="widget" (close)="closeAssistant()"></app-assistant-panel>
     </div>
 
-    <button type="button" (click)="toggleAssistant()" [attr.aria-expanded]="isAssistantOpen" aria-label="Toggle portfolio assistant" class="inline-flex items-center gap-3 rounded-[1.75rem] border border-stone-300 bg-white/95 px-4 py-3 shadow-[0_20px_40px_rgba(40,31,20,0.16)] backdrop-blur transition hover:-translate-y-0.5 hover:border-stone-400 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400">
-      <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-stone-900 text-sm font-semibold text-white">AI</span>
-      <span class="pr-1 text-sm font-semibold text-stone-900">{{ isAssistantOpen ? 'Close assistant' : 'Assistant' }}</span>
-    </button>
+    <ng-container *ngIf="assistantAvailability$ | async as availability">
+      <button type="button" (click)="toggleAssistant()" [attr.aria-expanded]="isAssistantOpen" [attr.aria-label]="'shell.assistant.toggle' | translate" [class]="assistantFabClasses">
+        <span class="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ui-btn-primary">
+          AI
+          <span
+            class="ui-status-dot absolute -right-0.5 -top-0.5 h-3.5 w-3.5 border-2 border-white"
+            [ngClass]="availability.mode === 'ready' ? 'ui-status-dot-ready' : availability.mode === 'fallback' ? 'ui-status-dot-fallback' : availability.mode === 'preview' ? 'ui-status-dot-preview' : availability.mode === 'offline' ? 'ui-status-dot-offline' : 'ui-status-dot-default'"
+          ></span>
+        </span>
+        <span class="grid pr-1 text-left leading-tight">
+          <span class="text-sm font-semibold ui-text-strong">{{ isAssistantOpen ? ('shell.assistant.close' | translate) : ('shell.assistant.title' | translate) }}</span>
+          <span class="text-xs ui-text-soft">{{ availability.label }}</span>
+        </span>
+      </button>
+    </ng-container>
   </div>
 
-  <footer *ngIf="!isAdminRoute" class="mt-16 border-t border-stone-300 bg-stone-200/70 px-4 py-10 sm:px-6 lg:px-8">
+  <footer *ngIf="!isAdminRoute" class="mt-16 border-t px-4 py-10 sm:px-6 lg:px-8" style="border-color: var(--ui-border); background: var(--ui-surface-soft);">
     <div class="mx-auto grid w-full max-w-6xl gap-8 md:grid-cols-[1.35fr_0.8fr_0.8fr_1fr]">
       <section class="space-y-3">
         <div class="flex items-center gap-3">
-          <img *ngIf="profile.avatarUrl; else avatarFallback" [src]="profile.avatarUrl" [alt]="profile.name || 'Profile avatar'" class="h-10 w-10 rounded-md object-cover" />
+          <img *ngIf="profile.avatarUrl; else avatarFallback" [src]="profile.avatarUrl" [alt]="profile.name || ('shell.profileAvatar' | translate)" class="h-10 w-10 rounded-full border border-stone-300 object-cover" />
           <ng-template #avatarFallback>
-            <span class="h-10 w-10 rounded-md bg-stone-500"></span>
+            <span class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-stone-300 bg-stone-200 text-xs font-semibold text-stone-700">{{ (profile.firstName.slice(0, 1) || profile.name.slice(0, 1) || "A") }}</span>
           </ng-template>
           <div>
-            <p class="text-sm font-semibold text-stone-950">{{ profile.name }}</p>
-            <p class="text-xs text-stone-600">{{ profile.role }} portfolio</p>
+            <p class="text-sm font-semibold ui-text-strong">{{ profile.name }}</p>
+            <p class="text-xs ui-text-muted">{{ profile.role }} {{ 'shell.portfolioSuffix' | translate }}</p>
           </div>
         </div>
-        <p class="max-w-sm text-sm leading-6 text-stone-600">{{ profile.footerDescription || shellData?.footerText }}</p>
-        <p class="text-sm text-stone-600">{{ profile.location }}</p>
+        <p class="max-w-sm text-sm leading-6 ui-text-muted">{{ profile.footerDescription || shellData?.footerText }}</p>
+        <p class="text-sm ui-text-muted">{{ profile.location }}</p>
+        <p *ngIf="profile.aiNotice" class="max-w-sm rounded-2xl border border-stone-200 bg-white/60 px-3 py-2 text-xs leading-5 ui-text-muted">
+          {{ profile.aiNotice }}
+        </p>
       </section>
 
       <section class="space-y-3">
-        <p class="text-sm font-semibold text-stone-950">Quick Links</p>
-        <div class="grid gap-2 text-sm text-stone-600">
+        <p class="text-sm font-semibold ui-text-strong">{{ 'shell.quickLinks' | translate }}</p>
+        <div class="grid gap-2 text-sm ui-text-muted">
           <ng-container *ngFor="let item of footerLinks">
-            <a *ngIf="!item.isExternal; else footerExternalLink" [routerLink]="item.path" class="transition hover:text-stone-950">{{ item.label }}</a>
+            <a *ngIf="!item.isExternal; else footerExternalLink" [routerLink]="item.path" class="transition hover:opacity-100 hover:[color:var(--ui-text)]">{{ item.label }}</a>
             <ng-template #footerExternalLink>
-              <a [href]="item.path" target="_blank" rel="noreferrer noopener" class="transition hover:text-stone-950">{{ item.label }}</a>
+              <a [href]="item.path" target="_blank" rel="noreferrer noopener" class="transition hover:opacity-100 hover:[color:var(--ui-text)]">{{ item.label }}</a>
             </ng-template>
           </ng-container>
         </div>
       </section>
 
       <section class="space-y-3">
-        <p class="text-sm font-semibold text-stone-950">Resources</p>
-        <div class="grid gap-2 text-sm text-stone-600">
+        <p class="text-sm font-semibold ui-text-strong">{{ 'shell.resources.title' | translate }}</p>
+        <div class="grid gap-2 text-sm ui-text-muted">
           <a
             *ngFor="let item of resources"
             [href]="item.href"
             target="_blank"
             rel="noreferrer noopener"
-            class="transition hover:text-stone-950"
+            class="transition hover:opacity-100 hover:[color:var(--ui-text)]"
           >
             {{ item.label }}
           </a>
@@ -89,18 +185,18 @@
       </section>
 
       <section class="space-y-3">
-        <p class="text-sm font-semibold text-stone-950">Get in touch</p>
-        <a *ngIf="primaryEmail" [href]="'mailto:' + primaryEmail" class="text-sm text-stone-600 transition hover:text-stone-950">{{ primaryEmail }}</a>
+        <p class="text-sm font-semibold ui-text-strong">{{ 'shell.contact.title' | translate }}</p>
+        <a *ngIf="primaryEmail" [href]="'mailto:' + primaryEmail" class="text-sm ui-text-muted transition hover:[color:var(--ui-text)]">{{ primaryEmail }}</a>
         <div class="flex gap-2">
           <a
             *ngFor="let item of socialLinks"
             [href]="item.href"
-            target="_blank"
-            rel="noreferrer noopener"
+            [attr.target]="item.openInNewTab ? '_blank' : null"
+            [attr.rel]="item.openInNewTab ? 'noreferrer noopener' : null"
             [attr.aria-label]="item.label"
-            class="inline-flex h-9 w-9 items-center justify-center rounded-md bg-stone-500 text-xs font-semibold text-white transition hover:bg-stone-700"
+            class="ui-social-icon"
           >
-            {{ item.mark }}
+            <app-ui-icon [name]="item.iconName" [fallbackText]="item.label" size="md"></app-ui-icon>
           </a>
         </div>
       </section>

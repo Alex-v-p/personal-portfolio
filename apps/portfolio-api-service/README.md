@@ -11,15 +11,24 @@ This service no longer bootstraps the database on startup. Its runtime responsib
 
 Schema creation and seed loading now run through the dedicated `portfolio-db-init` one-shot container in Docker Compose.
 
-## Database bootstrap job
+## Database migrations and bootstrap job
 
-The Compose bootstrap job uses the same SQLAlchemy models but its implementation and seed definitions now live under `infra/postgres/bootstrap`, outside the API package and outside the API process.
+The Compose bootstrap job now applies Alembic migrations from `infra/postgres/migrations` and only then seeds starter data.
 
 Bootstrap environment flags:
-- `DB_BOOTSTRAP_AUTO_SEED=true` to seed starter data when the schema is empty
-- `DB_BOOTSTRAP_RECREATE_ON_DRIFT=true` to recreate the schema when incompatible drift is detected
+- `DB_BOOTSTRAP_AUTO_SEED=true` to seed starter data when the database is empty
+- `DB_BOOTSTRAP_RECREATE_ON_DRIFT` is deprecated and ignored
+- production mode still rejects `DB_BOOTSTRAP_RECREATE_ON_DRIFT=true` so destructive drift repair cannot be reintroduced by accident
 - `DB_BOOTSTRAP_MAX_RETRIES=30` to keep retrying while PostgreSQL starts
 - `DB_BOOTSTRAP_RETRY_DELAY_SECONDS=2` to control retry spacing
+
+Common migration commands:
+
+```bash
+python -m infra.postgres.migrations.cli upgrade head
+python -m infra.postgres.migrations.cli check
+python -m infra.postgres.migrations.cli revision --autogenerate -m "describe the change"
+```
 
 ## Public media resolution
 
@@ -54,7 +63,9 @@ The API now exposes protected Stage 10 CMS endpoints under `/api/admin`, includi
 - `/api/admin/media-files`
 - `/api/admin/media-files/upload`
 
-Use the bearer token returned by `/api/admin/auth/login` for subsequent admin requests.
+Admin auth now uses an HttpOnly session cookie. The login and session restore responses return a CSRF token that the SPA must send in the configured CSRF header for mutating `/api/admin/*` requests.
+
+Admin MFA now uses TOTP compatible with Google Authenticator and similar apps. First sign-in on a non-enrolled admin account returns a partial session that can only complete MFA setup. Once enrolled, every future admin login requires a valid TOTP code or a one-time backup code before the rest of the CMS becomes accessible.
 
 ## Admin media uploads
 

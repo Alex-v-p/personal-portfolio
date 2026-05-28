@@ -1,0 +1,61 @@
+import { Injectable, inject } from '@angular/core';
+import { Observable } from 'rxjs';
+
+import {
+  AdminAssistantContextNote,
+  AdminAssistantContextNotePayload,
+  AdminAssistantContextNotesList,
+  AdminAssistantKnowledgeStatus,
+  AdminAsyncTaskAccepted,
+  AdminDashboardSummary,
+  AdminReferenceData,
+  AdminSiteActivity,
+  AdminTranslationDraftRequest,
+  AdminTranslationDraftResponse,
+} from '@domains/admin/model/admin.model';
+import { AdminHttpService } from './admin-http.service';
+
+@Injectable({ providedIn: 'root' })
+export class AdminOverviewApiService {
+  private readonly adminHttp = inject(AdminHttpService);
+
+  getDashboardSummary(): Observable<AdminDashboardSummary> {
+    return this.adminHttp.http.get<AdminDashboardSummary>(this.adminHttp.adminUrl('dashboard'));
+  }
+
+  getReferenceData(): Observable<AdminReferenceData> {
+    return this.adminHttp.http.get<AdminReferenceData>(this.adminHttp.adminUrl('reference-data'));
+  }
+
+  getAssistantKnowledgeStatus(): Observable<AdminAssistantKnowledgeStatus> {
+    return this.adminHttp.http.get<AdminAssistantKnowledgeStatus>(this.adminHttp.adminUrl('assistant/knowledge'));
+  }
+
+  getAssistantContextNotes(): Observable<AdminAssistantContextNotesList> {
+    return this.adminHttp.http.get<AdminAssistantContextNotesList>(this.adminHttp.adminUrl('assistant/context-notes'));
+  }
+
+  createAssistantContextNote(payload: AdminAssistantContextNotePayload): Observable<AdminAssistantContextNote> {
+    return this.adminHttp.http.post<AdminAssistantContextNote>(this.adminHttp.adminUrl('assistant/context-notes'), payload);
+  }
+
+  updateAssistantContextNote(noteId: string, payload: AdminAssistantContextNotePayload): Observable<AdminAssistantContextNote> {
+    return this.adminHttp.http.put<AdminAssistantContextNote>(this.adminHttp.adminUrl(`assistant/context-notes/${noteId}`), payload);
+  }
+
+  deleteAssistantContextNote(noteId: string): Observable<void> {
+    return this.adminHttp.http.delete<void>(this.adminHttp.adminUrl(`assistant/context-notes/${noteId}`));
+  }
+
+  getSiteActivity(): Observable<AdminSiteActivity> {
+    return this.adminHttp.http.get<AdminSiteActivity>(this.adminHttp.adminUrl('site-activity'));
+  }
+
+  rebuildAssistantKnowledge(): Observable<AdminAssistantKnowledgeStatus | AdminAsyncTaskAccepted> {
+    return this.adminHttp.http.post<AdminAssistantKnowledgeStatus | AdminAsyncTaskAccepted>(this.adminHttp.adminUrl('assistant/knowledge/rebuild'), {});
+  }
+
+  generateTranslationDraft(payload: AdminTranslationDraftRequest): Observable<AdminTranslationDraftResponse> {
+    return this.adminHttp.http.post<AdminTranslationDraftResponse>(this.adminHttp.adminUrl('assistant/translate-draft'), payload);
+  }
+}

@@ -9,10 +9,11 @@ from app.core.config import get_settings
 
 def create_app() -> FastAPI:
     settings = get_settings()
+    docs_enabled = settings.app_env.strip().lower() != 'production'
     app = FastAPI(
         title=settings.app_name,
-        docs_url='/docs',
-        openapi_url='/openapi.json',
+        docs_url='/docs' if docs_enabled else None,
+        openapi_url='/openapi.json' if docs_enabled else None,
         redoc_url=None,
     )
     app.add_middleware(

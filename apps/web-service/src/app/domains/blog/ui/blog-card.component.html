@@ -1,0 +1,132 @@
+<div *ngIf="featured; else defaultCard" class="content-card-action-shell h-full content-card-action-shell--clickable">
+  <app-ui-card [featured]="true" padding="none">
+    <div
+      class="group grid h-full gap-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)] lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]"
+      role="link"
+      tabindex="0"
+      [attr.aria-label]="articleAriaLabel"
+      (click)="openArticleCard($event)"
+      (keydown.enter)="openArticleCard($event)"
+      (keydown.space)="openArticleCard($event)"
+    >
+      <div class="relative overflow-hidden lg:min-h-[24rem]">
+        <div
+          *ngIf="post.coverImageUrl; else blogFeaturedFallback"
+          class="group block h-full min-h-[18rem] lg:min-h-full"
+          aria-hidden="true"
+        >
+          <img
+            [src]="post.coverImageUrl"
+            [alt]="post.coverImageAlt"
+            class="h-full min-h-[18rem] w-full object-cover transition duration-300 group-hover:scale-[1.02] lg:min-h-full"
+          />
+        </div>
+        <ng-template #blogFeaturedFallback>
+          <div class="ui-media-placeholder ui-media-fallback flex h-full min-h-[18rem] items-end p-5 text-xs font-semibold uppercase tracking-[0.16em]">
+            <span class="max-w-[18ch]">{{ placeholderLabel }}</span>
+          </div>
+        </ng-template>
+        <app-ui-chip *ngIf="post.isFeatured" tone="accent" class="absolute left-4 top-4">{{ 'common.labels.featured' | translate }}</app-ui-chip>
+      </div>
+
+      <div class="flex h-full flex-col justify-between gap-5 px-6 py-6 lg:px-7 lg:py-7">
+        <div class="space-y-5">
+          <div class="ui-meta-row flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span>{{ post.category }}</span>
+            <span>{{ post.publishedAt }}</span>
+            <span>{{ post.readTime }}</span>
+          </div>
+
+          <div class="space-y-3">
+            <h2 class="ui-title-card text-3xl leading-[1.08] transition group-hover:text-[var(--ui-accent)]">{{ post.title }}</h2>
+            <p class="max-w-[42ch] text-sm leading-7 ui-text-muted">{{ post.excerpt }}</p>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <app-highlight-chip *ngFor="let tag of displayedTags" [label]="tag"></app-highlight-chip>
+            <button
+              *ngIf="shouldShowTagToggle"
+              type="button"
+              (click)="toggleTags($event)"
+              class="ui-pill inline-flex h-7 items-center px-3 text-xs font-semibold"
+              [attr.aria-expanded]="areTagsExpanded"
+            >
+              {{ tagToggleLabel }}
+            </button>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-3 pt-1">
+          <app-ui-link-button [routerLink]="articleRouterLink">{{ 'common.actions.readArticle' | translate }}</app-ui-link-button>
+          <app-ui-link-button *ngIf="showSecondaryAction" routerLink="/blog" appearance="ghost">{{ 'pages.blog.actions.allPosts' | translate }}</app-ui-link-button>
+        </div>
+      </div>
+    </div>
+  </app-ui-card>
+</div>
+
+<ng-template #defaultCard>
+  <div class="content-card-action-shell h-full content-card-action-shell--clickable">
+    <app-ui-card padding="none">
+      <div
+        class="group flex h-full flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
+        role="link"
+        tabindex="0"
+        [attr.aria-label]="articleAriaLabel"
+        (click)="openArticleCard($event)"
+        (keydown.enter)="openArticleCard($event)"
+        (keydown.space)="openArticleCard($event)"
+      >
+        <div class="relative overflow-hidden">
+          <div
+            *ngIf="post.coverImageUrl; else blogCardFallback"
+            class="group block"
+            aria-hidden="true"
+          >
+            <img
+              [src]="post.coverImageUrl"
+              [alt]="post.coverImageAlt"
+              class="aspect-[16/10] w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+            />
+          </div>
+          <ng-template #blogCardFallback>
+            <div class="ui-media-placeholder ui-media-fallback relative flex aspect-[16/10] items-end p-4 text-[0.7rem] font-semibold uppercase tracking-[0.14em]">
+              <span class="max-w-[16ch]">{{ placeholderLabel }}</span>
+            </div>
+          </ng-template>
+          <app-ui-chip *ngIf="post.isFeatured" tone="accent" class="absolute left-3 top-3">{{ 'common.labels.featured' | translate }}</app-ui-chip>
+        </div>
+
+        <div class="flex h-full flex-col gap-4 px-6 pb-6 pt-5">
+          <div class="ui-meta-row flex flex-wrap gap-x-3 gap-y-1">
+            <span>{{ post.category }}</span>
+            <span>{{ post.publishedAt }}</span>
+            <span>{{ post.readTime }}</span>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="ui-title-card text-2xl leading-[1.12] transition group-hover:text-[var(--ui-accent)]">{{ post.title }}</h3>
+            <p class="text-sm leading-6 ui-text-muted">{{ post.excerpt }}</p>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <app-highlight-chip *ngFor="let tag of displayedTags" [label]="tag"></app-highlight-chip>
+            <button
+              *ngIf="shouldShowTagToggle"
+              type="button"
+              (click)="toggleTags($event)"
+              class="ui-pill inline-flex h-7 items-center px-3 text-xs font-semibold"
+              [attr.aria-expanded]="areTagsExpanded"
+            >
+              {{ tagToggleLabel }}
+            </button>
+          </div>
+
+          <div class="mt-auto flex flex-wrap gap-3 pt-1">
+            <app-ui-link-button [routerLink]="articleRouterLink" appearance="ghost">{{ 'common.actions.readArticle' | translate }}</app-ui-link-button>
+          </div>
+        </div>
+      </div>
+    </app-ui-card>
+  </div>
+</ng-template>
