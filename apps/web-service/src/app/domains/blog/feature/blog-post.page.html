@@ -68,7 +68,22 @@
 
     <div class="ui-panel overflow-hidden rounded-[1.5rem]">
       <div *ngIf="post.coverImageUrl; else postCoverFallback" class="overflow-hidden border-b" style="border-color: var(--ui-border);">
-        <img [src]="post.coverImageUrl" [alt]="post.coverImageAlt" class="max-h-[32rem] w-full object-cover" />
+        <button
+          type="button"
+          class="blog-post-cover-lightbox relative block w-full overflow-hidden text-left"
+          (click)="openCoverImage($event)"
+          [attr.aria-label]="'common.actions.openLargerImageFor' | translate:{ title: post.title }"
+          [title]="'common.actions.openImage' | translate"
+        >
+          <img [src]="post.coverImageUrl" [alt]="post.coverImageAlt" class="max-h-[32rem] w-full object-cover" />
+          <span class="project-detail-modal-image-open-label blog-post-cover-lightbox-label" aria-hidden="true">
+            <svg viewBox="0 0 20 20" class="h-3.5 w-3.5" aria-hidden="true" focusable="false">
+              <path d="M4.5 6.25A2.25 2.25 0 0 1 6.75 4h6.5a2.25 2.25 0 0 1 2.25 2.25v6.5A2.25 2.25 0 0 1 13.25 15h-6.5a2.25 2.25 0 0 1-2.25-2.25v-6.5Z" fill="none" stroke="currentColor" stroke-width="1.4" />
+              <path d="M8.25 8.25h3.5v3.5M11.65 8.35 7.75 12.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4" />
+            </svg>
+            <span>{{ 'common.actions.openImage' | translate }}</span>
+          </span>
+        </button>
       </div>
       <ng-template #postCoverFallback>
         <div class="ui-media-placeholder flex min-h-[21rem] items-end p-6 text-xs font-semibold uppercase tracking-[0.16em] ui-text-muted sm:p-8">
@@ -77,7 +92,7 @@
       </ng-template>
 
       <div class="px-6 py-8 sm:px-8">
-        <div class="blog-markdown" [innerHTML]="renderedContent"></div>
+        <div class="blog-markdown" [innerHTML]="renderedContent" (click)="openMarkdownImage($event)" (keydown)="openMarkdownImageFromKeyboard($event)"></div>
 
         <app-protected-documents-card
           *ngFor="let group of post.protectedDocumentGroups"
@@ -86,4 +101,13 @@
       </div>
     </div>
   </article>
+
+  <app-ui-image-lightbox
+    [isOpen]="isImageViewerOpen"
+    [images]="blogLightboxImages"
+    [activeIndex]="activeImageIndex"
+    [title]="post?.title ?? 'blog post'"
+    (activeIndexChange)="updateActiveImageIndex($event)"
+    (closed)="closeImageViewer()"
+  ></app-ui-image-lightbox>
 </div>
