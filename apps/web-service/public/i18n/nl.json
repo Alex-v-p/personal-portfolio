@@ -184,7 +184,9 @@
         "title": "Uitgelicht"
       },
       "expertise": {
-        "title": "Expertise"
+        "title": "Expertise",
+        "expandSkills": "Toon {{ count }} extra vaardigheden in {{ group }}",
+        "collapseSkills": "Toon minder vaardigheden in {{ group }}"
       },
       "experience": {
         "title": "Ervaring",
@@ -298,6 +300,12 @@
           "notConfigured": "Beveiligde documenttoegang is nog niet ingesteld.",
           "unlockFailed": "De documenten konden nu niet ontgrendeld worden."
         }
+      },
+      "related": {
+        "kicker": "Lees verder",
+        "title": "Andere artikels die je misschien interessant vindt",
+        "description": "Ontdek meer verwante reflecties, projecten en portfolio-updates.",
+        "carouselLabel": "Carrousel met aanbevolen artikels"
       }
     },
     "contact": {
@@ -388,11 +396,14 @@
       },
       "cards": {
         "reposLabel": "Publieke repositories",
-        "viewsLabel": "Totaal aantal weergaven",
+        "viewsLabel": "Unieke weergaven",
         "likesLabel": "Like-teller",
         "likesAction": "Geef dit portfolio liefde",
         "likesSaving": "Like opslaan…",
-        "likesThanks": "Bedankt voor de liefde"
+        "likesThanks": "Bedankt voor de liefde",
+        "viewsDescription": "Unieke bezoekers of sessies die op het publieke portfolio zijn geregistreerd.",
+        "likesDescription": "Bezoekers die op de portfolio-like-knop hebben gedrukt.",
+        "reposDescription": "Publieke repositories die momenteel zichtbaar zijn op GitHub."
       },
       "loading": "Statistieken laden",
       "empty": {

@@ -235,10 +235,10 @@ export class AppShellComponent implements OnInit {
     const active = locale === this.currentLocale;
 
     return [
-      'inline-flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200',
+      'inline-flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-white',
       active
-        ? 'bg-[var(--ui-accent)] text-white shadow-sm'
-        : 'bg-transparent text-[var(--ui-text-muted)] hover:bg-white hover:text-[var(--ui-text)]'
+        ? 'border-[var(--ui-accent-border)] bg-[var(--ui-surface-strong)] text-[var(--ui-text)] shadow-[0_10px_22px_rgba(73,52,69,0.08)]'
+        : 'border-transparent bg-transparent text-[var(--ui-text-muted)] hover:bg-[var(--ui-accent-soft)] hover:text-[var(--ui-text)]'
     ].join(' ');
   }
 

@@ -79,16 +79,16 @@ export class StatsPageComponent implements OnInit {
       .subscribe({
         next: (stats) => {
           this.contributionWeeks = Array.isArray(stats.contributionWeeks) ? stats.contributionWeeks : [];
-          this.githubSummary = stats.githubSummary ?? this.githubSummary;
+          this.githubSummary = this.localizeStatItem(stats.githubSummary ?? this.githubSummary);
           this.latestGithubSnapshot = stats.latestGithubSnapshot ?? this.createEmptySnapshot();
-          this.portfolioViewsCard = this.findStat(stats.portfolioHighlights, 'highlight-total-views', this.i18n.translate('pages.stats.cards.viewsLabel'));
-          this.portfolioLikesCard = this.findStat(
+          this.portfolioViewsCard = this.localizeStatItem(this.findStat(stats.portfolioHighlights, 'highlight-total-views', this.i18n.translate('pages.stats.cards.viewsLabel')));
+          this.portfolioLikesCard = this.localizeStatItem(this.findStat(
             stats.portfolioHighlights,
             'highlight-portfolio-likes',
             this.i18n.translate('pages.stats.cards.likesLabel'),
             this.i18n.translate('pages.stats.cards.likesAction')
-          );
-          this.portfolioStats = Array.isArray(stats.portfolioStats) ? stats.portfolioStats : [];
+          ));
+          this.portfolioStats = Array.isArray(stats.portfolioStats) ? stats.portfolioStats.map((item) => this.localizeStatItem(item)) : [];
           this.monthLabels = Array.isArray(stats.monthLabels) ? stats.monthLabels : [];
           this.monthMarkers = this.buildMonthMarkers(this.monthLabels);
           this.weekdayLabels = Array.isArray(stats.weekdayLabels) ? stats.weekdayLabels : [];
@@ -226,10 +226,10 @@ export class StatsPageComponent implements OnInit {
 
   private resetStats(): void {
     this.contributionWeeks = [];
-    this.githubSummary = this.createStatItem('github-summary', this.i18n.translate('pages.stats.cards.reposLabel'), '0');
+    this.githubSummary = this.createStatItem('github-summary', this.i18n.translate('pages.stats.cards.reposLabel'), '0', undefined, this.i18n.translate('pages.stats.cards.reposDescription'));
     this.latestGithubSnapshot = this.createEmptySnapshot();
-    this.portfolioViewsCard = this.createStatItem('highlight-total-views', this.i18n.translate('pages.stats.cards.viewsLabel'), '0');
-    this.portfolioLikesCard = this.createStatItem('highlight-portfolio-likes', this.i18n.translate('pages.stats.cards.likesLabel'), '0', this.i18n.translate('pages.stats.cards.likesAction'));
+    this.portfolioViewsCard = this.createStatItem('highlight-total-views', this.i18n.translate('pages.stats.cards.viewsLabel'), '0', undefined, this.i18n.translate('pages.stats.cards.viewsDescription'));
+    this.portfolioLikesCard = this.createStatItem('highlight-portfolio-likes', this.i18n.translate('pages.stats.cards.likesLabel'), '0', this.i18n.translate('pages.stats.cards.likesAction'), this.i18n.translate('pages.stats.cards.likesDescription'));
     this.portfolioStats = [];
     this.monthLabels = [];
     this.monthMarkers = [];
@@ -239,6 +239,33 @@ export class StatsPageComponent implements OnInit {
   private findStat(items: StatItem[] | undefined, id: string, fallbackLabel: string, actionLabel?: string): StatItem {
     const found = items?.find((item) => item.id === id);
     return found ?? this.createStatItem(id, fallbackLabel, '0', actionLabel);
+  }
+
+  private localizeStatItem(item: StatItem): StatItem {
+    switch (item.id) {
+      case 'github-public-repos':
+      case 'github-summary':
+        return {
+          ...item,
+          label: this.i18n.translate('pages.stats.cards.reposLabel'),
+          description: this.i18n.translate('pages.stats.cards.reposDescription') || item.description,
+        };
+      case 'highlight-total-views':
+        return {
+          ...item,
+          label: this.i18n.translate('pages.stats.cards.viewsLabel'),
+          description: this.i18n.translate('pages.stats.cards.viewsDescription') || item.description,
+        };
+      case 'highlight-portfolio-likes':
+        return {
+          ...item,
+          label: this.i18n.translate('pages.stats.cards.likesLabel'),
+          description: this.i18n.translate('pages.stats.cards.likesDescription') || item.description,
+          actionLabel: this.i18n.translate('pages.stats.cards.likesAction'),
+        };
+      default:
+        return item;
+    }
   }
 
   private createEmptySnapshot(): GithubSnapshot {
@@ -256,12 +283,12 @@ export class StatsPageComponent implements OnInit {
     };
   }
 
-  private createStatItem(id: string, label: string, value: string, actionLabel?: string): StatItem {
+  private createStatItem(id: string, label: string, value: string, actionLabel?: string, description = ''): StatItem {
     return {
       id,
       label,
       value,
-      description: '',
+      description,
       actionLabel
     };
   }

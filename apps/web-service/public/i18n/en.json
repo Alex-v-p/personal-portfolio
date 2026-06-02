@@ -184,7 +184,9 @@
         "title": "Featured"
       },
       "expertise": {
-        "title": "Expertise"
+        "title": "Expertise",
+        "expandSkills": "Show {{ count }} more skills in {{ group }}",
+        "collapseSkills": "Show fewer skills in {{ group }}"
       },
       "experience": {
         "title": "Experience",
@@ -298,6 +300,12 @@
           "notConfigured": "Protected document access is not configured yet.",
           "unlockFailed": "The documents could not be unlocked right now."
         }
+      },
+      "related": {
+        "kicker": "Read next",
+        "title": "Other articles you might like",
+        "description": "Continue exploring related reflections, projects, and portfolio updates.",
+        "carouselLabel": "Suggested articles carousel"
       }
     },
     "contact": {
@@ -388,11 +396,14 @@
       },
       "cards": {
         "reposLabel": "Public repos",
-        "viewsLabel": "Total views",
+        "viewsLabel": "Unique views",
         "likesLabel": "Like counter",
         "likesAction": "Love this portfolio",
         "likesSaving": "Saving like…",
-        "likesThanks": "Thanks for the love"
+        "likesThanks": "Thanks for the love",
+        "viewsDescription": "Distinct visitors/sessions recorded across the public portfolio.",
+        "likesDescription": "Visitors who tapped the portfolio like button.",
+        "reposDescription": "Public repositories currently visible on GitHub."
       },
       "loading": "Loading stats",
       "empty": {

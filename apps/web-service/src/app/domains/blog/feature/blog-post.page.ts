@@ -2,17 +2,19 @@ import { ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angul
 import { DOCUMENT, NgFor, NgIf } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { combineLatest } from 'rxjs';
-import { finalize, map, switchMap } from 'rxjs/operators';
+import { combineLatest, forkJoin, of } from 'rxjs';
+import { catchError, finalize, map, switchMap } from 'rxjs/operators';
 
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { I18nService } from '@core/i18n/i18n.service';
 import { UiButtonComponent } from '@shared/components/button/ui-button.component';
+import { UiLinkButtonComponent } from '@shared/components/link-button/ui-link-button.component';
 import { HighlightChipComponent } from '@shared/components/highlight-chip/highlight-chip.component';
 import { UiEmptyStateComponent } from '@shared/components/empty-state/ui-empty-state.component';
 import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.component';
 import { UiIconComponent } from '@shared/icons';
 import { BlogPostDetail } from '@domains/blog/model/blog-post-detail.model';
+import { BlogPostSummary } from '@domains/blog/model/blog-post-summary.model';
 import { PublicBlogApiService } from '@domains/blog/data/blog-api.service';
 import { ProtectedDocumentsCardComponent } from '@domains/blog/ui/protected-documents-card.component';
 import { extractMarkdownImages, renderMarkdownToHtml } from '@shared/utils/markdown.util';
@@ -30,8 +32,9 @@ interface ShareAction {
 @Component({
   selector: 'app-blog-post-page',
   standalone: true,
-  imports: [NgFor, NgIf, RouterLink, TranslatePipe, UiButtonComponent, HighlightChipComponent, UiEmptyStateComponent, UiSkeletonComponent, UiIconComponent, ProtectedDocumentsCardComponent, UiImageLightboxComponent],
-  templateUrl: './blog-post.page.html'
+  imports: [NgFor, NgIf, RouterLink, TranslatePipe, UiButtonComponent, UiLinkButtonComponent, HighlightChipComponent, UiEmptyStateComponent, UiSkeletonComponent, UiIconComponent, ProtectedDocumentsCardComponent, UiImageLightboxComponent],
+  templateUrl: './blog-post.page.html',
+  styleUrls: ['./blog-post.page.css']
 })
 export class BlogPostPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -43,6 +46,7 @@ export class BlogPostPageComponent implements OnInit {
   private readonly document = inject(DOCUMENT);
 
   protected post: BlogPostDetail | null = null;
+  protected relatedPosts: BlogPostSummary[] = [];
   protected isLoading = true;
   protected errorMessage = '';
   protected currentSlug = '';
@@ -60,24 +64,83 @@ export class BlogPostPageComponent implements OnInit {
           this.isLoading = true;
           this.errorMessage = '';
           this.post = null;
+          this.relatedPosts = [];
           this.closeImageViewer();
-          return this.blogApi.getBlogPostBySlug(this.currentSlug).pipe(finalize(() => this.changeDetectorRef.detectChanges()));
+          return this.loadPostBundle(this.currentSlug).pipe(finalize(() => this.changeDetectorRef.detectChanges()));
         }),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
-        next: (post) => {
+        next: ({ post, posts }) => {
           this.post = post;
+          this.relatedPosts = this.buildRelatedPosts(post, posts);
           this.isLoading = false;
           this.updateSeo(post);
         },
         error: () => {
           this.post = null;
+          this.relatedPosts = [];
           this.closeImageViewer();
           this.isLoading = false;
           this.errorMessage = this.i18n.translate('pages.blogPost.errors.load');
         }
       });
+  }
+
+
+  private loadPostBundle(slug: string) {
+    return forkJoin({
+      post: this.blogApi.getBlogPostBySlug(slug),
+      posts: this.blogApi.getBlogPosts().pipe(catchError(() => of([] as BlogPostSummary[]))),
+    });
+  }
+
+  private buildRelatedPosts(currentPost: BlogPostDetail, posts: BlogPostSummary[]): BlogPostSummary[] {
+    const currentTags = new Set(currentPost.tags.map((tag) => this.normalizeSuggestionToken(tag)));
+    const currentCategory = this.normalizeSuggestionToken(currentPost.category);
+
+    return posts
+      .filter((post) => post.status === 'published' && post.id !== currentPost.id && post.slug !== currentPost.slug)
+      .map((post, index) => ({
+        post,
+        index,
+        score: this.calculateRelatedPostScore(post, currentTags, currentCategory),
+      }))
+      .sort((first, second) => second.score - first.score || first.index - second.index)
+      .slice(0, 6)
+      .map((suggestion) => suggestion.post);
+  }
+
+  private calculateRelatedPostScore(post: BlogPostSummary, currentTags: Set<string>, currentCategory: string): number {
+    const sharedTagScore = post.tags.reduce((score, tag) => score + (currentTags.has(this.normalizeSuggestionToken(tag)) ? 2 : 0), 0);
+    const categoryScore = currentCategory && this.normalizeSuggestionToken(post.category) === currentCategory ? 4 : 0;
+    const featuredScore = post.isFeatured ? 1 : 0;
+
+    return categoryScore + sharedTagScore + featuredScore;
+  }
+
+  private normalizeSuggestionToken(value: string): string {
+    return value.trim().toLocaleLowerCase();
+  }
+
+  protected relatedArticleRouterLink(post: BlogPostSummary): string | readonly string[] {
+    return this.i18n.localizeRouterCommands(['/blog', post.slug]) ?? ['/blog', post.slug];
+  }
+
+  protected relatedArticleAriaLabel(post: BlogPostSummary): string {
+    return `${this.i18n.translate('common.actions.readArticle')}: ${post.title}`;
+  }
+
+  protected displayedRelatedTags(post: BlogPostSummary): string[] {
+    return post.tags.slice(0, 2);
+  }
+
+  protected hiddenRelatedTagCount(post: BlogPostSummary): number {
+    return Math.max(post.tags.length - 2, 0);
+  }
+
+  protected relatedArticlePlaceholderLabel(post: BlogPostSummary): string {
+    return post.coverImageAlt || post.coverAlt || this.i18n.translate('pages.blog.card.placeholder');
   }
 
   private updateSeo(post: BlogPostDetail): void {
@@ -99,14 +162,16 @@ export class BlogPostPageComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.blogApi.getBlogPostBySlug(this.currentSlug).pipe(finalize(() => this.changeDetectorRef.detectChanges())).subscribe({
-      next: (post) => {
+    this.loadPostBundle(this.currentSlug).pipe(finalize(() => this.changeDetectorRef.detectChanges())).subscribe({
+      next: ({ post, posts }) => {
         this.post = post;
+        this.relatedPosts = this.buildRelatedPosts(post, posts);
         this.isLoading = false;
         this.updateSeo(post);
       },
       error: () => {
         this.post = null;
+        this.relatedPosts = [];
         this.closeImageViewer();
         this.isLoading = false;
         this.errorMessage = this.i18n.translate('pages.blogPost.errors.load');

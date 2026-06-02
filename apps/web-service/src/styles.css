@@ -37,6 +37,7 @@
   --ui-text-inverse: #ffffff;
 
   --ui-primary: rgb(168 128 162);
+  --ui-accent: var(--ui-primary);
   --ui-primary-hover: rgb(151 111 145);
   --ui-primary-contrast: #ffffff;
   --ui-focus-ring: rgba(168, 128, 162, 0.2);
@@ -96,6 +97,7 @@
   --ui-text-soft: rgb(119 109 115);
 
   --ui-primary: rgb(139 101 133);
+  --ui-accent: var(--ui-primary);
   --ui-primary-hover: rgb(123 87 117);
   --ui-focus-ring: rgba(139, 101, 133, 0.18);
 
@@ -127,6 +129,7 @@
   --ui-text-muted: rgb(223 209 220);
   --ui-text-soft: rgb(176 157 174);
   --ui-primary: rgb(216 182 210);
+  --ui-accent: var(--ui-primary);
   --ui-primary-hover: rgb(204 168 198);
   --ui-primary-contrast: rgb(38 28 40);
   --ui-focus-ring: rgba(216, 182, 210, 0.22);
@@ -670,6 +673,35 @@
     font-size: 0.75rem;
     font-weight: 600;
     color: var(--ui-text-muted);
+  }
+
+  .ui-hero-social-action {
+    transition:
+      transform 0.18s ease,
+      border-color 0.18s ease,
+      background-color 0.18s ease,
+      color 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+
+  .ui-hero-social-action:hover {
+    transform: translateY(-2px);
+    border-color: var(--ui-border-strong);
+    background: var(--ui-surface-soft);
+    color: var(--ui-text);
+    box-shadow: 0 12px 24px rgba(73, 52, 69, 0.1);
+  }
+
+  .ui-hero-social-action:focus-visible {
+    outline: none;
+    border-color: var(--ui-accent-border);
+    box-shadow:
+      0 0 0 3px var(--ui-focus-ring),
+      0 12px 24px rgba(73, 52, 69, 0.1);
+  }
+
+  .ui-hero-social-action:active {
+    transform: translateY(0) scale(0.98);
   }
 
   .ui-chip {
@@ -2209,6 +2241,74 @@
 
   .content-card-action-shell--clickable:hover,
   .content-card-action-shell--clickable:focus-within {
+    transform: none;
+    filter: none;
+  }
+}
+
+/* Accessible defaults for interactive elements that do not already define their own pointer/focus states. */
+a[href],
+button:not(:disabled),
+[role='button'],
+[tabindex]:not([tabindex='-1']) {
+  cursor: pointer;
+}
+
+a[href]:focus-visible,
+button:focus-visible,
+[role='button']:focus-visible,
+[tabindex]:not([tabindex='-1']):focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 3px;
+}
+
+.home-hero-lightbox-trigger {
+  cursor: zoom-in;
+  border: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.home-hero-lightbox-trigger img {
+  transition: transform 220ms ease, filter 220ms ease;
+}
+
+.home-hero-lightbox-trigger:hover img,
+.home-hero-lightbox-trigger:focus-visible img {
+  transform: scale(1.015);
+  filter: saturate(1.03);
+}
+
+.home-hero-lightbox-trigger:focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: -0.35rem;
+}
+
+.home-hero-lightbox-label {
+  position: absolute;
+  z-index: 2;
+  bottom: 1rem;
+  right: 1rem;
+  opacity: 0;
+  transform: translateY(0.25rem);
+}
+
+.home-hero-lightbox-trigger:hover .home-hero-lightbox-label,
+.home-hero-lightbox-trigger:focus-visible .home-hero-lightbox-label {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-hero-lightbox-trigger img,
+  .home-hero-lightbox-label {
+    transition: none;
+  }
+
+  .home-hero-lightbox-trigger:hover img,
+  .home-hero-lightbox-trigger:focus-visible img,
+  .home-hero-lightbox-trigger:hover .home-hero-lightbox-label,
+  .home-hero-lightbox-trigger:focus-visible .home-hero-lightbox-label {
     transform: none;
     filter: none;
   }

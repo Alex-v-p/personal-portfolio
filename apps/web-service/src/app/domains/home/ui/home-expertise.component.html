@@ -11,16 +11,75 @@
   <app-ui-section-title [title]="'pages.home.expertise.title' | translate" description=""></app-ui-section-title>
 
   <div class="pt-4 space-y-3">
-    <app-ui-card *ngFor="let group of groups" class="block">
+    <app-ui-card *ngFor="let group of groups; let index = index" class="block">
       <div class="grid gap-4 sm:grid-cols-[auto_1fr] sm:items-start">
         <span class="inline-flex h-10 w-10 items-center justify-center rounded-md bg-stone-300 text-stone-600">
           <app-ui-icon [name]="group.iconKey || group.title" [fallbackText]="group.title" size="md"></app-ui-icon>
         </span>
 
         <div class="space-y-3">
-          <h3 class="text-xl font-semibold text-stone-950">{{ group.title }}</h3>
-          <div class="flex flex-wrap gap-2">
-            <app-highlight-chip *ngFor="let skill of skillItems(group)" [label]="formatSkillLabel(skill)"></app-highlight-chip>
+          <div class="flex items-start justify-between gap-3">
+            <h3 class="text-xl font-semibold text-stone-950">{{ group.title }}</h3>
+
+            <button
+              *ngIf="hasHiddenSkills(group)"
+              type="button"
+              class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-stone-300 bg-white/80 text-stone-500 transition hover:border-stone-400 hover:bg-stone-100 hover:text-stone-700 focus:outline-none focus:ring-2 focus:ring-[var(--ui-focus-ring)]"
+              [attr.aria-expanded]="isSkillGroupExpanded(group, index)"
+              [attr.aria-controls]="skillGroupPanelId(index)"
+              [attr.aria-label]="skillToggleAriaLabel(group, index)"
+              (click)="toggleSkillGroup(group, index)"
+            >
+              <svg
+                class="h-4 w-4 transition-transform duration-300"
+                [class.rotate-180]="isSkillGroupExpanded(group, index)"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.51a.75.75 0 0 1-1.08 0l-4.25-4.51a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
+              </svg>
+            </button>
+          </div>
+
+          <div
+            [attr.id]="skillGroupPanelId(index)"
+            class="expertise-skills-content"
+            [class.is-open]="isSkillGroupExpanded(group, index)"
+          >
+            <div class="flex flex-wrap gap-2">
+              <app-highlight-chip *ngFor="let skill of leadingSkillItems(group)" [label]="formatSkillLabel(skill)"></app-highlight-chip>
+
+              <button
+                *ngIf="hasHiddenSkills(group) && !isSkillGroupExpanded(group, index)"
+                type="button"
+                class="inline-flex min-h-8 items-center rounded-full border border-stone-300 bg-white/80 px-3 py-1 text-xs font-medium text-stone-600 transition hover:-translate-y-0.5 hover:border-stone-400 hover:bg-stone-100 hover:text-stone-800 focus:outline-none focus:ring-2 focus:ring-[var(--ui-focus-ring)] active:translate-y-0"
+                [attr.aria-expanded]="isSkillGroupExpanded(group, index)"
+                [attr.aria-controls]="skillGroupPanelId(index)"
+                [attr.aria-label]="skillToggleAriaLabel(group, index)"
+                (click)="toggleSkillGroup(group, index)"
+              >
+                {{ skillToggleLabel(group, index) }}
+              </button>
+            </div>
+
+            <div class="expertise-hidden-skills-shell" [class.is-open]="isSkillGroupExpanded(group, index)">
+              <div class="flex flex-wrap gap-2 pt-2">
+                <app-highlight-chip *ngFor="let skill of hiddenSkillItems(group)" [label]="formatSkillLabel(skill)"></app-highlight-chip>
+
+                <button
+                  *ngIf="hasHiddenSkills(group) && isSkillGroupExpanded(group, index)"
+                  type="button"
+                  class="inline-flex min-h-8 items-center rounded-full border border-stone-300 bg-white/80 px-3 py-1 text-xs font-medium text-stone-600 transition hover:-translate-y-0.5 hover:border-stone-400 hover:bg-stone-100 hover:text-stone-800 focus:outline-none focus:ring-2 focus:ring-[var(--ui-focus-ring)] active:translate-y-0"
+                  [attr.aria-expanded]="isSkillGroupExpanded(group, index)"
+                  [attr.aria-controls]="skillGroupPanelId(index)"
+                  [attr.aria-label]="skillToggleAriaLabel(group, index)"
+                  (click)="toggleSkillGroup(group, index)"
+                >
+                  {{ skillToggleLabel(group, index) }}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

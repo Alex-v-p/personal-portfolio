@@ -13,6 +13,27 @@ from infra.postgres.bootstrap.seed_data import GITHUB_SNAPSHOT, SITE_EVENT_ROWS
 from infra.postgres.bootstrap.seed_ids import seed_uuid
 
 
+
+def _unique_page_viewer_count(rows: list[dict]) -> int:
+    identities: set[str] = set()
+    for row in rows:
+        if row['event_type'] != EventType.PAGE_VIEW:
+            continue
+        visitor_id = str(row.get('visitor_id') or '').strip()
+        session_id = str(row.get('session_id') or '').strip()
+        metadata = row.get('metadata_json') or {}
+        ip_address = str(metadata.get('ip_address') or '').strip() if isinstance(metadata, dict) else ''
+        if visitor_id and visitor_id != 'anonymous':
+            identities.add(f'visitor:{visitor_id}')
+        elif session_id:
+            identities.add(f'session:{session_id}')
+        elif ip_address:
+            identities.add(f'ip:{ip_address}')
+        else:
+            identities.add('anonymous')
+    return len(identities)
+
+
 def _find_project_slug(*, title_contains: str | None = None) -> str:
     for project in PROJECT_ROWS:
         if title_contains is None or title_contains.lower() in project['title'].lower():
@@ -195,7 +216,7 @@ def test_get_github_snapshot_returns_latest_snapshot(client: TestClient) -> None
 
 
 def test_get_stats_returns_api_backed_stats_payload(client: TestClient) -> None:
-    baseline_views = sum(1 for event in SITE_EVENT_ROWS if event['event_type'] == EventType.PAGE_VIEW)
+    baseline_unique_views = _unique_page_viewer_count(SITE_EVENT_ROWS)
     baseline_likes = sum(1 for event in SITE_EVENT_ROWS if event['event_type'] == EventType.PORTFOLIO_LIKE)
 
     session_factory = get_session_factory()
@@ -204,6 +225,7 @@ def test_get_stats_returns_api_backed_stats_payload(client: TestClient) -> None:
             [
                 SiteEvent(visitor_id='visitor-a', session_id='session-a', page_path='/', event_type=EventType.PAGE_VIEW),
                 SiteEvent(visitor_id='visitor-b', session_id='session-b', page_path='/projects', event_type=EventType.PAGE_VIEW),
+                SiteEvent(visitor_id='visitor-a', session_id='session-a', page_path='/blog', event_type=EventType.PAGE_VIEW),
                 SiteEvent(visitor_id='visitor-a', session_id='session-a', page_path='/stats', event_type=EventType.PORTFOLIO_LIKE),
             ]
         )
@@ -214,8 +236,8 @@ def test_get_stats_returns_api_backed_stats_payload(client: TestClient) -> None:
     body = response.json()
     assert body['githubSummary']['label'] == 'Public repos'
     assert body['latestGithubSnapshot']['username'] == GITHUB_SNAPSHOT['username']
-    assert body['portfolioHighlights'][0]['label'] == 'Total views'
-    assert body['portfolioHighlights'][0]['value'] == str(baseline_views + 2)
+    assert body['portfolioHighlights'][0]['label'] == 'Unique views'
+    assert body['portfolioHighlights'][0]['value'] == str(baseline_unique_views + 2)
     assert body['portfolioHighlights'][1]['label'] == 'Like counter'
     assert body['portfolioHighlights'][1]['value'] == str(baseline_likes + 1)
     assert len(body['contributionWeeks']) >= 52
@@ -233,6 +255,13 @@ def test_public_routes_return_localized_dutch_content_when_available(client: Tes
 
     navigation_response = client.get('/api/public/navigation', params={'locale': 'nl'})
     assert navigation_response.status_code == 200
+
+    stats_response = client.get('/api/public/stats', params={'locale': 'nl'})
+    assert stats_response.status_code == 200
+    stats_body = stats_response.json()
+    assert stats_body['portfolioHighlights'][0]['label'] == 'Unieke weergaven'
+    assert stats_body['portfolioHighlights'][0]['description'] == 'Unieke bezoekers of sessies die op het publieke portfolio zijn geregistreerd.'
+    assert stats_body['portfolioHighlights'][1]['label'] == 'Like-teller'
     navigation_body = navigation_response.json()
     assert navigation_body['items'][1]['label'] == 'Projecten'
 

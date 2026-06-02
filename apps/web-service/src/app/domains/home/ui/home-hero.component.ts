@@ -5,22 +5,57 @@ import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { UiChipComponent } from '@shared/components/chip/ui-chip.component';
 import { UiLinkButtonComponent } from '@shared/components/link-button/ui-link-button.component';
 import { UiIconComponent } from '@shared/icons';
+import { UiImageLightboxComponent } from '@shared/components/image-lightbox/ui-image-lightbox.component';
+import { UiImageLightboxImage } from '@shared/components/image-lightbox/ui-image-lightbox.types';
 import { Profile } from '@domains/profile/model/profile.model';
 import { SocialLink } from '@domains/profile/model/social-link.model';
 
 @Component({
   selector: 'app-home-hero-section',
   standalone: true,
-  imports: [NgFor, NgIf, TranslatePipe, UiChipComponent, UiLinkButtonComponent, UiIconComponent],
+  imports: [NgFor, NgIf, TranslatePipe, UiChipComponent, UiLinkButtonComponent, UiIconComponent, UiImageLightboxComponent],
   templateUrl: './home-hero.component.html'
 })
 export class HomeHeroSectionComponent {
   @Input({ required: true }) profile!: Profile;
 
+  protected isHeroImageViewerOpen = false;
+
   protected get avatarInitials(): string {
     const first = (this.profile.firstName || '').trim().charAt(0);
     const last = (this.profile.lastName || '').trim().charAt(0);
     return `${first}${last}`.toUpperCase() || 'AV';
+  }
+
+
+  protected get heroLightboxImages(): UiImageLightboxImage[] {
+    const imageUrl = (this.profile.heroImageUrl || this.profile.avatarUrl || '').trim();
+    if (!imageUrl) {
+      return [];
+    }
+
+    return [
+      {
+        id: this.profile.heroImageFileId || this.profile.avatarFileId || this.profile.id || 'home-hero',
+        url: imageUrl,
+        alt: this.profile.name || this.profile.heroTitle || 'Portfolio hero image',
+      },
+    ];
+  }
+
+  protected openHeroImage(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!this.heroLightboxImages.length) {
+      return;
+    }
+
+    this.isHeroImageViewerOpen = true;
+  }
+
+  protected closeHeroImageViewer(): void {
+    this.isHeroImageViewerOpen = false;
   }
 
   protected get socialButtons(): Array<{
