@@ -184,7 +184,9 @@
         "title": "Featured"
       },
       "expertise": {
-        "title": "Expertise"
+        "title": "Expertise",
+        "expandSkills": "Show {{ count }} more skills in {{ group }}",
+        "collapseSkills": "Show fewer skills in {{ group }}"
       },
       "experience": {
         "title": "Experience",

@@ -1,0 +1,17 @@
+.expertise-skills-content {
+  overflow: hidden;
+}
+
+.expertise-hidden-skills-shell {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition:
+    max-height 320ms ease,
+    opacity 180ms ease;
+}
+
+.expertise-hidden-skills-shell.is-open {
+  max-height: 24rem;
+  opacity: 1;
+}

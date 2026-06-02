@@ -184,7 +184,9 @@
         "title": "Uitgelicht"
       },
       "expertise": {
-        "title": "Expertise"
+        "title": "Expertise",
+        "expandSkills": "Toon {{ count }} extra vaardigheden in {{ group }}",
+        "collapseSkills": "Toon minder vaardigheden in {{ group }}"
       },
       "experience": {
         "title": "Ervaring",
