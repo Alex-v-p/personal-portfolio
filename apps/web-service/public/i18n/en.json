@@ -388,11 +388,14 @@
       },
       "cards": {
         "reposLabel": "Public repos",
-        "viewsLabel": "Total views",
+        "viewsLabel": "Unique views",
         "likesLabel": "Like counter",
         "likesAction": "Love this portfolio",
         "likesSaving": "Saving like…",
-        "likesThanks": "Thanks for the love"
+        "likesThanks": "Thanks for the love",
+        "viewsDescription": "Distinct visitors/sessions recorded across the public portfolio.",
+        "likesDescription": "Visitors who tapped the portfolio like button.",
+        "reposDescription": "Public repositories currently visible on GitHub."
       },
       "loading": "Loading stats",
       "empty": {

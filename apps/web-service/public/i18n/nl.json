@@ -388,11 +388,14 @@
       },
       "cards": {
         "reposLabel": "Publieke repositories",
-        "viewsLabel": "Totaal aantal weergaven",
+        "viewsLabel": "Unieke weergaven",
         "likesLabel": "Like-teller",
         "likesAction": "Geef dit portfolio liefde",
         "likesSaving": "Like opslaan…",
-        "likesThanks": "Bedankt voor de liefde"
+        "likesThanks": "Bedankt voor de liefde",
+        "viewsDescription": "Unieke bezoekers of sessies die op het publieke portfolio zijn geregistreerd.",
+        "likesDescription": "Bezoekers die op de portfolio-like-knop hebben gedrukt.",
+        "reposDescription": "Publieke repositories die momenteel zichtbaar zijn op GitHub."
       },
       "loading": "Statistieken laden",
       "empty": {

@@ -72,12 +72,27 @@
       <div
         class="ui-media-frame ui-floating-media relative aspect-[4/5] w-full overflow-hidden rounded-[0.5rem] p-3"
       >
-        <img
+        <button
           *ngIf="profile.heroImageUrl || profile.avatarUrl; else heroFallback"
-          [src]="profile.heroImageUrl || profile.avatarUrl"
-          [alt]="profile.name || ('common.images.profileImage' | translate)"
-          class="absolute inset-0 h-full w-full object-cover rounded-[0.35rem]"
-        />
+          type="button"
+          class="home-hero-lightbox-trigger absolute inset-0 overflow-hidden rounded-[0.35rem] text-left"
+          (click)="openHeroImage($event)"
+          [attr.aria-label]="'common.actions.openLargerImageFor' | translate:{ title: profile.name || profile.heroTitle }"
+          [title]="'common.actions.openImage' | translate"
+        >
+          <img
+            [src]="profile.heroImageUrl || profile.avatarUrl"
+            [alt]="profile.name || ('common.images.profileImage' | translate)"
+            class="h-full w-full object-cover rounded-[0.35rem]"
+          />
+          <span class="project-detail-modal-image-open-label home-hero-lightbox-label" aria-hidden="true">
+            <svg viewBox="0 0 20 20" class="h-3.5 w-3.5" aria-hidden="true" focusable="false">
+              <path d="M4.5 6.25A2.25 2.25 0 0 1 6.75 4h6.5a2.25 2.25 0 0 1 2.25 2.25v6.5A2.25 2.25 0 0 1 13.25 15h-6.5a2.25 2.25 0 0 1-2.25-2.25v-6.5Z" fill="none" stroke="currentColor" stroke-width="1.4" />
+              <path d="M8.25 8.25h3.5v3.5M11.65 8.35 7.75 12.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4" />
+            </svg>
+            <span>{{ 'common.actions.openImage' | translate }}</span>
+          </span>
+        </button>
 
         <ng-template #heroFallback>
           <div
@@ -109,7 +124,7 @@
         [href]="profile.resumeUrl"
         target="_blank"
         rel="noreferrer noopener"
-        class="ui-pill flex h-11 w-11 shrink-0 items-center justify-center rounded-md px-0 text-xs"
+        class="ui-pill ui-hero-social-action flex h-11 w-11 shrink-0 items-center justify-center rounded-md px-0 text-xs"
         [attr.aria-label]="'pages.home.hero.openCv' | translate"
         [attr.title]="'pages.home.hero.cvShort' | translate"
       >
@@ -121,7 +136,7 @@
         [href]="link.href"
         [attr.target]="link.openInNewTab ? '_blank' : null"
         [attr.rel]="link.openInNewTab ? 'noreferrer noopener' : null"
-        class="ui-pill flex h-11 w-11 shrink-0 items-center justify-center rounded-md px-0 text-xs"
+        class="ui-pill ui-hero-social-action flex h-11 w-11 shrink-0 items-center justify-center rounded-md px-0 text-xs"
         [attr.aria-label]="link.label"
         [attr.title]="link.label"
       >
@@ -129,4 +144,11 @@
       </a>
     </div>
   </div>
-</section> 
+</section>
+
+<app-ui-image-lightbox
+  [isOpen]="isHeroImageViewerOpen"
+  [images]="heroLightboxImages"
+  [title]="profile.name || profile.heroTitle || ('common.images.profileImage' | translate)"
+  (closed)="closeHeroImageViewer()"
+></app-ui-image-lightbox> 
