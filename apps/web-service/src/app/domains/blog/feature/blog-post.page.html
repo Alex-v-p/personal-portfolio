@@ -102,6 +102,84 @@
     </div>
   </article>
 
+  <section
+    *ngIf="!isLoading && !errorMessage && relatedPosts.length"
+    class="space-y-4 border-t pt-8"
+    style="border-color: var(--ui-border-soft);"
+    aria-labelledby="related-articles-heading"
+  >
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div class="space-y-2">
+        <p class="ui-kicker">{{ 'pages.blogPost.related.kicker' | translate }}</p>
+        <h2 id="related-articles-heading" class="ui-title-card text-2xl">{{ 'pages.blogPost.related.title' | translate }}</h2>
+        <p class="max-w-2xl text-sm leading-6 ui-text-muted">{{ 'pages.blogPost.related.description' | translate }}</p>
+      </div>
+
+      <app-ui-link-button [routerLink]="blogListingRouterLink" appearance="ghost" class="shrink-0">{{ 'pages.blog.actions.allPosts' | translate }}</app-ui-link-button>
+    </div>
+
+    <div class="-mx-4 overflow-x-auto px-4 pb-3" role="region" [attr.aria-label]="'pages.blogPost.related.carouselLabel' | translate">
+      <ul class="flex snap-x gap-4">
+        <li *ngFor="let relatedPost of relatedPosts" class="min-w-[min(17.5rem,78vw)] max-w-[18rem] snap-start">
+          <a
+            [routerLink]="relatedArticleRouterLink(relatedPost)"
+            class="related-article-card group block h-full overflow-hidden rounded-[1.35rem] no-underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
+            [attr.aria-label]="relatedArticleAriaLabel(relatedPost)"
+          >
+            <div class="relative overflow-hidden border-b related-article-card-media">
+              <img
+                *ngIf="relatedPost.coverImageUrl; else relatedArticleCoverFallback"
+                [src]="relatedPost.coverImageUrl"
+                [alt]="relatedPost.coverImageAlt"
+                class="h-32 w-full object-cover transition duration-300 group-hover:scale-[1.03] sm:h-36"
+              />
+              <ng-template #relatedArticleCoverFallback>
+                <div class="ui-media-placeholder ui-media-fallback flex h-32 items-end p-4 text-[0.65rem] font-semibold uppercase tracking-[0.14em] sm:h-36">
+                  <span class="max-w-[15ch]">{{ relatedArticlePlaceholderLabel(relatedPost) }}</span>
+                </div>
+              </ng-template>
+
+              <span *ngIf="relatedPost.isFeatured" class="related-article-featured-pill absolute left-3 top-3">
+                {{ 'common.labels.featured' | translate }}
+              </span>
+            </div>
+
+            <div class="flex min-h-[12rem] flex-col gap-3 p-4">
+              <div class="ui-meta-row flex flex-wrap gap-x-2 gap-y-1 text-[0.68rem]">
+                <span>{{ relatedPost.category }}</span>
+                <span>{{ relatedPost.publishedAt }}</span>
+                <span>{{ relatedPost.readTime }}</span>
+              </div>
+
+              <div class="space-y-2">
+                <h3 class="related-article-card-title ui-title-card text-base leading-snug transition group-hover:text-[var(--ui-accent)]">
+                  {{ relatedPost.title }}
+                </h3>
+                <p class="related-article-card-excerpt text-xs leading-5 ui-text-muted">
+                  {{ relatedPost.excerpt }}
+                </p>
+              </div>
+
+              <div class="mt-auto flex flex-wrap gap-1.5 pt-1">
+                <span *ngFor="let tag of displayedRelatedTags(relatedPost)" class="related-article-tag">
+                  {{ tag }}
+                </span>
+                <span *ngIf="hiddenRelatedTagCount(relatedPost) > 0" class="related-article-tag related-article-tag--muted">
+                  +{{ hiddenRelatedTagCount(relatedPost) }}
+                </span>
+              </div>
+
+              <span class="inline-flex items-center gap-1 text-xs font-semibold text-[var(--ui-accent)] transition group-hover:translate-x-0.5">
+                {{ 'common.actions.readArticle' | translate }}
+                <span aria-hidden="true">→</span>
+              </span>
+            </div>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </section>
+
   <app-ui-image-lightbox
     [isOpen]="isImageViewerOpen"
     [images]="blogLightboxImages"

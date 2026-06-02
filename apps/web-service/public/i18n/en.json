@@ -300,6 +300,12 @@
           "notConfigured": "Protected document access is not configured yet.",
           "unlockFailed": "The documents could not be unlocked right now."
         }
+      },
+      "related": {
+        "kicker": "Read next",
+        "title": "Other articles you might like",
+        "description": "Continue exploring related reflections, projects, and portfolio updates.",
+        "carouselLabel": "Suggested articles carousel"
       }
     },
     "contact": {
