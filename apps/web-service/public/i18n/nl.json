@@ -183,6 +183,9 @@
       "featured": {
         "title": "Uitgelicht"
       },
+      "about": {
+        "title": "Introductie"
+      },
       "expertise": {
         "title": "Expertise",
         "expandSkills": "Toon {{ count }} extra vaardigheden in {{ group }}",
