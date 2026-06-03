@@ -183,6 +183,9 @@
       "featured": {
         "title": "Featured"
       },
+      "about": {
+        "title": "Introduction"
+      },
       "expertise": {
         "title": "Expertise",
         "expandSkills": "Show {{ count }} more skills in {{ group }}",
