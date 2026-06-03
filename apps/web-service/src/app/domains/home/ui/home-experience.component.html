@@ -1,15 +1,10 @@
 <section class="space-y-8 lg:space-y-10">
-  <div *ngIf="hasLongBio()" class="hidden pb-4 lg:pb-5 xl:block">
-    <app-ui-section-title [title]="'pages.home.about.title' | translate" description=""></app-ui-section-title>
+  <div *ngIf="hasLongBio()" class="hidden space-y-4 pt-4 lg:pt-5 xl:block">
+    <div class="profile-markdown" [innerHTML]="renderedLongBioHtml"></div>
 
-    <div class="relative space-y-4 pt-4">
-      <div class="profile-markdown" [innerHTML]="renderedLongBioHtml"></div>
-
-      <div class="flex flex-wrap gap-3 pt-1">
-        <app-ui-link-button routerLink="/contact">{{ 'common.actions.contactMe' | translate }}</app-ui-link-button>
-        <app-ui-link-button routerLink="/projects" appearance="ghost">{{ 'common.actions.viewProjects' | translate }}</app-ui-link-button>
-      </div>
-
+    <div class="flex flex-wrap gap-3 pt-1">
+      <app-ui-link-button routerLink="/contact">{{ 'common.actions.contactMe' | translate }}</app-ui-link-button>
+      <app-ui-link-button routerLink="/projects" appearance="ghost">{{ 'common.actions.viewProjects' | translate }}</app-ui-link-button>
     </div>
   </div>
 
@@ -60,10 +55,14 @@
               <div class="min-w-0 flex-1 space-y-3">
                 <div class="flex items-start justify-between gap-3">
                   <div class="min-w-0 space-y-2">
-                    <div class="space-y-1">
-                      <div class="flex flex-wrap items-center gap-2">
-                        <h3 class="text-lg font-semibold text-stone-950">{{ item.title }}</h3>
-                        <span class="text-xs text-stone-500">{{ item.location }}</span>
+                    <div class="space-y-1.5">
+                      <div class="space-y-0.5">
+                        <h3 class="text-lg font-semibold text-stone-950">{{ item.organizationName }}</h3>
+                        <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-stone-600">
+                          <span>{{ item.roleTitle }}</span>
+                          <span *ngIf="item.location" class="text-stone-400" aria-hidden="true">·</span>
+                          <span *ngIf="item.location" class="text-xs text-stone-500">{{ item.location }}</span>
+                        </p>
                       </div>
                       <p class="inline-flex rounded-full border border-stone-300 bg-stone-200/60 px-3 py-1 text-[0.7rem] font-medium uppercase tracking-[0.08em] text-stone-600">
                         {{ item.period }}
