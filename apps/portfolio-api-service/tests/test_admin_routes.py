@@ -319,6 +319,7 @@ def test_admin_can_manage_taxonomy_experience_navigation_and_stats(client: TestC
             'startDate': '2026-01-01',
             'endDate': None,
             'isCurrent': True,
+            'isEnabled': True,
             'summary': 'Building portfolio CMS features',
             'summaryNl': 'Portfolio CMS-functies bouwen',
             'descriptionMarkdown': 'Experience body',
@@ -330,6 +331,7 @@ def test_admin_can_manage_taxonomy_experience_navigation_and_stats(client: TestC
     )
     assert experience_response.status_code == 201
     assert experience_response.json()['roleTitleNl'] == 'Bouwer'
+    assert experience_response.json()['isEnabled'] is True
     assert experience_response.json()['skills'][0]['id'] == skill_id
 
     navigation_response = client.post(

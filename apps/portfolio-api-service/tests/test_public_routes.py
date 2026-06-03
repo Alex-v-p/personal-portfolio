@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from uuid import UUID
 
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
-from app.db.models import BlogPost, EventType, MediaFile, MediaVisibility, Profile, Project, ProjectState, PublicationStatus, SiteEvent, Skill, SkillCategory, SocialLink
+from app.db.models import BlogPost, EventType, Experience, MediaFile, MediaVisibility, Profile, Project, ProjectState, PublicationStatus, SiteEvent, Skill, SkillCategory, SocialLink
 from app.db.session import get_session_factory
 from infra.postgres.bootstrap.seed_content import BLOG_POST_ROWS, PROFILE_ROW, PROJECT_ROWS
 from infra.postgres.bootstrap.seed_data import GITHUB_SNAPSHOT, SITE_EVENT_ROWS
@@ -205,6 +205,37 @@ def test_list_experience_returns_rows_with_skill_names(client: TestClient) -> No
     body = response.json()
     assert body['total'] >= 3
     assert body['items'][0]['skillNames']
+
+
+def test_disabled_experience_entries_stay_out_of_public_payloads(client: TestClient) -> None:
+    hidden_title = 'Hidden CMS Draft Experience'
+    session_factory = get_session_factory()
+    with session_factory() as session:
+        session.add(
+            Experience(
+                organization_name='Hidden Organization',
+                role_title=hidden_title,
+                location='Remote',
+                experience_type='work',
+                start_date=date(2026, 1, 1),
+                end_date=None,
+                is_current=False,
+                is_enabled=False,
+                summary='This entry should stay hidden from public experience lists.',
+                description_markdown=None,
+                logo_file_id=None,
+                sort_order=-100,
+            )
+        )
+        session.commit()
+
+    list_response = client.get('/api/public/experience')
+    assert list_response.status_code == 200
+    assert all(item['roleTitle'] != hidden_title for item in list_response.json()['items'])
+
+    home_response = client.get('/api/public/home')
+    assert home_response.status_code == 200
+    assert all(item['roleTitle'] != hidden_title for item in home_response.json()['experiencePreview'])
 
 
 def test_get_github_snapshot_returns_latest_snapshot(client: TestClient) -> None:

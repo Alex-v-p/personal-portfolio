@@ -26,6 +26,7 @@ class Experience(TimestampMixin, Base):
     start_date: Mapped[date] = mapped_column(Date, nullable=False)
     end_date: Mapped[date | None] = mapped_column(Date)
     is_current: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     summary: Mapped[str] = mapped_column(Text, nullable=False)
     summary_nl: Mapped[str | None] = mapped_column(Text)
     description_markdown: Mapped[str | None] = mapped_column(Text)

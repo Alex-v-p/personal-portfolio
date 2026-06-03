@@ -15,6 +15,7 @@ class PublicExperienceRepositoryMixin:
                 selectinload(Experience.skill_links).selectinload(ExperienceSkill.skill),
                 selectinload(Experience.logo_file),
             )
+            .where(Experience.is_enabled.is_(True))
             .order_by(Experience.sort_order.asc(), Experience.start_date.desc())
         ).all()
         return [self._map_experience(item) for item in items]
@@ -26,6 +27,7 @@ class PublicExperienceRepositoryMixin:
                 selectinload(Experience.skill_links).selectinload(ExperienceSkill.skill),
                 selectinload(Experience.logo_file),
             )
+            .where(Experience.is_enabled.is_(True))
             .order_by(Experience.sort_order.asc(), Experience.start_date.desc())
             .limit(limit)
         ).all()

@@ -43,6 +43,7 @@ class AdminExperienceContentRepository:
             start_date=self._parse_date(payload.start_date) or date.today(),
             end_date=self._parse_date(payload.end_date),
             is_current=payload.is_current,
+            is_enabled=payload.is_enabled,
             summary=payload.summary,
             summary_nl=self._normalize_optional_text(payload.summary_nl),
             description_markdown=self._normalize_optional_text(payload.description_markdown),
@@ -68,6 +69,7 @@ class AdminExperienceContentRepository:
         experience.start_date = self._parse_date(payload.start_date) or experience.start_date
         experience.end_date = self._parse_date(payload.end_date)
         experience.is_current = payload.is_current
+        experience.is_enabled = payload.is_enabled
         experience.summary = payload.summary
         experience.summary_nl = self._normalize_optional_text(payload.summary_nl)
         experience.description_markdown = self._normalize_optional_text(payload.description_markdown)

@@ -50,6 +50,7 @@ class KnowledgeDocumentBuilder:
         experiences = self.session.scalars(
             select(Experience)
             .options(selectinload(Experience.skill_links).selectinload(ExperienceSkill.skill))
+            .where(Experience.is_enabled.is_(True))
             .order_by(Experience.sort_order.asc(), Experience.start_date.desc())
         ).all()
         for item in experiences:

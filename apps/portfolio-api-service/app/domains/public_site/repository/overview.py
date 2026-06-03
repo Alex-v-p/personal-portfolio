@@ -13,6 +13,6 @@ class PublicOverviewRepositoryMixin:
             featured_projects=self._list_featured_projects(limit=2),
             featured_blog_posts=self._list_featured_blog_posts(limit=2),
             expertise_groups=profile.expertise_groups,
-            experience_preview=self._list_experience_preview(limit=3),
+            experience_preview=self._list_experience_preview(limit=4),
             contact_preview=self._build_contact_methods(profile)[:4],
         )
