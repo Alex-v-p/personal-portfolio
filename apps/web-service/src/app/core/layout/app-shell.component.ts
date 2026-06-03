@@ -1,7 +1,7 @@
 import { AsyncPipe, NgClass, NgFor, NgIf } from '@angular/common';
 import { ChangeDetectorRef, Component, DestroyRef, HostListener, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { distinctUntilChanged, filter, take } from 'rxjs/operators';
 
 import { AppLocale, SUPPORTED_LOCALES } from '@core/i18n/locales';
@@ -18,10 +18,16 @@ import { UiSkeletonComponent } from '@shared/components/skeleton/ui-skeleton.com
 import { UiIconComponent } from '@shared/icons';
 import { SeoService } from '@shared/services/seo.service';
 
+interface ShellNavigationLink {
+  label: string;
+  path: string;
+  isExternal: boolean;
+}
+
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [AsyncPipe, NgClass, NgFor, NgIf, RouterOutlet, RouterLink, RouterLinkActive, AssistantPanelComponent, UiSkeletonComponent, TranslatePipe, UiIconComponent],
+  imports: [AsyncPipe, NgClass, NgFor, NgIf, RouterOutlet, RouterLink, AssistantPanelComponent, UiSkeletonComponent, TranslatePipe, UiIconComponent],
   templateUrl: './app-shell.component.html'
 })
 export class AppShellComponent implements OnInit {
@@ -38,8 +44,8 @@ export class AppShellComponent implements OnInit {
   protected profile: Profile = createEmptyProfile();
   protected shellData: SiteShellData | null = null;
   protected isAdminRoute = false;
-  protected quickLinks: Array<{ label: string; path: string; isExternal: boolean }> = [];
-  protected footerLinks: Array<{ label: string; path: string; isExternal: boolean }> = [];
+  protected quickLinks: ShellNavigationLink[] = [];
+  protected footerLinks: ShellNavigationLink[] = [];
   protected isAssistantOpen = false;
   protected isRouteLoading = true;
   protected hasActiveRouteComponent = false;
@@ -127,6 +133,17 @@ export class AppShellComponent implements OnInit {
 
   protected get currentLocale(): AppLocale {
     return this.i18n.currentLocale();
+  }
+
+  protected isNavigationLinkActive(item: ShellNavigationLink): boolean {
+    if (item.isExternal) {
+      return false;
+    }
+
+    const currentPath = this.normalizeNavigationPath(this.router.url);
+    const activePath = this.mostSpecificActiveNavigationPath(currentPath);
+
+    return activePath !== null && this.normalizeNavigationPath(item.path) === activePath;
   }
 
   protected get showRouteSkeleton(): boolean {
@@ -519,6 +536,36 @@ export class AppShellComponent implements OnInit {
 
     const translationKey = lookup[routePath];
     return translationKey ? this.i18n.translate(translationKey) : fallback;
+  }
+
+  private mostSpecificActiveNavigationPath(currentPath: string): string | null {
+    const matchingPaths = this.quickLinks
+      .filter((item) => !item.isExternal)
+      .map((item) => this.normalizeNavigationPath(item.path))
+      .filter((path) => this.navigationPathMatches(path, currentPath))
+      .sort((left, right) => right.length - left.length);
+
+    return matchingPaths[0] ?? null;
+  }
+
+  private navigationPathMatches(linkPath: string, currentPath: string): boolean {
+    if (linkPath === currentPath) {
+      return true;
+    }
+
+    if (this.i18n.stripLocalePrefix(linkPath) === '/') {
+      return false;
+    }
+
+    return currentPath.startsWith(`${linkPath}/`);
+  }
+
+  private normalizeNavigationPath(path: string): string {
+    const pathWithoutQueryOrFragment = path.split(/[?#]/, 1)[0] || '/';
+    const pathWithLeadingSlash = pathWithoutQueryOrFragment.startsWith('/') ? pathWithoutQueryOrFragment : `/${pathWithoutQueryOrFragment}`;
+    const normalizedPath = pathWithLeadingSlash.replace(/\/+$/, '');
+
+    return normalizedPath || '/';
   }
 
   private applyRouteSeo(url: string): void {

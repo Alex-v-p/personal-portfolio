@@ -11,8 +11,8 @@
                 <a
                   *ngIf="!item.isExternal; else externalHeaderLink"
                   [routerLink]="item.path"
-                  routerLinkActive="ui-nav-link-active"
-                  [routerLinkActiveOptions]="{ exact: item.path === '/' + currentLocale }"
+                  [class.ui-nav-link-active]="isNavigationLinkActive(item)"
+                  [attr.aria-current]="isNavigationLinkActive(item) ? 'page' : null"
                   class="ui-nav-link w-full justify-center px-3 text-center sm:w-auto md:px-5 lg:px-8"
                 >
                   {{ item.label }}
