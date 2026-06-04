@@ -68,7 +68,7 @@
             <a
               class="ui-btn ui-btn-primary home-hero-cv-action home-hero-cv-action--download"
               [href]="cvDownloadUrl"
-              download
+              [attr.download]="cvFileName"
               [attr.aria-label]="'pages.home.hero.downloadCv' | translate"
               [attr.title]="'pages.home.hero.downloadCv' | translate"
             >

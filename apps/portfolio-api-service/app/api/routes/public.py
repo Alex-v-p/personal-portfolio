@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import PurePosixPath
+from typing import Literal
 from urllib.parse import quote
 from uuid import UUID
 
@@ -81,18 +82,23 @@ def download_protected_document(group_slug: str, media_id: UUID, filename: str, 
 
 
 @router.get('/media-files/{media_id}/{filename}', response_model=None)
-def download_public_media_file(media_id: UUID, filename: str, session: Session = Depends(get_session)) -> Response:
+def download_public_media_file(
+    media_id: UUID,
+    filename: str,
+    disposition: Literal['attachment', 'inline'] = Query(default='attachment'),
+    session: Session = Depends(get_session),
+) -> Response:
     media_file = session.get(MediaFile, media_id)
     if media_file is None or media_file.visibility != MediaVisibility.PUBLIC:
         raise HTTPException(status_code=404, detail='Media file not found.')
 
     file_bytes = AdminMediaStorageService().download_object(bucket_name=media_file.bucket_name, object_key=media_file.object_key)
-    download_filename = sanitize_public_download_filename(media_file.original_filename or filename or media_file.stored_filename)
+    download_filename = sanitize_public_download_filename(filename or media_file.original_filename or media_file.stored_filename)
     quoted_filename = quote(download_filename)
     fallback_filename = ''.join(character if ord(character) < 128 else '-' for character in download_filename) or PurePosixPath(filename).name or 'download'
 
     response = Response(content=file_bytes, media_type=media_file.mime_type or 'application/octet-stream')
-    response.headers['Content-Disposition'] = f'attachment; filename="{fallback_filename}"; filename*=UTF-8\'\'{quoted_filename}'
+    response.headers['Content-Disposition'] = f"{disposition}; filename=\"{fallback_filename}\"; filename*=UTF-8''{quoted_filename}"
     response.headers['X-Content-Type-Options'] = 'nosniff'
     return response
 

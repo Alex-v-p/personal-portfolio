@@ -61,7 +61,23 @@ export class HomeHeroSectionComponent {
 
 
   protected get cvPreviewUrl(): string {
-    return this.profile.resumePreviewUrl || this.profile.resumeUrl || '';
+    const documentUrl = this.cvDocumentUrl;
+    return documentUrl ? this.withQueryParam(documentUrl, 'disposition', 'inline') : '';
+  }
+
+  protected get cvFileName(): string {
+    const baseName = this.profile.name ? `${this.profile.name} CV` : 'CV';
+    const extension = this.fileExtensionFromUrl(this.profile.resumeUrl || this.profile.resumePreviewUrl) || 'pdf';
+    return `${this.sanitizeFileName(baseName)}.${extension}`;
+  }
+
+  private get cvDocumentUrl(): string {
+    const sourceUrl = (this.profile.resumeUrl || this.profile.resumePreviewUrl || '').trim();
+    if (!sourceUrl) {
+      return '';
+    }
+
+    return this.withFileName(sourceUrl, this.cvFileName);
   }
 
 
@@ -101,7 +117,7 @@ export class HomeHeroSectionComponent {
   }
 
   protected get cvDownloadUrl(): string {
-    return this.profile.resumeUrl || this.profile.resumePreviewUrl || '';
+    return this.cvDocumentUrl;
   }
 
   protected isHeroCvAction(action: HeroAction): boolean {
@@ -164,5 +180,59 @@ export class HomeHeroSectionComponent {
 
   private platformIsEmail(link: SocialLink): boolean {
     return (link.platform || '').trim().toLowerCase() === 'email';
+  }
+
+  private withFileName(url: string, filename: string): string {
+    if (!url.includes('/media-files/')) {
+      return url;
+    }
+
+    const { path, query, fragment } = this.splitUrlParts(url);
+    const lastSlashIndex = path.lastIndexOf('/');
+    if (lastSlashIndex < 0) {
+      return url;
+    }
+
+    const encodedFileName = encodeURIComponent(filename);
+    return `${path.slice(0, lastSlashIndex + 1)}${encodedFileName}${query}${fragment}`;
+  }
+
+  private withQueryParam(url: string, key: string, value: string): string {
+    const { path, query, fragment } = this.splitUrlParts(url);
+    const params = new URLSearchParams(query.startsWith('?') ? query.slice(1) : query);
+    params.set(key, value);
+    const nextQuery = params.toString();
+
+    return `${path}${nextQuery ? `?${nextQuery}` : ''}${fragment}`;
+  }
+
+  private splitUrlParts(url: string): { path: string; query: string; fragment: string } {
+    const [withoutFragment, rawFragment = ''] = url.split('#', 2);
+    const [path, rawQuery = ''] = withoutFragment.split('?', 2);
+
+    return {
+      path,
+      query: rawQuery ? `?${rawQuery}` : '',
+      fragment: rawFragment ? `#${rawFragment}` : '',
+    };
+  }
+
+  private sanitizeFileName(value: string): string {
+    const cleaned = value
+      .trim()
+      .replace(/[^a-z0-9._ -]+/gi, '-')
+      .replace(/\s+/g, ' ')
+      .replace(/-+/g, '-')
+      .replace(/^[. -]+|[. -]+$/g, '');
+
+    return cleaned || 'CV';
+  }
+
+  private fileExtensionFromUrl(value: string | null | undefined): string | null {
+    const path = (value || '').split('#', 1)[0]?.split('?', 1)[0] ?? '';
+    const fileName = decodeURIComponent(path.substring(path.lastIndexOf('/') + 1));
+    const match = fileName.match(/\.([a-z0-9]{2,8})$/i);
+
+    return match ? match[1].toLowerCase() : null;
   }
 }
