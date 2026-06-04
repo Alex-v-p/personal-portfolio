@@ -1,5 +1,6 @@
-import { NgIf } from '@angular/common';
-import { Component, EventEmitter, HostListener, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { DOCUMENT, NgIf } from '@angular/common';
+import { Component, EventEmitter, HostListener, Inject, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 
@@ -11,7 +12,7 @@ import { UiImageLightboxImage } from './ui-image-lightbox.types';
   imports: [NgIf, TranslatePipe],
   templateUrl: './ui-image-lightbox.component.html'
 })
-export class UiImageLightboxComponent implements OnChanges {
+export class UiImageLightboxComponent implements OnChanges, OnDestroy {
   @Input() images: readonly UiImageLightboxImage[] = [];
   @Input() activeIndex = 0;
   @Input() title = 'Image';
@@ -22,15 +23,37 @@ export class UiImageLightboxComponent implements OnChanges {
   protected isZoomed = false;
   protected imageTransformOrigin = 'center center';
 
+  private static openLightboxCount = 0;
+  private static previousBodyOverflow: string | null = null;
+  private static previousDocumentOverflow: string | null = null;
+
+  private readonly trustedDocumentUrls = new Map<string, SafeResourceUrl>();
+  private hasScrollLock = false;
+
+  constructor(
+    private readonly sanitizer: DomSanitizer,
+    @Inject(DOCUMENT) private readonly documentRef: Document,
+  ) {}
+
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['isOpen'] && !this.isOpen) {
-      this.resetZoom();
+    if (changes['isOpen']) {
+      this.syncPageScrollLock();
+
+      if (!this.isOpen) {
+        this.resetZoom();
+      }
     }
 
     if (changes['activeIndex'] || changes['images']) {
       this.ensureSafeActiveIndex();
       this.resetZoom();
     }
+  }
+
+
+
+  ngOnDestroy(): void {
+    this.releasePageScrollLock();
   }
 
   @HostListener('document:keydown.escape')
@@ -83,6 +106,10 @@ export class UiImageLightboxComponent implements OnChanges {
   }
 
   protected get backgroundImage(): string {
+    if (this.selectedImage?.type === 'document') {
+      return 'none';
+    }
+
     const imageUrl = this.selectedImage?.url?.trim();
     if (!imageUrl) {
       return 'none';
@@ -90,6 +117,23 @@ export class UiImageLightboxComponent implements OnChanges {
 
     const escapedUrl = imageUrl.replace(/\"/g, '\\"');
     return `url("${escapedUrl}")`;
+  }
+
+  protected get selectedDocumentUrl(): SafeResourceUrl | null {
+    const selectedItem = this.selectedImage;
+    const url = selectedItem?.url?.trim();
+    if (selectedItem?.type !== 'document' || !url) {
+      return null;
+    }
+
+    const cachedUrl = this.trustedDocumentUrls.get(url);
+    if (cachedUrl) {
+      return cachedUrl;
+    }
+
+    const trustedUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    this.trustedDocumentUrls.set(url, trustedUrl);
+    return trustedUrl;
   }
 
   protected get hasMultipleImages(): boolean {
@@ -144,6 +188,63 @@ export class UiImageLightboxComponent implements OnChanges {
   protected resetZoom(): void {
     this.isZoomed = false;
     this.imageTransformOrigin = 'center center';
+  }
+
+
+  private syncPageScrollLock(): void {
+    if (this.isOpen) {
+      this.applyPageScrollLock();
+      return;
+    }
+
+    this.releasePageScrollLock();
+  }
+
+  private applyPageScrollLock(): void {
+    if (this.hasScrollLock) {
+      return;
+    }
+
+    const body = this.documentRef.body;
+    const documentElement = this.documentRef.documentElement;
+    if (!body || !documentElement) {
+      return;
+    }
+
+    if (UiImageLightboxComponent.openLightboxCount === 0) {
+      UiImageLightboxComponent.previousBodyOverflow = body.style.overflow;
+      UiImageLightboxComponent.previousDocumentOverflow = documentElement.style.overflow;
+      body.style.overflow = 'hidden';
+      documentElement.style.overflow = 'hidden';
+    }
+
+    UiImageLightboxComponent.openLightboxCount += 1;
+    this.hasScrollLock = true;
+  }
+
+  private releasePageScrollLock(): void {
+    if (!this.hasScrollLock) {
+      return;
+    }
+
+    UiImageLightboxComponent.openLightboxCount = Math.max(0, UiImageLightboxComponent.openLightboxCount - 1);
+    this.hasScrollLock = false;
+
+    if (UiImageLightboxComponent.openLightboxCount > 0) {
+      return;
+    }
+
+    const body = this.documentRef.body;
+    const documentElement = this.documentRef.documentElement;
+    if (body) {
+      body.style.overflow = UiImageLightboxComponent.previousBodyOverflow ?? '';
+    }
+    if (documentElement) {
+      documentElement.style.overflow = UiImageLightboxComponent.previousDocumentOverflow ?? '';
+    }
+
+    UiImageLightboxComponent.previousBodyOverflow = null;
+    UiImageLightboxComponent.previousDocumentOverflow = null;
   }
 
   private shiftImage(direction: -1 | 1): void {

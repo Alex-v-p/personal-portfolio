@@ -20,6 +20,7 @@ export class HomeHeroSectionComponent {
   @Input({ required: true }) profile!: Profile;
 
   protected isHeroImageViewerOpen = false;
+  protected isCvViewerOpen = false;
 
   protected get avatarInitials(): string {
     const first = (this.profile.firstName || '').trim().charAt(0);
@@ -61,6 +62,42 @@ export class HomeHeroSectionComponent {
 
   protected get cvPreviewUrl(): string {
     return this.profile.resumePreviewUrl || this.profile.resumeUrl || '';
+  }
+
+
+  protected get cvLightboxDocuments(): UiImageLightboxImage[] {
+    const documentUrl = this.cvPreviewUrl.trim();
+    if (!documentUrl) {
+      return [];
+    }
+
+    return [
+      {
+        id: this.profile.resumeFileId || `${this.profile.id || 'profile'}-cv`,
+        url: documentUrl,
+        alt: this.i18nCvTitle,
+        type: 'document',
+      },
+    ];
+  }
+
+  protected get i18nCvTitle(): string {
+    return this.profile.name ? `${this.profile.name} CV` : 'CV';
+  }
+
+  protected openCvPreview(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!this.cvLightboxDocuments.length) {
+      return;
+    }
+
+    this.isCvViewerOpen = true;
+  }
+
+  protected closeCvViewer(): void {
+    this.isCvViewerOpen = false;
   }
 
   protected get cvDownloadUrl(): string {

@@ -20,17 +20,35 @@
     </svg>
   </button>
 
-  <figure class="ui-image-lightbox-frame" (click)="stopPropagation($event)">
-    <div class="ui-image-lightbox-image-shell">
-      <img
-        [src]="lightboxImage.url"
-        [alt]="lightboxImage.alt || title"
-        class="ui-image-lightbox-image"
-        [class.ui-image-lightbox-image--zoomed]="isZoomed"
-        [style.transform-origin]="imageTransformOrigin"
-        (pointermove)="updateZoomOrigin($event)"
-        (pointerleave)="resetZoom()"
-      />
+  <figure
+    class="ui-image-lightbox-frame"
+    [class.ui-image-lightbox-frame--document]="lightboxImage.type === 'document'"
+    (click)="stopPropagation($event)"
+  >
+    <div
+      class="ui-image-lightbox-image-shell"
+      [class.ui-image-lightbox-document-shell]="lightboxImage.type === 'document'"
+    >
+      <ng-container *ngIf="lightboxImage.type === 'document'; else imageLightboxImage">
+        <iframe
+          *ngIf="selectedDocumentUrl as documentUrl"
+          [src]="documentUrl"
+          [title]="lightboxImage.alt || title"
+          class="ui-image-lightbox-document"
+        ></iframe>
+      </ng-container>
+
+      <ng-template #imageLightboxImage>
+        <img
+          [src]="lightboxImage.url"
+          [alt]="lightboxImage.alt || title"
+          class="ui-image-lightbox-image"
+          [class.ui-image-lightbox-image--zoomed]="isZoomed"
+          [style.transform-origin]="imageTransformOrigin"
+          (pointermove)="updateZoomOrigin($event)"
+          (pointerleave)="resetZoom()"
+        />
+      </ng-template>
 
       <button
         *ngIf="hasMultipleImages"
