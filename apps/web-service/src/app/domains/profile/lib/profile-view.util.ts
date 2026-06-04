@@ -27,6 +27,7 @@ export const createEmptyProfile = (): Profile => ({
   avatarUrl: '',
   heroImageUrl: '',
   resumeUrl: '',
+  resumePreviewUrl: '',
   skills: [],
   expertiseGroups: [],
   introParagraphs: [],

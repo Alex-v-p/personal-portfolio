@@ -48,6 +48,7 @@ export interface Profile {
   avatarUrl?: string;
   heroImageUrl?: string;
   resumeUrl?: string;
+  resumePreviewUrl?: string;
   skills: string[];
   expertiseGroups: ExpertiseGroup[];
   introParagraphs: string[];

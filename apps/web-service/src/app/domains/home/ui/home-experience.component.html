@@ -1,10 +1,15 @@
 <section class="space-y-8 lg:space-y-10">
   <div *ngIf="hasLongBio()" class="hidden space-y-4 pt-4 lg:pt-5 xl:block">
-    <div class="profile-markdown" [innerHTML]="renderedLongBioHtml"></div>
+    <app-ui-section-title [title]="'pages.home.about.title' | translate" description=""></app-ui-section-title>
 
-    <div class="flex flex-wrap gap-3 pt-1">
-      <app-ui-link-button routerLink="/contact">{{ 'common.actions.contactMe' | translate }}</app-ui-link-button>
-      <app-ui-link-button routerLink="/projects" appearance="ghost">{{ 'common.actions.viewProjects' | translate }}</app-ui-link-button>
+    <div class="relative space-y-4 pt-4">
+      <div class="profile-markdown" [innerHTML]="renderedLongBioHtml"></div>
+
+      <div class="flex flex-wrap gap-3 pt-1">
+        <app-ui-link-button routerLink="/contact">{{ 'common.actions.contactMe' | translate }}</app-ui-link-button>
+        <app-ui-link-button routerLink="/projects" appearance="ghost">{{ 'common.actions.viewProjects' | translate }}</app-ui-link-button>
+      </div>
+
     </div>
   </div>
 

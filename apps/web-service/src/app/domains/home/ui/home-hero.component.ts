@@ -7,7 +7,7 @@ import { UiLinkButtonComponent } from '@shared/components/link-button/ui-link-bu
 import { UiIconComponent } from '@shared/icons';
 import { UiImageLightboxComponent } from '@shared/components/image-lightbox/ui-image-lightbox.component';
 import { UiImageLightboxImage } from '@shared/components/image-lightbox/ui-image-lightbox.types';
-import { Profile } from '@domains/profile/model/profile.model';
+import { HeroAction, Profile } from '@domains/profile/model/profile.model';
 import { SocialLink } from '@domains/profile/model/social-link.model';
 
 @Component({
@@ -56,6 +56,33 @@ export class HomeHeroSectionComponent {
 
   protected closeHeroImageViewer(): void {
     this.isHeroImageViewerOpen = false;
+  }
+
+
+  protected get cvPreviewUrl(): string {
+    return this.profile.resumePreviewUrl || this.profile.resumeUrl || '';
+  }
+
+  protected get cvDownloadUrl(): string {
+    return this.profile.resumeUrl || this.profile.resumePreviewUrl || '';
+  }
+
+  protected isHeroCvAction(action: HeroAction): boolean {
+    if (!this.cvDownloadUrl || action.appearance !== 'primary') {
+      return false;
+    }
+
+    const href = (action.href ?? '').trim();
+    const previewUrl = this.cvPreviewUrl.trim();
+    const downloadUrl = this.cvDownloadUrl.trim();
+    const normalizedLabel = action.label.trim().toLowerCase();
+
+    return (
+      (href.length > 0 && (href === previewUrl || href === downloadUrl)) ||
+      normalizedLabel === 'cv' ||
+      normalizedLabel.includes('cv') ||
+      normalizedLabel.includes('resume')
+    );
   }
 
   protected get socialButtons(): Array<{

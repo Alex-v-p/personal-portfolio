@@ -53,15 +53,43 @@
     </div> -->
 
     <div class="flex flex-wrap gap-3">
-      <app-ui-link-button
-        *ngFor="let action of profile.heroActions"
-        [appearance]="action.appearance"
-        [href]="action.href ?? null"
-        [routerLink]="action.routerLink ?? '/'"
-        [openInNewTab]="action.openInNewTab ?? false"
-      >
-        {{ action.label }}
-      </app-ui-link-button>
+      <ng-container *ngFor="let action of profile.heroActions">
+        <ng-container *ngIf="isHeroCvAction(action); else regularHeroAction">
+          <div class="home-hero-cv-action-group" role="group" [attr.aria-label]="'pages.home.hero.cvActions' | translate">
+            <a
+              class="ui-btn ui-btn-primary home-hero-cv-action home-hero-cv-action--open"
+              [href]="cvPreviewUrl"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              <span class="ui-btn-label">{{ 'pages.home.hero.openCv' | translate }}</span>
+              <app-ui-icon name="external-link" size="xs" class="ui-btn-external-icon" [decorative]="true"></app-ui-icon>
+              <span class="sr-only">{{ 'common.actions.opensInNewTab' | translate }}</span>
+            </a>
+
+            <a
+              class="ui-btn ui-btn-primary home-hero-cv-action home-hero-cv-action--download"
+              [href]="cvDownloadUrl"
+              download
+              [attr.aria-label]="'pages.home.hero.downloadCv' | translate"
+              [attr.title]="'pages.home.hero.downloadCv' | translate"
+            >
+              <app-ui-icon name="download" size="sm" [decorative]="true"></app-ui-icon>
+            </a>
+          </div>
+        </ng-container>
+
+        <ng-template #regularHeroAction>
+          <app-ui-link-button
+            [appearance]="action.appearance"
+            [href]="action.href ?? null"
+            [routerLink]="action.routerLink ?? '/'"
+            [openInNewTab]="action.openInNewTab ?? false"
+          >
+            {{ action.label }}
+          </app-ui-link-button>
+        </ng-template>
+      </ng-container>
     </div>
 
   </div>
