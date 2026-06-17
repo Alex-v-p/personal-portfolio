@@ -11,6 +11,7 @@ export interface AdminExperience {
   startDate: string;
   endDate?: string | null;
   isCurrent: boolean;
+  isEnabled: boolean;
   summary: string;
   summaryNl?: string | null;
   descriptionMarkdown?: string | null;
@@ -33,6 +34,7 @@ export interface AdminExperienceUpsert {
   startDate: string;
   endDate?: string | null;
   isCurrent: boolean;
+  isEnabled: boolean;
   summary: string;
   summaryNl?: string | null;
   descriptionMarkdown?: string | null;

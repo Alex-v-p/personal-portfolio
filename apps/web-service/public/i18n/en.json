@@ -177,6 +177,8 @@
       "hero": {
         "coreSkills": "My core skills:",
         "openCv": "Open CV",
+        "downloadCv": "Download CV",
+        "cvActions": "CV actions",
         "cvShort": "CV",
         "greeting": "Hi, I'm {{ name }}"
       },

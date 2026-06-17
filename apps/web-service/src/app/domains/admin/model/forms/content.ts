@@ -99,6 +99,7 @@ export interface AdminExperienceForm {
   startDate: string;
   endDate: string;
   isCurrent: boolean;
+  isEnabled: boolean;
   summary: string;
   summaryNl: string;
   descriptionMarkdown: string;
@@ -178,6 +179,7 @@ export function createEmptyExperienceForm(): AdminExperienceForm {
     startDate: '',
     endDate: '',
     isCurrent: false,
+    isEnabled: true,
     summary: '',
     summaryNl: '',
     descriptionMarkdown: '',
@@ -285,6 +287,7 @@ export function toExperienceForm(experience: AdminExperience): AdminExperienceFo
     startDate: experience.startDate,
     endDate: experience.endDate ?? '',
     isCurrent: experience.isCurrent,
+    isEnabled: experience.isEnabled,
     summary: experience.summary,
     summaryNl: experience.summaryNl ?? '',
     descriptionMarkdown: experience.descriptionMarkdown ?? '',

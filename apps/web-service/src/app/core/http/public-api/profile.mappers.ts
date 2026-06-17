@@ -149,6 +149,7 @@ export function normalizeProfile(profile: ProfileApi): Profile {
     avatarUrl: avatarMedia?.url ?? '',
     heroImageUrl: heroImageMedia?.url ?? '',
     resumeUrl: resumeMedia?.downloadUrl ?? resumeMedia?.url ?? '',
+    resumePreviewUrl: resumeMedia?.url ?? resumeMedia?.downloadUrl ?? '',
     skills: Array.isArray(profile.skills) ? profile.skills : [],
     expertiseGroups: normalizeExpertiseGroups(profile.expertiseGroups),
     introParagraphs,

@@ -18,6 +18,7 @@ class AdminRepositoryExperienceMappingMixin:
             start_date=experience.start_date.isoformat(),
             end_date=experience.end_date.isoformat() if experience.end_date else None,
             is_current=experience.is_current,
+            is_enabled=experience.is_enabled,
             summary=experience.summary,
             summary_nl=experience.summary_nl,
             description_markdown=experience.description_markdown,

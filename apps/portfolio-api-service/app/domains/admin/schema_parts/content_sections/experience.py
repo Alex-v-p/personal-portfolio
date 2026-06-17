@@ -15,6 +15,7 @@ class AdminExperienceUpsertIn(ApiSchema):
     start_date: str
     end_date: str | None = None
     is_current: bool = False
+    is_enabled: bool = True
     summary: str = Field(min_length=1)
     summary_nl: str | None = None
     description_markdown: str | None = None
@@ -34,6 +35,7 @@ class AdminExperienceOut(ApiSchema):
     start_date: str
     end_date: str | None = None
     is_current: bool
+    is_enabled: bool
     summary: str
     summary_nl: str | None = None
     description_markdown: str | None = None

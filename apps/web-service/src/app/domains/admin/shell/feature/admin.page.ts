@@ -346,7 +346,7 @@ export class AdminPageComponent implements OnInit, OnDestroy {
           this.skillCategoryForm = this.selectedSkillCategoryId ? toSkillCategoryForm(this.referenceData.skillCategories.find((item) => item.id === this.selectedSkillCategoryId)!) : createEmptySkillCategoryForm();
           this.skillForm = this.selectedSkillId ? toSkillForm(this.referenceData.skills.find((item) => item.id === this.selectedSkillId)!) : createEmptySkillForm();
           this.blogTagForm = this.selectedBlogTagId ? toBlogTagForm(this.referenceData.blogTags.find((item) => item.id === this.selectedBlogTagId)!) : createEmptyBlogTagForm();
-          this.experienceForm = this.selectedExperienceId ? toExperienceForm(this.experiences.find((item) => item.id === this.selectedExperienceId)!) : createEmptyExperienceForm();
+          this.experienceForm = this.selectedExperienceId ? toExperienceForm(this.experiences.find((item) => item.id === this.selectedExperienceId)!) : this.createNewExperienceFormWithNextSortOrder();
           this.navigationItemForm = this.selectedNavigationItemId ? toNavigationItemForm(this.navigationItems.find((item) => item.id === this.selectedNavigationItemId)!) : createEmptyNavigationItemForm();
           this.adminUserForm = this.selectedAdminUserId ? toAdminUserForm(this.adminUsers.find((item) => item.id === this.selectedAdminUserId)!) : createEmptyAdminUserForm();
           this.githubSnapshotForm = this.selectedGithubSnapshotId ? toGithubSnapshotForm(this.githubSnapshots.find((item) => item.id === this.selectedGithubSnapshotId)!) : createEmptyGithubSnapshotForm();
@@ -930,8 +930,22 @@ export class AdminPageComponent implements OnInit, OnDestroy {
 
   protected startNewExperience(): void {
     this.selectedExperienceId = null;
-    this.experienceForm = createEmptyExperienceForm();
+    this.experienceForm = this.createNewExperienceFormWithNextSortOrder();
     this.experienceUploadForm = createEmptyScopedUploadForm();
+  }
+
+  private createNewExperienceFormWithNextSortOrder(): AdminExperienceForm {
+    const form = createEmptyExperienceForm();
+    form.sortOrder = this.nextExperienceSortOrder();
+    return form;
+  }
+
+  private nextExperienceSortOrder(): number {
+    if (!this.experiences.length) {
+      return 0;
+    }
+
+    return Math.max(...this.experiences.map((experience) => Number(experience.sortOrder) || 0)) + 1;
   }
 
   protected toggleExperienceSkill(skillId: string): void {
@@ -948,12 +962,13 @@ export class AdminPageComponent implements OnInit, OnDestroy {
       startDate: this.experienceForm.startDate,
       endDate: this.experienceForm.endDate || null,
       isCurrent: this.experienceForm.isCurrent,
+      isEnabled: this.experienceForm.isEnabled,
       summary: this.experienceForm.summary,
       summaryNl: this.experienceForm.summaryNl || null,
       descriptionMarkdown: this.experienceForm.descriptionMarkdown || null,
       descriptionMarkdownNl: this.experienceForm.descriptionMarkdownNl || null,
       logoFileId: this.experienceForm.logoFileId || null,
-      sortOrder: this.experienceForm.sortOrder,
+      sortOrder: Number(this.experienceForm.sortOrder) || 0,
       skillIds: [...this.experienceForm.skillIds],
     };
     const request$ = this.selectedExperienceId

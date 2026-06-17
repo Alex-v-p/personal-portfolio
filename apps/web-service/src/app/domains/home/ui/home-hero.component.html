@@ -53,15 +53,41 @@
     </div> -->
 
     <div class="flex flex-wrap gap-3">
-      <app-ui-link-button
-        *ngFor="let action of profile.heroActions"
-        [appearance]="action.appearance"
-        [href]="action.href ?? null"
-        [routerLink]="action.routerLink ?? '/'"
-        [openInNewTab]="action.openInNewTab ?? false"
-      >
-        {{ action.label }}
-      </app-ui-link-button>
+      <ng-container *ngFor="let action of profile.heroActions">
+        <ng-container *ngIf="isHeroCvAction(action); else regularHeroAction">
+          <div class="home-hero-cv-action-group" role="group" [attr.aria-label]="'pages.home.hero.cvActions' | translate">
+            <button
+              type="button"
+              class="ui-btn ui-btn-primary home-hero-cv-action home-hero-cv-action--open"
+              (click)="openCvPreview($event)"
+            >
+              <span class="ui-btn-label">{{ 'pages.home.hero.openCv' | translate }}</span>
+              <app-ui-icon name="document" size="xs" class="ui-btn-external-icon" [decorative]="true"></app-ui-icon>
+            </button>
+
+            <a
+              class="ui-btn ui-btn-primary home-hero-cv-action home-hero-cv-action--download"
+              [href]="cvDownloadUrl"
+              [attr.download]="cvFileName"
+              [attr.aria-label]="'pages.home.hero.downloadCv' | translate"
+              [attr.title]="'pages.home.hero.downloadCv' | translate"
+            >
+              <app-ui-icon name="download" size="sm" [decorative]="true"></app-ui-icon>
+            </a>
+          </div>
+        </ng-container>
+
+        <ng-template #regularHeroAction>
+          <app-ui-link-button
+            [appearance]="action.appearance"
+            [href]="action.href ?? null"
+            [routerLink]="action.routerLink ?? '/'"
+            [openInNewTab]="action.openInNewTab ?? false"
+          >
+            {{ action.label }}
+          </app-ui-link-button>
+        </ng-template>
+      </ng-container>
     </div>
 
   </div>
@@ -151,4 +177,11 @@
   [images]="heroLightboxImages"
   [title]="profile.name || profile.heroTitle || ('common.images.profileImage' | translate)"
   (closed)="closeHeroImageViewer()"
-></app-ui-image-lightbox> 
+></app-ui-image-lightbox>
+
+<app-ui-image-lightbox
+  [isOpen]="isCvViewerOpen"
+  [images]="cvLightboxDocuments"
+  [title]="i18nCvTitle"
+  (closed)="closeCvViewer()"
+></app-ui-image-lightbox>
